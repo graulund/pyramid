@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>IRC Watcher</title>
+    <link rel="stylesheet" href="/css/ircw.css">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" sizes="129x129" href="/img/touchicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/img/touchicon.png" type="image/png">
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/moment.min.js"></script>
+    <script src="/js/moment-timezone.min.js"></script>
+    <script src="/js/livestamp.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/ircw.js"></script>
+</head>
+<body>
+<div id="container">
+    <header>
+        <h1><a href="/">IRC Watcher</a></h1>
+    </header>
+    <section id="content">
+        <%- body %>
+    </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,236 @@
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	line-height: 1.6em;
+	color: #000;
+	background-color: #fff;
+	margin: 10px;
+	-webkit-font-smoothing: antialiased;
+}
+
+@media only screen and (min-width: 600px){
+	body {
+		font-size: 125%;
+	}
+}
+
+strong, dt {
+	font-weight: bold;
+}
+em {
+	font-style: italic;
+}
+
+a {
+	color: #29d;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+h1 {
+	font-size: 150%;
+	margin: 10px 0;
+}
+
+h1 a {
+	color: inherit;
+}
+
+h2 {
+	font-size: 125%;
+	margin: 10px 0;
+}
+
+.error {
+	background-color: #eee;
+	padding: 20px;
+}
+
+.error h1 {
+	font-size: 125%;
+}
+
+.error h2 {
+	font-size: 100%;
+}
+
+header {
+	border-bottom: 2px solid #ccc;
+	padding: 0 10px 0;
+	margin: 0 -10px 5px;
+}
+
+#lastseen {
+	list-style-type: none;
+	padding: 0;
+	margin: 10px -10px;
+}
+
+#lastseen li {
+	padding: 3px 50px 3px 10px;
+	position: relative;
+}
+
+#lastseen li:not(.bestfriend){
+	font-size: 85%;
+	line-height: 1.6em;
+}
+
+#lastseen a {
+	color: inherit;
+}
+
+#lastseen .anew {
+	margin-top: 20px;
+}
+
+#lastseen .subhead {
+	margin: 20px 0 5px;
+	font-size: 85%;
+	text-transform: uppercase;
+	color: #999;
+}
+
+#lastseen .subhead h2 {
+	font-size: 100%;
+	margin: 0;
+	line-height: 1em;
+}
+
+#lastseen .ts {
+	position: absolute;
+	top: 3px;
+	right: 10px;
+	text-align: right;
+}
+
+#lastseen .l {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+#lastseen time, #lastseen .ts, #lastseen .channel {
+	opacity: .5;
+}
+
+#lastseen .flash, #lastseen .flash[style] {
+	background-color: #c00 !important;
+	color: #fff !important;
+}
+
+pre#lines {
+	line-height: 1.3em;
+	font-size: 13px;
+	overflow-x: auto;
+}
+
+ul#lines {
+	list-style-type: none;
+	padding: 0;
+	font-size: 14px;
+	line-height: 1.6em;
+}
+
+ul#lines time, ul#lines .channel {
+	color: #999;
+}
+
+ul#lines time, ul#lines .author, ul#lines .channel {
+	padding-right: 1ex;
+}
+
+ul#lines li.splitter {
+	text-transform: uppercase;
+	font-weight: bold;
+	color: #999;
+	padding: 20px 0 20px 5em;
+	margin: 10px 0;
+	border: 3px solid #ccc;
+	border-width: 3px 0;
+}
+
+ul#lines li.splitterstart {
+	border: none;
+	padding-top: 0;
+	padding-left: 0;
+	margin: 0;
+}
+
+ul#lines li.msg {
+	display: table;
+}
+
+ul#lines li.msg span, ul#lines li.msg strong, ul#lines li.msg time, ul#lines li.msg .channel {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: left;
+}
+
+ul#lines li.action {
+	font-style: italic;
+}
+
+ul.chart li {
+	position: relative;
+	padding: 5px 10px;
+	margin: 0 0 1px;
+	line-height: 1.2em;
+}
+
+ul.chart li:nth-child(odd) {
+	background-color: #fafafa;
+}
+
+ul.chart li span.p {
+	position: absolute;
+	top: 5px;
+	right: 10px;
+	z-index: 2;
+	text-align: right;
+}
+
+ul.chart li span.t {
+	position: relative;
+	display: block;
+	z-index: 3;
+	width: 83%;
+	/*padding: 0 0 0 30px;*/
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+ul.chart li span.t span.a {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+ul.chart li span.b {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	background-color: #dddde5;
+	z-index: 1;
+}
+
+.statscalendar {
+	overflow: hidden;
+}
+
+.statscalendar .scitem {
+	float: left;
+	width: 23%;
+	margin-right: 2%;
+}
+
+ul.statsuserlist {
+	font-size: 80%;
+	padding: 0;
+	list-style-type: none;
+	line-height: 1.3em;
+}
