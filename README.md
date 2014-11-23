@@ -3,7 +3,11 @@ Pyramid
 
 ## About
 
-Get real time status of your friends on any IRC network. More description and screenshots to come.
+Get real time status of your friends on any IRC network. It looks like this:
+
+![Screenshot of product in operation](https://i.imgur.com/5AmIXjb.png)
+
+It works in real time by directly connecting a Node IRC connection to a Socket.io connection. If you click on one of the usernames, you can see what they've said in all the rooms you monitor in.
 
 ## Installation instructions
 
