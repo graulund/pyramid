@@ -22,6 +22,19 @@ module.exports = function(app, config, util, log, irc){
 		})
 	})
 
+	// All page ---------------------------------------------------------------
+
+	app.get("/all", function(req, res) {
+		res.render("all", {
+			// Variables
+			lines: [],
+			timezone: config.timeZone,
+			// Includes
+			moment: moment,
+			h: h
+		})
+	})
+
 	// User page --------------------------------------------------------------
 
 	app.get("/user/:username", function(req, res, next) {

@@ -182,10 +182,14 @@ var ROOT_PATHNAME = "/";
 
 			// USER PAGE:
 
-			var matches = pn.substr(ROOT_PATHNAME.length).match(/^user\/([^\/]+)/)
-			if(matches){
-				var username = matches[1], linesEl = $("#lines")
-				if(linesEl.length > 0 && details.username.toLowerCase() == username.toLowerCase()){
+			var upMatches = pn.substr(ROOT_PATHNAME.length).match(/^user\/([^\/]+)/)
+			var allMatches = pn.substr(ROOT_PATHNAME.length).match(/^all\/?$/)
+			if(upMatches || allMatches){
+				var username = upMatches ? upMatches[1] : "", linesEl = $("#lines")
+				if(
+					linesEl.length > 0 &&
+					(allMatches || details.username.toLowerCase() == username.toLowerCase())
+				){
 					// This is the user page for this person!
 
 					if(!("message" in details)){
@@ -194,6 +198,9 @@ var ROOT_PATHNAME = "/";
 					if(!("isAction" in details)){
 						details.isAction = false
 					}
+
+					// Clear waiting message
+					$("li.waiting", linesEl).hide()
 
 					// Are we scrolled to the bottom?
 					var scrolledDown = areWeScrolledToTheBottom()

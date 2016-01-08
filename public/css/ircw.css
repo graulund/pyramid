@@ -173,6 +173,13 @@ ul#lines li.action {
 	font-style: italic;
 }
 
+ul#lines li.waiting {
+	text-align: center;
+	color: #999;
+	font-size: 125%;
+	margin: 80px 0;
+}
+
 ul.chart li {
 	position: relative;
 	padding: 5px 10px;
