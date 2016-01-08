@@ -9,7 +9,7 @@ module.exports = function(config, util, log, irc){
 	var express  = require("express")
 	//var favicon  = require("serve-favicon")
 	var partials = require("express-partials")
-
+	var fs       = require("fs")
 
 	// The web app
 	var app = express()
@@ -18,6 +18,15 @@ module.exports = function(config, util, log, irc){
 	//app.use(favicon());
 	app.use(express.static(path.join(__dirname, "public")));
 	app.use(partials());
+
+	// Authentication if required
+	if(
+		typeof config.webUsername == "string" && config.webUsername != "" &&
+		typeof config.webPassword == "string" && config.webPassword != ""
+	){
+		var basicAuth = require("basic-auth-connect");
+		app.use(basicAuth(config.webUsername, config.webPassword));
+	}
 
 	// Routes
 	require("./routes")(app, config, util, log, irc)
@@ -56,15 +65,35 @@ module.exports = function(config, util, log, irc){
 
 	// --------------------------------------------------------
 	// Server
+	// (HTTPS if specified)
 
-	app.server = app.listen(config.webPort, function() {
-		console.log("Listening on port %d", app.server.address().port);
-	});
+	var server;
+
+	if(
+		typeof config.sslKeyPath == "string" && config.sslKeyPath != "" &&
+		typeof config.sslCertPath == "string" && config.sslCertPath != ""
+	){
+		// Secure HTTPS server
+		var https = require("https")
+		server = https.createServer({
+			key: fs.readFileSync(path.join(__dirname, config.sslKeyPath)),
+			cert: fs.readFileSync(path.join(__dirname, config.sslCertPath))
+		}, app).listen(config.webPort, undefined, undefined, function(){
+			console.log("Listening securely on port %d", server.address().port);
+		});
+	} else {
+		// Plain HTTP server
+		server = app.listen(config.webPort, function() {
+			console.log("Listening on port %d", server.address().port);
+		});
+	}
+
+	app.server = server;
+
 	var io = require("socket.io")(app.server);
 
 	// Update IRC object with IO support
 	irc.setIo(io)
-
 
 	return {
 		app: app
