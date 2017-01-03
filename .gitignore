@@ -5,10 +5,12 @@ node_modules/
 
 # Run-time data
 config.js
+config-prod.js
 lastseen.json
 public/logs/
 *.pid
 *.seed
+npm-debug.log
 
 # OS
 .DS_Store

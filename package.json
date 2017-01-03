@@ -9,7 +9,7 @@
     "ejs": "^1.0.0",
     "express": "^4.8.5",
     "express-partials": "^0.3.0",
-    "irc": "^0.3.7",
+    "irc": "^0.5.2",
     "lazy": "^1.0.11",
     "mkdirp": "^0.5.0",
     "moment-timezone": "^0.2.1",
@@ -18,6 +18,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node pyramid.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Andy Graulund <andy@graulund.com>",
