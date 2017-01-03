@@ -49,8 +49,8 @@ module.exports = function(app, config, util, log, irc){
 				}
 
 				var lines = h.convertLogFileToLineObjects(data)
-				res.render('user.ejs', {
-					username: req.params.username,
+				res.render("log.ejs", {
+					heading: req.params.username,
 					lines: lines,
 					lineNum: lineNum,
 					timezone: config.timeZone,
@@ -81,5 +81,41 @@ module.exports = function(app, config, util, log, irc){
 				h: h
 			})
 		})
+	})
+
+	// Logs page -------------------------------------------------------------
+
+	app.get("/logs/:server/:channel/:date", function(req, res, next){
+
+		if(req.params.server && req.params.channel && req.params.date){
+			var date = moment(req.params.date);
+
+			if (!date.isValid()) {
+				next();
+				return;
+			}
+
+			log.getChatroomLinesForDay(req.params.server, req.params.channel, date,
+					function(err, data){
+
+				if(err){
+					next(err)
+					return
+				}
+
+				var lines = h.convertLogFileToLineObjects(data, util.ymd(date))
+				res.render("log.ejs", {
+					heading: req.params.channel,
+					lines: lines,
+					timezone: config.timeZone,
+					moment: moment,
+					h: h
+					// Always pass in h :D
+				})
+			})
+
+		} else {
+			next();
+		}
 	})
 }

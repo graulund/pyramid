@@ -7,7 +7,7 @@ node_modules/
 config.js
 config-prod.js
 lastseen.json
-public/logs/
+public/data/
 *.pid
 *.seed
 npm-debug.log

@@ -23,7 +23,7 @@ module.exports = function(config, util){
 		username = username.replace(/[^a-zA-Z0-9_-]+/, "")
 
 		// Log dir
-		var logDir = path.join(__dirname, "public", "logs", "_global", util.ym(options.d))
+		var logDir = path.join(__dirname, "public", "data", "logs", "_global", util.ym(options.d))
 
 		fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data){
 
@@ -41,6 +41,31 @@ module.exports = function(config, util){
 			} else {
 				done(null, lines.slice(-1*limit).join("\n"), lines.length-1)
 			}
+		})
+
+	}
+
+	var getChatroomLinesForDay = function(server, channel, date, done){
+
+		// Sanitizing input
+		server = server.replace(/[^a-zA-Z0-9_-]+/, "")
+		channel = channel.replace(/[^a-zA-Z0-9_-]+/, "")
+
+		// Log dir
+		var logDir = path.join(
+			__dirname, "public", "data", "logs",
+			server, channel, util.ym(date)
+		)
+
+		fs.readFile(path.join(logDir, util.ymd(date) + ".txt"), function(err, data){
+
+			if(err){
+				done(err)
+				return
+			}
+
+			data = data.toString(config.encoding)
+			done(null, data)
 		})
 
 	}
@@ -198,6 +223,7 @@ module.exports = function(config, util){
 
 	return {
 		getLastLinesFromUser: getLastLinesFromUser,
+		getChatroomLinesForDay: getChatroomLinesForDay,
 		parseLogLine: parseLogLine,
 		statsFromFile: statsFromFile,
 		statsFromLastDays: statsFromLastDays

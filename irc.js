@@ -147,7 +147,7 @@ module.exports = function(config, util, log){
 		}
 
 		// Determine log folders
-		var logDir = path.join(__dirname, "public", "logs")
+		var logDir = path.join(__dirname, "public", "data", "logs")
 		var ymText = util.ym(d)
 		if(filename){
 			logDir = path.join(logDir, "_global", ymText)
@@ -175,7 +175,7 @@ module.exports = function(config, util, log){
 		})
 	}
 
-	var updateLastSeen = function(chobj, username, date, message, isAction){
+	var updateLastSeen = function(chobj, username, date, message, isAction, isBestFriend){
 		lastSeen[username] = date
 		if("emit" in io){
 			io.emit("msg", {
@@ -184,7 +184,8 @@ module.exports = function(config, util, log){
 				username: username,
 				date: date,
 				message: message,
-				isAction: isAction
+				isAction: isAction,
+				isBestFriend: isBestFriend
 			})
 		} else {
 			console.warn("Tried to emit msg event, but io object was not available")
@@ -224,7 +225,8 @@ module.exports = function(config, util, log){
 		// Is this from a person among our friends? Note down "last seen" time.
 		var allFriends = config.bestFriends.concat(config.friends)
 		if(allFriends.indexOf(from.toLowerCase()) >= 0){
-			updateLastSeen(chobj, from, new Date(), message, isAction)
+			var isBestFriend = config.bestFriends.indexOf(from.toLowerCase()) >= 0;
+			updateLastSeen(chobj, from, new Date(), message, isAction, isBestFriend)
 
 			// Add to specific logs
 			logLine(chobj, line, null, from.toLowerCase())

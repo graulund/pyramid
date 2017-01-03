@@ -84,11 +84,11 @@ module.exports = function(log){
 		return Math.round(Math.max(5, Math.min(90, secondsPassed/5040+30/7)) * 100) / 100
 	}
 
-	var convertLogFileToLineObjects = function(data){
+	var convertLogFileToLineObjects = function(data, date){
 		var lines = data.split("\n")
 		for(var i = 0; i < lines.length; i++){
 			// Convert item to obj instead of str
-			lines[i] = log.parseLogLine(lines[i])
+			lines[i] = log.parseLogLine(lines[i], date)
 		}
 		return lines
 	}

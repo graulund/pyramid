@@ -1,11 +1,17 @@
 <%
     // IRC WATCHER
-    // User page
+    // Generic log page
 
     var lastTimeStamp = null, ymd = "YYYY-MM-DD", hms = "HH:mm:ss"
+
+    if (typeof lineNum === "undefined") {
+        lineNum = 0;
+    }
 %>
-<h1><%= h.ucfirst(username) %></h1>
+<h1><%= heading %></h1>
+<% if (lineNum) { %>
 <p>Total lines: <span id="linenum"><%= lineNum %></span></p>
+<% } %>
 <ul id="lines"><%
     for(var i = 0; i < lines.length; i++){
 
