@@ -57,6 +57,45 @@ function scrollToTheBottom(){
 	$("body").scrollTop($("#content").height())
 }
 
+function onLivestampChange(event, from, to){
+	var dt = $(this).attr("datetime"),
+		li = $(this).parents("li"),
+		m = moment(dt).tz(DEFAULT_TIMEZONE),
+		ms = moment(new Date()).tz(DEFAULT_TIMEZONE).diff(m),
+		timeInfo = formatTime(ms),
+		className = "",//timeClassName(timeInfo),
+		sts = m.format("H:mm"),
+		ym = moment().tz(DEFAULT_TIMEZONE).subtract(1, "days").startOf("day")
+
+	if(timeInfo.day == 1 && ym < m){
+		sts = "yesterday " + sts
+	}
+
+	// If the date is before yesterday midnight, it's earlier than yesterday.
+	if(ym > m){
+		sts = ""
+	}
+
+	$(".ts", li).text(sts)
+
+	// Color
+	var backgroundOpacity = timeOpacity(ms/1000), textColor = "#000",
+		opacity = timeTextOpacity(ms/1000)
+
+	if(backgroundOpacity >= 0.3){
+		textColor = "#fff"
+	}
+
+	li.css("background-color", "rgba(" +
+		DEFAULT_COLOR_RGB + "," +
+		round2(backgroundOpacity) +
+	")")
+	li.css("color", textColor)
+	li.css("opacity", round2(opacity))
+
+	//console.log("Livestamp changing", arguments, formatTime(ms))
+}
+
 var DEFAULT_COLOR_RGB = "0,0,51";
 var DEFAULT_TIMEZONE = "Europe/Copenhagen";
 var ROOT_PATHNAME = "/";
@@ -71,43 +110,7 @@ var ROOT_PATHNAME = "/";
 
 		// LIVESTAMP CHANGING -------------------------------------------------
 
-		$("time", ls).on("change.livestamp", function(event, from, to){
-			var dt = $(this).attr("datetime"),
-				li = $(this).parents("li"),
-				m = moment(dt).tz(DEFAULT_TIMEZONE),
-				ms = moment(new Date()).tz(DEFAULT_TIMEZONE).diff(m),
-				timeInfo = formatTime(ms),
-				className = "",//timeClassName(timeInfo),
-				sts = m.format("H:mm"),
-				ym = moment().tz(DEFAULT_TIMEZONE).subtract(1, "days").startOf("day")
-
-			if(timeInfo.day == 1 && ym < m){
-				sts = "yesterday " + sts
-			}
-			// If the date is before yesterday midnight, it's earlier than yesterday.
-			if(ym > m){
-				sts = ""
-			}
-
-			$(".ts", li).text(sts)
-
-			// Color
-			var backgroundOpacity = timeOpacity(ms/1000), textColor = "#000",
-				opacity = timeTextOpacity(ms/1000)
-
-			if(backgroundOpacity >= 0.3){
-				textColor = "#fff"
-			}
-
-			li.css("background-color", "rgba(" +
-				DEFAULT_COLOR_RGB + "," +
-				round2(backgroundOpacity) +
-			")")
-			li.css("color", textColor)
-			li.css("opacity", round2(opacity))
-
-			//console.log("Livestamp changing", arguments, formatTime(ms))
-		})
+		$("time", ls).on("change.livestamp", onLivestampChange)
 
 		// MESSAGE RECEIVED ---------------------------------------------------
 
@@ -144,10 +147,42 @@ var ROOT_PATHNAME = "/";
 					isNew = true
 					el = $("<li></li>").attr("id", details.username)
 					el.html(
-						'<div class="l"><strong>' + ucfirst(details.username) + '</strong> ' +
-							'<time></time> <span class="channel"></span></div> <div class="ts"></div>'
-					)
-					el.appendTo(ls)
+						'<div class="l"><strong>' + details.username + '</strong> ' +
+						'<time></time> <span class="channel"></span></div> <div class="ts"></div>'
+					);
+					// Insert alphabetically
+					var lis = ls.children("li");
+					var inserted = false;
+
+					if (lis.length) {
+						lis.each(function(i) {
+
+							if (inserted) {
+								return;
+							}
+
+							var n = lis[i+1], me = $(this);
+
+							var un = details.username.toLowerCase();
+							var id = this.id.toLowerCase();
+
+							if (id > un) {
+								me.before(el);
+								inserted = true;
+								return;
+							}
+
+							if (
+								id < un &&
+								(!n || n.id.toLowerCase() > un)
+							) {
+								me.after(el);
+								inserted = true;
+							}
+						});
+					} else {
+						ls.append(el);
+					}
 				}
 
 				el.css("background-color", "rgba(" +
@@ -164,6 +199,7 @@ var ROOT_PATHNAME = "/";
 
 				if(isNew){
 					tel.livestamp(m)
+					tel.on("change.livestamp", onLivestampChange)
 				} else {
 					tel.attr("data-livestamp", m.format("X"))
 				}
