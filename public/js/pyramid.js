@@ -150,6 +150,11 @@ var ROOT_PATHNAME = "/";
 						'<div class="l"><strong>' + details.username + '</strong> ' +
 						'<time></time> <span class="channel"></span></div> <div class="ts"></div>'
 					);
+
+					if (details.isBestFriend) {
+						el.attr("class", "bestfriend");
+					}
+
 					// Insert alphabetically
 					var lis = ls.children("li");
 					var inserted = false;

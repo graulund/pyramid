@@ -176,7 +176,8 @@ module.exports = function(config, util, log){
 	}
 
 	var updateLastSeen = function(chobj, username, date, message, isAction, isBestFriend){
-		lastSeen[username] = date
+		var channelName = channelFullName(chobj)
+		lastSeen[username] = { channel: channelName, date: date }
 		if("emit" in io){
 			io.emit("msg", {
 				channel: channelFullName(chobj),

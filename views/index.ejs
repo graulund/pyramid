@@ -7,38 +7,20 @@
     // Order by name
     var usernames = Object.keys(lastSeen)
     usernames.sort()
-
-    // Who's our best friends?
-    var bfusernames = []
-    i = usernames.length
-    while(i--){
-        username = usernames[i]
-        if(bestFriends.indexOf(username) >= 0){
-            bfusernames.unshift(username)
-            usernames.splice(i, 1)
-        }
-    }
-    var firstNonBf = usernames[0]
-    usernames = bfusernames.concat(usernames)
 %>
 <ul id="lastseen"><%
     for(i = 0; i < usernames.length; i++){
         username = usernames[i]
-        var date = lastSeen[username],
+        var data = lastSeen[username],
+            date = data.date,
+            channel = data.channel,
             m = moment(date).tz(timezone),
             ms = moment(new Date()).diff(m),
             timeInfo = h.formatTime(ms),
             className = "",//h.timeClassName(timeInfo),
             ts = m.format("H:mm:ss"),
             sts = m.format("H:mm"),
-            ym = moment().tz(timezone).subtract(1, "days").startOf("day")
-
-
-        // Create subheader
-        if(username == firstNonBf){
-            %>
-    <li class="subhead"><h2>Others</h2></li><%
-        }
+            ym = moment().tz(timezone).subtract(1, "days").startOf("day");
 
         if(timeInfo.day >= 3){
             // Skip people who haven't been here for a certain amount of days :(
@@ -101,7 +83,8 @@
             ts
         %>"><%=
             ts
-        %></time> <span class="channel"><%
+        %></time> <span class="channel">in <%=
+            channel
         %></span></div> <div class="ts"><%=
             sts
         %></div></li><%
