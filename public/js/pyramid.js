@@ -147,7 +147,7 @@ var ROOT_PATHNAME = "/";
 					isNew = true
 					el = $("<li></li>").attr("id", details.username)
 					el.html(
-						'<div class="l"><strong>' + details.username + '</strong> ' +
+						'<div class="l"><strong><a href="/user/' + details.username.toLowerCase() + '">' + details.username + '</a></strong> ' +
 						'<time></time> <span class="channel"></span></div> <div class="ts"></div>'
 					);
 
