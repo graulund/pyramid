@@ -14,13 +14,16 @@ module.exports = function(config, util, log){
 	// Load last seen info
 	var lastSeenFileName = path.join(__dirname, "lastseen.json")
 
-	if(!fs.exists(lastSeenFileName)){
-		fs.openSync(lastSeenFileName, "w")
+	var lastSeenJson = "";
+	try {
+		lastSeenJson = fs.readFileSync(lastSeenFileName);
+	} catch(err) {
+		// Create empty file
+		var fd = fs.openSync(lastSeenFileName, "w");
+		fs.closeSync(fd);
 	}
 
-	var lastSeenJson = fs.readFileSync(lastSeenFileName)
-	var lastSeen = {}
-
+	var lastSeen = {};
 	try {
 		lastSeen = JSON.parse(lastSeenJson)
 	} catch(e){}
