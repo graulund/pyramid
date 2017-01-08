@@ -6,8 +6,10 @@ node_modules/
 # Run-time data
 config.js
 config-prod.js
-lastseen.json
+lastSeenChannels.json
+lastSeenUsers.json
 public/data/
+public/dist/
 *.pid
 *.seed
 npm-debug.log

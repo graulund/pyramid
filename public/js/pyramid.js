@@ -1,3 +1,4 @@
+/*
 function ucfirst(str){
 	var f = str.charAt(0)
 		.toUpperCase();
@@ -96,10 +97,13 @@ function onLivestampChange(event, from, to){
 	//console.log("Livestamp changing", arguments, formatTime(ms))
 }
 
+*/
+
 var DEFAULT_COLOR_RGB = "0,0,51";
 var DEFAULT_TIMEZONE = "Europe/Copenhagen";
 var ROOT_PATHNAME = "/";
 
+/*
 (function($){
 
 	$(document).ready(function(){
@@ -128,7 +132,11 @@ var ROOT_PATHNAME = "/";
 			}
 
 			// DEBUG
-			//console.log("MSG", details)
+			console.log("MSG", details)
+			console.log(
+				"%c" + details.username + " in " + details.channel + ": %c" +
+				details.message, "font-size: 300%; font-weight: bold", "font-size: 300%"
+			);
 
 			// Event time
 			var m = moment(details.date).tz(DEFAULT_TIMEZONE)
@@ -285,3 +293,5 @@ var ROOT_PATHNAME = "/";
 
 
 })(jQuery)
+
+*/

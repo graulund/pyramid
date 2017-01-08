@@ -1,5 +1,6 @@
 body {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 85%;
 	line-height: 1.6em;
 	color: #000;
 	background-color: #fff;
@@ -7,11 +8,11 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-@media only screen and (min-width: 600px){
+/* @media only screen and (min-width: 600px){
 	body {
 		font-size: 125%;
 	}
-}
+} */
 
 strong, dt {
 	font-weight: bold;
@@ -28,6 +29,10 @@ a {
 
 a:hover {
 	text-decoration: underline;
+}
+
+a.invisible {
+	font-weight: normal;
 }
 
 h1 {
@@ -63,60 +68,65 @@ header {
 	margin: 0 -10px 5px;
 }
 
-#lastseen {
+.itemlist {
 	list-style-type: none;
 	padding: 0;
 	margin: 10px -10px;
 }
 
-#lastseen li {
+.itemlist li {
 	padding: 3px 50px 3px 10px;
 	position: relative;
 }
 
-#lastseen li:not(.bestfriend){
-	font-size: 85%;
+.itemlist li:not(.bestfriend){
+	/*font-size: 85%;*/
 	line-height: 1.6em;
 }
 
-#lastseen a {
+.itemlist li.bestfriend {
+	font-size: 125%;
+	padding-right: 60px;
+}
+
+.itemlist a {
 	color: inherit;
 }
 
-#lastseen .anew {
+.itemlist .anew {
 	margin-top: 20px;
 }
 
-#lastseen .subhead {
+.itemlist .subhead {
 	margin: 20px 0 5px;
-	font-size: 85%;
+	/*font-size: 85%;*/
 	text-transform: uppercase;
 	color: #999;
 }
 
-#lastseen .subhead h2 {
+.itemlist .subhead h2 {
 	font-size: 100%;
 	margin: 0;
 	line-height: 1em;
 }
 
-#lastseen .ts {
+.itemlist .ts {
 	position: absolute;
 	top: 3px;
 	right: 10px;
 	text-align: right;
 }
 
-#lastseen .l {
+.itemlist .l {
 	white-space: nowrap;
 	overflow: hidden;
 }
 
-#lastseen time, #lastseen .ts, #lastseen .channel {
+.itemlist time, .itemlist .ts, .itemlist .channel, .itemlist .msg {
 	opacity: .5;
 }
 
-#lastseen .flash, #lastseen .flash[style] {
+.itemlist .flash, .itemlist .flash[style] {
 	background-color: #c00 !important;
 	color: #fff !important;
 }
@@ -240,4 +250,103 @@ ul.statsuserlist {
 	padding: 0;
 	list-style-type: none;
 	line-height: 1.3em;
+}
+
+.sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 300px;
+	padding: 0 10px;
+	background-color: #fff;
+	overflow: auto;
+}
+
+.sidebar:after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 1px;
+	background: rgba(0,0,51, .067);
+}
+
+.sidebar__head {
+	position: relative;
+}
+
+.switcher, .switcher > ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.sidebar__tabs {
+	margin: 0 -10px;
+	padding: 10px 4px;
+	border-bottom: 1px solid #ccc;
+}
+
+.sidebar__sort {
+	position: absolute;
+	top: 0;
+	right: -10px;
+	padding: 10px 4px;
+	white-space: nowrap;
+}
+
+.sidebar__sort ul {
+	display: inline-block;
+	margin-left: 10px;
+	vertical-align: middle;
+}
+
+.sidebar__sort p {
+	display: inline-block;
+	margin: 0;
+	opacity: .5;
+}
+
+.switcher li {
+	display: inline-block;
+}
+
+.switcher button {
+	font-family: inherit;
+	font-size: 100%;
+	background-color: transparent;
+	border: none;
+	outline: none;
+	padding: 2px 6px;
+	cursor: pointer;
+	-webkit-appearance: none;
+}
+
+.switcher button:hover {
+	background-color: rgba(0, 0, 51, 0.067);
+}
+
+.sidebar--user button.user,
+.sidebar--channel button.channel,
+.sidebar--alpha button.alpha,
+.sidebar--activity button.activity {
+	font-weight: bold;
+}
+
+.sidebar--user #channellist, .sidebar--channel #userlist {
+	display: none;
+}
+
+.chatview {
+	margin-left: 300px;
+}
+
+.chatview h1 {
+	font-size: 48px;
+	text-align: center;
+	margin: 0;
+	padding: 100px 0;
 }

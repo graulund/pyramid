@@ -13,7 +13,10 @@ module.exports = function(app, config, util, log, irc){
 	app.get("/", function(req, res) {
 		res.render("index", {
 			// Variables
-			lastSeen: irc.lastSeen(),
+			lastSeenChannels: irc.lastSeenChannels(),
+			lastSeenUsers: irc.lastSeenUsers(),
+			ircConfig: irc.getIrcConfig(),
+			friends: config.friends,
 			bestFriends: config.bestFriends,
 			timezone: config.timeZone,
 			// Includes

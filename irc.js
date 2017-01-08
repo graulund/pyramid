@@ -5,38 +5,51 @@
 var irc    = require("irc"),
 	fs     = require("fs"),
 	mkdirp = require("mkdirp"),
-	path   = require("path")
+	path   = require("path"),
+	lodash = require("lodash")
+
+// Constants
+const RELATIONSHIP_NONE = 0;
+const RELATIONSHIP_FRIEND = 1;
+const RELATIONSHIP_BEST_FRIEND = 2;
 
 module.exports = function(config, util, log){
 
 	var io = {} // To be filled in later
 
 	// Load last seen info
-	var lastSeenFileName = path.join(__dirname, "lastseen.json")
 
-	var lastSeenJson = "";
-	try {
-		lastSeenJson = fs.readFileSync(lastSeenFileName);
-	} catch(err) {
-		// Create empty file
-		var fd = fs.openSync(lastSeenFileName, "w");
-		fs.closeSync(fd);
+	var loadLastSeenInfo = function(fileName) {
+		var json = "";
+		try {
+			json = fs.readFileSync(fileName);
+		} catch(err) {
+			// Create empty file
+			var fd = fs.openSync(fileName, "w");
+			fs.closeSync(fd);
+		}
+
+		var output = {};
+		try {
+			output = JSON.parse(json);
+		} catch(e){}
+
+		return output || {};
 	}
 
-	var lastSeen = {};
-	try {
-		lastSeen = JSON.parse(lastSeenJson)
-	} catch(e){}
-	if(!lastSeen){
-		lastSeen = {}
-	}
+	var lastSeenChannelsFileName = path.join(__dirname, "lastSeenChannels.json");
+	var lastSeenUsersFileName = path.join(__dirname, "lastSeenUsers.json");
 
-	var clients = [], i, multiServerChannels = []
+	var lastSeenChannels = loadLastSeenInfo(lastSeenChannelsFileName);
+	var lastSeenUsers = loadLastSeenInfo(lastSeenUsersFileName);
 
-	// Let's go!
+	// Set up IRC
+
+	var clients = [], i, multiServerChannels = [];
+
 	for(i = 0; i < config.irc.length; i++){
-		var cf = config.irc[i]
-		console.log("Connecting to " + cf.server + " as " + cf.username)
+		var cf = config.irc[i];
+		console.log("Connecting to " + cf.server + " as " + cf.username);
 
 		var c = new irc.Client(
 			cf.server, cf.username,
@@ -49,9 +62,9 @@ module.exports = function(config, util, log){
 				debug:      config.debug,
 				showErrors: config.debug
 			}
-		)
-		c.extConfig = cf
-		clients.push(c)
+		);
+		c.extConfig = cf;
+		clients.push(c);
 	}
 
 	// "Multi server channels" are channel names that exist on more than one connection,
@@ -176,27 +189,12 @@ module.exports = function(config, util, log){
 				}
 			)
 		})
-	}
+	};
 
-	var updateLastSeen = function(chobj, username, date, message, isAction, isBestFriend){
-		var channelName = channelFullName(chobj)
-		lastSeen[username] = { channel: channelName, date: date }
-		if("emit" in io){
-			io.emit("msg", {
-				channel: channelFullName(chobj),
-				channelUrl: channelFileName(chobj),
-				username: username,
-				date: date,
-				message: message,
-				isAction: isAction,
-				isBestFriend: isBestFriend
-			})
-		} else {
-			console.warn("Tried to emit msg event, but io object was not available")
-		}
+	var writeLastSeen = function(fileName, data) {
 		fs.writeFile(
-			lastSeenFileName,
-			JSON.stringify(lastSeen),
+			fileName,
+			JSON.stringify(data),
 			{ encoding: config.encoding },
 			function(err){
 				if(err){
@@ -204,13 +202,52 @@ module.exports = function(config, util, log){
 				}
 				// It was written!
 			}
-		)
-	}
+		);
+	};
+
+	var updateLastSeen = function(chobj, username, time, message, isAction, relationship) {
+		var channel = channelFileName(chobj), channelName = channelFullName(chobj);
+
+		lastSeenChannels[channel] = {
+			username,
+			time
+		};
+		writeLastSeen(lastSeenChannelsFileName, lastSeenChannels);
+
+		if (relationship >= RELATIONSHIP_FRIEND) {
+			lastSeenUsers[username] = {
+				channel,
+				channelName,
+				time
+			};
+			writeLastSeen(lastSeenUsersFileName, lastSeenUsers);
+		}
+	};
+
+	var emitMessage = function(chobj, from, time, message, isAction, relationship) {
+		if("emit" in io){
+			io.emit("msg", {
+				channel: channelFileName(chobj),
+				channelName: channelFullName(chobj),
+				time,
+				isAction,
+				message,
+				relationship,
+				server: chobj.server,
+				username: from
+			})
+		} else {
+			console.warn("Tried to emit msg event, but io object was not available")
+		}
+	};
 
 	var handleMessage = function(client, from, to, message, isAction){
 
 		// Channel object
-		var chobj = channelObject(client, to)
+		const chobj = channelObject(client, to)
+
+		// Time
+		const time = new Date();
 
 		// Log output
 		var line = "<" + from + "> " + message
@@ -227,14 +264,19 @@ module.exports = function(config, util, log){
 		}
 
 		// Is this from a person among our friends? Note down "last seen" time.
+		var relationship = RELATIONSHIP_NONE;
 		var allFriends = config.bestFriends.concat(config.friends)
 		if(allFriends.indexOf(from.toLowerCase()) >= 0){
 			var isBestFriend = config.bestFriends.indexOf(from.toLowerCase()) >= 0;
-			updateLastSeen(chobj, from, new Date(), message, isAction, isBestFriend)
-
+			relationship = isBestFriend
+				? RELATIONSHIP_BEST_FRIEND
+				: RELATIONSHIP_FRIEND;
 			// Add to specific logs
-			logLine(chobj, line, null, from.toLowerCase())
+			logLine(chobj, line, null, from.toLowerCase());
 		}
+
+		updateLastSeen(chobj, from, time, message, isAction, relationship);
+		emitMessage(chobj, from, time, message, isAction, relationship);
 
 		// Mention?
 		var meRegex = new RegExp("\\b" + client.extConfig.me + "\\b", "i")
@@ -271,11 +313,23 @@ module.exports = function(config, util, log){
 		io = _io
 	}
 
+	var getIrcConfig = function() {
+		var ircConfig = lodash.cloneDeep(config.irc);
+		return ircConfig.map((item) => {
+			if (item) {
+				delete item.password;
+			}
+			return item;
+		})
+	};
+
 	// Exported objects and methods
 	return {
-		client: client,
-		lastSeen: function(){ return lastSeen },
-		setIo: setIo,
-		calibrateMultiServerChannels: calibrateMultiServerChannels
-	}
+		client,
+		lastSeenChannels: function(){ return lastSeenChannels },
+		lastSeenUsers: function(){ return lastSeenUsers },
+		getIrcConfig,
+		setIo,
+		calibrateMultiServerChannels
+	};
 }

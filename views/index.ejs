@@ -2,92 +2,28 @@
     // IRC WATCHER
     // Index page
 
-    var i, username
+    const RELATIONSHIP_FRIEND = 1; // TODO: Don't redefine
+    const RELATIONSHIP_BEST_FRIEND = 2;
 
-    // Order by name
-    var usernames = Object.keys(lastSeen)
-    usernames.sort()
+    var friendsList = {
+        [RELATIONSHIP_FRIEND]: friends,
+        [RELATIONSHIP_BEST_FRIEND]: bestFriends
+    };
+
+    var ircConfigDict = {};
+    ircConfig.forEach((config) => {
+        ircConfigDict[config.name] = config;
+    });
+
+    var inscriptEscape = (str) => {
+        return str.replace(/<\/script/g, "\\x3c/script");
+    };
 %>
-<ul id="lastseen"><%
-    for(i = 0; i < usernames.length; i++){
-        username = usernames[i]
-        var data = lastSeen[username],
-            date = data.date,
-            channel = data.channel,
-            m = moment(date).tz(timezone),
-            ms = moment(new Date()).diff(m),
-            timeInfo = h.formatTime(ms),
-            className = "",//h.timeClassName(timeInfo),
-            ts = m.format("H:mm:ss"),
-            sts = m.format("H:mm"),
-            ym = moment().tz(timezone).subtract(1, "days").startOf("day");
-
-        if(timeInfo.day >= 3){
-            // Skip people who haven't been here for a certain amount of days :(
-            continue
-        }
-
-        if(timeInfo.day == 1 && ym < m){
-            sts = "yesterday " + sts
-        }
-        // If the date is before yesterday midnight, it's earlier than yesterday.
-        if(ym > m){
-            sts = ""
-        }
-
-        if(bestFriends.indexOf(username) >= 0){
-            className += " bestfriend"
-        }
-
-        className = className.trim()
-
-        // Color
-        var backgroundOpacity = h.timeOpacity(ms/1000), textColor = "#000",
-                opacity = h.timeTextOpacity(ms/1000)
-
-        if(backgroundOpacity >= 0.3){
-            textColor = "#fff"
-        }
-
-%>
-    <li id="<%=
-        username
-    %>"<%
-        if(className){
-    %> class="<%=
-        className
-    %>"<%
-        }
-    %> style="background-color:rgba(0,0,51,<%=
-        Math.round(backgroundOpacity * 100) / 100
-    %>)<%
-        if(textColor != "#000"){
-            // If it's not default, write it out...
-            %>;color:<%= textColor %><%
-        }
-    %><%
-        if(opacity < 1){
-            %>;opacity:<%=
-            Math.round(opacity * 100) / 100
-            %><%
-        }
-    %>"><div class="l"><strong><a href="/user/<%=
-            username.toLowerCase()
-        %>"><%=
-            username
-        %></a></strong> <time datetime="<%=
-            m.format()
-        %>" data-livestamp="<%=
-            m.format("X")
-        %>" title="<%=
-            ts
-        %>"><%=
-            ts
-        %></time> <span class="channel">in <%=
-            channel
-        %></span></div> <div class="ts"><%=
-            sts
-        %></div></li><%
-    }
-%>
-</ul>
+<script>
+    var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
+    var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfigDict)) %>;
+    var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
+    var pyramid_lastSeenUsers = <%- inscriptEscape(JSON.stringify(lastSeenUsers)) %>;
+</script>
+<main></main>
+<noscript>Please <strong>turn JavaScript on</strong> to experience Pyramid. Sorry about that.</noscript>
