@@ -34,7 +34,7 @@ class TimedUserItem extends Component {
 			<span className="channel">
 				in <Link className="invisible"
 					to={internalUrl("/channel/" + userData.channel)}>
-				{ userData.channelName || userData.channel }
+					{ userData.channelName || userData.channel }
 				</Link>
 			</span>
 		);

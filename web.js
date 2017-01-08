@@ -3,7 +3,7 @@
 
 var path = require("path")
 
-module.exports = function(config, util, log, irc){
+module.exports = function(config, util, log, irc, io){
 
 	// Prerequisites
 	var express  = require("express")
@@ -89,11 +89,7 @@ module.exports = function(config, util, log, irc){
 	}
 
 	app.server = server;
-
-	var io = require("socket.io")(app.server);
-
-	// Update IRC object with IO support
-	irc.setIo(io)
+	io.setServer(app.server);
 
 	return {
 		app: app

@@ -1,3 +1,7 @@
+export const channelCaches = {
+	"UPDATE": "channelCaches/UPDATE",
+	"APPEND": "channelCaches/APPEND"
+};
 
 export const friendsList = {
 	"UPDATE": "friendsList/UPDATE"
@@ -17,6 +21,11 @@ export const lastSeenUsers = {
 
 export const multiServerChannels = {
 	"SET": "multiServerChannels/SET"
+};
+
+export const userCaches = {
+	"UPDATE": "userCaches/UPDATE",
+	"APPEND": "userCaches/APPEND"
 };
 
 export const viewState = {

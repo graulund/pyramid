@@ -33,7 +33,8 @@ class TimedChannelItem extends Component {
 
 		const suffix = lastSeenData && lastSeenData.username ? (
 			<span className="msg">
-				by <Link to={internalUrl("/user/" + lastSeenData.username.toLowerCase())}>
+				by <Link className="invisible"
+					to={internalUrl("/user/" + lastSeenData.username.toLowerCase())}>
 					{ lastSeenData.username }
 				</Link>
 			</span>

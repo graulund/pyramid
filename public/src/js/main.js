@@ -44,20 +44,24 @@ const history = null;
 
 const props = { basename, history };
 
-render(
-	<Provider store={store}>
-		<Router
-			basename={basename}
-			history={browserHistory}
-		>
-			<Route path="/" component={App}>
-				<IndexRoute component={NoChatView} />
-				<Route path="/user/:userName" component={ChatView} />
-				<Route path="/channel/:serverName/:channelName" component={ChatView} />
-			</Route>
-		</Router>
-	</Provider>,
-	main
-);
+if (main) {
+	render(
+		<Provider store={store}>
+			<Router
+				basename={basename}
+				history={browserHistory}
+			>
+				<Route path="/" component={App}>
+					<IndexRoute component={NoChatView} />
+					<Route path="/user/:userName" component={ChatView} />
+					<Route path="/channel/:serverName/:channelName" component={ChatView} />
+				</Route>
+			</Router>
+		</Provider>,
+		main
+	);
+} else {
+	console.warn("No container for React! :(");
+}
 
 /* <App {...props} /> */

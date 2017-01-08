@@ -1,6 +1,20 @@
 import * as actionTypes from "./actionTypes";
 
 export default {
+	channelCaches: {
+		append(data) {
+			return {
+				type: actionTypes.channelCaches.APPEND,
+				data
+			};
+		},
+		update(data) {
+			return {
+				type: actionTypes.channelCaches.UPDATE,
+				data
+			};
+		}
+	},
 	friendsList: {
 		update(level, data) {
 			return {
@@ -38,6 +52,20 @@ export default {
 		set(data) {
 			return {
 				type: actionTypes.multiServerChannels.SET,
+				data
+			};
+		}
+	},
+	userCaches: {
+		append(data) {
+			return {
+				type: actionTypes.userCaches.APPEND,
+				data
+			};
+		},
+		update(data) {
+			return {
+				type: actionTypes.userCaches.UPDATE,
 				data
 			};
 		}

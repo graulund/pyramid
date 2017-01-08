@@ -6,12 +6,15 @@ var irc    = require("irc"),
 	fs     = require("fs"),
 	mkdirp = require("mkdirp"),
 	path   = require("path"),
-	lodash = require("lodash")
+	lodash = require("lodash"),
+	uuid   = require("node-uuid")
 
 // Constants
 const RELATIONSHIP_NONE = 0;
 const RELATIONSHIP_FRIEND = 1;
 const RELATIONSHIP_BEST_FRIEND = 2;
+
+const CACHE_LINES = 100;
 
 module.exports = function(config, util, log){
 
@@ -42,6 +45,9 @@ module.exports = function(config, util, log){
 
 	var lastSeenChannels = loadLastSeenInfo(lastSeenChannelsFileName);
 	var lastSeenUsers = loadLastSeenInfo(lastSeenUsersFileName);
+
+	var channelCaches = {};
+	var userCaches = {};
 
 	// Set up IRC
 
@@ -224,18 +230,56 @@ module.exports = function(config, util, log){
 		}
 	};
 
+	var cacheMessage = function(cache, msg) {
+		// Add it
+		cache.push(msg);
+
+		// And make sure we only have the maximum amount
+		if (cache.length > CACHE_LINES) {
+			if (cache.length === CACHE_LINES + 1) {
+				cache.shift();
+			} else {
+				cache = cache.slice(cache.length - CACHE_LINES);
+			}
+		}
+	};
+
+	var cacheChannelMessage = function(channelUrl, msg) {
+		if (!channelCaches[channelUrl]) {
+			channelCaches[channelUrl] = [];
+		}
+		cacheMessage(channelCaches[channelUrl], msg);
+	};
+
+	var cacheUserMessage = function(username, msg) {
+		if (!userCaches[username]) {
+			userCaches[username] = [];
+		}
+		cacheMessage(userCaches[username], msg);
+	};
+
 	var emitMessage = function(chobj, from, time, message, isAction, relationship) {
+		const msg = {
+			id: uuid.v4(),
+			channel: channelFileName(chobj),
+			channelName: channelFullName(chobj),
+			time,
+			isAction,
+			message,
+			relationship,
+			server: chobj.server,
+			username: from
+		};
+
+		// Cache
+		cacheChannelMessage(msg.channel, msg);
+		if (relationship >= RELATIONSHIP_FRIEND) {
+			cacheUserMessage(from, msg);
+		}
+
+		// Emit
 		if("emit" in io){
-			io.emit("msg", {
-				channel: channelFileName(chobj),
-				channelName: channelFullName(chobj),
-				time,
-				isAction,
-				message,
-				relationship,
-				server: chobj.server,
-				username: from
-			})
+			io.emit("msg", msg);
 		} else {
 			console.warn("Tried to emit msg event, but io object was not available")
 		}
@@ -330,6 +374,8 @@ module.exports = function(config, util, log){
 		lastSeenUsers: function(){ return lastSeenUsers },
 		getIrcConfig,
 		setIo,
-		calibrateMultiServerChannels
+		calibrateMultiServerChannels,
+		getChannelCache: function(channelUri){ return channelCaches[channelUri]; },
+		getUserCache: function(username){ return userCaches[username]; }
 	};
 }
