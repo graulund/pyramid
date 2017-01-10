@@ -22,6 +22,20 @@ module.exports = function(config, util, log, irc) {
 		return null;
 	};
 
+	var sendChannelCache = function(socket, channelUri) {
+		socket.emit("channelCache", {
+			channelUri,
+			cache: irc.getChannelCache(channelUri)
+		});
+	};
+
+	var sendUserCache = function(socket, username) {
+		socket.emit("userCache", {
+			username,
+			cache: irc.getUserCache(username)
+		});
+	}
+
 	// Deferred server availability
 	var setServer = (_server) => {
 		server = _server;
@@ -40,18 +54,32 @@ module.exports = function(config, util, log, irc) {
 			// Respond to requests for cache
 			socket.on("requestUserCache", (username) => {
 				if (typeof username === "string") {
-					socket.emit("userCache", {
-						username,
-						cache: irc.getUserCache(username)
-					});
+					sendUserCache(socket, username);
 				}
 			});
 			socket.on("requestChannelCache", (channelUri) => {
 				if (typeof channelUri === "string") {
-					socket.emit("channelCache", {
-						channelUri,
-						cache: irc.getChannelCache(channelUri)
-					});
+					sendChannelCache(socket, channelUri);
+				}
+			});
+
+			// Response to subscription requests
+			socket.on("subscribe", (details) => {
+				if (details.channel) {
+					irc.addChannelRecipient(details.channel, socket);
+					sendChannelCache(socket, details.channel);
+				}
+				else if (details.username) {
+					irc.addUserRecipient(details.username, socket);
+					sendUserCache(socket, details.username);
+				}
+			});
+			socket.on("unsubscribe", (details) => {
+				if (details.channel) {
+					irc.removeChannelRecipient(details.channel, socket);
+				}
+				else if (details.username) {
+					irc.removeUserRecipient(details.username, socket);
 				}
 			});
 

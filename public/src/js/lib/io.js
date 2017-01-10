@@ -7,12 +7,32 @@ import { CACHE_LINES, RELATIONSHIP_NONE } from "../constants";
 var io;
 var socket;
 
-export function requestParticipation(channelUrl) {
+export function subscribeToChannel(channelUrl) {
 	if (socket) {
-		socket.emit("requestChannelParticipation", channelUrl);
+		socket.emit("subscribe", {
+			channel: channelUrl
+		});
 	}
+}
 
-	// TODO: user, and unlist
+export function unsubscribeFromChannel(channelUrl) {
+	if (socket) {
+		socket.emit("unsubscribe", {
+			channel: channelUrl
+		});
+	}
+}
+
+export function subscribeToUser(username) {
+	if (socket) {
+		socket.emit("subscribe", { username });
+	}
+}
+
+export function unsubscribeFromUser(username) {
+	if (socket) {
+		socket.emit("unsubscribe", { username });
+	}
 }
 
 export function sendMessage(channelUrl, message) {
@@ -22,7 +42,6 @@ export function sendMessage(channelUrl, message) {
 			message
 		};
 
-		console.log("Sending message:", data);
 		socket.emit("sendMessage", data);
 
 		// TODO: Actually authorize
@@ -57,7 +76,13 @@ var updateLastSeenChannel = (channel, username, time) => {
 	}));
 };
 
-updateLastSeenChannel = debounce(updateLastSeenChannel, 150);
+var updateLastSeenUser = (username, channel, time) => {
+	store.dispatch(actions.lastSeenUsers.update({
+		[username]: { channel, time }
+	}));
+};
+
+//updateLastSeenChannel = debounce(updateLastSeenChannel, 150);
 
 export function initializeIo() {
 	if (window.io) {
@@ -66,8 +91,6 @@ export function initializeIo() {
 
 		socket.on("msg", (details) => {
 			const { channel, channelName, time, relationship, username } = details;
-
-			updateLastSeenChannel(channel, username, time);
 
 			store.dispatch(actions.channelCaches.append({
 				channel,
@@ -85,14 +108,27 @@ export function initializeIo() {
 				details.message, "font-size: 24px; font-weight: bold", "font-size: 24px"
 			);
 
-			store.dispatch(actions.lastSeenUsers.update({
-				[username]: { channel, channelName, time }
-			}));
-
 			store.dispatch(actions.userCaches.append({
 				username,
 				message: details
 			}));
+		});
+
+		socket.on("lastSeen", (instances) => {
+			if (instances && instances.length) {
+				instances.forEach((details) => {
+					if (details.data) {
+						if (details.channel) {
+							const { username, time } = details.data;
+							updateLastSeenChannel(details.channel, username, time);
+						}
+						else if (details.username) {
+							const { channel, time } = details.data;
+							updateLastSeenUser(details.username, channel, time);
+						}
+					}
+				});
+			}
 		});
 
 		socket.on("channelCache", (details) => {

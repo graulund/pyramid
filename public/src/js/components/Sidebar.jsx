@@ -11,9 +11,14 @@ class Sidebar extends Component {
 		this.setTab = this.setTab.bind(this);
 
 		this.state = {
+			hidden: false,
 			sort: "alpha",
 			tab: "user"
 		};
+	}
+
+	setHidden(hidden) {
+		this.setState({ hidden });
 	}
 
 	setSort(sort) {
@@ -21,17 +26,17 @@ class Sidebar extends Component {
 	}
 
 	setTab(tab) {
-		//store.dispatch(actions.viewState.update({ sidebarTab }));
 		this.setState({ tab });
 	}
 
 	render() {
 		const { viewState } = this.props;
-		const { sort, tab } = this.state;
+		const { hidden, sort, tab } = this.state;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
-			" sidebar--" + sort;
+			" sidebar--" + sort +
+			(hidden ? " sidebar--hidden" : "");
 
 		return (
 			<div id="sidebar" className={className} key="main">
@@ -58,9 +63,15 @@ class Sidebar extends Component {
 							</li>
 						</ul>
 					</div>
+					<a className="sidebar__close" href="javascript://" onClick={() => this.setHidden(true)}>
+						<img src="/img/close.svg" width="16" height="16" alt="Close" />
+					</a>
 				</div>
 				<UserList sort={sort} key="userlist" />
 				<ChannelList sort={sort} key="channellist" />
+				<a className="sidebar__open" href="javascript://" onClick={() => this.setHidden(false)}>
+					Sidebar
+				</a>
 			</div>
 		);
 	}

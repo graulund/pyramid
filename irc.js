@@ -15,6 +15,7 @@ const RELATIONSHIP_FRIEND = 1;
 const RELATIONSHIP_BEST_FRIEND = 2;
 
 const CACHE_LINES = 100;
+const LAST_SEEN_UPDATE_RATE = 500;
 
 module.exports = function(config, util, log){
 
@@ -51,6 +52,8 @@ module.exports = function(config, util, log){
 
 	var channelRecipients = {};
 	var userRecipients = {};
+
+	var cachedLastSeens = {};
 
 	// Set up IRC
 
@@ -173,7 +176,7 @@ module.exports = function(config, util, log){
 
 		// DEBUG output
 		if(config.debug && !filename){
-			console.log(line)
+			console.log(cfnPrefix(line, chobj))
 		}
 
 		// Specify room in non-room logs
@@ -233,6 +236,8 @@ module.exports = function(config, util, log){
 		};
 		writeLastSeen(lastSeenChannelsFileName, lastSeenChannels);
 
+		cachedLastSeens[`channel:${channel}`] = { channel, data: lastSeenChannels[channel] };
+
 		if (relationship >= RELATIONSHIP_FRIEND) {
 			lastSeenUsers[username] = {
 				channel,
@@ -240,6 +245,18 @@ module.exports = function(config, util, log){
 				time
 			};
 			writeLastSeen(lastSeenUsersFileName, lastSeenUsers);
+
+			cachedLastSeens[`user:${username}`] = { username, data: lastSeenUsers[username] };
+		}
+	};
+
+	var emitMessageToRecipients = function(list, msg) {
+		if (list) {
+			list.forEach((socket) => {
+				if (socket) {
+					socket.emit("msg", msg);
+				}
+			});
 		}
 	};
 
@@ -263,13 +280,8 @@ module.exports = function(config, util, log){
 		}
 		cacheMessage(channelCaches[channelUrl], msg);
 
-		/* if (channelRecipients[channelUrl]) {
-			channelRecipients[channelUrl].forEach((socket) => {
-				if (socket) {
-					socket.emit("msg", msg);
-				}
-			})
-		} */
+		// Emit
+		emitMessageToRecipients(channelRecipients[channelUrl], msg);
 	};
 
 	var cacheUserMessage = function(username, msg) {
@@ -277,6 +289,9 @@ module.exports = function(config, util, log){
 			userCaches[username] = [];
 		}
 		cacheMessage(userCaches[username], msg);
+
+		// Emit
+		emitMessageToRecipients(userRecipients[username], msg);
 	};
 
 	var emitMessage = function(chobj, from, time, message, isAction, relationship) {
@@ -299,11 +314,11 @@ module.exports = function(config, util, log){
 		}
 
 		// Emit
-		if("emit" in io){
+		/* if("emit" in io){
 			io.emit("msg", msg);
 		} else {
 			console.warn("Tried to emit msg event, but io object was not available")
-		}
+		} */
 	};
 
 	var handleMessage = function(client, from, to, message, isAction){
@@ -403,6 +418,53 @@ module.exports = function(config, util, log){
 		})
 	}
 
+	// Send out updates to last seen
+	var broadcastLastSeenUpdates = function(){
+		if (cachedLastSeens) {
+			const values = Object.values(cachedLastSeens);
+			if (values && values.length) {
+				io.emit("lastSeen", values);
+				cachedLastSeens = {};
+			}
+		}
+	};
+
+	// Am I going to regret this?
+	setInterval(broadcastLastSeenUpdates, LAST_SEEN_UPDATE_RATE);
+
+	// Recipients of messages
+
+	var addRecipient = function(list, targetName, socket) {
+		if (!list[targetName]) {
+			list[targetName] = [];
+		}
+		if (list[targetName].indexOf(socket) < 0) {
+			list[targetName].push(socket);
+		}
+	};
+
+	var removeRecipient = function(list, targetName, socket) {
+		if (list[targetName]){
+			lodash.remove(list[targetName], (r) => r === socket);
+		}
+	};
+
+	var addChannelRecipient = function(channelUrl, socket) {
+		addRecipient(channelRecipients, channelUrl, socket);
+	};
+
+	var removeChannelRecipient = function(channelUrl, socket) {
+		removeRecipient(channelRecipients, channelUrl, socket);
+	};
+
+	var addUserRecipient = function(username, socket) {
+		addRecipient(userRecipients, username, socket);
+	};
+
+	var removeUserRecipient = function(username, socket) {
+		removeRecipient(userRecipients, username, socket);
+	};
+
 	// Deferred socket.io availability support
 	var setIo = function(_io){
 		io = _io
@@ -428,6 +490,10 @@ module.exports = function(config, util, log){
 		calibrateMultiServerChannels,
 		getChannelCache: function(channelUri){ return channelCaches[channelUri]; },
 		getUserCache: function(username){ return userCaches[username]; },
-		sendOutgoingMessage
+		sendOutgoingMessage,
+		addChannelRecipient,
+		removeChannelRecipient,
+		addUserRecipient,
+		removeUserRecipient
 	};
 }

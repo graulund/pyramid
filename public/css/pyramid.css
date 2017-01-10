@@ -275,6 +275,10 @@ ul.statsuserlist {
 	background: rgba(0,0,51, .067);
 }
 
+.sidebar--hidden:after {
+	display: none;
+}
+
 .sidebar__head {
 	position: relative;
 }
@@ -284,6 +288,7 @@ ul.statsuserlist {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+	line-height: 1em;
 }
 
 .sidebar__tabs {
@@ -297,7 +302,7 @@ ul.statsuserlist {
 	top: 0;
 	right: -10px;
 	padding: 10px 4px;
-	white-space: nowrap;
+	line-height: 1em;
 }
 
 .sidebar__sort ul {
@@ -340,6 +345,28 @@ ul.statsuserlist {
 
 .sidebar--user #channellist, .sidebar--channel #userlist {
 	display: none;
+}
+
+.sidebar__close {
+	display: none;
+	position: absolute;
+	top: 12px;
+	right: 0;
+}
+
+.sidebar__open {
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	z-index: 9;
+}
+
+.sidebar .sidebar__open {
+	display: none;
+}
+
+.sidebar--hidden .sidebar__open {
+	display: block;
 }
 
 .chatview {
@@ -393,10 +420,52 @@ ul.statsuserlist {
 	background-color: #fff;
 }
 
-.chatview__input input {
+.chatview__input input[type="text"] {
 	font-family: inherit;
 	font-size: 100%;
 	width: 100%;
 	box-sizing: border-box;
 	padding: 3px 5px;
+}
+
+.chatview__input input[type="submit"] {
+	display: none;
+}
+
+@media only screen and (max-width: 767px) {
+	/* Mobile last styles */
+
+	/* Sidebar actually an overlay */
+
+	.sidebar {
+		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
+		transition: .5s left ease-in-out;
+	}
+
+	.sidebar__close {
+		display: block;
+	}
+
+	.sidebar__sort {
+		right: 20px;
+	}
+
+	.sidebar--hidden {
+		left: -400px;
+	}
+
+	.chatview {
+		margin-left: 10px;
+		margin-right: 10px;
+	}
+
+	.chatview h2, .chatview__input {
+		left: 0;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.chatview h2 {
+		padding-left: 40px;
+	}
 }
