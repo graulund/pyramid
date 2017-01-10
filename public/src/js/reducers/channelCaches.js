@@ -15,10 +15,10 @@ export default function (state = channelCaches, action) {
 			};
 		case actionTypes.channelCaches.APPEND:
 			var s = clone(state), d = action.data;
-			if (!s[d.channelUri]) {
-				s[d.channelUri] = [];
+			if (!s[d.channel]) {
+				s[d.channel] = [];
 			}
-			cacheMessage(s[d.channelUri], d.message);
+			s[d.channel] = cacheMessage(s[d.channel], d.message);
 			return s;
 	}
 

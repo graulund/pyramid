@@ -4,7 +4,7 @@ body {
 	line-height: 1.6em;
 	color: #000;
 	background-color: #fff;
-	margin: 10px;
+	margin: 0;
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -257,6 +257,7 @@ ul.statsuserlist {
 	top: 0;
 	left: 0;
 	bottom: 0;
+	z-index: 10;
 	width: 300px;
 	padding: 0 10px;
 	background-color: #fff;
@@ -265,10 +266,11 @@ ul.statsuserlist {
 
 .sidebar:after {
 	content: "";
-	position: absolute;
+	position: fixed;
 	top: 0;
-	right: 0;
+	left: 319px;
 	bottom: 0;
+	z-index: 11;
 	width: 1px;
 	background: rgba(0,0,51, .067);
 }
@@ -341,7 +343,7 @@ ul.statsuserlist {
 }
 
 .chatview {
-	margin-left: 300px;
+	margin: 60px 20px 80px 340px;
 }
 
 .chatview h1 {
@@ -349,4 +351,52 @@ ul.statsuserlist {
 	text-align: center;
 	margin: 0;
 	padding: 100px 0;
+}
+
+.chatview > ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.chatview .msg__channel, .chatview time {
+	color: #999;
+}
+
+.chatview .msg--action {
+	font-style: italic;
+}
+
+.chatview .msg--action time {
+	font-style: normal;
+}
+
+.chatview h2 {
+	position: fixed;
+	top: 0;
+	left: 320px;
+	right: 0;
+	padding: 10px 20px;
+	margin: 0;
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+}
+
+.chatview__input {
+	position: fixed;
+	bottom: 0;
+	left: 320px;
+	right: 0;
+	padding: 15px 20px 30px;
+	margin: 0;
+	border-top: 1px solid #ccc;
+	background-color: #fff;
+}
+
+.chatview__input input {
+	font-family: inherit;
+	font-size: 100%;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 3px 5px;
 }

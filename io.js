@@ -54,6 +54,13 @@ module.exports = function(config, util, log, irc) {
 					});
 				}
 			});
+
+			// Sending messages
+			socket.on("sendMessage", (data) => {
+				if (data && data.channel && data.message) {
+					irc.sendOutgoingMessage(data.channel, data.message);
+				}
+			});
 		});
 	};
 

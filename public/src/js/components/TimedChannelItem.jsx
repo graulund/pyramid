@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import moment from "moment";
 
+import ChannelName from "./ChannelName.jsx";
 import TimedItem from "./TimedItem.jsx";
 import { internalUrl, formatTime } from "../lib/formatting";
 import { channelNameFromUrl, channelServerNameFromUrl } from "../lib/channelNames";
@@ -11,23 +12,11 @@ import { channelNameFromUrl, channelServerNameFromUrl } from "../lib/channelName
 class TimedChannelItem extends Component {
 
 	render() {
-		const { channel, lastSeenData = {}, multiServerChannels } = this.props;
-		var { displayServer = false } = this.props;
-
-		const channelName = channelNameFromUrl(channel);
-		const server = channelServerNameFromUrl(channel);
-
-		if (
-			!displayServer &&
-			multiServerChannels.indexOf(channelName.replace(/^#/, "")) >= 0
-		) {
-			displayServer = true;
-		}
+		const { channel, displayServer = false, lastSeenData = {} } = this.props;
 
 		const prefix = (
 			<Link to={internalUrl("/channel/" + channel.toLowerCase())}>
-				<strong>{ channelName }</strong>
-				{ displayServer ? <span className="server">on { server }</span> : null }
+				<ChannelName channel={channel} displayServer={displayServer} />
 			</Link>
 		);
 
@@ -39,9 +28,6 @@ class TimedChannelItem extends Component {
 				</Link>
 			</span>
 		) : null;
-
-		// TODO: Include server name if there are two channels of
-		// the same name on two different servers
 
 		return <TimedItem
 				time={lastSeenData.time}
@@ -55,8 +41,7 @@ class TimedChannelItem extends Component {
 TimedChannelItem.propTypes = {
 	channel: PropTypes.string,
 	displayServer: PropTypes.bool,
-	multiServerChannels: PropTypes.array,
 	lastSeenData: PropTypes.object
 };
 
-export default connect(({ multiServerChannels }) => ({ multiServerChannels }))(TimedChannelItem);
+export default TimedChannelItem;

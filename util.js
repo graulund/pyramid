@@ -35,11 +35,36 @@ module.exports = function(config){
 		return "[" + ymd(d) + " " + hms(d) + "] " + str
 	}
 
+	var channelNameFromUrl = function(url) {
+		if (url && url.replace) {
+			return url.replace(/^[^\/]+\//, "#");
+		}
+
+		return null;
+	}
+
+	var channelServerNameFromUrl = function(url) {
+		var m;
+		if (url && url.match && (m = url.match(/^([^\/]+)\//)) && m[1]) {
+			return m[1];
+		}
+
+		return null;
+	}
+
+	var channelUrlFromNames = function(server, channel) {
+		return server + "/" + channel.replace(/^#/, "");
+	}
+
+
 	return {
-		hms: hms,
-		ymd: ymd,
-		ym:  ym,
-		hmsPrefix: hmsPrefix,
-		ymdhmsPrefix: ymdhmsPrefix
+		hms,
+		ymd,
+		ym,
+		hmsPrefix,
+		ymdhmsPrefix,
+		channelNameFromUrl,
+		channelServerNameFromUrl,
+		channelUrlFromNames
 	}
 }

@@ -8,22 +8,48 @@ var io;
 var socket;
 
 export function requestParticipation(channelUrl) {
-	//
+	if (socket) {
+		socket.emit("requestChannelParticipation", channelUrl);
+	}
+
+	// TODO: user, and unlist
 }
 
-var cacheMessage = function(cache, msg) {
-	// Add it
-	cache.push(msg);
+export function sendMessage(channelUrl, message) {
+	if (socket) {
+		const data = {
+			channel: channelUrl,
+			message
+		};
+
+		console.log("Sending message:", data);
+		socket.emit("sendMessage", data);
+
+		// TODO: Actually authorize
+	}
+}
+
+export function cacheMessage(cache, msg) {
+	// Add it, or them
+	if (msg) {
+		if (msg instanceof Array) {
+			cache = cache.concat(msg);
+		} else {
+			cache = [ ...cache, msg ];
+		}
+	}
 
 	// And make sure we only have the maximum amount
 	if (cache.length > CACHE_LINES) {
 		if (cache.length === CACHE_LINES + 1) {
-			cache.shift();
+			cache = cache.slice(1);
 		} else {
 			cache = cache.slice(cache.length - CACHE_LINES);
 		}
 	}
-};
+
+	return cache;
+}
 
 var updateLastSeenChannel = (channel, username, time) => {
 	store.dispatch(actions.lastSeenChannels.update({
@@ -43,6 +69,11 @@ export function initializeIo() {
 
 			updateLastSeenChannel(channel, username, time);
 
+			store.dispatch(actions.channelCaches.append({
+				channel,
+				message: details
+			}));
+
 			if (relationship === RELATIONSHIP_NONE) {
 				return;
 			}
@@ -56,6 +87,11 @@ export function initializeIo() {
 
 			store.dispatch(actions.lastSeenUsers.update({
 				[username]: { channel, channelName, time }
+			}));
+
+			store.dispatch(actions.userCaches.append({
+				username,
+				message: details
 			}));
 		});
 

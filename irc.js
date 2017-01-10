@@ -49,6 +49,9 @@ module.exports = function(config, util, log){
 	var channelCaches = {};
 	var userCaches = {};
 
+	var channelRecipients = {};
+	var userRecipients = {};
+
 	// Set up IRC
 
 	var clients = [], i, multiServerChannels = [];
@@ -143,6 +146,16 @@ module.exports = function(config, util, log){
 	var cfnPrefix = function(str, chobj){
 		return "[" + channelFullName(chobj) + "] " + str
 	}
+
+	var findClientByServerName = function(serverName) {
+		for(var i = 0; i < clients.length; i++){
+			var c = clients[i]
+			if (c.extConfig && c.extConfig.name === serverName) {
+				return c;
+			}
+		}
+		return null;
+	};
 
 	//TODO: Move parts of "logLine" to log object
 	var logLine = function(chobj, line, d, filename){
@@ -249,6 +262,14 @@ module.exports = function(config, util, log){
 			channelCaches[channelUrl] = [];
 		}
 		cacheMessage(channelCaches[channelUrl], msg);
+
+		/* if (channelRecipients[channelUrl]) {
+			channelRecipients[channelUrl].forEach((socket) => {
+				if (socket) {
+					socket.emit("msg", msg);
+				}
+			})
+		} */
 	};
 
 	var cacheUserMessage = function(username, msg) {
@@ -335,7 +356,37 @@ module.exports = function(config, util, log){
 				logLine(chobj, line, null, "nickmentions")
 			}
 		}
-	}
+	};
+
+	var sendOutgoingMessage = function(channelUrl, message, isAction = false) {
+		const serverName  = util.channelServerNameFromUrl(channelUrl);
+		const channelName = util.channelNameFromUrl(channelUrl);
+		if (serverName && channelName) {
+			const client = findClientByServerName(serverName);
+			if (client) {
+
+				const meRegex = /^\/me\s+/;
+				if (!isAction && meRegex.test(message)) {
+					isAction = true;
+					message = message.replace(meRegex, "");
+				}
+
+				if (isAction) {
+					client.action(channelName, message);
+				} else {
+					client.say(channelName, message);
+				}
+				// Handle our own message as if it's incoming
+				handleMessage(
+					client, client.extConfig.username,
+					channelName, message, isAction
+				);
+				return true;
+			}
+		}
+
+		return false;
+	};
 
 	for(i = 0; i < clients.length; i++){
 		var client = clients[i]
@@ -376,6 +427,7 @@ module.exports = function(config, util, log){
 		setIo,
 		calibrateMultiServerChannels,
 		getChannelCache: function(channelUri){ return channelCaches[channelUri]; },
-		getUserCache: function(username){ return userCaches[username]; }
+		getUserCache: function(username){ return userCaches[username]; },
+		sendOutgoingMessage
 	};
 }
