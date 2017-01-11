@@ -4,8 +4,9 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import moment from "moment";
 
-import ChannelName from "./ChannelName.jsx";
+import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
+import UserLink from "./UserLink.jsx";
 import { internalUrl, formatTime } from "../lib/formatting";
 import { channelNameFromUrl, channelServerNameFromUrl } from "../lib/channelNames";
 
@@ -14,18 +15,20 @@ class TimedChannelItem extends Component {
 	render() {
 		const { channel, displayServer = false, lastSeenData = {} } = this.props;
 
-		const prefix = (
-			<Link to={internalUrl("/channel/" + channel.toLowerCase())}>
-				<ChannelName channel={channel} displayServer={displayServer} />
-			</Link>
-		);
+		const prefix = <ChannelLink
+			strong
+			channel={channel}
+			displayServer={displayServer}
+			key={channel}
+			/>;
 
 		const suffix = lastSeenData && lastSeenData.username ? (
 			<span className="msg">
-				by <Link className="invisible"
-					to={internalUrl("/user/" + lastSeenData.username.toLowerCase())}>
-					{ lastSeenData.username }
-				</Link>
+				by <UserLink
+					userName={lastSeenData.username}
+					className="invisible"
+					key={lastSeenData.username}
+					/>
 			</span>
 		) : null;
 

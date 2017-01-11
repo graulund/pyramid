@@ -1,7 +1,7 @@
 import * as actionTypes from "../actionTypes";
 
 const viewStateInitial = {
-	sidebarTab: "user"
+	sidebarVisible: true
 };
 
 export default function (state = viewStateInitial, action) {

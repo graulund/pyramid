@@ -1,12 +1,16 @@
 import React, { Component, PropTypes } from "react";
+import { connect } from "react-redux";
 
 import ChannelList from "./ChannelList.jsx";
 import UserList from "./UserList.jsx";
+import store from "../store";
+import actions from "../actions";
 
 class Sidebar extends Component {
 	constructor(props) {
 		super(props);
 
+		this.onClick = this.onClick.bind(this);
 		this.setSort = this.setSort.bind(this);
 		this.setTab = this.setTab.bind(this);
 
@@ -17,8 +21,12 @@ class Sidebar extends Component {
 		};
 	}
 
+	onClick(evt) {
+		console.log("Clicked in sidebar", evt, evt.nativeEvent);
+	}
+
 	setHidden(hidden) {
-		this.setState({ hidden });
+		store.dispatch(actions.viewState.update({ sidebarVisible: !hidden }));
 	}
 
 	setSort(sort) {
@@ -31,7 +39,10 @@ class Sidebar extends Component {
 
 	render() {
 		const { viewState } = this.props;
-		const { hidden, sort, tab } = this.state;
+		const { sort, tab } = this.state;
+
+		const sidebarVisible = viewState ? viewState.sidebarVisible : true;
+		const hidden = !sidebarVisible;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
@@ -39,7 +50,7 @@ class Sidebar extends Component {
 			(hidden ? " sidebar--hidden" : "");
 
 		return (
-			<div id="sidebar" className={className} key="main">
+			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head">
 					<ul className="sidebar__tabs switcher" key="tabs">
 						<li key="user">
@@ -69,14 +80,13 @@ class Sidebar extends Component {
 				</div>
 				<UserList sort={sort} key="userlist" />
 				<ChannelList sort={sort} key="channellist" />
-				<a className="sidebar__open" href="javascript://" onClick={() => this.setHidden(false)}>
-					Sidebar
-				</a>
 			</div>
 		);
 	}
 }
 
-/* <p>Sort by:</p> */
+Sidebar.propTypes = {
+	viewState: PropTypes.object
+};
 
-export default Sidebar;
+export default connect(({ viewState }) => ({ viewState }))(Sidebar);

@@ -9,53 +9,11 @@ class App extends Component {
 
 		return (
 			<div className="app-container">
+				<Header key="header" />
 				<Sidebar key="sidebar" />
 				{ children }
 			</div>
 		);
-
-		/*
-				<Header key="header" />
-		return (
-			<Router
-				basename={basename}
-				history={browserHistory}
-			>
-				<Route path="/" component={Header} />
-				<Route path="/" component={Sidebar} />
-				<Route path="/" exactly component={ChatView} />
-				<Route path="/user/:userName" component={ChatView} />
-				<Route path="/channel/:channelName" component={ChatView} />
-			</Router>
-		);
-		/*
-
-basename={basename}
-history={browserHistory}
-location={location}
-action={action}
-onChange={
-	(location, action) => {
-		console.log("Navigated:", location, action);
-	}
-}
-
-<div className="app-container">
-	<Header key="header" />
-	<Sidebar key="sidebar" />
-	<Route path="/" component={ChatView} />
-	<Route path="/user/:userName" component={ChatView} />
-	<Route path="/channel/:channelName" component={ChatView} />
-</div>
-
-<Route path="/">
-	<Header key="header" />
-	<Sidebar key="sidebar" />
-	<Route path="/" component={ChatView} />
-	<Route path="/user/:userName" component={ChatView} />
-	<Route path="/channel/:channelName" component={ChatView} />
-</Route>
-		*/
 	}
 }
 

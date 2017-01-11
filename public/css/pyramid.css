@@ -324,9 +324,11 @@ ul.statsuserlist {
 .switcher button {
 	font-family: inherit;
 	font-size: 100%;
+	line-height: 1.23em;
 	background-color: transparent;
 	border: none;
 	outline: none;
+	margin: 0;
 	padding: 2px 6px;
 	cursor: pointer;
 	-webkit-appearance: none;
@@ -351,13 +353,14 @@ ul.statsuserlist {
 	display: none;
 	position: absolute;
 	top: 12px;
-	right: 0;
+	left: 0;
 }
 
 .sidebar__open {
 	position: fixed;
-	top: 10px;
+	top: 12px;
 	left: 10px;
+	padding: 0 3px;
 	z-index: 9;
 }
 
@@ -370,7 +373,11 @@ ul.statsuserlist {
 }
 
 .chatview {
-	margin: 60px 20px 80px 340px;
+	margin: 60px 20px 20px 340px;
+}
+
+.chatview--channel {
+	margin-bottom: 80px;
 }
 
 .chatview h1 {
@@ -386,8 +393,17 @@ ul.statsuserlist {
 	padding: 0;
 }
 
-.chatview .msg__channel, .chatview time {
+.chatview .msg__channel,
+.chatview .msg__channel a,
+.chatview time {
 	color: #999;
+	white-space: nowrap;
+}
+
+.chatview .msg__author,
+.chatview .msg__author a {
+	color: #000;
+	white-space: nowrap;
 }
 
 .chatview .msg--action {
@@ -407,6 +423,8 @@ ul.statsuserlist {
 	margin: 0;
 	background-color: #fff;
 	border-bottom: 1px solid #ccc;
+	line-height: 20px;
+	white-space: nowrap;
 }
 
 .chatview__input {
@@ -442,21 +460,28 @@ ul.statsuserlist {
 		transition: .5s left ease-in-out;
 	}
 
+	.sidebar:after {
+		display: none;
+	}
+
 	.sidebar__close {
 		display: block;
 	}
 
-	.sidebar__sort {
-		right: 20px;
+	.sidebar__tabs {
+		padding-left: 30px;
 	}
 
 	.sidebar--hidden {
-		left: -400px;
+		left: -360px;
 	}
 
 	.chatview {
-		margin-left: 10px;
-		margin-right: 10px;
+		margin: 50px 10px 10px;
+	}
+
+	.chatview--channel {
+		margin-bottom: 65px;
 	}
 
 	.chatview h2, .chatview__input {
@@ -467,5 +492,9 @@ ul.statsuserlist {
 
 	.chatview h2 {
 		padding-left: 40px;
+	}
+
+	.chatview__input {
+		padding-bottom: 15px;
 	}
 }

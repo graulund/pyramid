@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from "react";
-import { render } from "react-dom";
 import { connect } from "react-redux";
 import moment from "moment";
 
@@ -15,6 +14,7 @@ class ChatView extends Component {
 		super(props);
 		const { params } = this.props;
 
+		this.onClick = this.onClick.bind(this);
 		this.onKey = this.onKey.bind(this);
 		this.submit = this.submit.bind(this);
 
@@ -76,6 +76,10 @@ class ChatView extends Component {
 		return null;
 	}
 
+	onClick(evt) {
+		console.log("Clicked in chat view", evt, evt.nativeEvent);
+	}
+
 	onKey(evt) {
 		const { input: inputEl } = this.refs;
 		if (
@@ -135,15 +139,18 @@ class ChatView extends Component {
 			: params.userName;
 
 		const contentParams = {
-			displayChannnel: !this.channelUrl,
+			displayChannel:  !this.channelUrl,
 			displayUsername: !!this.channelUrl,
 			messages
 		};
 
 		const content = <ChatLines {...contentParams} key="main" />;
 
+		const className = "chatview" +
+			(this.channelUrl ? " chatview--channel" : "");
+
 		return (
-			<div id="chatview" className="chatview">
+			<div id="chatview" className={className} onClick={this.onClick}>
 				<h2>{ head }</h2>
 				{ content }
 				{ this.channelUrl

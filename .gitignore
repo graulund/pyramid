@@ -6,6 +6,7 @@ node_modules/
 # Run-time data
 config.js
 config-prod.js
+key.js
 lastSeenChannels.json
 lastSeenUsers.json
 public/data/

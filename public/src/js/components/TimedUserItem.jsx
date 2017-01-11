@@ -4,7 +4,9 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 import moment from "moment";
 
+import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
+import UserLink from "./UserLink.jsx";
 import { RELATIONSHIP_BEST_FRIEND } from "../constants";
 import { internalUrl, formatTime } from "../lib/formatting";
 
@@ -25,17 +27,16 @@ class TimedUserItem extends Component {
 		var className = classNames.join(" ");
 
 		const prefix = (
-			<Link to={internalUrl("/user/" + userName.toLowerCase())}>
-				<strong>{ userName }</strong>
-			</Link>
+			<strong><UserLink userName={userName} key={userName} /></strong>
 		);
 
 		const suffix = (
 			<span className="channel">
-				in <Link className="invisible"
-					to={internalUrl("/channel/" + userData.channel)}>
-					{ userData.channelName || userData.channel }
-				</Link>
+				in <ChannelLink
+					channel={userData.channel}
+					channelName={userData.channelName}
+					key={userData.channel}
+					/>
 			</span>
 		);
 
