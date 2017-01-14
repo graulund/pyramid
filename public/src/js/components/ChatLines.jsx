@@ -1,15 +1,13 @@
 import React, { PureComponent, PropTypes } from "react";
-import { connect } from "react-redux";
 
 import ChatLine from "./ChatLine.jsx";
-import { channelUrlFromNames } from "../lib/channelNames";
 
 class ChatLines extends PureComponent {
 	render() {
-		const { displayChannel, displayUsername, messages } = this.props;
+		const { displayChannel, displayUsername, messages } = this.props;
 
 		if (!messages || !messages.length) {
-			return <div className="chatview__error">No data :(</div>;
+			return null;
 		}
 
 		const lines = messages.map(
@@ -27,6 +25,6 @@ ChatLines.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	messages: PropTypes.array
-}
+};
 
 export default ChatLines;

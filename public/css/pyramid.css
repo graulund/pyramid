@@ -275,10 +275,6 @@ ul.statsuserlist {
 	background: rgba(0,0,51, .067);
 }
 
-.sidebar--hidden:after {
-	display: none;
-}
-
 .sidebar__head {
 	position: relative;
 }
@@ -362,14 +358,6 @@ ul.statsuserlist {
 	left: 10px;
 	padding: 0 3px;
 	z-index: 9;
-}
-
-.sidebar .sidebar__open {
-	display: none;
-}
-
-.sidebar--hidden .sidebar__open {
-	display: block;
 }
 
 .chatview {

@@ -1,13 +1,16 @@
 import React, { PureComponent, PropTypes } from "react";
 import moment from "moment";
+import Linkify from "react-linkify";
 
 import ChannelLink from "./ChannelLink.jsx";
 import UserLink from "./UserLink.jsx";
 
+const linkifyProperties = { target: "_blank" };
+
 class ChatLine extends PureComponent {
 	render() {
 		const {
-			channel, channelName, displayChannel, displayUsername,
+			channel, displayChannel, displayUsername,
 			isAction, message, time, username
 		} = this.props;
 
@@ -35,7 +38,9 @@ class ChatLine extends PureComponent {
 							{" "}
 						</strong>
 					) : null }
-				<span>{ message }</span>
+				<span><Linkify properties={linkifyProperties}>
+					{ message }
+				</Linkify></span>
 			</li>
 		);
 	}

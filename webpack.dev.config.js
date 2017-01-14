@@ -29,6 +29,20 @@ config.module = {
 	postLoaders: []
 };
 
+// ESLint JS files
+config.module.preLoaders.push({
+	test: /\.jsx?$/,
+	loader: "eslint-loader",
+	include: path.resolve("./"), // necessary to avoid including symlinks pointing out of ./node_modules/
+	exclude: path.resolve("./node_modules")
+});
+config.eslint = {
+	//configFile: "./eslintrc.js",
+	emitError: true,
+	emitWarning: true,
+	failOnError: true
+};
+
 // Babel (and React)
 config.module.loaders.push({
 	test: /\.jsx?$/,

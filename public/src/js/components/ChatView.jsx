@@ -1,13 +1,13 @@
 import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
-import moment from "moment";
 
 import ChannelName from "./ChannelName.jsx";
 import ChatLines from "./ChatLines.jsx";
-import { channelUrlFromNames } from "../lib/channelNames";
+import { channelUrlFromNames } from "../lib/channelNames";
 import { sendMessage, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
-import { stickToTheBottom } from "../lib/visualBehavior";
-import { CACHE_LINES } from "../constants";
+import { scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
+import store from "../store";
+import actions from "../actions";
 
 class ChatView extends Component {
 	constructor(props) {
@@ -18,18 +18,43 @@ class ChatView extends Component {
 		this.onKey = this.onKey.bind(this);
 		this.submit = this.submit.bind(this);
 
+		this.channelJustChanged = true;
+		this.linesBeingChanged = false;
 		this.lines = null;
 		this.channelUrl = params.channelName && params.serverName
 			? channelUrlFromNames(params.serverName, params.channelName) : null;
 		this.requestSubscription(params);
 	}
 
-	componentDidMount () {
-		const { params } = this.props;
-		console.log("ChatView opened with params:", params);
-	}
+	componentDidUpdate (prevProps) {
 
-	componentDidUpdate () {
+		// Force scroll to the bottom on first content after channel change
+
+		if (this.linesBeingChanged) {
+			this.linesBeingChanged = false;
+			if (this.channelJustChanged) {
+				this.channelJustChanged = false;
+				console.log("Channel was just changed, and lines are being changed, scrolling!");
+				scrollToTheBottom();
+				return;
+			}
+		}
+
+		if (this.channelJustChanged) {
+			this.channelJustChanged = false;
+		}
+
+		if (prevProps) {
+			const { params: prevParams } = prevProps;
+			const { params: currentParams } = this.props;
+
+			if (this.didChannelChange(prevParams, currentParams)) {
+				this.channelJustChanged = true;
+			}
+		}
+
+		// Otherwise just stick if we're already there
+
 		stickToTheBottom();
 	}
 
@@ -40,27 +65,38 @@ class ChatView extends Component {
 			const newLines = this.getLines(newProps);
 
 			// Channel change
-			if (
-				currentParams.userName != newParams.userName ||
-				currentParams.channelName != newParams.channelName ||
-				currentParams.serverName != newParams.serverName
-			) {
+			if (this.didChannelChange(currentParams, newParams)) {
 				console.log("ChatView received new params:", newParams);
+
 				this.channelUrl = newParams.channelName && newParams.serverName
 					? channelUrlFromNames(newParams.serverName, newParams.channelName) : null;
+
 				this.requestSubscription(newParams);
 				this.requestUnsubscription(currentParams);
+
+				this.lines = null;
+
 				return true;
 			}
 
 			// Lines change
 			if (this.lines != newLines) {
 				this.lines = newLines;
+
+				if (newLines != null) {
+					this.linesBeingChanged = true;
+				}
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	didChannelChange (currentParams, newParams) {
+		return currentParams.userName != newParams.userName ||
+			currentParams.channelName != newParams.channelName ||
+			currentParams.serverName != newParams.serverName;
 	}
 
 	getLines (props = this.props) {
@@ -76,12 +112,13 @@ class ChatView extends Component {
 		return null;
 	}
 
-	onClick(evt) {
-		console.log("Clicked in chat view", evt, evt.nativeEvent);
+	onClick() {
+		// Hide the sidebar if it is not already hidden
+		store.dispatch(actions.viewState.update({ sidebarVisible: false }));
 	}
 
 	onKey(evt) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.refs;
 		if (
 			this.channelUrl &&
 			inputEl &&
@@ -94,7 +131,7 @@ class ChatView extends Component {
 	}
 
 	submit(evt) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.refs;
 
 		if (evt) {
 			evt.preventDefault();
@@ -132,7 +169,7 @@ class ChatView extends Component {
 
 	render() {
 		const messages = this.lines;
-		const { params } = this.props;
+		const { params } = this.props;
 
 		const head = this.channelUrl
 			? <ChannelName channel={this.channelUrl} key={this.channelUrl} />

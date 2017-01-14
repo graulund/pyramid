@@ -5,7 +5,8 @@ import Sidebar from "./Sidebar.jsx";
 
 class App extends Component {
 	render() {
-		const { action, basename, children, location } = this.props;
+		//const { action, basename, children, location } = this.props;
+		const { children } = this.props;
 
 		return (
 			<div className="app-container">
@@ -18,11 +19,12 @@ class App extends Component {
 }
 
 App.propTypes = {
-	action: PropTypes.string,
+	/* action: PropTypes.string,
 	basename: PropTypes.string,
 	children: PropTypes.node,
 	history: PropTypes.object,
-	location: PropTypes.object
+	location: PropTypes.object */
+	children: PropTypes.node
 };
 
 export default App;

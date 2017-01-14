@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from "react";
-import { connect } from "react-redux";
+import { connect } from "react-redux";
 
 import ChannelList from "./ChannelList.jsx";
 import UserList from "./UserList.jsx";
@@ -22,7 +22,15 @@ class Sidebar extends Component {
 	}
 
 	onClick(evt) {
-		console.log("Clicked in sidebar", evt, evt.nativeEvent);
+		if (evt && evt.nativeEvent) {
+			var target = evt.nativeEvent.target;
+
+			if (target && (
+				target.tagName === "A" || target.className === "channelname"
+			)) {
+				this.setHidden(true);
+			}
+		}
 	}
 
 	setHidden(hidden) {

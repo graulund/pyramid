@@ -2,13 +2,11 @@ import React, { PureComponent, PropTypes } from "react";
 import { Link } from "react-router";
 
 import ChannelName from "./ChannelName.jsx";
-import { channelNameFromUrl } from "../lib/channelNames";
 import { internalUrl } from "../lib/formatting";
 
 class ChannelLink extends PureComponent {
 	render() {
-		const { channel, channelName, displayServer, server, strong } = this.props;
-		const formattedChannelName = channelName ? channelName : channelNameFromUrl(channel);
+		const { channel, displayServer, server, strong } = this.props;
 
 		if (!channel) {
 			return null;

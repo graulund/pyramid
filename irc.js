@@ -14,7 +14,7 @@ const RELATIONSHIP_NONE = 0;
 const RELATIONSHIP_FRIEND = 1;
 const RELATIONSHIP_BEST_FRIEND = 2;
 
-const CACHE_LINES = 100;
+const CACHE_LINES = 150;
 const LAST_SEEN_UPDATE_RATE = 500;
 
 module.exports = function(config, util, log){

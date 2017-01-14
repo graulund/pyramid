@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { Router, Route, IndexRoute, browserHistory } from "react-router"
+import { Router, Route, IndexRoute, browserHistory } from "react-router";
 
 import App from "./components/App.jsx";
 import ChatView from "./components/ChatView.jsx";
@@ -17,7 +17,7 @@ import { updateIrcConfigs } from "./lib/ircConfigs";
 store.dispatch(actions.viewState.update({}));
 
 if (window.pyramid_friendsList) {
-	for(var level in window.pyramid_friendsList) {
+	for (var level in window.pyramid_friendsList) {
 		store.dispatch(actions.friendsList.update(level, window.pyramid_friendsList[level]));
 	}
 }
@@ -40,9 +40,9 @@ initializeIo();
 
 const main = document.querySelector("main");
 const basename = "";
-const history = null;
+//const history = null;
 
-const props = { basename, history };
+//const props = { basename, history };
 
 if (main) {
 	render(

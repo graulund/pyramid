@@ -2,10 +2,10 @@ import store from "../store";
 import actions from "../actions";
 
 export function calibrateMultiServerChannels(ircConfigs) {
-	var multiServerChannels = []
+	var multiServerChannels = [];
 	var namesSeen = [];
 	for (var i = 0; i < ircConfigs.length; i++) {
-		var c = clients[i];
+		var c = ircConfigs[i];
 		if (c && c.channels) {
 			for (var j = 0; j < c.channels.length; j++) {
 				var ch = c.channels[j];

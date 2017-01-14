@@ -1,14 +1,10 @@
 import React, { Component, PropTypes } from "react";
-import { findDOMNode } from "react-dom";
 import { connect } from "react-redux";
-import { Link } from "react-router";
-import moment from "moment";
 
 import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 import { RELATIONSHIP_BEST_FRIEND } from "../constants";
-import { internalUrl, formatTime } from "../lib/formatting";
 
 class TimedUserItem extends Component {
 

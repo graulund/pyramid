@@ -38,6 +38,7 @@ class ChannelName extends Component {
 ChannelName.propTypes = {
 	channel: PropTypes.string.isRequired,
 	displayServer: PropTypes.bool,
+	multiServerChannels: PropTypes.array,
 	server: PropTypes.string,
 	strong: PropTypes.bool
 };

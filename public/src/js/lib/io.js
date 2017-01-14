@@ -1,6 +1,6 @@
 import actions from "../actions";
 import store from "../store";
-import debounce from "lodash/debounce";
+//import debounce from "lodash/debounce";
 
 import { CACHE_LINES, RELATIONSHIP_NONE } from "../constants";
 
@@ -90,7 +90,7 @@ export function initializeIo() {
 		socket = io();
 
 		socket.on("msg", (details) => {
-			const { channel, channelName, time, relationship, username } = details;
+			const { channel, relationship, username } = details;
 
 			store.dispatch(actions.channelCaches.append({
 				channel,
@@ -151,4 +151,4 @@ export function initializeIo() {
 
 		window.socket = socket; // TEMP DANBAD
 	}
-};
+}

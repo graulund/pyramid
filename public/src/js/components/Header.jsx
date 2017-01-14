@@ -1,5 +1,4 @@
-import React, { PropTypes, Component } from "react";
-import { connect } from "react-redux";
+import React, { Component } from "react";
 
 import store from "../store";
 import actions from "../actions";
@@ -15,8 +14,6 @@ class Header extends Component {
 	}
 
 	render() {
-		const { viewState } = this.props;
-		const sidebarVisible = viewState ? viewState.sidebarVisible : true;
 		return (
 			<div id="header">
 				<a className="sidebar__open" href="javascript://" onClick={this.openSidebar}>
@@ -27,8 +24,4 @@ class Header extends Component {
 	}
 }
 
-Header.propTypes = {
-	viewState: PropTypes.object
-};
-
-export default connect(({ viewState }) => ({ viewState }))(Header);
+export default Header;

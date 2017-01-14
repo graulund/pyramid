@@ -3,8 +3,7 @@ import { findDOMNode } from "react-dom";
 import moment from "moment";
 import debounce from "lodash/debounce";
 
-import { DEFAULT_COLOR_RGB } from "../constants";
-import { formatTime, onLivestampChange, timeColors } from "../lib/formatting";
+import { formatTime, timeColors } from "../lib/formatting";
 
 class TimedItem extends Component {
 
@@ -31,7 +30,7 @@ class TimedItem extends Component {
 						root.style[property] = styles[property];
 					}
 				}
-			})
+			});
 		}
 	}
 
@@ -62,12 +61,12 @@ class TimedItem extends Component {
 		const ym = moment().subtract(1, "days").startOf("day");
 
 		if(timeInfo.day == 1 && ym < m){
-			sts = "yesterday " + sts
+			sts = "yesterday " + sts;
 		}
 
 		// If the date is before yesterday midnight, it's earlier than yesterday.
 		if(ym > m){
-			sts = ""
+			sts = "";
 		}
 
 		return sts;
