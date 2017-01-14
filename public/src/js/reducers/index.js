@@ -6,6 +6,7 @@ import ircConfigs from "./ircConfigs";
 import lastSeenChannels from "./lastSeenChannels";
 import lastSeenUsers from "./lastSeenUsers";
 import multiServerChannels from "./multiServerChannels";
+import token from "./token";
 import userCaches from "./userCaches";
 import viewState from "./viewState";
 
@@ -16,6 +17,7 @@ export default combineReducers({
 	lastSeenChannels,
 	lastSeenUsers,
 	multiServerChannels,
+	token,
 	userCaches,
 	viewState
 });

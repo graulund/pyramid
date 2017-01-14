@@ -85,8 +85,14 @@ module.exports = function(config, util, log, irc) {
 
 			// Sending messages
 			socket.on("sendMessage", (data) => {
-				if (data && data.channel && data.message) {
-					irc.sendOutgoingMessage(data.channel, data.message);
+				if (data && data.channel && data.message && data.token) {
+
+					// Only allow this socket to send a message
+					// if it includes an accepted token
+
+					if (util.isAnAcceptedToken(data.token)) {
+						irc.sendOutgoingMessage(data.channel, data.message);
+					}
 				}
 			});
 		});

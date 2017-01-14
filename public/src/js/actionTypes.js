@@ -23,6 +23,10 @@ export const multiServerChannels = {
 	"SET": "multiServerChannels/SET"
 };
 
+export const token = {
+	"SET": "token/SET"
+};
+
 export const userCaches = {
 	"UPDATE": "userCaches/UPDATE",
 	"APPEND": "userCaches/APPEND"

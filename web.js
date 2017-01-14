@@ -1,35 +1,28 @@
 // IRC WATCHER
 // Web module
 
-var path = require("path")
+const path = require("path");
+const bodyParser = require("body-parser");
 
 module.exports = function(config, util, log, irc, io){
 
 	// Prerequisites
-	var express  = require("express")
-	//var favicon  = require("serve-favicon")
-	var partials = require("express-partials")
-	var fs       = require("fs")
+	const express  = require("express");
+	//const favicon  = require("serve-favicon");
+	const partials = require("express-partials");
+	const fs       = require("fs");
 
 	// The web app
-	var app = express()
-	app.set("views", path.join(__dirname, "views"))
-	app.set("view engine", "ejs")
+	var app = express();
+	app.set("views", path.join(__dirname, "views"));
+	app.set("view engine", "ejs");
 	//app.use(favicon());
+	app.use(bodyParser.urlencoded({ extended: "qs" }));
 	app.use(express.static(path.join(__dirname, "public")));
 	app.use(partials());
 
-	// Authentication if required
-	if(
-		typeof config.webUsername == "string" && config.webUsername != "" &&
-		typeof config.webPassword == "string" && config.webPassword != ""
-	){
-		var basicAuth = require("basic-auth-connect");
-		app.use(basicAuth(config.webUsername, config.webPassword));
-	}
-
 	// Routes
-	require("./routes")(app, config, util, log, irc)
+	require("./routes")(app, config, util, log, irc);
 
 	// Fallback: 404 error
 	app.use(function(req, res, next) {

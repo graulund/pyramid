@@ -37,14 +37,14 @@ export function unsubscribeFromUser(username) {
 
 export function sendMessage(channelUrl, message) {
 	if (socket) {
+		const state = store.getState();
 		const data = {
 			channel: channelUrl,
-			message
+			message,
+			token: state && state.token
 		};
 
 		socket.emit("sendMessage", data);
-
-		// TODO: Actually authorize
 	}
 }
 

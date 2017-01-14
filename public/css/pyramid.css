@@ -486,3 +486,8 @@ ul.statsuserlist {
 		padding-bottom: 15px;
 	}
 }
+
+.login-form {
+	margin: 50px 30px;
+	text-align: center;
+}

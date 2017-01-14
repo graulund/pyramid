@@ -11,6 +11,8 @@
     "babel-plugin-transform-react-jsx-source": "^6.9.0",
     "babel-polyfill": "^6.20.0",
     "basic-auth-connect": "^1.0.0",
+    "body-parser": "^1.15.2",
+    "cookie": "^0.3.1",
     "ejs": "^1.0.0",
     "express": "^4.8.5",
     "express-partials": "^0.3.0",

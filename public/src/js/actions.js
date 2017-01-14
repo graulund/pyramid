@@ -56,6 +56,14 @@ export default {
 			};
 		}
 	},
+	token: {
+		set(data) {
+			return {
+				type: actionTypes.token.SET,
+				data
+			};
+		}
+	},
 	userCaches: {
 		append(data) {
 			return {

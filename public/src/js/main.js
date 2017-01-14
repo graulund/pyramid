@@ -16,6 +16,11 @@ import { updateIrcConfigs } from "./lib/ircConfigs";
 
 store.dispatch(actions.viewState.update({}));
 
+if (window.pyramid_myToken) {
+	store.dispatch(actions.token.set(window.pyramid_myToken));
+	window.pyramid_myToken = undefined;
+}
+
 if (window.pyramid_friendsList) {
 	for (var level in window.pyramid_friendsList) {
 		store.dispatch(actions.friendsList.update(level, window.pyramid_friendsList[level]));

@@ -20,6 +20,7 @@
     };
 %>
 <script>
+    var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
     var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
     var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfigDict)) %>;
     var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
