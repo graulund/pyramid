@@ -57,27 +57,6 @@ module.exports = function(app, config, util, log, irc){
 		);
 	}
 
-	// Home page --------------------------------------------------------------
-
-	app.get("/", function(req, res) {
-		const accepted = denyAccessWithoutToken(req, res);
-		if (accepted) {
-			res.render("index", {
-				// Variables
-				lastSeenChannels: irc.lastSeenChannels(),
-				lastSeenUsers: irc.lastSeenUsers(),
-				ircConfig: irc.getIrcConfig(),
-				friends: config.friends,
-				bestFriends: config.bestFriends,
-				timezone: config.timeZone,
-				token: getUsedToken(req),
-				// Includes
-				moment: moment,
-				h: h
-			});
-		}
-	});
-
 	// Login page -------------------------------------------------------------
 
 	app.get("/login", function(req, res) {
@@ -123,6 +102,27 @@ module.exports = function(app, config, util, log, irc){
 			}
 		);
 		res.redirect("/login");
+	});
+
+	// Main page --------------------------------------------------------------
+
+	app.get("*", function(req, res) {
+		const accepted = denyAccessWithoutToken(req, res);
+		if (accepted) {
+			res.render("index", {
+				// Variables
+				lastSeenChannels: irc.lastSeenChannels(),
+				lastSeenUsers: irc.lastSeenUsers(),
+				ircConfig: irc.getIrcConfig(),
+				friends: config.friends,
+				bestFriends: config.bestFriends,
+				timezone: config.timeZone,
+				token: getUsedToken(req),
+				// Includes
+				moment,
+				h
+			});
+		}
 	});
 
 	/*
