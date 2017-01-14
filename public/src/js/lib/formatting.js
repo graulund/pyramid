@@ -1,5 +1,3 @@
-import moment from "moment";
-
 import { DEFAULT_COLOR_RGB, ROOT_PATHNAME } from "../constants";
 
 export function ucfirst(str){
@@ -40,9 +38,9 @@ export function timeTextOpacity(secondsSince) {
 	return Math.max(minOpacity, Math.min(maxOpacity, 29/25 - secondsSince/45000));
 }
 
-export function timeColors (time, color = DEFAULT_COLOR_RGB) {
-	const m = moment(time);
-	const ms = moment().diff(m);
+export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
+	// m: Moment instance expected
+	// ms: Moment diff instance expected; moment().diff(m)
 
 	// Color
 	var backgroundOpacity = timeOpacity(ms/1000),

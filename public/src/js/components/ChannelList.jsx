@@ -1,10 +1,10 @@
-import React, { Component, PropTypes } from "react";
+import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 
 import TimedChannelItem from "./TimedChannelItem.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 
-class ChannelList extends Component {
+class ChannelList extends PureComponent {
 	render() {
 		const { ircConfigs, lastSeenChannels, sort } = this.props;
 
@@ -81,8 +81,6 @@ class ChannelList extends Component {
 			}
 			return null;
 		});
-
-
 
 		return <ul id="channellist" className="itemlist">{ channelListNodes }</ul>;
 	}

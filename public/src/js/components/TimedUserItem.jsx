@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from "react";
+import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 
 import ChannelLink from "./ChannelLink.jsx";
@@ -6,7 +6,7 @@ import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 import { RELATIONSHIP_BEST_FRIEND } from "../constants";
 
-class TimedUserItem extends Component {
+class TimedUserItem extends PureComponent {
 
 	render() {
 		const { friendsList, userData, userName } = this.props;
@@ -41,6 +41,7 @@ class TimedUserItem extends Component {
 				time={userData.time}
 				prefix={prefix}
 				suffix={suffix}
+				key="main"
 				/>;
 	}
 }

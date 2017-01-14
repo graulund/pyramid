@@ -1,9 +1,9 @@
-import React, { Component, PropTypes } from "react";
+import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 
 import TimedUserItem from "./TimedUserItem.jsx";
 
-class UserList extends Component {
+class UserList extends PureComponent {
 	render() {
 		const { lastSeenUsers, sort } = this.props;
 

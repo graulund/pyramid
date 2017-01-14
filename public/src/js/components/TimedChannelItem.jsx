@@ -1,10 +1,10 @@
-import React, { Component, PropTypes } from "react";
+import React, { PureComponent, PropTypes } from "react";
 
 import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 
-class TimedChannelItem extends Component {
+class TimedChannelItem extends PureComponent {
 
 	render() {
 		const { channel, displayServer = false, lastSeenData = {} } = this.props;
@@ -31,6 +31,7 @@ class TimedChannelItem extends Component {
 				skipOld={false}
 				prefix={prefix}
 				suffix={suffix}
+				key="main"
 				/>;
 	}
 }
