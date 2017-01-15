@@ -102,6 +102,10 @@ class ChatView extends Component {
 	getLines (props = this.props) {
 		const { channelCaches, params, userCaches } = props;
 
+		if (params.logDate) {
+			// Do stuff...
+		}
+
 		if (params.channelName && params.serverName) {
 			return channelCaches[channelUrlFromNames(params.serverName, params.channelName)];
 		}
@@ -189,6 +193,9 @@ class ChatView extends Component {
 		return (
 			<div id="chatview" className={className} onClick={this.onClick}>
 				<h2>{ head }</h2>
+				<div className="chatview__controls">
+					<a href="javascript://">Logs</a>
+				</div>
 				{ content }
 				{ this.channelUrl
 					? (
@@ -210,5 +217,15 @@ ChatView.propTypes = {
 };
 
 export default connect(
-	({ channelCaches, userCaches }) => ({ channelCaches, userCaches })
+	({
+		channelCaches,
+		logDetails,
+		logFiles,
+		userCaches
+	}) => ({
+		channelCaches,
+		logDetails,
+		logFiles,
+		userCaches
+	})
 )(ChatView);

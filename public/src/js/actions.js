@@ -48,6 +48,29 @@ export default {
 			};
 		}
 	},
+	logDetails: {
+		update(data) {
+			return {
+				type: actionTypes.logDetails.UPDATE,
+				data
+			};
+		}
+	},
+	logFiles: {
+		clear(channel, date) {
+			return {
+				type: actionTypes.logFiles.CLEAR,
+				channel,
+				date
+			};
+		},
+		update(data) {
+			return {
+				type: actionTypes.logFiles.UPDATE,
+				data
+			};
+		}
+	},
 	multiServerChannels: {
 		set(data) {
 			return {

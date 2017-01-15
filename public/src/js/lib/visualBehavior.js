@@ -16,4 +16,11 @@ export function stickToTheBottom() {
 	if (areWeScrolledToTheBottom()) {
 		scrollToTheBottom();
 	}
+	else {
+		// TODO: If you're *not* scrolled to the bottom, scroll UP
+		// by a specific amount, so it looks like the content is
+		// not moving
+
+		// Plus, add a notice that there's new content?
+	}
 }

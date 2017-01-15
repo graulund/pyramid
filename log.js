@@ -1,16 +1,18 @@
 // IRC WATCHER
 // Logging module
 
-var moment = require("moment-timezone"),
-	fs     = require("fs"),
-	mkdirp = require("mkdirp"),
-	path   = require("path"),
-	lazy   = require("lazy"),
-	async  = require("async")
+const moment = require("moment-timezone");
+const fs     = require("fs");
+const mkdirp = require("mkdirp");
+const path   = require("path");
+const lazy   = require("lazy");
+const async  = require("async");
 
-module.exports = function(config, util){
+const LOG_ROOT = path.join(__dirname, "public", "data", "logs");
 
-	var getLastLinesFromUser = function(username, options, done){
+module.exports = function(config, util) {
+
+	var getLastLinesFromUser = function(username, options, done) {
 
 		var limit = options.limit
 
@@ -20,10 +22,10 @@ module.exports = function(config, util){
 		}
 
 		// Sanitizing input
-		username = username.replace(/[^a-zA-Z0-9_-]+/, "")
+		username = username.replace(/[^a-zA-Z0-9_-]+/g, "")
 
 		// Log dir
-		var logDir = path.join(__dirname, "public", "data", "logs", "_global", util.ym(options.d))
+		var logDir = path.join(LOG_ROOT, "_global", util.ym(options.d))
 
 		fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data){
 
@@ -45,32 +47,37 @@ module.exports = function(config, util){
 
 	}
 
-	var getChatroomLinesForDay = function(server, channel, date, done){
+	var getLinesForFile = function(filePath, date, done) {
+		fs.readFile(filePath, function(err, data) {
 
-		// Sanitizing input
-		server = server.replace(/[^a-zA-Z0-9_-]+/, "")
-		channel = channel.replace(/[^a-zA-Z0-9_-]+/, "")
-
-		// Log dir
-		var logDir = path.join(
-			__dirname, "public", "data", "logs",
-			server, channel, util.ym(date)
-		)
-
-		fs.readFile(path.join(logDir, util.ymd(date) + ".txt"), function(err, data){
-
-			if(err){
-				done(err)
-				return
+			if (err) {
+				done(err);
+				return;
 			}
 
-			data = data.toString(config.encoding)
-			done(null, data)
-		})
+			data = data.toString(config.encoding);
+			const lines = convertLogFileToLineObjects(data, date);
+			done(null, lines);
+		});
+	};
 
-	}
+	var getChatroomLinesForDay = function(server, channel, date, done) {
 
-	var parseLogLine = function(line, date){
+		// Sanitizing input
+		server = server.replace(/[^a-zA-Z0-9_-]+/g, "");
+		channel = channel.replace(/[^a-zA-Z0-9_-]+/g, "");
+
+		// Log dir
+		var logDir = path.join(LOG_ROOT, server, channel, util.ym(date));
+
+		return getLinesForFile(path.join(logDir, util.ymd(date) + ".txt"), date, done);
+	};
+
+	var getUserLinesForMonth = function(userName, date, done) {
+		return getLinesForFile(path.join(LOG_ROOT, userMonthPath(userName, date)), null, done);
+	};
+
+	var parseLogLine = function(line, date) {
 		// Convert item to obj instead of str
 		var m, obj = {
 			type: "msg",
@@ -123,12 +130,26 @@ module.exports = function(config, util){
 		return obj
 	}
 
+	var convertLogFileToLineObjects = function(data, date) {
+
+		if (date && typeof date !== "string") {
+			date = util.ymd(date);
+		}
+
+		var lines = data.split("\n")
+		for(var i = 0; i < lines.length; i++){
+			// Convert item to obj instead of str
+			lines[i] = parseLogLine(lines[i], date)
+		}
+		return lines
+	};
+
 	var statsFromFile = function(channel, month, logFileName, done){
 
 		console.log("Checking out " + logFileName)
 
 		// Gather the file path
-		var filePath = path.join(__dirname, "public", "logs", channel, month, logFileName.toLowerCase() + ".txt")
+		var filePath = path.join(LOG_ROOT, channel, month, logFileName.toLowerCase() + ".txt")
 
 		// Only continue if this file exists
 		fs.exists(filePath, function(exists){
@@ -219,13 +240,73 @@ module.exports = function(config, util){
 		var firstDay = moment(today).subtract(dayAmount, "days")
 
 		return statsFromDays(channel, firstDay, today, done)
-	}
+	};
+
+	const pathHasAnyLogs = function(channelPath) {
+		try {
+			// Throws on fail, does nothing otherwise
+			fs.accessSync(path.join(LOG_ROOT, channelPath), fs.constants.R_OK);
+			return true;
+		} catch(e) {
+			return false;
+		}
+	};
+
+	const pathHasLogsForDay = function(channelPath, d) {
+		channelPath = channelPath.replace(/[^a-zA-Z0-9_-\/]+/g, "")
+		return pathHasAnyLogs(path.join(
+			channelPath, util.ym(d), util.ymd(d) + ".txt"
+		));
+	};
+
+	const userNameHasLogsForMonth = function(userName, d) {
+		return pathHasAnyLogs(userMonthPath(userName, d));
+	};
+
+	const pathHasLogsForToday = function(channelPath) {
+		return pathHasLogsForDay(channelPath, moment());
+	};
+
+	const pathHasLogsForYesterday = function(channelPath) {
+		return pathHasLogsForDay(channelPath, moment().subtract(1, "day"));
+	};
+
+	const userMonthPath = function(userName, d) {
+		userName = userName.replace(/[^a-zA-Z0-9_-]+/g, "");
+		return path.join(
+			"_global", util.ym(d), userName + ".txt"
+		);
+	};
+
+	const getChannelLogDetails = function(channel) {
+		const today = util.ymd(moment());
+		const yesterday = util.ymd(moment().subtract(1, "day"));
+
+		return {
+			[today]: pathHasLogsForToday(channel),
+			[yesterday]: pathHasLogsForYesterday(channel)
+		};
+	};
+
+	const getUserLogDetails = function(userName) {
+		const today = util.ym(moment());
+		return {
+			[today]: userNameHasLogsForMonth(userName, moment())
+		};
+	};
 
 	return {
-		getLastLinesFromUser: getLastLinesFromUser,
-		getChatroomLinesForDay: getChatroomLinesForDay,
-		parseLogLine: parseLogLine,
-		statsFromFile: statsFromFile,
-		statsFromLastDays: statsFromLastDays
+		getLastLinesFromUser,
+		getChatroomLinesForDay,
+		getUserLinesForMonth,
+		parseLogLine,
+		statsFromFile,
+		statsFromLastDays,
+		pathHasAnyLogs,
+		pathHasLogsForDay,
+		pathHasLogsForToday,
+		pathHasLogsForYesterday,
+		getChannelLogDetails,
+		getUserLogDetails
 	}
 }

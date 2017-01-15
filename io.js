@@ -34,7 +34,52 @@ module.exports = function(config, util, log, irc) {
 			username,
 			cache: irc.getUserCache(username)
 		});
-	}
+	};
+
+	var sendChannelLogDetails = function(socket, channelUri) {
+		socket.emit("channelLogDetails", {
+			channelUri,
+			details: log.getChannelLogDetails(channelUri)
+		});
+	};
+
+	var sendUserLogDetails = function(socket, username) {
+		socket.emit("userLogDetails", {
+			username,
+			details: log.getUserLogDetails(username)
+		});
+	};
+
+	var sendChannelLogFile = function(socket, channelUri, time) {
+		const ymd = util.ymd(time);
+		if (ymd) {
+			const [ server, channel ] = channelUri.split("/");
+			log.getChatroomLinesForDay(server, channel, time, (err, file) => {
+				if (!err) {
+					socket.emit("channelLogFile", {
+						channelUri,
+						file,
+						time: ymd
+					});
+				}
+			});
+		}
+	};
+
+	var sendUserLogFile = function(socket, username, time) {
+		const ym = util.ym(time);
+		if (ym) {
+			log.getUserLinesForMonth(username, time, (err, file) => {
+				if (!err) {
+					socket.emit("userLogFile", {
+						file,
+						time: ym,
+						username
+					});
+				}
+			});
+		}
+	};
 
 	// Deferred server availability
 	var setServer = (_server) => {
@@ -47,6 +92,9 @@ module.exports = function(config, util, log, irc) {
 
 		io.on("connection", (socket) => {
 			console.log("Someone connected!");
+
+			// TODO: Startup token check
+
 			socket.on("disconnect", () => {
 				console.log("Someone disconnected!");
 			});
@@ -80,6 +128,34 @@ module.exports = function(config, util, log, irc) {
 				}
 				else if (details.username) {
 					irc.removeUserRecipient(details.username, socket);
+				}
+			});
+
+			// Response to log requests
+			socket.on("requestUserLogDetails", (details) => {
+				if (typeof details.username === "string") {
+					sendUserLogDetails(socket, details.username);
+				}
+			});
+			socket.on("requestChannelLogDetails", (details) => {
+				if (typeof details.channelUri === "string") {
+					sendChannelLogDetails(socket, details.channelUri);
+				}
+			});
+			socket.on("requestUserLogFile", (details) => {
+				if (
+					typeof details.username === "string" &&
+					typeof details.time === "string"
+				) {
+					sendUserLogFile(socket, details.username, details.time);
+				}
+			});
+			socket.on("requestChannelLogFile", (details) => {
+				if (
+					typeof details.channelUri === "string" &&
+					typeof details.time === "string"
+				) {
+					sendChannelLogFile(socket, details.channelUri, details.time);
 				}
 			});
 

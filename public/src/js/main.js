@@ -60,6 +60,8 @@ if (main) {
 					<IndexRoute component={NoChatView} />
 					<Route path="/user/:userName" component={ChatView} />
 					<Route path="/channel/:serverName/:channelName" component={ChatView} />
+					<Route path="/user/:userName/log/:logDate" component={ChatView} />
+					<Route path="/channel/:serverName/:channelName/log/:logDate" component={ChatView} />
 				</Route>
 			</Router>
 		</Provider>,

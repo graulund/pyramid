@@ -83,6 +83,8 @@ class TimedItem extends PureComponent {
 		}
 
 		return sts;
+
+		// TODO: Fix right padding in item so it varies
 	}
 
 	renderClassName(flashing = false) {

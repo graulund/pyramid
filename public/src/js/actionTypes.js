@@ -11,6 +11,15 @@ export const ircConfigs = {
 	"UPDATE": "ircConfigs/UPDATE"
 };
 
+export const logDetails = {
+	"UPDATE": "logDetails/UPDATE"
+};
+
+export const logFiles = {
+	"CLEAR": "logFiles/CLEAR",
+	"UPDATE": "logFiles/UPDATE"
+};
+
 export const lastSeenChannels = {
 	"UPDATE": "lastSeenChannels/UPDATE"
 };

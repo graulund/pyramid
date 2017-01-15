@@ -70,6 +70,30 @@ export function cacheMessage(cache, msg) {
 	return cache;
 }
 
+export function requestLogDetailsForChannel(channel) {
+	if (socket) {
+		socket.emit("requestChannelLogDetails", { channel });
+	}
+}
+
+export function requestLogDetailsForUsername(username) {
+	if (socket) {
+		socket.emit("requestUserLogDetails", { username });
+	}
+}
+
+export function requestLogFileForChannel(channel, time) {
+	if (socket) {
+		socket.emit("requestChannelLogFile", { channel, time });
+	}
+}
+
+export function requestLogFileForUsername(username, time) {
+	if (socket) {
+		socket.emit("requestUserLogFile", { time, username });
+	}
+}
+
 var updateLastSeenChannel = (channel, username, time) => {
 	store.dispatch(actions.lastSeenChannels.update({
 		[channel]: { username, time }
@@ -88,6 +112,8 @@ export function initializeIo() {
 	if (window.io) {
 		io = window.io;
 		socket = io();
+
+		// TODO: Startup token send
 
 		socket.on("msg", (details) => {
 			const { channel, relationship, username } = details;
@@ -149,6 +175,53 @@ export function initializeIo() {
 			}
 		});
 
-		window.socket = socket; // TEMP DANBAD
+		socket.on("channelLogDetails", (details) => {
+			console.log("Received channel log details!", details);
+			if (details && details.channelUri && details.details) {
+				store.dispatch(actions.logDetails.update({
+					["channel:" + details.channelUri]: details.details
+				}));
+			}
+		});
+
+		socket.on("userLogDetails", (details) => {
+			console.log("Received user log details!", details);
+			if (details && details.username && details.details) {
+				store.dispatch(actions.logDetails.update({
+					["user:" + details.username]: details.details
+				}));
+			}
+		});
+
+		socket.on("channelLogFile", (details) => {
+			console.log("Received channel log file!", details);
+			if (details && details.channelUri && details.file && details.time) {
+				store.dispatch(actions.logFiles.update({
+					["channel:" + details.channelUri]: {
+						[details.time]: details.file
+					}
+				}));
+			}
+		});
+
+		socket.on("userLogFile", (details) => {
+			console.log("Received user log file!", details);
+			if (details && details.username && details.file && details.time) {
+				store.dispatch(actions.logFiles.update({
+					["user:" + details.username]: {
+						[details.time]: details.file
+					}
+				}));
+			}
+		});
+
+		//socket.on("names", (details) => {}); // TODO
+		//socket.on("join", (details) => {}); // TODO
+		//socket.on("part", (details) => {}); // TODO
+		//socket.on("quit", (details) => {}); // TODO
+		//socket.on("kick", (details) => {}); // TODO
+		//socket.on("kill", (details) => {}); // TODO
+
+		window.socket = socket; // tmp
 	}
 }
