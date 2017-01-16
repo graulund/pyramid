@@ -86,13 +86,16 @@ module.exports = function(config, util) {
 			to: null,
 			message: line,
 			isAction: false
-		}
+		};
+
+		var dirty = false;
 
 		// Extract channel identifier (if present)
 		if(m = obj.message.match(/^\s*\[([^0-9:])([^\]]*)\]\s*/)){
 			obj.to = m[1] + m[2]
 			// Remove channel from content string
 			obj.message = obj.message.substr(m[0].length)
+			dirty = true;
 		}
 
 		// Extract time (if date not present)
@@ -103,6 +106,7 @@ module.exports = function(config, util) {
 			obj.time = d + m[1]
 			// Remove time from content string
 			obj.message = obj.message.substr(m[0].length)
+			dirty = true;
 		}
 
 		// Extract time (if date present)
@@ -111,20 +115,27 @@ module.exports = function(config, util) {
 			obj.time = m[1] + " " + m[2]
 			// Remove time from content string
 			obj.message = obj.message.substr(m[0].length)
+			dirty = true;
 		}
 
 		// Extract author (non-action)
 		if(m = obj.message.match(/^\s*<([^>\s]+)>\s*/)){
-			obj.from = m[1]
+			obj.username = obj.from = m[1]
 			obj.message = obj.message.substr(m[0].length)
 			obj.isAction = false
+			dirty = true;
 		}
 
 		// Extract author (action)
 		if(!obj.from && (m = obj.message.match(/^\s*\*\s*([^\s]+)\s+/))){
-			obj.from = m[1]
+			obj.username = obj.from = m[1]
 			obj.message = obj.message.substr(m[0].length)
 			obj.isAction = true
+			dirty = true;
+		}
+
+		if (!dirty) {
+			return null;
 		}
 
 		return obj
@@ -136,10 +147,15 @@ module.exports = function(config, util) {
 			date = util.ymd(date);
 		}
 
-		var lines = data.split("\n")
-		for(var i = 0; i < lines.length; i++){
+		var rawLines = data.split("\n");
+		var lines = [];
+
+		for(var i = 0; i < rawLines.length; i++){
 			// Convert item to obj instead of str
-			lines[i] = parseLogLine(lines[i], date)
+			var line = parseLogLine(rawLines[i], date);
+			if (line) {
+				lines.push(line);
+			}
 		}
 		return lines
 	};
@@ -253,7 +269,7 @@ module.exports = function(config, util) {
 	};
 
 	const pathHasLogsForDay = function(channelPath, d) {
-		channelPath = channelPath.replace(/[^a-zA-Z0-9_-\/]+/g, "")
+		channelPath = channelPath.replace(/[^a-zA-Z0-9_\/-]+/g, "")
 		return pathHasAnyLogs(path.join(
 			channelPath, util.ym(d), util.ymd(d) + ".txt"
 		));

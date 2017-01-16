@@ -11,10 +11,10 @@ class ChatLines extends PureComponent {
 		}
 
 		const lines = messages.map(
-			(msg) => msg ? <ChatLine {...msg}
+			(msg, index) => msg ? <ChatLine {...msg}
 				displayChannel={displayChannel}
 				displayUsername={displayUsername}
-				key={msg.id} /> : null
+				key={msg.id || index} /> : null
 		);
 
 		return <ul>{ lines }</ul>;

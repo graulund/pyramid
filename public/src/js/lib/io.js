@@ -70,9 +70,9 @@ export function cacheMessage(cache, msg) {
 	return cache;
 }
 
-export function requestLogDetailsForChannel(channel) {
+export function requestLogDetailsForChannel(channelUri) {
 	if (socket) {
-		socket.emit("requestChannelLogDetails", { channel });
+		socket.emit("requestChannelLogDetails", { channelUri });
 	}
 }
 
@@ -82,14 +82,16 @@ export function requestLogDetailsForUsername(username) {
 	}
 }
 
-export function requestLogFileForChannel(channel, time) {
+export function requestLogFileForChannel(channelUri, time) {
 	if (socket) {
-		socket.emit("requestChannelLogFile", { channel, time });
+		console.log("Requesting channel log file:", { channelUri, time });
+		socket.emit("requestChannelLogFile", { channelUri, time });
 	}
 }
 
 export function requestLogFileForUsername(username, time) {
 	if (socket) {
+		console.log("Requesting user log file:", { time, username });
 		socket.emit("requestUserLogFile", { time, username });
 	}
 }

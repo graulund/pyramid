@@ -8,7 +8,7 @@ export default function (state = logFilesInitialState, action) {
 
 	switch (action.type) {
 		case actionTypes.logFiles.UPDATE:
-			return merge(state, action.data);
+			return merge({}, state, action.data);
 		case actionTypes.logFiles.CLEAR:
 			if (action.channel && action.date) {
 				// Clear specific file: Channel and date

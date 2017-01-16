@@ -41,6 +41,7 @@ module.exports = function(app, config, util, log, irc){
 		}
 
 		// Redirect to login page
+		// TODO: Append originally accessed URL as redirect parameter
 		res.redirect("/login");
 		res.end();
 		return false;
