@@ -14,8 +14,7 @@ import { updateIrcConfigs } from "./lib/ircConfigs";
 
 // Redux
 
-store.dispatch(actions.viewState.update({}));
-// TODO: Displaying side bar on startup depends on whether we're on the front page or not
+store.dispatch(actions.viewState.update({ sidebarVisible: location.pathname === "/" }));
 
 if (window.pyramid_myToken) {
 	store.dispatch(actions.token.set(window.pyramid_myToken));

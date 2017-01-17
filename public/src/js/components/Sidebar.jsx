@@ -25,9 +25,18 @@ class Sidebar extends Component {
 		if (evt && evt.nativeEvent) {
 			var target = evt.nativeEvent.target;
 
-			if (target && (
-				target.tagName === "A" || target.className === "channelname"
-			)) {
+			if (
+				target && (
+					target.tagName === "A" ||
+					target.className === "channelname" ||
+					(
+						target.parentNode && (
+							target.parentNode.tagName === "A" ||
+							target.parentNode.className === "channelname"
+						)
+					)
+				)
+			) {
 				this.setHidden(true);
 			}
 		}
