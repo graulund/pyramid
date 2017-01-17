@@ -115,7 +115,14 @@ export function initializeIo() {
 		io = window.io;
 		socket = io();
 
-		// TODO: Startup token send
+		socket.on("connect", () => {
+			const state = store.getState();
+			if (state && state.token) {
+				socket.emit("token", { token: state.token });
+			} else {
+				console.warn("No token found to send on socket startup");
+			}
+		});
 
 		socket.on("msg", (details) => {
 			const { channel, relationship, username } = details;

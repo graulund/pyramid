@@ -93,19 +93,27 @@ module.exports = function(config, util, log, irc) {
 		io.on("connection", (socket) => {
 			console.log("Someone connected!");
 
-			// TODO: Startup token check
+			var connectionToken = null;
 
 			socket.on("disconnect", () => {
 				console.log("Someone disconnected!");
 			});
 
+			socket.on("token", (details) => {
+				if (details && typeof details.token === "string") {
+					connectionToken = details.token;
+				}
+			})
+
 			// Respond to requests for cache
 			socket.on("requestUserCache", (username) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
 					sendUserCache(socket, username);
 				}
 			});
 			socket.on("requestChannelCache", (channelUri) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channelUri === "string") {
 					sendChannelCache(socket, channelUri);
 				}
@@ -113,37 +121,43 @@ module.exports = function(config, util, log, irc) {
 
 			// Response to subscription requests
 			socket.on("subscribe", (details) => {
-				if (details.channel) {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.channel) {
 					irc.addChannelRecipient(details.channel, socket);
 					sendChannelCache(socket, details.channel);
 				}
-				else if (details.username) {
+				else if (details && details.username) {
 					irc.addUserRecipient(details.username, socket);
 					sendUserCache(socket, details.username);
 				}
 			});
 			socket.on("unsubscribe", (details) => {
-				if (details.channel) {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.channel) {
 					irc.removeChannelRecipient(details.channel, socket);
 				}
-				else if (details.username) {
+				else if (details && details.username) {
 					irc.removeUserRecipient(details.username, socket);
 				}
 			});
 
 			// Response to log requests
 			socket.on("requestUserLogDetails", (details) => {
-				if (typeof details.username === "string") {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && typeof details.username === "string") {
 					sendUserLogDetails(socket, details.username);
 				}
 			});
 			socket.on("requestChannelLogDetails", (details) => {
-				if (typeof details.channelUri === "string") {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && typeof details.channelUri === "string") {
 					sendChannelLogDetails(socket, details.channelUri);
 				}
 			});
 			socket.on("requestUserLogFile", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (
+					details &&
 					typeof details.username === "string" &&
 					typeof details.time === "string"
 				) {
@@ -151,7 +165,9 @@ module.exports = function(config, util, log, irc) {
 				}
 			});
 			socket.on("requestChannelLogFile", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (
+					details &&
 					typeof details.channelUri === "string" &&
 					typeof details.time === "string"
 				) {
@@ -161,6 +177,7 @@ module.exports = function(config, util, log, irc) {
 
 			// Sending messages
 			socket.on("sendMessage", (data) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (data && data.channel && data.message && data.token) {
 
 					// Only allow this socket to send a message

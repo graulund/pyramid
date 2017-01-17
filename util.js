@@ -59,7 +59,9 @@ module.exports = function(config){
 	var acceptedTokens = [];
 
 	const addToAcceptedTokens = function(token) {
-		acceptedTokens = [ ...acceptedTokens, token ];
+		if (token) {
+			acceptedTokens = [ ...acceptedTokens, token ];
+		}
 	};
 
 	const isAnAcceptedToken = function(token) {
