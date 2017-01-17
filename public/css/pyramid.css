@@ -453,10 +453,6 @@ ul.statsuserlist {
 	background-color: #fff;
 }
 
-.logbrowser {
-	overflow: hidden;
-}
-
 .chatview__logbrowser {
 	margin: 5px 0 -5px;
 }
@@ -473,14 +469,28 @@ ul.statsuserlist {
 
 .logbrowser__items {
 	list-style-type: none;
-	margin: 0;
+	margin: 0 0 0 -10px;
 	padding: 0;
 	line-height: 2em;
 }
 
 .logbrowser__items li {
-	display: inline;
-	padding: 0 10px 0 0;
+	display: inline-block;
+}
+
+.logbrowser__items a {
+	display: block;
+	padding: 0 10px;
+}
+
+.logbrowser__items a.current {
+	background-color: #003;
+	color: #fff;
+}
+
+.login-form {
+	margin: 50px 30px;
+	text-align: center;
 }
 
 @media only screen and (max-width: 767px) {
@@ -540,9 +550,4 @@ ul.statsuserlist {
 		margin-left: 0;
 		margin-bottom: 5px;
 	}
-}
-
-.login-form {
-	margin: 50px 30px;
-	text-align: center;
 }

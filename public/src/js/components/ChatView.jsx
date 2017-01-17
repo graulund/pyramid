@@ -16,6 +16,7 @@ class ChatView extends Component {
 		const { params } = this.props;
 
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
+		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
 		this.onClick = this.onClick.bind(this);
 		this.onKey = this.onKey.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
@@ -167,6 +168,19 @@ class ChatView extends Component {
 		}
 
 		return null;
+	}
+
+	logBrowserSubmit(evt) {
+		const { router } = this.props;
+		const { logRequestInput } = this.refs;
+
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		if (logRequestInput && logRequestInput.value && router) {
+			router.push(this.logUrl(logRequestInput.value));
+		}
 	}
 
 	logUrl(timeStamp) {
@@ -344,9 +358,11 @@ class ChatView extends Component {
 			timeStamps = Object.keys(timeStamps).sort();
 
 			const detailsEls = timeStamps.map((timeStamp) => {
+				const url = this.logUrl(timeStamp);
+				const className = timeStamp === params.logDate ? "current" : "";
 				return (
 					<li key={timeStamp}>
-						<Link to={this.logUrl(timeStamp)}>
+						<Link to={url} className={className}>
 							{ timeStamp }
 						</Link>
 					</li>
@@ -355,11 +371,14 @@ class ChatView extends Component {
 
 			return (
 				<div className="logbrowser chatview__logbrowser">
-					<div className="logbrowser__request">
-						{"Pick a date: "}
-						<input type="date" />{" "}
-						<input type="submit" value="Go" />
-					</div>
+					<form onSubmit={this.logBrowserSubmit}
+						className="logbrowser__request">
+						<div>
+							{"Pick a date: "}
+							<input type="date" ref="logRequestInput" />{" "}
+							<input type="submit" value="Go" />
+						</div>
+					</form>
 					<ul className="logbrowser__items">
 						{ detailsEls }
 					</ul>
@@ -421,6 +440,7 @@ ChatView.propTypes = {
 	logDetails: PropTypes.object,
 	logFiles: PropTypes.object,
 	params: PropTypes.object,
+	router: PropTypes.object,
 	userCaches: PropTypes.object
 };
 
