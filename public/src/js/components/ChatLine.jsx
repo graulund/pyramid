@@ -11,13 +11,16 @@ class ChatLine extends PureComponent {
 	render() {
 		const {
 			channel, displayChannel, displayUsername,
-			isAction, message, time, username
+			highlight, isAction, message, time, username
 		} = this.props;
 
 		const m = moment(time);
 		const timestamp = m.format("H:mm:ss");
 		const datestamp = m.format("YYYY-MM-DD");
-		const className = "msg" + (isAction ? " msg--action" : "");
+		const isHighlight = !!(highlight && highlight.length);
+		const className = "msg" +
+			(isAction ? " msg--action" : "") +
+			(isHighlight ? " msg--highlight" : "");
 
 		return (
 			<li className={className}>
@@ -51,6 +54,7 @@ ChatLine.propTypes = {
 	channelName: PropTypes.string,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	highlight: PropTypes.array,
 	id: PropTypes.string,
 	isAction: PropTypes.bool,
 	message: PropTypes.string,

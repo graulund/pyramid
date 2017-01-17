@@ -294,16 +294,17 @@ module.exports = function(config, util, log){
 		emitMessageToRecipients(userRecipients[username], msg);
 	};
 
-	var emitMessage = function(chobj, from, time, message, isAction, relationship) {
+	var emitMessage = function(chobj, from, time, message, isAction, relationship, highlightStrings) {
 		const msg = {
 			id: uuid.v4(),
 			channel: channelFileName(chobj),
 			channelName: channelFullName(chobj),
-			time,
+			highlight: highlightStrings,
 			isAction,
 			message,
 			relationship,
 			server: chobj.server,
+			time,
 			username: from
 		};
 
@@ -355,22 +356,24 @@ module.exports = function(config, util, log){
 			logLine(chobj, line, null, from.toLowerCase());
 		}
 
-		updateLastSeen(chobj, from, time, message, isAction, relationship);
-		emitMessage(chobj, from, time, message, isAction, relationship);
+		var highlightStrings = [];
 
-		// Mention?
+		// Mention? Add to specific logs
 		var meRegex = new RegExp("\\b" + client.extConfig.me + "\\b", "i")
-		if(meRegex.test(message)){
-			// Add to specific logs
-			logLine(chobj, line, null, "mentions")
+		if (meRegex.test(message)) {
+			highlightStrings.push(client.extConfig.me);
+			logLine(chobj, line, null, "mentions");
 		}
-		for(var i = 0; i < config.nicknames.length; i++){
+		for (var i = 0; i < config.nicknames.length; i++) {
 			var nickRegex = new RegExp("\\b" + config.nicknames[i] + "\\b", "i")
-			if(nickRegex.test(message)){
-				// Add to specific logs
-				logLine(chobj, line, null, "nickmentions")
+			if (nickRegex.test(message)) {
+				highlightStrings.push(config.nicknames[i]);
+				logLine(chobj, line, null, "nickmentions");
 			}
 		}
+
+		updateLastSeen(chobj, from, time, message, isAction, relationship);
+		emitMessage(chobj, from, time, message, isAction, relationship, highlightStrings);
 	};
 
 	var sendOutgoingMessage = function(channelUrl, message, isAction = false) {
