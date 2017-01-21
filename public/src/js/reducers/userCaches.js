@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 
 import * as actionTypes from "../actionTypes";
-import { cacheMessage } from "../lib/io";
+import { cacheItem } from "../lib/io";
 
 const userCaches = {};
 
@@ -18,7 +18,7 @@ export default function (state = userCaches, action) {
 			if (!s[d.username]) {
 				s[d.username] = [];
 			}
-			s[d.username] = cacheMessage(s[d.username], d.message);
+			s[d.username] = cacheItem(s[d.username], d.message);
 			return s;
 	}
 

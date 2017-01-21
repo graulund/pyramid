@@ -2,6 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import moment from "moment";
 
 import ChannelLink from "./ChannelLink.jsx";
+import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
 
@@ -31,6 +32,9 @@ class ChatLine extends PureComponent {
 			case "+mode":
 			case "-mode":
 				content = <ChatUserEventLine {...this.props} key="content" />;
+				break;
+			case "events":
+				content = <ChatBunchedEventsLine {...this.props} key="content" />;
 				break;
 		}
 
@@ -63,6 +67,7 @@ ChatLine.propTypes = {
 	channelName: PropTypes.string,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	events: PropTypes.array,
 	highlight: PropTypes.array,
 	id: PropTypes.string,
 	isAction: PropTypes.bool,

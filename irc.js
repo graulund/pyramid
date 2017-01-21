@@ -17,6 +17,10 @@ const RELATIONSHIP_BEST_FRIEND = 2;
 const CACHE_LINES = 150;
 const LAST_SEEN_UPDATE_RATE = 500;
 
+const JOIN_PART_EVENT_TYPES = ["join", "part", "quit", "kick", "kill"];
+const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
+const BUNCHABLE_EVENT_TYPES = ["join", "part", "quit", "kill", "+mode", "-mode"];
+
 module.exports = function(config, util, log){
 
 	var io = {} // To be filled in later
@@ -270,9 +274,9 @@ module.exports = function(config, util, log){
 		emitEventToRecipients(channelRecipients[channelUrl], eventName, eventData);
 	};
 
-	var cacheMessage = function(cache, msg) {
+	var cacheItem = function(cache, data) {
 		// Add it
-		cache.push(msg);
+		cache.push(data);
 
 		// And make sure we only have the maximum amount
 		if (cache.length > CACHE_LINES) {
@@ -288,7 +292,7 @@ module.exports = function(config, util, log){
 		if (!channelCaches[channelUrl]) {
 			channelCaches[channelUrl] = [];
 		}
-		cacheMessage(channelCaches[channelUrl], data);
+		cacheItem(channelCaches[channelUrl], data);
 
 		// Emit
 		emitEventToChannel(channelUrl, data.type, data);
@@ -298,10 +302,54 @@ module.exports = function(config, util, log){
 		if (!userCaches[username]) {
 			userCaches[username] = [];
 		}
-		cacheMessage(userCaches[username], msg);
+		cacheItem(userCaches[username], msg);
 
 		// Emit
 		emitMessageToRecipients(userRecipients[username], msg);
+	};
+
+	var cacheBunchableChannelEvent = function(channelUrl, data) {
+		const cache = channelCaches[channelUrl];
+		if (cache && cache.length) {
+			const lastIndex = cache.length-1;
+			const lastItem = cache[lastIndex];
+			if (lastItem) {
+				var bunch;
+				if (BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
+					// Create bunch and insert in place
+					cache[lastIndex] = bunch = {
+						channel: lastItem.channel,
+						channelName: lastItem.channelName,
+						events: [lastItem, data],
+						id: uuid.v4(),
+						prevIds: [lastItem.id],
+						server: lastItem.server,
+						time: data.time,
+						type: "events"
+					};
+				}
+				else if (lastItem.type === "events") {
+					// Add to bunch, resulting in a new, inserted in place
+					cache[lastIndex] = bunch = {
+						channel: lastItem.channel,
+						channelName: lastItem.channelName,
+						events: lastItem.events.concat([data]),
+						id: uuid.v4(),
+						prevIds: lastItem.prevIds.concat([lastItem.id]),
+						server: lastItem.server,
+						time: data.time,
+						type: "events"
+					};
+				}
+				if (bunch) {
+					emitEventToChannel(channelUrl, bunch.type, bunch);
+					return;
+				}
+			}
+		}
+
+		// Otherwise, just a normal addition to the list
+		cacheChannelEvent(channelUrl, data);
 	};
 
 	var emitMessage = function(chobj, from, time, message, isAction, relationship, highlightStrings) {
@@ -385,7 +433,7 @@ module.exports = function(config, util, log){
 
 		// Channel user lists
 		if (
-			(["join", "part", "quit", "kick", "kill"].indexOf(name) >= 0) &&
+			JOIN_PART_EVENT_TYPES.indexOf(name) >= 0 &&
 			data &&
 			data.username
 		) {
@@ -396,12 +444,7 @@ module.exports = function(config, util, log){
 			if (name === "join") {
 				channelNames[c] = [ ...channelNames[c], data.username ];
 			}
-			else if (
-				name === "part" ||
-				name === "quit" ||
-				name === "kick" ||
-				name === "kill"
-			) {
+			else if (PART_EVENT_TYPES.indexOf(name) >= 0) {
 				channelNames[c] = lodash.without(channelNames[c], data.username);
 			}
 
@@ -422,7 +465,13 @@ module.exports = function(config, util, log){
 			type: name
 		};
 
-		cacheChannelEvent(c, lodash.assign(metadata, data));
+		const event = lodash.assign(metadata, data);
+
+		if (BUNCHABLE_EVENT_TYPES.indexOf(name) >= 0) {
+			cacheBunchableChannelEvent(c, event);
+		} else {
+			cacheChannelEvent(c, event);
+		}
 	};
 
 	var addNamesToChannel = function(client, channel, names) {
@@ -487,6 +536,7 @@ module.exports = function(config, util, log){
 		client.addListener("kick", (channel, username, by, reason, message) => {
 			const line = "** " + username + " was kicked by " + by +
 				(reason ? " (" + reason + ")" : "");
+			console.log(line);
 			handleEvent(
 				client, channel, "kick", line,
 				{ username, by, reason, rawData: message }
@@ -496,6 +546,7 @@ module.exports = function(config, util, log){
 		client.addListener("+mode", (channel, by, mode, argument, message) => {
 			const line = "** " + username + " sets mode: +" + mode +
 				(argument ? " " + argument : "");
+			console.log(line);
 			handleEvent(
 				client, channel, "+mode", line,
 				{ by, mode, argument, rawData: message }
@@ -505,10 +556,21 @@ module.exports = function(config, util, log){
 		client.addListener("-mode", (channel, by, mode, argument, message) => {
 			const line = "** " + username + " sets mode: -" + mode +
 				(argument ? " " + argument : "");
+			console.log(line);
 			handleEvent(
 				client, channel, "-mode", line,
 				{ by, mode, argument, rawData: message }
 			);
+		});
+
+		client.addListener("mode", (channel, by, mode, argument, message) => {
+			const line = "** " + username + " sets mode: " + mode +
+				(argument ? " " + argument : "");
+			console.log(line);
+			/*handleEvent(
+				client, channel, "+mode", line,
+				{ by, mode, argument, rawData: message }
+			);*/
 		});
 
 		client.addListener("kill", (username, reason, channels, message) => {

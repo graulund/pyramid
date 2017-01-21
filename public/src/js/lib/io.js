@@ -1,6 +1,6 @@
 import actions from "../actions";
 import store from "../store";
-//import debounce from "lodash/debounce";
+import without from "lodash/without";
 
 import { CACHE_LINES, RELATIONSHIP_NONE } from "../constants";
 
@@ -48,13 +48,13 @@ export function sendMessage(channelUrl, message) {
 	}
 }
 
-export function cacheMessage(cache, msg) {
+export function cacheItem(cache, item) {
 	// Add it, or them
-	if (msg) {
-		if (msg instanceof Array) {
-			cache = cache.concat(msg);
+	if (item) {
+		if (item instanceof Array) {
+			cache = cache.concat(item);
 		} else {
-			cache = [ ...cache, msg ];
+			cache = [ ...cache, item ];
 		}
 	}
 
@@ -65,6 +65,15 @@ export function cacheMessage(cache, msg) {
 		} else {
 			cache = cache.slice(cache.length - CACHE_LINES);
 		}
+	}
+
+	return cache;
+}
+
+export function clearReplacedIdsFromCache(cache, prevIds) {
+	if (cache && cache.length && prevIds && prevIds.length) {
+		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.id) >= 0);
+		return without(cache, ...itemsWithPrevIds);
 	}
 
 	return cache;
@@ -108,8 +117,6 @@ var updateLastSeenUser = (username, channel, time) => {
 	}));
 };
 
-//updateLastSeenChannel = debounce(updateLastSeenChannel, 150);
-
 export function initializeIo() {
 	if (window.io) {
 		io = window.io;
@@ -125,14 +132,11 @@ export function initializeIo() {
 		});
 
 		const onChatEvent = (details) => {
-			const { channel, relationship, type, username } = details;
+			const { relationship, type, username } = details;
 
-			store.dispatch(actions.channelCaches.append({
-				channel,
-				message: details
-			}));
+			store.dispatch(actions.channelCaches.append(details));
 
-			if (relationship === RELATIONSHIP_NONE || type !== "msg") {
+			if (!relationship || type !== "msg") {
 				return;
 			}
 
@@ -155,6 +159,7 @@ export function initializeIo() {
 		socket.on("quit", onChatEvent);
 		socket.on("kick", onChatEvent);
 		socket.on("kill", onChatEvent);
+		socket.on("events", onChatEvent);
 
 		socket.on("names", (details) => {
 			console.log("Received names event:", details);

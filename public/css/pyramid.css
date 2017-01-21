@@ -403,7 +403,8 @@ ul.statsuserlist {
 .chatview .msg__author,
 .chatview .msg__author a,
 .chatview .userevent__target,
-.chatview .userevent__target a {
+.chatview .userevent__target a,
+.chatview .bunchedevents a {
 	color: inherit;
 	white-space: nowrap;
 }
@@ -424,13 +425,17 @@ ul.statsuserlist {
 	background-color: #e8da9b;
 }
 
-.chatview .userevent {
+.chatview .userevent, .chatview .bunchedevents {
 	color: #999;
 }
 
 .chatview .userevent--strong {
 	color: #000;
 	font-weight: bold;
+}
+
+.chatview .bunchedevents--expandable {
+	cursor: pointer;
 }
 
 .chatview__top {
