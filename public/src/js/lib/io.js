@@ -1,8 +1,8 @@
 import actions from "../actions";
 import store from "../store";
-import without from "lodash/without";
+import pull from "lodash/pull";
 
-import { CACHE_LINES, RELATIONSHIP_NONE } from "../constants";
+import { CACHE_LINES } from "../constants";
 
 var io;
 var socket;
@@ -73,7 +73,11 @@ export function cacheItem(cache, item) {
 export function clearReplacedIdsFromCache(cache, prevIds) {
 	if (cache && cache.length && prevIds && prevIds.length) {
 		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.id) >= 0);
-		return without(cache, ...itemsWithPrevIds);
+		return pull(cache, ...itemsWithPrevIds);
+
+		// NOTE: We are modifiying in place to prevent too many change handlers from
+		// occuring. We are expecting the caller to create a new array with an added
+		// item immediately after having called this method.
 	}
 
 	return cache;
