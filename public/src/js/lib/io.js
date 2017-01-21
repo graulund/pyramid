@@ -124,15 +124,15 @@ export function initializeIo() {
 			}
 		});
 
-		socket.on("msg", (details) => {
-			const { channel, relationship, username } = details;
+		const onChatEvent = (details) => {
+			const { channel, relationship, type, username } = details;
 
 			store.dispatch(actions.channelCaches.append({
 				channel,
 				message: details
 			}));
 
-			if (relationship === RELATIONSHIP_NONE) {
+			if (relationship === RELATIONSHIP_NONE || type !== "msg") {
 				return;
 			}
 
@@ -147,6 +147,17 @@ export function initializeIo() {
 				username,
 				message: details
 			}));
+		};
+
+		socket.on("msg", onChatEvent);
+		socket.on("join", onChatEvent);
+		socket.on("part", onChatEvent);
+		socket.on("quit", onChatEvent);
+		socket.on("kick", onChatEvent);
+		socket.on("kill", onChatEvent);
+
+		socket.on("names", (details) => {
+			console.log("Received names event:", details);
 		});
 
 		socket.on("lastSeen", (instances) => {
@@ -223,13 +234,6 @@ export function initializeIo() {
 				}));
 			}
 		});
-
-		//socket.on("names", (details) => {}); // TODO
-		//socket.on("join", (details) => {}); // TODO
-		//socket.on("part", (details) => {}); // TODO
-		//socket.on("quit", (details) => {}); // TODO
-		//socket.on("kick", (details) => {}); // TODO
-		//socket.on("kill", (details) => {}); // TODO
 
 		window.socket = socket; // tmp
 	}

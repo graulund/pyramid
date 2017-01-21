@@ -1,32 +1,48 @@
 import React, { PureComponent, PropTypes } from "react";
 import moment from "moment";
-import Linkify from "react-linkify";
 
 import ChannelLink from "./ChannelLink.jsx";
-import UserLink from "./UserLink.jsx";
-
-const linkifyProperties = { target: "_blank" };
+import ChatMessageLine from "./ChatMessageLine.jsx";
+import ChatUserEventLine from "./ChatUserEventLine.jsx";
 
 class ChatLine extends PureComponent {
 	render() {
-		const {
-			channel, displayChannel, displayUsername,
-			highlight, isAction, message, time, username
-		} = this.props;
+		const { channel, displayChannel, highlight, time, type } = this.props;
 
 		const m = moment(time);
 		const timestamp = m.format("H:mm:ss");
 		const datestamp = m.format("YYYY-MM-DD");
+
 		const isHighlight = !!(highlight && highlight.length);
-		const className = "msg" +
-			(isAction ? " msg--action" : "") +
-			(isHighlight ? " msg--highlight" : "");
+		const className = "line" +
+			(isHighlight ? " line--highlight" : "");
+
+		var content = null;
+
+		switch (type) {
+			case "msg":
+				content = <ChatMessageLine {...this.props} key="content" />;
+				break;
+			case "join":
+			case "part":
+			case "quit":
+			case "kick":
+			case "kill":
+			case "+mode":
+			case "-mode":
+				content = <ChatUserEventLine {...this.props} key="content" />;
+				break;
+		}
+
+		if (!content) {
+			content = <em>{ `no template for \`${type}\` event` }</em>;
+		}
 
 		return (
 			<li className={className}>
 				{ displayChannel
 					? (
-						<span className="msg__channel">
+						<span className="line__channel">
 							<ChannelLink channel={channel} key={channel} />
 							{" "}
 						</span>
@@ -34,22 +50,15 @@ class ChatLine extends PureComponent {
 				<time dateTime={time} title={datestamp + " " + timestamp}>
 					{ timestamp }
 				</time>{" "}
-				{ displayUsername
-					? (
-						<strong className="msg__author">
-							<UserLink userName={username} key={username} />
-							{" "}
-						</strong>
-					) : null }
-				<span><Linkify properties={linkifyProperties}>
-					{ message }
-				</Linkify></span>
+				{ content }
 			</li>
 		);
 	}
 }
 
 ChatLine.propTypes = {
+	argument: PropTypes.string,
+	by: PropTypes.string,
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
 	displayChannel: PropTypes.bool,
@@ -58,8 +67,11 @@ ChatLine.propTypes = {
 	id: PropTypes.string,
 	isAction: PropTypes.bool,
 	message: PropTypes.string,
+	mode: PropTypes.string,
+	reason: PropTypes.string,
 	server: PropTypes.string,
 	time: PropTypes.string,
+	type: PropTypes.string,
 	username: PropTypes.string
 };
 

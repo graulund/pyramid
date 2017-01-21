@@ -385,7 +385,7 @@ ul.statsuserlist {
 	padding: 0;
 }
 
-.chatview .msg {
+.chatview .line {
 	padding: 0 20px;
 }
 
@@ -393,16 +393,18 @@ ul.statsuserlist {
 	word-break: break-word;
 }
 
-.chatview .msg__channel,
-.chatview .msg__channel a,
+.chatview .line__channel,
+.chatview .line__channel a,
 .chatview time {
 	color: #999;
 	white-space: nowrap;
 }
 
 .chatview .msg__author,
-.chatview .msg__author a {
-	color: #000;
+.chatview .msg__author a,
+.chatview .userevent__target,
+.chatview .userevent__target a {
+	color: inherit;
 	white-space: nowrap;
 }
 
@@ -414,8 +416,21 @@ ul.statsuserlist {
 	font-style: normal;
 }
 
-.chatview .msg--highlight {
+.chatview .line--highlight {
 	background-color: #fff0aa;
+}
+
+.chatview .msg--highlight mark {
+	background-color: #e8da9b;
+}
+
+.chatview .userevent {
+	color: #999;
+}
+
+.chatview .userevent--strong {
+	color: #000;
+	font-weight: bold;
 }
 
 .chatview__top {

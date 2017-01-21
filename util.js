@@ -3,7 +3,14 @@
 
 var moment = require("moment-timezone")
 
+// Constants
+const RELATIONSHIP_NONE = 0; // TODO: Don't redefine
+const RELATIONSHIP_FRIEND = 1;
+const RELATIONSHIP_BEST_FRIEND = 2;
+
 module.exports = function(config){
+
+	var allFriends = null;
 
 	// Time utilities
 	var hms = function(d){
@@ -87,6 +94,22 @@ module.exports = function(config){
 		return token;
 	};
 
+	const getRelationship = function(username) {
+		username = username.toLowerCase();
+		var relationship = RELATIONSHIP_NONE;
+
+		allFriends = allFriends || config.bestFriends.concat(config.friends);
+
+		if (allFriends.indexOf(username) >= 0) {
+			var isBestFriend = config.bestFriends.indexOf(username) >= 0;
+			relationship = isBestFriend
+				? RELATIONSHIP_BEST_FRIEND
+				: RELATIONSHIP_FRIEND;
+		}
+
+		return relationship;
+	};
+
 	return {
 		hms,
 		ymd,
@@ -100,6 +123,7 @@ module.exports = function(config){
 		isAnAcceptedToken,
 		generateToken,
 		generateAcceptedToken,
-		clearAcceptedTokens
+		clearAcceptedTokens,
+		getRelationship
 	}
 };

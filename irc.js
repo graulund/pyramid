@@ -47,6 +47,8 @@ module.exports = function(config, util, log){
 	var lastSeenChannels = loadLastSeenInfo(lastSeenChannelsFileName);
 	var lastSeenUsers = loadLastSeenInfo(lastSeenUsersFileName);
 
+	var channelNames = {};
+
 	var channelCaches = {};
 	var userCaches = {};
 
@@ -250,14 +252,22 @@ module.exports = function(config, util, log){
 		}
 	};
 
-	var emitMessageToRecipients = function(list, msg) {
+	var emitEventToRecipients = function(list, eventName, eventData) {
 		if (list) {
 			list.forEach((socket) => {
 				if (socket) {
-					socket.emit("msg", msg);
+					socket.emit(eventName, eventData);
 				}
 			});
 		}
+	};
+
+	var emitMessageToRecipients = function(list, msg) {
+		emitEventToRecipients(list, "msg", msg);
+	};
+
+	var emitEventToChannel = function(channelUrl, eventName, eventData) {
+		emitEventToRecipients(channelRecipients[channelUrl], eventName, eventData);
 	};
 
 	var cacheMessage = function(cache, msg) {
@@ -274,14 +284,14 @@ module.exports = function(config, util, log){
 		}
 	};
 
-	var cacheChannelMessage = function(channelUrl, msg) {
+	var cacheChannelEvent = function(channelUrl, data) {
 		if (!channelCaches[channelUrl]) {
 			channelCaches[channelUrl] = [];
 		}
-		cacheMessage(channelCaches[channelUrl], msg);
+		cacheMessage(channelCaches[channelUrl], data);
 
 		// Emit
-		emitMessageToRecipients(channelRecipients[channelUrl], msg);
+		emitEventToChannel(channelUrl, data.type, data);
 	};
 
 	var cacheUserMessage = function(username, msg) {
@@ -296,30 +306,24 @@ module.exports = function(config, util, log){
 
 	var emitMessage = function(chobj, from, time, message, isAction, relationship, highlightStrings) {
 		const msg = {
-			id: uuid.v4(),
 			channel: channelFileName(chobj),
 			channelName: channelFullName(chobj),
 			highlight: highlightStrings,
+			id: uuid.v4(),
 			isAction,
 			message,
 			relationship,
 			server: chobj.server,
 			time,
+			type: "msg",
 			username: from
 		};
 
-		// Cache
-		cacheChannelMessage(msg.channel, msg);
+		// Cache and emit
+		cacheChannelEvent(msg.channel, msg);
 		if (relationship >= RELATIONSHIP_FRIEND) {
 			cacheUserMessage(from, msg);
 		}
-
-		// Emit
-		/* if("emit" in io){
-			io.emit("msg", msg);
-		} else {
-			console.warn("Tried to emit msg event, but io object was not available")
-		} */
 	};
 
 	var handleMessage = function(client, from, to, message, isAction){
@@ -345,13 +349,10 @@ module.exports = function(config, util, log){
 		}
 
 		// Is this from a person among our friends? Note down "last seen" time.
-		var relationship = RELATIONSHIP_NONE;
-		var allFriends = config.bestFriends.concat(config.friends)
-		if(allFriends.indexOf(from.toLowerCase()) >= 0){
-			var isBestFriend = config.bestFriends.indexOf(from.toLowerCase()) >= 0;
-			relationship = isBestFriend
-				? RELATIONSHIP_BEST_FRIEND
-				: RELATIONSHIP_FRIEND;
+
+		const relationship = util.getRelationship(from);
+
+		if (relationship >= RELATIONSHIP_FRIEND) {
 			// Add to specific logs
 			logLine(chobj, line, null, from.toLowerCase());
 		}
@@ -375,6 +376,164 @@ module.exports = function(config, util, log){
 		updateLastSeen(chobj, from, time, message, isAction, relationship);
 		emitMessage(chobj, from, time, message, isAction, relationship, highlightStrings);
 	};
+
+	var handleEvent = function(client, channel, name, line, data, time) {
+		const chobj = channelObject(client, channel);
+		logLine(chobj, line);
+
+		const c = channelFileName(chobj);
+
+		// Channel user lists
+		if (
+			(["join", "part", "quit", "kick", "kill"].indexOf(name) >= 0) &&
+			data &&
+			data.username
+		) {
+			if (!channelNames[c]) {
+				channelNames[c] = [];
+			}
+
+			if (name === "join") {
+				channelNames[c] = [ ...channelNames[c], data.username ];
+			}
+			else if (
+				name === "part" ||
+				name === "quit" ||
+				name === "kick" ||
+				name === "kill"
+			) {
+				channelNames[c] = lodash.without(channelNames[c], data.username);
+			}
+
+			emitEventToChannel(c, "names", {
+				channel: c,
+				list: channelNames[c],
+				type: "names"
+			});
+		}
+
+		const metadata = {
+			channel: c,
+			channelName: channelFullName(chobj),
+			id: uuid.v4(),
+			relationship: data && data.username && util.getRelationship(data.username),
+			server: chobj.server,
+			time: time || new Date(),
+			type: name
+		};
+
+		cacheChannelEvent(c, lodash.assign(metadata, data));
+	};
+
+	var addNamesToChannel = function(client, channel, names) {
+		const chobj = channelObject(client, channel);
+		const c = channelFileName(chobj);
+
+		if (c && names && names.length) {
+			if (!channelNames[c]) {
+				channelNames[c] = [];
+			}
+
+			channelNames[c] = channelNames[c].concat(names);
+		}
+	};
+
+	for(i = 0; i < clients.length; i++){
+		var client = clients[i]
+
+		// TEMP
+		client.send("CAP", "REQ", "twitch.tv/membership");
+		// END TEMP
+
+		client.addListener("message", function (from, to, message){
+			handleMessage(client, from, to, message, false)
+		})
+
+		client.addListener("action", function (from, to, message){
+			handleMessage(client, from, to, message, true)
+		})
+
+		client.addListener("error", function(message) {
+			console.log("IRC Error:", message);
+		})
+
+		client.addListener("names", (channel, nicks) => {
+			const n = Object.keys(nicks);
+			addNamesToChannel(client, channel, n);
+		});
+
+		client.addListener("join", (channel, username, message) => {
+			const line = "** " + username + " joined";
+			handleEvent(client, channel, "join", line, { username, rawData: message });
+		});
+
+		client.addListener("part", (channel, username, reason, message) => {
+			const line = "** " + username + " left" +
+				(reason ? " (" + reason + ")" : "");
+			handleEvent(client, channel, "part", line, { username, reason, rawData: message });
+		});
+
+		client.addListener("quit", (username, reason, channels, message) => {
+			const line = "** " + username + " quit" +
+				(reason ? " (" + reason + ")" : "");
+			console.log(line);
+			// TODO
+			/* handleEvent(
+				client, null, "quit", line,
+				{ username, reason, channels, message }
+			); */
+		});
+
+		client.addListener("kick", (channel, username, by, reason, message) => {
+			const line = "** " + username + " was kicked by " + by +
+				(reason ? " (" + reason + ")" : "");
+			handleEvent(
+				client, channel, "kick", line,
+				{ username, by, reason, rawData: message }
+			);
+		});
+
+		client.addListener("+mode", (channel, by, mode, argument, message) => {
+			const line = "** " + username + " sets mode: +" + mode +
+				(argument ? " " + argument : "");
+			handleEvent(
+				client, channel, "+mode", line,
+				{ by, mode, argument, rawData: message }
+			);
+		});
+
+		client.addListener("-mode", (channel, by, mode, argument, message) => {
+			const line = "** " + username + " sets mode: -" + mode +
+				(argument ? " " + argument : "");
+			handleEvent(
+				client, channel, "-mode", line,
+				{ by, mode, argument, rawData: message }
+			);
+		});
+
+		client.addListener("kill", (username, reason, channels, message) => {
+			const line = "** " + username + " was killed" +
+				(reason ? " (" + reason + ")" : "");
+			console.log(line);
+			// TODO
+		});
+	}
+
+	// Send out updates to last seen
+	var broadcastLastSeenUpdates = function(){
+		if (cachedLastSeens) {
+			const values = Object.values(cachedLastSeens);
+			if (values && values.length) {
+				io.emit("lastSeen", values);
+				cachedLastSeens = {};
+			}
+		}
+	};
+
+	// Am I going to regret this?
+	setInterval(broadcastLastSeenUpdates, LAST_SEEN_UPDATE_RATE);
+
+	// Send message
 
 	var sendOutgoingMessage = function(channelUrl, message, isAction = false) {
 		const serverName  = util.channelServerNameFromUrl(channelUrl);
@@ -405,35 +564,6 @@ module.exports = function(config, util, log){
 
 		return false;
 	};
-
-	for(i = 0; i < clients.length; i++){
-		var client = clients[i]
-		client.addListener("message", function (from, to, message){
-			handleMessage(this, from, to, message, false)
-		})
-
-		client.addListener("action", function (from, to, message){
-			handleMessage(this, from, to, message, true)
-		})
-
-		client.addListener("error", function(message) {
-			console.log("IRC Error: ", message);
-		})
-	}
-
-	// Send out updates to last seen
-	var broadcastLastSeenUpdates = function(){
-		if (cachedLastSeens) {
-			const values = Object.values(cachedLastSeens);
-			if (values && values.length) {
-				io.emit("lastSeen", values);
-				cachedLastSeens = {};
-			}
-		}
-	};
-
-	// Am I going to regret this?
-	setInterval(broadcastLastSeenUpdates, LAST_SEEN_UPDATE_RATE);
 
 	// Recipients of messages
 
