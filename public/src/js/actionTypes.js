@@ -3,6 +3,10 @@ export const channelCaches = {
 	"APPEND": "channelCaches/APPEND"
 };
 
+export const channelUserLists = {
+	"UPDATE": "channelUserLists/UPDATE"
+};
+
 export const friendsList = {
 	"UPDATE": "friendsList/UPDATE"
 };

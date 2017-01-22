@@ -50,6 +50,13 @@ module.exports = function(config, util, log, irc) {
 		});
 	};
 
+	var sendChannelUserList = function(socket, channelUri) {
+		socket.emit("channelUserList", {
+			channel: channelUri,
+			list: irc.getChannelUserList(channelUri)
+		});
+	};
+
 	var sendChannelLogFile = function(socket, channelUri, time) {
 		const ymd = util.ymd(time);
 		if (ymd) {
@@ -125,6 +132,7 @@ module.exports = function(config, util, log, irc) {
 				if (details && details.channel) {
 					irc.addChannelRecipient(details.channel, socket);
 					sendChannelCache(socket, details.channel);
+					sendChannelUserList(socket, details.channel);
 				}
 				else if (details && details.username) {
 					irc.addUserRecipient(details.username, socket);

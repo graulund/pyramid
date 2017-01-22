@@ -51,7 +51,7 @@ module.exports = function(config, util, log){
 	var lastSeenChannels = loadLastSeenInfo(lastSeenChannelsFileName);
 	var lastSeenUsers = loadLastSeenInfo(lastSeenUsersFileName);
 
-	var channelNames = {};
+	var channelUserLists = {};
 
 	var channelCaches = {};
 	var userCaches = {};
@@ -72,13 +72,17 @@ module.exports = function(config, util, log){
 		var c = new irc.Client(
 			cf.server, cf.username,
 			{
-				channels:   cf.channels,
-				port:       cf.port || 6667,
-				userName:   cf.username,
-				realName:   cf.realname || cf.username,
-				password:   cf.password || "",
-				debug:      config.debug,
-				showErrors: config.debug
+				channels:    cf.channels,
+				port:        cf.port || 6667,
+				userName:    cf.username,
+				realName:    cf.realname || cf.username,
+				password:    cf.password || "",
+				secure:      cf.secure || false,
+				selfSigned:  cf.selfSigned || false,
+				certExpired: cf.certExpired || false,
+				debug:       config.debug,
+				showErrors:  config.debug,
+				retryCount:  999
 			}
 		);
 		c.extConfig = cf;
@@ -374,6 +378,14 @@ module.exports = function(config, util, log){
 		}
 	};
 
+	var emitChannelUserList = function(channelUri) {
+		emitEventToChannel(channelUri, "channelUserList", {
+			channel: channelUri,
+			list: channelUserLists[channelUri],
+			type: "userlist"
+		});
+	};
+
 	var handleMessage = function(client, from, to, message, isAction){
 
 		// Channel object
@@ -437,22 +449,18 @@ module.exports = function(config, util, log){
 			data &&
 			data.username
 		) {
-			if (!channelNames[c]) {
-				channelNames[c] = [];
+			if (!channelUserLists[c]) {
+				channelUserLists[c] = [];
 			}
 
 			if (name === "join") {
-				channelNames[c] = [ ...channelNames[c], data.username ];
+				channelUserLists[c] = [ ...channelUserLists[c], data.username ];
 			}
 			else if (PART_EVENT_TYPES.indexOf(name) >= 0) {
-				channelNames[c] = lodash.without(channelNames[c], data.username);
+				channelUserLists[c] = lodash.without(channelUserLists[c], data.username);
 			}
 
-			emitEventToChannel(c, "names", {
-				channel: c,
-				list: channelNames[c],
-				type: "names"
-			});
+			emitChannelUserList(c);
 		}
 
 		const metadata = {
@@ -479,11 +487,11 @@ module.exports = function(config, util, log){
 		const c = channelFileName(chobj);
 
 		if (c && names && names.length) {
-			if (!channelNames[c]) {
-				channelNames[c] = [];
+			if (!channelUserLists[c]) {
+				channelUserLists[c] = [];
 			}
 
-			channelNames[c] = channelNames[c].concat(names);
+			channelUserLists[c] = channelUserLists[c].concat(names);
 		}
 	};
 
@@ -526,7 +534,7 @@ module.exports = function(config, util, log){
 			const line = "** " + username + " quit" +
 				(reason ? " (" + reason + ")" : "");
 			console.log(line);
-			// TODO
+			// TODO: Network wide events, look at all current channel recipients that are on this network
 			/* handleEvent(
 				client, null, "quit", line,
 				{ username, reason, channels, message }
@@ -543,34 +551,24 @@ module.exports = function(config, util, log){
 			);
 		});
 
-		client.addListener("+mode", (channel, by, mode, argument, message) => {
+		client.addListener("+mode", (channel, username, mode, argument, message) => {
 			const line = "** " + username + " sets mode: +" + mode +
 				(argument ? " " + argument : "");
 			console.log(line);
 			handleEvent(
 				client, channel, "+mode", line,
-				{ by, mode, argument, rawData: message }
+				{ username, mode, argument, rawData: message }
 			);
 		});
 
-		client.addListener("-mode", (channel, by, mode, argument, message) => {
+		client.addListener("-mode", (channel, username, mode, argument, message) => {
 			const line = "** " + username + " sets mode: -" + mode +
 				(argument ? " " + argument : "");
 			console.log(line);
 			handleEvent(
 				client, channel, "-mode", line,
-				{ by, mode, argument, rawData: message }
+				{ username, mode, argument, rawData: message }
 			);
-		});
-
-		client.addListener("mode", (channel, by, mode, argument, message) => {
-			const line = "** " + username + " sets mode: " + mode +
-				(argument ? " " + argument : "");
-			console.log(line);
-			/*handleEvent(
-				client, channel, "+mode", line,
-				{ by, mode, argument, rawData: message }
-			);*/
 		});
 
 		client.addListener("kill", (username, reason, channels, message) => {
@@ -685,6 +683,7 @@ module.exports = function(config, util, log){
 		calibrateMultiServerChannels,
 		getChannelCache: function(channelUri){ return channelCaches[channelUri]; },
 		getUserCache: function(username){ return userCaches[username]; },
+		getChannelUserList: function(channelUri) { return channelUserLists[channelUri]; },
 		sendOutgoingMessage,
 		addChannelRecipient,
 		removeChannelRecipient,

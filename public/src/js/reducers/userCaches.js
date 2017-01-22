@@ -18,7 +18,7 @@ export default function (state = userCaches, action) {
 			if (!s[d.username]) {
 				s[d.username] = [];
 			}
-			s[d.username] = cacheItem(s[d.username], d.message);
+			s[d.username] = cacheItem(s[d.username], d);
 			return s;
 	}
 

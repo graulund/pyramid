@@ -1,6 +1,7 @@
 import { combineReducers } from "redux";
 
 import channelCaches from "./channelCaches";
+import channelUserLists from "./channelUserLists";
 import friendsList from "./friendsList";
 import ircConfigs from "./ircConfigs";
 import lastSeenChannels from "./lastSeenChannels";
@@ -14,6 +15,7 @@ import viewState from "./viewState";
 
 export default combineReducers({
 	channelCaches,
+	channelUserLists,
 	friendsList,
 	ircConfigs,
 	lastSeenChannels,

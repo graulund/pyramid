@@ -136,7 +136,7 @@ export function initializeIo() {
 		});
 
 		const onChatEvent = (details) => {
-			const { relationship, type, username } = details;
+			const { relationship, type } = details;
 
 			store.dispatch(actions.channelCaches.append(details));
 
@@ -151,10 +151,7 @@ export function initializeIo() {
 				details.message, "font-size: 24px; font-weight: bold", "font-size: 24px"
 			);
 
-			store.dispatch(actions.userCaches.append({
-				username,
-				message: details
-			}));
+			store.dispatch(actions.userCaches.append(details));
 		};
 
 		socket.on("msg", onChatEvent);
@@ -165,8 +162,13 @@ export function initializeIo() {
 		socket.on("kill", onChatEvent);
 		socket.on("events", onChatEvent);
 
-		socket.on("names", (details) => {
-			console.log("Received names event:", details);
+		socket.on("channelUserList", (details) => {
+			console.log("Received channel user list event:", details);
+			if (details && details.channel && details.list) {
+				store.dispatch(actions.channelUserLists.update({
+					[details.channel]: details.list
+				}));
+			}
 		});
 
 		socket.on("lastSeen", (instances) => {

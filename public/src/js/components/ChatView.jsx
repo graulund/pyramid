@@ -3,10 +3,12 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 
 import ChannelName from "./ChannelName.jsx";
+import ChannelUserList from "./ChannelUserList.jsx";
 import ChatLines from "./ChatLines.jsx";
+import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, sendMessage, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
-import { scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
+import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
 
@@ -16,22 +18,28 @@ class ChatView extends Component {
 		const { params } = this.props;
 
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
+		this.closeUserList = this.closeUserList.bind(this);
 		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
 		this.onClick = this.onClick.bind(this);
 		this.onKey = this.onKey.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
+		this.openUserList = this.openUserList.bind(this);
 		this.submit = this.submit.bind(this);
+		this.toggleUserList = this.toggleUserList.bind(this);
 
 		this.channelJustChanged = true;
 		this.linesBeingChanged = false;
 		this.lines = null;
 		this.channelUrl = params.channelName && params.serverName
 			? channelUrlFromNames(params.serverName, params.channelName) : null;
+		this.wasAtBottomBeforeOpeningUserList = false;
+
 		this.requestSubscription(params);
 		this.requestLogFileIfNeeded();
 
 		this.state = {
-			logBrowserOpen: false
+			logBrowserOpen: false,
+			userListOpen: false
 		};
 	}
 
@@ -39,7 +47,7 @@ class ChatView extends Component {
 		this.requestLogDetails();
 	}
 
-	componentDidUpdate (prevProps) {
+	componentDidUpdate (prevProps, prevState) {
 
 		// Force scroll to the bottom on first content after channel change
 
@@ -63,6 +71,16 @@ class ChatView extends Component {
 
 			if (this.didChannelChange(prevParams, currentParams)) {
 				this.channelJustChanged = true;
+			}
+		}
+
+		// If we just opened stuff that made us not be at the bottom anymore,
+		// do a check and keep the scroll no matter what
+
+		if (this.wasAtBottomBeforeOpeningUserList) {
+			this.wasAtBottomBeforeOpeningUserList = false;
+			if (prevState && !prevState.userListOpen && this.state.userListOpen) {
+				scrollToTheBottom();
 			}
 		}
 
@@ -131,8 +149,14 @@ class ChatView extends Component {
 			}
 		}
 
-		if (newState && newState.logBrowserOpen != this.state.logBrowserOpen) {
-			return true;
+		if (newState) {
+			if (newState.logBrowserOpen != this.state.logBrowserOpen) {
+				return true;
+			}
+
+			if (newState.userListOpen != this.state.userListOpen) {
+				return true;
+			}
 		}
 
 		return false;
@@ -140,6 +164,10 @@ class ChatView extends Component {
 
 	closeLogBrowser() {
 		this.setState({ logBrowserOpen: false });
+	}
+
+	closeUserList() {
+		this.setState({ userListOpen: false });
 	}
 
 	didChannelChange (currentParams, newParams) {
@@ -207,6 +235,11 @@ class ChatView extends Component {
 
 	openLogBrowser() {
 		this.setState({ logBrowserOpen: true });
+	}
+
+	openUserList() {
+		this.wasAtBottomBeforeOpeningUserList = areWeScrolledToTheBottom();
+		this.setState({ userListOpen: true });
 	}
 
 	requestLogDetails(props = this.props) {
@@ -296,6 +329,15 @@ class ChatView extends Component {
 		}
 	}
 
+	toggleUserList() {
+		const { userListOpen } = this.state;
+		if (userListOpen) {
+			this.closeUserList();
+		} else {
+			this.openUserList();
+		}
+	}
+
 	url() {
 		return "/" + this.subjectName("/");
 	}
@@ -306,22 +348,42 @@ class ChatView extends Component {
 		const { params } = this.props;
 		const { logBrowserOpen } = this.state;
 
+		const isLiveChannel = this.channelUrl && !params.logDate;
+
 		var logBrowserToggler = null;
 
 		if (params.logDate) {
 			logBrowserToggler = <Link to={this.url()}>Live</Link>;
 		} else {
 			if (logBrowserOpen) {
-				logBrowserToggler = <a href="javascript://" onClick={this.closeLogBrowser}>Close</a>;
+				logBrowserToggler = (
+					<a href="javascript://"
+						onClick={this.closeLogBrowser}
+						key="logControl">
+						Close
+					</a>
+				);
 			} else {
-				logBrowserToggler = <a href="javascript://" onClick={this.openLogBrowser}>Logs</a>;
+				logBrowserToggler = (
+					<a href="javascript://"
+						onClick={this.openLogBrowser}
+						key="logControl">
+						Logs
+					</a>
+				);
 			}
 		}
 
+		const chatUserListToggler = <ChatUserListControl
+			channel={this.channelUrl}
+			onClick={this.toggleUserList}
+			key="userListControl" />;
+
 		return (
-			<div className="chatview__controls">
-				{ logBrowserToggler }
-			</div>
+			<ul className="chatview__controls">
+				{ isLiveChannel ? (<li>{ chatUserListToggler }</li>) : null }
+				<li>{ logBrowserToggler }</li>
+			</ul>
 		);
 	}
 
@@ -392,6 +454,7 @@ class ChatView extends Component {
 	render() {
 		const messages = this.lines;
 		const { params } = this.props;
+		const { userListOpen } = this.state;
 
 		const heading = this.channelUrl
 			? <ChannelName channel={this.channelUrl} key={this.channelUrl} />
@@ -412,7 +475,22 @@ class ChatView extends Component {
 
 		const className = "chatview" +
 			(isLiveChannel ? " chatview--live-channel" : "") +
-			(logBrowser ? " chatview--logbrowsing" : "");
+			(logBrowser ? " chatview--logbrowsing" : "") +
+			(userListOpen ? " chatview--userlisting" : "");
+
+		var input = null, userList = null;
+
+		if (isLiveChannel) {
+			input = (
+				<form onSubmit={this.submit} className="chatview__input" key="input">
+					<input onKeyUp={this.onKey} type="text" ref="input" placeholder="Send a message" tabIndex={0} />
+					<input type="submit" />
+				</form>
+			);
+			userList = userListOpen
+				? <ChannelUserList channel={this.channelUrl} key="userList" />
+				: null;
+		}
 
 		return (
 			<div id="chatview" className={className} onClick={this.onClick}>
@@ -422,14 +500,8 @@ class ChatView extends Component {
 					{ logBrowser }
 				</div>
 				{ content }
-				{ isLiveChannel
-					? (
-						<form onSubmit={this.submit} className="chatview__input">
-							<input onKeyUp={this.onKey} type="text" ref="input" placeholder="Send a message" tabIndex={0} />
-							<input type="submit" />
-						</form>
-					)
-					: null }
+				{ input }
+				{ userList }
 			</div>
 		);
 	}

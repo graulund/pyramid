@@ -26,19 +26,23 @@ class TimedUserItem extends PureComponent {
 			<strong><UserLink userName={userName} key={userName} /></strong>
 		);
 
-		const suffix = (
-			<span className="channel">
-				in <ChannelLink
-					channel={userData.channel}
-					channelName={userData.channelName}
-					key={userData.channel}
-					/>
-			</span>
-		);
+		var suffix = null;
+
+		if (userData) {
+			suffix = (
+				<span className="channel">
+					in <ChannelLink
+						channel={userData.channel}
+						channelName={userData.channelName}
+						key={userData.channel}
+						/>
+				</span>
+			);
+		}
 
 		return <TimedItem
 				className={className}
-				time={userData.time}
+				time={userData && userData.time}
 				prefix={prefix}
 				suffix={suffix}
 				key="main"

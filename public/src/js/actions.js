@@ -15,6 +15,14 @@ export default {
 			};
 		}
 	},
+	channelUserLists: {
+		update(data) {
+			return {
+				type: actionTypes.channelUserLists.UPDATE,
+				data
+			};
+		}
+	},
 	friendsList: {
 		update(level, data) {
 			return {
