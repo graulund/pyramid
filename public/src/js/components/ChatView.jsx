@@ -4,10 +4,11 @@ import { Link } from "react-router";
 
 import ChannelName from "./ChannelName.jsx";
 import ChannelUserList from "./ChannelUserList.jsx";
+import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
-import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, sendMessage, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
+import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
@@ -21,10 +22,8 @@ class ChatView extends Component {
 		this.closeUserList = this.closeUserList.bind(this);
 		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
 		this.onClick = this.onClick.bind(this);
-		this.onKey = this.onKey.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
 		this.openUserList = this.openUserList.bind(this);
-		this.submit = this.submit.bind(this);
 		this.toggleUserList = this.toggleUserList.bind(this);
 
 		this.channelJustChanged = true;
@@ -220,19 +219,6 @@ class ChatView extends Component {
 		store.dispatch(actions.viewState.update({ sidebarVisible: false }));
 	}
 
-	onKey(evt) {
-		const { input: inputEl } = this.refs;
-		if (
-			this.channelUrl &&
-			inputEl &&
-			evt &&
-			evt.nativeEvent &&
-			evt.nativeEvent.keyCode === 13
-		) {
-			this.submit();
-		}
-	}
-
 	openLogBrowser() {
 		this.setState({ logBrowserOpen: true });
 	}
@@ -301,6 +287,8 @@ class ChatView extends Component {
 	}
 
 	subjectName(divider = ":") {
+		// TODO: Use subject names more widely and perhaps merge caches and lastseens
+
 		const { params } = this.props;
 		if (params.channelName && params.serverName) {
 			return `channel${divider}${params.serverName}/${params.channelName}`;
@@ -310,23 +298,6 @@ class ChatView extends Component {
 		}
 
 		return "";
-	}
-
-	submit(evt) {
-		const { input: inputEl } = this.refs;
-
-		if (evt) {
-			evt.preventDefault();
-		}
-
-		if (
-			this.channelUrl &&
-			inputEl
-		) {
-			const message = inputEl.value;
-			inputEl.value = "";
-			sendMessage(this.channelUrl, message);
-		}
 	}
 
 	toggleUserList() {
@@ -481,12 +452,7 @@ class ChatView extends Component {
 		var input = null, userList = null;
 
 		if (isLiveChannel) {
-			input = (
-				<form onSubmit={this.submit} className="chatview__input" key="input">
-					<input onKeyUp={this.onKey} type="text" ref="input" placeholder="Send a message" tabIndex={0} />
-					<input type="submit" />
-				</form>
-			);
+			input = <ChatInput channel={this.channelUrl} key="input" />;
 			userList = userListOpen
 				? <ChannelUserList channel={this.channelUrl} key="userList" />
 				: null;

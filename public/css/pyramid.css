@@ -504,6 +504,7 @@ ul.statsuserlist {
 }
 
 .channeluserlist {
+	/* TODO: Get rid of magic numbers... */
 	position: fixed;
 	top: 41px;
 	right: 0;
