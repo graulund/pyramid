@@ -75,6 +75,7 @@ ChatLine.propTypes = {
 	mode: PropTypes.string,
 	reason: PropTypes.string,
 	server: PropTypes.string,
+	symbol: PropTypes.string,
 	time: PropTypes.string,
 	type: PropTypes.string,
 	username: PropTypes.string

@@ -9,7 +9,7 @@ const linkifyProperties = { target: "_blank" };
 class ChatMessageLine extends PureComponent {
 	render() {
 		const {
-			displayUsername, highlight, isAction, message, username
+			displayUsername, highlight, isAction, message, symbol = "", username
 		} = this.props;
 
 		const isHighlight = !!(highlight && highlight.length);
@@ -28,6 +28,7 @@ class ChatMessageLine extends PureComponent {
 				{ displayUsername
 					? (
 						<strong className="msg__author">
+							{ symbol }
 							<UserLink userName={username} key={username} />
 							{" "}
 						</strong>
@@ -50,6 +51,7 @@ ChatMessageLine.propTypes = {
 	isAction: PropTypes.bool,
 	message: PropTypes.string,
 	server: PropTypes.string,
+	symbol: PropTypes.string,
 	time: PropTypes.string,
 	type: PropTypes.string,
 	username: PropTypes.string

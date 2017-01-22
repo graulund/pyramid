@@ -9,7 +9,7 @@ import { RELATIONSHIP_BEST_FRIEND } from "../constants";
 class TimedUserItem extends PureComponent {
 
 	render() {
-		const { friendsList, userData, userName } = this.props;
+		const { friendsList, symbol = "", userData, userName } = this.props;
 
 		var classNames = [];
 
@@ -23,7 +23,7 @@ class TimedUserItem extends PureComponent {
 		var className = classNames.join(" ");
 
 		const prefix = (
-			<strong><UserLink userName={userName} key={userName} /></strong>
+			<strong>{ symbol }<UserLink userName={userName} key={userName} /></strong>
 		);
 
 		var suffix = null;
@@ -53,7 +53,8 @@ class TimedUserItem extends PureComponent {
 TimedUserItem.propTypes = {
 	friendsList: PropTypes.object,
 	userData: PropTypes.object,
-	userName: PropTypes.string
+	userName: PropTypes.string,
+	symbol: PropTypes.string
 };
 
 export default connect(({ friendsList }) => ({ friendsList }))(TimedUserItem);

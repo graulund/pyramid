@@ -3,9 +3,9 @@ import clone from "lodash/clone";
 import * as actionTypes from "../actionTypes";
 import { cacheItem, clearReplacedIdsFromCache } from "../lib/io";
 
-const channelCaches = {};
+const channelCachesInitialState = {};
 
-export default function (state = channelCaches, action) {
+export default function (state = channelCachesInitialState, action) {
 
 	switch (action.type) {
 		case actionTypes.channelCaches.UPDATE:

@@ -5,10 +5,13 @@ class ChannelUserList extends PureComponent {
 	render() {
 		const { channel, channelUserLists, onClick } = this.props;
 
-		var usernames = channelUserLists[channel], numUsers = 0;
+		var userList = channelUserLists[channel], numUsers = 0;
 
-		if (usernames && usernames.length) {
-			numUsers = usernames.length;
+		if (userList) {
+			const userNames = Object.keys(userList);
+			if (userNames && userNames.length) {
+				numUsers = userNames.length;
+			}
 		}
 
 		return (

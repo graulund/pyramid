@@ -3,9 +3,9 @@ import clone from "lodash/clone";
 import * as actionTypes from "../actionTypes";
 import { cacheItem } from "../lib/io";
 
-const userCaches = {};
+const userCachesInitialState = {};
 
-export default function (state = userCaches, action) {
+export default function (state = userCachesInitialState, action) {
 
 	switch (action.type) {
 		case actionTypes.userCaches.UPDATE:

@@ -1,10 +1,10 @@
 import * as actionTypes from "../actionTypes";
 
-const viewStateInitial = {
+const viewStateInitialState = {
 	sidebarVisible: true
 };
 
-export default function (state = viewStateInitial, action) {
+export default function (state = viewStateInitialState, action) {
 
 	switch (action.type) {
 		case actionTypes.viewState.UPDATE:

@@ -1,23 +1,82 @@
 import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
-import sortedUniq from "lodash/sortedUniq";
+import forOwn from "lodash/forOwn";
+import without from "lodash/without";
 
 import TimedUserItem from "./TimedUserItem.jsx";
 
-//const SYMBOL_RANK_ORDER = ["~", "&", "@", "%", "+"];
+const USER_SYMBOL_ORDER = ["~", "&", "@", "%", "+"];
 
 class ChannelUserList extends PureComponent {
+
+	groupUserList (userList) {
+		var output = {};
+
+		forOwn(userList, (symbol, userName) => {
+			if (!output[symbol]) {
+				output[symbol] = [];
+			}
+
+			output[symbol].push(userName);
+		});
+
+		forOwn(output, (list) => {
+			list.sort();
+		});
+
+		return output;
+	}
+
+	sortedUserList (userList) {
+		var output = [];
+		const grouped = this.groupUserList(userList);
+		const groups = Object.keys(grouped);
+
+		if (!grouped || !groups || !groups.length) {
+			return output;
+		}
+
+		// Default promoted symbols in order
+		const addUsersOfSymbol = (symbol) => {
+			if (grouped[symbol]) {
+				output = output.concat(
+					grouped[symbol].map((userName) => {
+						return { userName, symbol };
+					})
+				);
+			}
+		};
+		USER_SYMBOL_ORDER.forEach(addUsersOfSymbol);
+
+		// Unrecognized symbols
+		const unrecognizedGroups = without(groups, ...USER_SYMBOL_ORDER.concat([""]));
+		if (unrecognizedGroups && unrecognizedGroups.length) {
+			unrecognizedGroups.forEach(addUsersOfSymbol);
+		}
+
+		// The rest; people without symbol
+		addUsersOfSymbol("");
+
+		return output;
+	}
+
 	render() {
 		const { channel, channelUserLists, lastSeenUsers } = this.props;
 
-		var usernames = channelUserLists[channel], userListNodes = null;
+		var userList = channelUserLists[channel], userListNodes = null;
 
-		if (usernames && usernames.length) {
-			usernames.sort();
-			usernames = sortedUniq(usernames); // TODO: Investigate source of duplicate entries
-			userListNodes = usernames.map((userName) => {
-				const userData = lastSeenUsers[userName];
-				return <TimedUserItem userData={userData} userName={userName} key={userName} />;
+		if (userList) {
+			const sortedList = this.sortedUserList(userList);
+			userListNodes = sortedList.map((data) => {
+				if (data) {
+					const { userName, symbol } = data;
+					const userData = lastSeenUsers[userName];
+					return <TimedUserItem
+						userData={userData}
+						userName={userName}
+						symbol={symbol}
+						key={userName} />;
+				}
 			});
 		}
 

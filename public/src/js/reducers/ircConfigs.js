@@ -1,8 +1,8 @@
 import * as actionTypes from "../actionTypes";
 
-const ircConfigsInitial = {};
+const ircConfigsInitialState = {};
 
-export default function (state = ircConfigsInitial, action) {
+export default function (state = ircConfigsInitialState, action) {
 
 	switch (action.type) {
 		case actionTypes.ircConfigs.UPDATE:

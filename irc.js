@@ -17,9 +17,12 @@ const RELATIONSHIP_BEST_FRIEND = 2;
 const CACHE_LINES = 150;
 const LAST_SEEN_UPDATE_RATE = 500;
 
-const JOIN_PART_EVENT_TYPES = ["join", "part", "quit", "kick", "kill"];
-const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
-const BUNCHABLE_EVENT_TYPES = ["join", "part", "quit", "kill", "+mode", "-mode"];
+const USER_MODIFYING_EVENT_TYPES =
+	["join", "part", "quit", "kick", "kill", "+mode", "-mode"];
+const PART_EVENT_TYPES =
+	["part", "quit", "kick", "kill"];
+const BUNCHABLE_EVENT_TYPES =
+	["join", "part", "quit", "kill", "+mode", "-mode"];
 
 module.exports = function(config, util, log){
 
@@ -356,7 +359,10 @@ module.exports = function(config, util, log){
 		cacheChannelEvent(channelUrl, data);
 	};
 
-	var emitMessage = function(chobj, from, time, message, isAction, relationship, highlightStrings) {
+	var emitMessage = function(
+		chobj, from, time, message, isAction,
+		relationship, highlightStrings, symbol
+	) {
 		const msg = {
 			channel: channelFileName(chobj),
 			channelName: channelFullName(chobj),
@@ -366,6 +372,7 @@ module.exports = function(config, util, log){
 			message,
 			relationship,
 			server: chobj.server,
+			symbol,
 			time,
 			type: "msg",
 			username: from
@@ -389,22 +396,26 @@ module.exports = function(config, util, log){
 	var handleMessage = function(client, from, to, message, isAction){
 
 		// Channel object
-		const chobj = channelObject(client, to)
+		const chobj = channelObject(client, to);
 
 		// Time
 		const time = new Date();
 
+		// Symbol
+		const symbol = getUserCurrentSymbol(client, to, from);
+
 		// Log output
-		var line = "<" + from + "> " + message
-		if(isAction){
-			line = "* " + from + " " + message
+		var line = "<" + symbol + from + "> " + message;
+
+		if (isAction) {
+			line = "* " + symbol + from + " " + message;
 		}
 
 		// Log the line!
-		logLine(chobj, line)
+		logLine(chobj, line);
 
 		// Don't go further if this guy is "not a person"
-		if(config.nonPeople.indexOf(from) >= 0){
+		if (config.nonPeople.indexOf(from) >= 0) {
 			return
 		}
 
@@ -434,7 +445,10 @@ module.exports = function(config, util, log){
 		}
 
 		updateLastSeen(chobj, from, time, message, isAction, relationship);
-		emitMessage(chobj, from, time, message, isAction, relationship, highlightStrings);
+		emitMessage(
+			chobj, from, time, message, isAction, relationship,
+			highlightStrings, symbol
+		);
 	};
 
 	var handleEvent = function(client, channel, name, line, data, time) {
@@ -445,21 +459,11 @@ module.exports = function(config, util, log){
 
 		// Channel user lists
 		if (
-			JOIN_PART_EVENT_TYPES.indexOf(name) >= 0 &&
+			USER_MODIFYING_EVENT_TYPES.indexOf(name) >= 0 &&
 			data &&
 			data.username
 		) {
-			if (!channelUserLists[c]) {
-				channelUserLists[c] = [];
-			}
-
-			if (name === "join") {
-				channelUserLists[c] = [ ...channelUserLists[c], data.username ];
-			}
-			else if (PART_EVENT_TYPES.indexOf(name) >= 0) {
-				channelUserLists[c] = lodash.without(channelUserLists[c], data.username);
-			}
-
+			channelUserLists[c] = client.chans[channel].users;
 			emitChannelUserList(c);
 		}
 
@@ -482,17 +486,24 @@ module.exports = function(config, util, log){
 		}
 	};
 
-	var addNamesToChannel = function(client, channel, names) {
+	var setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
 		const c = channelFileName(chobj);
 
-		if (c && names && names.length) {
-			if (!channelUserLists[c]) {
-				channelUserLists[c] = [];
-			}
-
-			channelUserLists[c] = channelUserLists[c].concat(names);
+		if (c) {
+			channelUserLists[c] = userList || {};
 		}
+	};
+
+	var getUserCurrentSymbol = function(client, channel, userName) {
+		const chobj = channelObject(client, channel);
+		const c = channelFileName(chobj);
+
+		if (c && channelUserLists[c]) {
+			return channelUserLists[c][userName] || "";
+		}
+
+		return "";
 	};
 
 	for(i = 0; i < clients.length; i++){
@@ -502,21 +513,39 @@ module.exports = function(config, util, log){
 		client.send("CAP", "REQ", "twitch.tv/membership");
 		// END TEMP
 
-		client.addListener("message", function (from, to, message){
-			handleMessage(client, from, to, message, false)
-		})
+		client.addListener("motd", function (message) {
+			// In a standard IRC network, prefix info should be non-empty by now
+			// Try to insert some very basic standrd info iff it's empty
+			try {
+				if (
+					client.prefixForMode && client.modeForPrefix
+				) {
+					const pfmKeys = Object.keys(client.prefixForMode);
+					const mfpKeys = Object.keys(client.modeForPrefix);
 
-		client.addListener("action", function (from, to, message){
+					if (pfmKeys && mfpKeys && !pfmKeys.length && !mfpKeys.length) {
+						client.prefixForMode["o"] = "@";
+						client.modeForPrefix["@"] = "o";
+					}
+				}
+			}
+			catch(e) {}
+		});
+
+		client.addListener("message", function (from, to, message) {
+			handleMessage(client, from, to, message, false)
+		});
+
+		client.addListener("action", function (from, to, message) {
 			handleMessage(client, from, to, message, true)
-		})
+		});
 
 		client.addListener("error", function(message) {
 			console.log("IRC Error:", message);
-		})
+		});
 
 		client.addListener("names", (channel, nicks) => {
-			const n = Object.keys(nicks);
-			addNamesToChannel(client, channel, n);
+			setChannelUserList(client, channel, nicks);
 		});
 
 		client.addListener("join", (channel, username, message) => {
@@ -544,7 +573,6 @@ module.exports = function(config, util, log){
 		client.addListener("kick", (channel, username, by, reason, message) => {
 			const line = "** " + username + " was kicked by " + by +
 				(reason ? " (" + reason + ")" : "");
-			console.log(line);
 			handleEvent(
 				client, channel, "kick", line,
 				{ username, by, reason, rawData: message }
@@ -554,7 +582,6 @@ module.exports = function(config, util, log){
 		client.addListener("+mode", (channel, username, mode, argument, message) => {
 			const line = "** " + username + " sets mode: +" + mode +
 				(argument ? " " + argument : "");
-			console.log(line);
 			handleEvent(
 				client, channel, "+mode", line,
 				{ username, mode, argument, rawData: message }
@@ -564,7 +591,6 @@ module.exports = function(config, util, log){
 		client.addListener("-mode", (channel, username, mode, argument, message) => {
 			const line = "** " + username + " sets mode: -" + mode +
 				(argument ? " " + argument : "");
-			console.log(line);
 			handleEvent(
 				client, channel, "-mode", line,
 				{ username, mode, argument, rawData: message }
