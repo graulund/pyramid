@@ -351,7 +351,7 @@ class ChatView extends Component {
 			key="userListControl" />;
 
 		return (
-			<ul className="chatview__controls">
+			<ul className="controls chatview__controls">
 				{ isLiveChannel ? (<li>{ chatUserListToggler }</li>) : null }
 				<li>{ logBrowserToggler }</li>
 			</ul>

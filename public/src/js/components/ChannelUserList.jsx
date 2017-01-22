@@ -8,6 +8,35 @@ import TimedUserItem from "./TimedUserItem.jsx";
 const USER_SYMBOL_ORDER = ["~", "&", "@", "%", "+"];
 
 class ChannelUserList extends PureComponent {
+	shouldComponentUpdate(newProps) {
+		if (newProps) {
+			const { channel, channelUserLists, lastSeenUsers } = this.props;
+
+			// Only look at changes in the relevant user list, not all of them
+			var oldUserList = channelUserLists && channelUserLists[channel];
+			var newUserList = newProps.channelUserLists &&
+			newProps.channelUserLists[newProps.channel];
+
+			if (oldUserList != newUserList) {
+				return true;
+			}
+
+			// Look at the usernames amongst our friends
+			if (this.monitoredUserNames && this.monitoredUserNames.length) {
+				const mu = this.monitoredUserNames;
+				for(var i = 0; i < mu.length; i++) {
+					if (
+						lastSeenUsers && newProps.lastSeenUsers &&
+						lastSeenUsers[mu[i]] != newProps.lastSeenUsers[mu[i]]
+					) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
 
 	groupUserList (userList) {
 		var output = {};
@@ -65,12 +94,19 @@ class ChannelUserList extends PureComponent {
 
 		var userList = channelUserLists[channel], userListNodes = null;
 
+		this.monitoredUserNames = [];
+
 		if (userList) {
 			const sortedList = this.sortedUserList(userList);
 			userListNodes = sortedList.map((data) => {
 				if (data) {
 					const { userName, symbol } = data;
 					const userData = lastSeenUsers[userName];
+
+					if (userData) {
+						this.monitoredUserNames.push(userName);
+					}
+
 					return <TimedUserItem
 						userData={userData}
 						userName={userName}

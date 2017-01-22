@@ -11,6 +11,7 @@ import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import { updateIrcConfigs } from "./lib/ircConfigs";
+import { homeUrl, channelUrl, userUrl } from "./lib/routeHelpers";
 
 // Redux
 
@@ -44,24 +45,25 @@ initializeIo();
 // React
 
 const main = document.querySelector("main");
-const basename = "";
-//const history = null;
-
-//const props = { basename, history };
 
 if (main) {
 	render(
 		<Provider store={store}>
-			<Router
-				basename={basename}
-				history={browserHistory}
-			>
-				<Route path="/" component={App}>
+			<Router history={browserHistory}>
+				<Route path={homeUrl} component={App}>
 					<IndexRoute component={NoChatView} />
-					<Route path="/user/:userName" component={ChatView} />
-					<Route path="/channel/:serverName/:channelName" component={ChatView} />
-					<Route path="/user/:userName/log/:logDate" component={ChatView} />
-					<Route path="/channel/:serverName/:channelName/log/:logDate" component={ChatView} />
+					<Route
+						path={userUrl(":userName")}
+						component={ChatView} />
+					<Route
+						path={channelUrl(":serverName/:channelName")}
+						component={ChatView} />
+					<Route
+						path={userUrl(":userName", ":logDate")}
+						component={ChatView} />
+					<Route
+						path={channelUrl(":serverName/:channelName", ":logDate")}
+						component={ChatView} />
 				</Route>
 			</Router>
 		</Provider>,
@@ -70,5 +72,3 @@ if (main) {
 } else {
 	console.warn("No container for React! :(");
 }
-
-/* <App {...props} /> */

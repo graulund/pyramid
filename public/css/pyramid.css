@@ -258,8 +258,7 @@ ul.statsuserlist {
 	left: 0;
 	bottom: 0;
 	z-index: 10;
-	width: 300px;
-	padding: 0 10px;
+	width: 320px;
 	background-color: #fff;
 	overflow: auto;
 }
@@ -275,42 +274,45 @@ ul.statsuserlist {
 	background: rgba(0,0,51,.067);
 }
 
-.sidebar__head {
-	position: relative;
+.sidebar .itemlist {
+	margin-left: 0;
+	margin-right: 0;
 }
 
-.switcher, .switcher > ul {
+.sidebar__head {
+	padding: 0 10px;
+	border-bottom: 1px solid #ccc;
+}
+
+.sidebar__head h1 {
+	line-height: 20px;
+}
+
+.sidebar__list {
+	position: relative;
+	border-top: 1px solid #ccc;
+}
+
+.sidebar__list .itemlist {
+	margin-top: 0;
+}
+
+.switcher, .switcher > ul, .controls {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	line-height: 1em;
+	line-height: 20px;
 }
 
-.sidebar__tabs {
-	margin: 0 -10px;
-	padding: 10px 4px;
-	border-bottom: 1px solid #ccc;
-}
-
-.sidebar__sort {
-	position: absolute;
-	top: 0;
-	right: -10px;
-	padding: 10px 4px;
-	line-height: 1em;
-}
-
-.sidebar__sort ul {
+.controls li {
 	display: inline-block;
-	margin-left: 10px;
-	vertical-align: middle;
+	margin-left: 12px;
 }
 
-.sidebar__sort p {
-	display: inline-block;
-	margin: 0;
-	opacity: .5;
+.controls a em {
+	font-style: normal;
+	font-weight: normal;
 }
 
 .switcher li {
@@ -320,18 +322,40 @@ ul.statsuserlist {
 .switcher button {
 	font-family: inherit;
 	font-size: 100%;
-	line-height: 1.23em;
+	line-height: 20px;
 	background-color: transparent;
 	border: none;
 	outline: none;
 	margin: 0;
-	padding: 2px 6px;
+	padding: 0 6px;
 	cursor: pointer;
 	-webkit-appearance: none;
 }
 
 .switcher button:hover {
 	background-color: rgba(0, 0, 51, 0.067);
+}
+
+.sidebar__list-head {
+	padding: 10px 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.sidebar__tabs {
+	padding: 0 4px;
+}
+
+.sidebar__sort {
+	position: absolute;
+	top: 10px;
+	right: 0;
+	padding: 0 4px;
+}
+
+.sidebar__sort p {
+	display: inline-block;
+	margin: 0;
+	opacity: .5;
 }
 
 .sidebar--user button.user,
@@ -358,6 +382,38 @@ ul.statsuserlist {
 	left: 10px;
 	padding: 0 3px;
 	z-index: 9;
+}
+
+.sidebar__menu {
+	list-style-type: none;
+	margin: 10px 0;
+	padding: 0;
+}
+
+.sidebar__menu-link {
+	display: block;
+	padding: 5px 10px;
+	line-height: 17px;
+}
+
+.sidebar__menu-link--highlighted {
+	background-color: #fff0aa;
+}
+
+.sidebar__menu-link .badge {
+	position: absolute;
+	right: 10px;
+	background-color: #B9AF7C;
+	color: #fff;
+	padding: 2px 6px;
+	border-radius: 8px;
+	line-height: 1em;
+}
+
+.sidebar__controls {
+	position: absolute;
+	top: 10px;
+	right: 10px;
 }
 
 .chatview {
@@ -489,14 +545,6 @@ ul.statsuserlist {
 	right: 20px;
 	text-align: right;
 	background-color: #fff;
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-}
-
-.chatview__controls li {
-	display: inline-block;
-	margin-left: 20px;
 }
 
 .chatview__logbrowser {

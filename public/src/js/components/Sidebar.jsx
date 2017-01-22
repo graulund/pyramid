@@ -1,12 +1,15 @@
-import React, { Component, PropTypes } from "react";
+import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router";
 
 import ChannelList from "./ChannelList.jsx";
+import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
 import store from "../store";
 import actions from "../actions";
+import { internalUrl } from "../lib/routeHelpers";
 
-class Sidebar extends Component {
+class Sidebar extends PureComponent {
 	constructor(props) {
 		super(props);
 
@@ -66,37 +69,64 @@ class Sidebar extends Component {
 			" sidebar--" + sort +
 			(hidden ? " sidebar--hidden" : "");
 
+		var content = null;
+
+		if (tab === "user") {
+			content = <UserList sort={sort} key="userlist" />;
+		}
+		else if (tab === "channel") {
+			content = <ChannelList sort={sort} key="channellist" />;
+		}
+
 		return (
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
-				<div className="sidebar__head">
-					<ul className="sidebar__tabs switcher" key="tabs">
-						<li key="user">
-							<button className="user"
-								onClick={() => this.setTab("user")}>Users</button>
-						</li>
-						<li key="channel">
-							<button className="channel"
-								onClick={() => this.setTab("channel")}>Channels</button>
-						</li>
-					</ul>
-					<div className="sidebar__sort">
-						<ul className="switcher" key="sortswitcher">
-							<li key="alpha">
-								<button className="alpha"
-									onClick={() => this.setSort("alpha")}>Alphabetical</button>
-							</li>
-							<li key="activity">
-								<button className="activity"
-									onClick={() => this.setSort("activity")}>Activity</button>
-							</li>
-						</ul>
-					</div>
+				<div className="sidebar__head" key="head">
+					<h1>Pyramid</h1>
 					<a className="sidebar__close" href="javascript://" onClick={() => this.setHidden(true)}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
+					<ul className="controls sidebar__controls">
+						<li><a href="javascript://">Settings</a></li>
+						<li><a href={internalUrl("/logout")}>Log out</a></li>
+					</ul>
 				</div>
-				<UserList sort={sort} key="userlist" />
-				<ChannelList sort={sort} key="channellist" />
+				<ul className="sidebar__menu" key="menu">
+					<li key="highlights">
+						<HighlightsLink />
+					</li>
+					<li key="allusers">
+						<Link to="/allfriends" className="sidebar__menu-link">
+							All friends
+						</Link>
+					</li>
+				</ul>
+				<div className="sidebar__list" key="list">
+					<div className="sidebar__list-head">
+						<ul className="sidebar__tabs switcher" key="tabs">
+							<li key="user">
+								<button className="user"
+									onClick={() => this.setTab("user")}>Friends</button>
+							</li>
+							<li key="channel">
+								<button className="channel"
+									onClick={() => this.setTab("channel")}>Channels</button>
+							</li>
+						</ul>
+						<div className="sidebar__sort" key="sort">
+							<ul className="switcher" key="sortswitcher">
+								<li key="alpha">
+									<button className="alpha"
+										onClick={() => this.setSort("alpha")}>Alphabetical</button>
+								</li>
+								<li key="activity">
+									<button className="activity"
+										onClick={() => this.setSort("activity")}>Activity</button>
+								</li>
+							</ul>
+						</div>
+					</div>
+					{ content }
+				</div>
 			</div>
 		);
 	}

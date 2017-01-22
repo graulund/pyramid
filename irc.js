@@ -58,11 +58,17 @@ module.exports = function(config, util, log){
 
 	var channelCaches = {};
 	var userCaches = {};
+	var allUsersCache = [];
+	var highlightCache = [];
 
 	var channelRecipients = {};
 	var userRecipients = {};
+	var allUsersRecipients = [];
+	var highlightRecipients = [];
 
 	var cachedLastSeens = {};
+
+	var unseenHighlightIds = new Set();
 
 	// Set up IRC
 
@@ -281,6 +287,12 @@ module.exports = function(config, util, log){
 		emitEventToRecipients(channelRecipients[channelUrl], eventName, eventData);
 	};
 
+	var emitUnseenHighlights = function(socket) {
+		if (socket) {
+			socket.emit("unseenHighlights", { list: Array.from(unseenHighlightIds) });
+		}
+	};
+
 	var cacheItem = function(cache, data) {
 		// Add it
 		cache.push(data);
@@ -310,9 +322,23 @@ module.exports = function(config, util, log){
 			userCaches[username] = [];
 		}
 		cacheItem(userCaches[username], msg);
+		cacheItem(allUsersCache, msg);
 
 		// Emit
 		emitMessageToRecipients(userRecipients[username], msg);
+		emitMessageToRecipients(allUsersRecipients, msg);
+	};
+
+	var cacheHighlightMessage = function(msg) {
+		cacheItem(highlightCache, msg);
+
+		if (msg.id) {
+			unseenHighlightIds.add(msg.id);
+		}
+
+		// Emit
+		emitMessageToRecipients(highlightRecipients, msg);
+		emitUnseenHighlights(io);
 	};
 
 	var cacheBunchableChannelEvent = function(channelUrl, data) {
@@ -383,6 +409,9 @@ module.exports = function(config, util, log){
 		if (relationship >= RELATIONSHIP_FRIEND) {
 			cacheUserMessage(from, msg);
 		}
+		if (highlightStrings && highlightStrings.length) {
+			cacheHighlightMessage(msg);
+		}
 	};
 
 	var emitChannelUserList = function(channelUri) {
@@ -444,6 +473,8 @@ module.exports = function(config, util, log){
 			}
 		}
 
+		// TODO: Don't add if from === client.extConfig.me
+
 		updateLastSeen(chobj, from, time, message, isAction, relationship);
 		emitMessage(
 			chobj, from, time, message, isAction, relationship,
@@ -464,6 +495,14 @@ module.exports = function(config, util, log){
 			data.username
 		) {
 			channelUserLists[c] = client.chans[channel].users;
+
+			// Due to a fault in the node-irc API, they don't always remove this
+			// until after the call, so let's just do this now...
+
+			if (PART_EVENT_TYPES.indexOf(name) >= 0 && channelUserLists[c]) {
+				delete channelUserLists[c][data.username];
+			}
+
 			emitChannelUserList(c);
 		}
 
@@ -714,6 +753,7 @@ module.exports = function(config, util, log){
 		addChannelRecipient,
 		removeChannelRecipient,
 		addUserRecipient,
-		removeUserRecipient
+		removeUserRecipient,
+		emitUnseenHighlights
 	};
 }

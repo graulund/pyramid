@@ -43,6 +43,9 @@ class ChatInput extends Component {
 			return userNames;
 		}
 
+		// TODO: Consider including the authors of the messages in current channel cache?
+		// TODO: Sorting?
+
 		return [];
 	}
 

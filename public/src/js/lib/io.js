@@ -3,6 +3,7 @@ import store from "../store";
 import pull from "lodash/pull";
 
 import { CACHE_LINES } from "../constants";
+import { channelUrl, userUrl } from "./routeHelpers";
 
 var io;
 var socket;
@@ -109,16 +110,12 @@ export function requestLogFileForUsername(username, time) {
 	}
 }
 
-var updateLastSeenChannel = (channel, username, time) => {
-	store.dispatch(actions.lastSeenChannels.update({
-		[channel]: { username, time }
-	}));
+var updateLastSeenChannels = (channelInfo) => {
+	store.dispatch(actions.lastSeenChannels.update(channelInfo));
 };
 
-var updateLastSeenUser = (username, channel, time) => {
-	store.dispatch(actions.lastSeenUsers.update({
-		[username]: { channel, time }
-	}));
+var updateLastSeenUsers = (userInfo) => {
+	store.dispatch(actions.lastSeenUsers.update(userInfo));
 };
 
 export function initializeIo() {
@@ -136,22 +133,32 @@ export function initializeIo() {
 		});
 
 		const onChatEvent = (details) => {
-			const { relationship, type } = details;
+			const { channel, relationship, type, username } = details;
 
-			store.dispatch(actions.channelCaches.append(details));
+			// Only add chat messages to store if we're actually viewing
+			// their respective stores, otherwise we'll get the whole
+			// thing when we request subscription, so it doesn't really matter
+
+			if (location.pathname === channelUrl(channel)) {
+				store.dispatch(actions.channelCaches.append(details));
+			}
 
 			if (!relationship || type !== "msg") {
 				return;
 			}
 
+			if (location.pathname === userUrl(username)) {
+				store.dispatch(actions.userCaches.append(details));
+			}
+
 			// DEBUG
+			/*
 			console.log("msg", details);
 			console.log(
 				"%c" + details.username + " in " + details.channel + ": %c" +
 				details.message, "font-size: 24px; font-weight: bold", "font-size: 24px"
 			);
-
-			store.dispatch(actions.userCaches.append(details));
+			*/
 		};
 
 		socket.on("msg", onChatEvent);
@@ -173,18 +180,30 @@ export function initializeIo() {
 
 		socket.on("lastSeen", (instances) => {
 			if (instances && instances.length) {
+				var channelUpdates = {}, userUpdates = {},
+					channelsDirty = false, usersDirty = false;
+
 				instances.forEach((details) => {
 					if (details.data) {
 						if (details.channel) {
 							const { username, time } = details.data;
-							updateLastSeenChannel(details.channel, username, time);
+							channelUpdates[details.channel] = { username, time };
+							channelsDirty = true;
 						}
 						else if (details.username) {
 							const { channel, time } = details.data;
-							updateLastSeenUser(details.username, channel, time);
+							userUpdates[details.username] = { channel, time };
+							usersDirty = true;
 						}
 					}
 				});
+
+				if (channelsDirty) {
+					updateLastSeenChannels(channelUpdates);
+				}
+				if (usersDirty) {
+					updateLastSeenUsers(userUpdates);
+				}
 			}
 		});
 
@@ -243,6 +262,13 @@ export function initializeIo() {
 						[details.time]: details.file
 					}
 				}));
+			}
+		});
+
+		socket.on("unseenHighlights", (details) => {
+			console.log("Received unseen highlights event:", details);
+			if (details.list) {
+				store.dispatch(actions.unseenHighlights.set(details.list));
 			}
 		});
 

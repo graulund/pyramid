@@ -2,7 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 
-import { internalUrl } from "../lib/formatting";
+import { userUrl } from "../lib/routeHelpers";
 
 class UserLink extends PureComponent {
 	render() {
@@ -36,7 +36,7 @@ class UserLink extends PureComponent {
 		return (
 			<Link
 				className={className}
-				to={internalUrl("/user/" + userName.toLowerCase())}>
+				to={userUrl(userName)}>
 				{ userName }
 			</Link>
 		);

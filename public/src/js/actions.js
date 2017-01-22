@@ -95,6 +95,14 @@ export default {
 			};
 		}
 	},
+	unseenHighlights: {
+		set(data) {
+			return {
+				type: actionTypes.unseenHighlights.SET,
+				data
+			};
+		}
+	},
 	userCaches: {
 		append(data) {
 			return {

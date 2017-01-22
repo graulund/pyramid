@@ -2,7 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { Link } from "react-router";
 
 import ChannelName from "./ChannelName.jsx";
-import { internalUrl } from "../lib/formatting";
+import { channelUrl } from "../lib/routeHelpers";
 
 class ChannelLink extends PureComponent {
 	render() {
@@ -13,7 +13,7 @@ class ChannelLink extends PureComponent {
 		}
 
 		return (
-			<Link className="invisible" to={internalUrl("/channel/" + channel)}>
+			<Link className="invisible" to={channelUrl(channel)}>
 				<ChannelName
 					channel={channel}
 					displayServer={displayServer}

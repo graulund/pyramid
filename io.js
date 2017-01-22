@@ -88,6 +88,12 @@ module.exports = function(config, util, log, irc) {
 		}
 	};
 
+	var sendUnseenHighlights = function(socket) {
+		irc.emitUnseenHighlights(socket);
+	};
+
+	// TODO: "Architecture" here is a bit of a mess. Some things are sent in the io module, some things in the irc module.
+
 	// Deferred server availability
 	var setServer = (_server) => {
 		server = _server;
@@ -109,6 +115,10 @@ module.exports = function(config, util, log, irc) {
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
+
+					if (util.isAnAcceptedToken(connectionToken)) {
+						sendUnseenHighlights(socket);
+					}
 				}
 			})
 

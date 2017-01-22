@@ -10,6 +10,7 @@ import logDetails from "./logDetails";
 import logFiles from "./logFiles";
 import multiServerChannels from "./multiServerChannels";
 import token from "./token";
+import unseenHighlights from "./unseenHighlights";
 import userCaches from "./userCaches";
 import viewState from "./viewState";
 
@@ -24,6 +25,7 @@ export default combineReducers({
 	logFiles,
 	multiServerChannels,
 	token,
+	unseenHighlights,
 	userCaches,
 	viewState
 });

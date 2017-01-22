@@ -55,6 +55,8 @@ class ChatUserEventLine extends PureComponent {
 
 		var content = [];
 
+		// TODO: This hard coded order looks weird when it was the part that came first.
+
 		["join", "part"].forEach((category) => {
 			var usernames, eventname;
 			if (category === "join") {

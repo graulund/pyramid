@@ -40,6 +40,10 @@ export const token = {
 	"SET": "token/SET"
 };
 
+export const unseenHighlights = {
+	"SET": "unseenHighlights/SET"
+};
+
 export const userCaches = {
 	"UPDATE": "userCaches/UPDATE",
 	"APPEND": "userCaches/APPEND"
