@@ -1,6 +1,20 @@
 import * as actionTypes from "./actionTypes";
 
 export default {
+	categoryCaches: {
+		append(data) {
+			return {
+				type: actionTypes.categoryCaches.APPEND,
+				data
+			};
+		},
+		update(data) {
+			return {
+				type: actionTypes.categoryCaches.UPDATE,
+				data
+			};
+		}
+	},
 	channelCaches: {
 		append(data) {
 			return {

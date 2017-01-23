@@ -10,6 +10,8 @@ class ChatLines extends PureComponent {
 			return null;
 		}
 
+		// TODO: Separate by date headers
+
 		const lines = messages.map(
 			(msg, index) => msg ? <ChatLine {...msg}
 				displayChannel={displayChannel}

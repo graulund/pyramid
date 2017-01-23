@@ -36,6 +36,13 @@ module.exports = function(config, util, log, irc) {
 		});
 	};
 
+	var sendCategoryCache = function(socket, categoryName) {
+		socket.emit("categoryCache", {
+			categoryName,
+			cache: irc.getCategoryCache(categoryName)
+		});
+	};
+
 	var sendChannelLogDetails = function(socket, channelUri) {
 		socket.emit("channelLogDetails", {
 			channelUri,
@@ -123,12 +130,7 @@ module.exports = function(config, util, log, irc) {
 			})
 
 			// Respond to requests for cache
-			socket.on("requestUserCache", (username) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				if (typeof username === "string") {
-					sendUserCache(socket, username);
-				}
-			});
+
 			socket.on("requestChannelCache", (channelUri) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channelUri === "string") {
@@ -136,7 +138,22 @@ module.exports = function(config, util, log, irc) {
 				}
 			});
 
+			socket.on("requestUserCache", (username) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (typeof username === "string") {
+					sendUserCache(socket, username);
+				}
+			});
+
+			socket.on("requestCategoryCache", (categoryName) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (typeof categoryName === "string") {
+					sendCategoryCache(socket, categoryName);
+				}
+			});
+
 			// Response to subscription requests
+
 			socket.on("subscribe", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
@@ -148,7 +165,12 @@ module.exports = function(config, util, log, irc) {
 					irc.addUserRecipient(details.username, socket);
 					sendUserCache(socket, details.username);
 				}
+				else if (details && details.category) {
+					irc.addCategoryRecipient(details.category, socket);
+					sendCategoryCache(socket, details.category);
+				}
 			});
+
 			socket.on("unsubscribe", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
@@ -157,21 +179,27 @@ module.exports = function(config, util, log, irc) {
 				else if (details && details.username) {
 					irc.removeUserRecipient(details.username, socket);
 				}
+				else if (details && details.category) {
+					irc.removeCategoryRecipient(details.category, socket);
+				}
 			});
 
 			// Response to log requests
+
 			socket.on("requestUserLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
 					sendUserLogDetails(socket, details.username);
 				}
 			});
+
 			socket.on("requestChannelLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.channelUri === "string") {
 					sendChannelLogDetails(socket, details.channelUri);
 				}
 			});
+
 			socket.on("requestUserLogFile", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (
@@ -182,6 +210,7 @@ module.exports = function(config, util, log, irc) {
 					sendUserLogFile(socket, details.username, details.time);
 				}
 			});
+
 			socket.on("requestChannelLogFile", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (
@@ -194,6 +223,7 @@ module.exports = function(config, util, log, irc) {
 			});
 
 			// Sending messages
+
 			socket.on("sendMessage", (data) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (data && data.channel && data.message && data.token) {

@@ -24,6 +24,8 @@ const PART_EVENT_TYPES =
 const BUNCHABLE_EVENT_TYPES =
 	["join", "part", "quit", "kill", "+mode", "-mode"];
 
+const SUPPORTED_CATEGORY_NAMES = ["highlights", "allfriends"];
+
 module.exports = function(config, util, log){
 
 	var io = {} // To be filled in later
@@ -48,6 +50,8 @@ module.exports = function(config, util, log){
 		return output || {};
 	}
 
+	// TODO: ALL OF THIS NEEDS TO BE IN EITHER LOG OR IO MODEL
+
 	var lastSeenChannelsFileName = path.join(__dirname, "lastSeenChannels.json");
 	var lastSeenUsersFileName = path.join(__dirname, "lastSeenUsers.json");
 
@@ -58,17 +62,17 @@ module.exports = function(config, util, log){
 
 	var channelCaches = {};
 	var userCaches = {};
-	var allUsersCache = [];
-	var highlightCache = [];
+	var categoryCaches = { highlights: [], allfriends: [] };
 
 	var channelRecipients = {};
 	var userRecipients = {};
-	var allUsersRecipients = [];
-	var highlightRecipients = [];
+	var categoryRecipients = { highlights: [], allfriends: [] };
 
 	var cachedLastSeens = {};
 
 	var unseenHighlightIds = new Set();
+
+	// END TODO
 
 	// Set up IRC
 
@@ -182,7 +186,7 @@ module.exports = function(config, util, log){
 	//TODO: Move parts of "logLine" to log object
 	var logLine = function(chobj, line, d, filename){
 
-		// Optional argument; log filename for special logs
+		// Optional argument; log filename for category logs
 		if(typeof filename != "string"){
 			filename = ""
 		}
@@ -312,8 +316,6 @@ module.exports = function(config, util, log){
 			channelCaches[channelUrl] = [];
 		}
 		cacheItem(channelCaches[channelUrl], data);
-
-		// Emit
 		emitEventToChannel(channelUrl, data.type, data);
 	};
 
@@ -322,23 +324,24 @@ module.exports = function(config, util, log){
 			userCaches[username] = [];
 		}
 		cacheItem(userCaches[username], msg);
-		cacheItem(allUsersCache, msg);
-
-		// Emit
 		emitMessageToRecipients(userRecipients[username], msg);
-		emitMessageToRecipients(allUsersRecipients, msg);
 	};
 
-	var cacheHighlightMessage = function(msg) {
-		cacheItem(highlightCache, msg);
-
-		if (msg.id) {
-			unseenHighlightIds.add(msg.id);
+	var cacheCategoryMessage = function(categoryName, msg) {
+		if (!categoryCaches[categoryName]) {
+			categoryCaches[categoryName] = [];
+		}
+		if (!categoryRecipients[categoryName]) {
+			categoryRecipients[categoryName] = [];
 		}
 
-		// Emit
-		emitMessageToRecipients(highlightRecipients, msg);
-		emitUnseenHighlights(io);
+		cacheItem(categoryCaches[categoryName], msg);
+		emitMessageToRecipients(categoryRecipients[categoryName], msg);
+
+		if (categoryName === "highlights" && msg.id) {
+			unseenHighlightIds.add(msg.id);
+			emitUnseenHighlights(io);
+		}
 	};
 
 	var cacheBunchableChannelEvent = function(channelUrl, data) {
@@ -408,9 +411,10 @@ module.exports = function(config, util, log){
 		cacheChannelEvent(msg.channel, msg);
 		if (relationship >= RELATIONSHIP_FRIEND) {
 			cacheUserMessage(from, msg);
+			cacheCategoryMessage("allfriends", msg);
 		}
 		if (highlightStrings && highlightStrings.length) {
-			cacheHighlightMessage(msg);
+			cacheCategoryMessage("highlights", msg);
 		}
 	};
 
@@ -723,6 +727,18 @@ module.exports = function(config, util, log){
 		removeRecipient(userRecipients, username, socket);
 	};
 
+	var addCategoryRecipient = function(categoryName, socket) {
+		if (SUPPORTED_CATEGORY_NAMES.indexOf(categoryName) >= 0) {
+			addRecipient(categoryRecipients, categoryName, socket);
+		}
+	};
+
+	var removeCategoryRecipient = function(categoryName, socket) {
+		if (SUPPORTED_CATEGORY_NAMES.indexOf(categoryName) >= 0) {
+			removeRecipient(categoryRecipients, categoryName, socket);
+		}
+	};
+
 	// Deferred socket.io availability support
 	var setIo = function(_io){
 		io = _io
@@ -748,12 +764,15 @@ module.exports = function(config, util, log){
 		calibrateMultiServerChannels,
 		getChannelCache: function(channelUri){ return channelCaches[channelUri]; },
 		getUserCache: function(username){ return userCaches[username]; },
+		getCategoryCache: function(categoryName){ return categoryCaches[categoryName]; },
 		getChannelUserList: function(channelUri) { return channelUserLists[channelUri]; },
 		sendOutgoingMessage,
 		addChannelRecipient,
 		removeChannelRecipient,
 		addUserRecipient,
 		removeUserRecipient,
+		addCategoryRecipient,
+		removeCategoryRecipient,
 		emitUnseenHighlights
 	};
 }

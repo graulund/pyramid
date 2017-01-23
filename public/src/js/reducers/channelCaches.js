@@ -15,13 +15,18 @@ export default function (state = channelCachesInitialState, action) {
 			};
 		case actionTypes.channelCaches.APPEND:
 			var s = clone(state), d = action.data;
+
 			if (!s[d.channel]) {
 				s[d.channel] = [];
 			}
+
+			// Clear any replaced ids, and then append to cache
+
 			s[d.channel] = cacheItem(
 				clearReplacedIdsFromCache(s[d.channel], d.prevIds),
 				d
 			);
+
 			return s;
 	}
 

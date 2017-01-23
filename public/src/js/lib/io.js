@@ -3,24 +3,20 @@ import store from "../store";
 import pull from "lodash/pull";
 
 import { CACHE_LINES } from "../constants";
-import { channelUrl, userUrl } from "./routeHelpers";
+import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
 var io;
 var socket;
 
 export function subscribeToChannel(channelUrl) {
 	if (socket) {
-		socket.emit("subscribe", {
-			channel: channelUrl
-		});
+		socket.emit("subscribe", { channel: channelUrl });
 	}
 }
 
 export function unsubscribeFromChannel(channelUrl) {
 	if (socket) {
-		socket.emit("unsubscribe", {
-			channel: channelUrl
-		});
+		socket.emit("unsubscribe", { channel: channelUrl });
 	}
 }
 
@@ -33,6 +29,20 @@ export function subscribeToUser(username) {
 export function unsubscribeFromUser(username) {
 	if (socket) {
 		socket.emit("unsubscribe", { username });
+	}
+}
+
+export function subscribeToCategory(categoryName) {
+	if (socket) {
+		console.log("Emitting subscribing to category", categoryName);
+		socket.emit("subscribe", { category: categoryName });
+	}
+}
+
+export function unsubscribeFromCategory(categoryName) {
+	if (socket) {
+		console.log("Emitting unsubscribing from category", categoryName);
+		socket.emit("unsubscribe", { category: categoryName });
 	}
 }
 
@@ -133,7 +143,7 @@ export function initializeIo() {
 		});
 
 		const onChatEvent = (details) => {
-			const { channel, relationship, type, username } = details;
+			const { channel, highlight, relationship, type, username } = details;
 
 			// Only add chat messages to store if we're actually viewing
 			// their respective stores, otherwise we'll get the whole
@@ -143,12 +153,29 @@ export function initializeIo() {
 				store.dispatch(actions.channelCaches.append(details));
 			}
 
+			if (
+				location.pathname === categoryUrl("highlights") &&
+				highlight && highlight.length
+			) {
+				store.dispatch(actions.categoryCaches.append({
+					categoryName: "highlights",
+					item: details
+				}));
+			}
+
 			if (!relationship || type !== "msg") {
 				return;
 			}
 
 			if (location.pathname === userUrl(username)) {
 				store.dispatch(actions.userCaches.append(details));
+			}
+
+			if (location.pathname === categoryUrl("allfriends")) {
+				store.dispatch(actions.categoryCaches.append({
+					categoryName: "allfriends",
+					item: details
+				}));
 			}
 
 			// DEBUG
@@ -221,6 +248,15 @@ export function initializeIo() {
 			if (details && details.username && details.cache) {
 				store.dispatch(actions.userCaches.update({
 					[details.username]: details.cache
+				}));
+			}
+		});
+
+		socket.on("categoryCache", (details) => {
+			console.log("Received category cache!", details);
+			if (details && details.categoryName && details.cache) {
+				store.dispatch(actions.categoryCaches.update({
+					[details.categoryName]: details.cache
 				}));
 			}
 		});

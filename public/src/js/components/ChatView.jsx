@@ -8,7 +8,8 @@ import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
-import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
+import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, subscribeToCategory, unsubscribeFromCategory, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
+// TODO: Export a default object or something because this is crazy
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
@@ -84,6 +85,9 @@ class ChatView extends Component {
 		}
 
 		// Otherwise just stick if we're already there
+
+		// TODO: Split it up and evaluate whether we're already at the bottom *before* any changes occurred, not after (provided we're on the same page still)
+		// Otherwise, this breaks when a really long message is entered
 
 		stickToTheBottom();
 	}
@@ -172,11 +176,12 @@ class ChatView extends Component {
 	didChannelChange (currentParams, newParams) {
 		return currentParams.userName != newParams.userName ||
 			currentParams.channelName != newParams.channelName ||
-			currentParams.serverName != newParams.serverName;
+			currentParams.serverName != newParams.serverName ||
+			currentParams.categoryName != newParams.categoryName;
 	}
 
 	getLines (props = this.props) {
-		const { channelCaches, logFiles, params, userCaches } = props;
+		const { categoryCaches, channelCaches, logFiles, params, userCaches } = props;
 
 		if (params.logDate) {
 			const subjectName = this.subjectName();
@@ -192,6 +197,9 @@ class ChatView extends Component {
 		}
 		else if (params.userName) {
 			return userCaches[params.userName];
+		}
+		else if (params.categoryName) {
+			return categoryCaches[params.categoryName];
 		}
 
 		return null;
@@ -267,22 +275,28 @@ class ChatView extends Component {
 	}
 
 	requestSubscription(params) {
-		const { channelName, serverName, userName } = params;
+		const { categoryName, channelName, serverName, userName } = params;
 		if (channelName && serverName) {
 			subscribeToChannel(channelUrlFromNames(serverName, channelName));
 		}
 		else if (userName) {
 			subscribeToUser(userName);
 		}
+		else if (categoryName) {
+			subscribeToCategory(categoryName);
+		}
 	}
 
 	requestUnsubscription(params) {
-		const { channelName, serverName, userName } = params;
+		const { categoryName, channelName, serverName, userName } = params;
 		if (channelName && serverName) {
 			unsubscribeFromChannel(channelUrlFromNames(serverName, channelName));
 		}
 		else if (userName) {
 			unsubscribeFromUser(userName);
+		}
+		else if (categoryName) {
+			unsubscribeFromCategory(categoryName);
 		}
 	}
 
@@ -295,6 +309,9 @@ class ChatView extends Component {
 		}
 		else if (params.userName) {
 			return `user${divider}${params.userName}`;
+		}
+		else if (params.categoryName) {
+			return `category${divider}${params.categoryName}`;
 		}
 
 		return "";
@@ -427,13 +444,29 @@ class ChatView extends Component {
 		const { params } = this.props;
 		const { userListOpen } = this.state;
 
-		const heading = this.channelUrl
-			? <ChannelName channel={this.channelUrl} key={this.channelUrl} />
-			: params.userName;
+		var heading = null;
+
+		if (this.channelUrl) {
+			heading = <ChannelName channel={this.channelUrl} key={this.channelUrl} />;
+		}
+		else if (params.userName) {
+			heading = params.userName;
+		}
+		else if (params.categoryName) {
+			switch (params.categoryName) {
+				// TODO: Place this more centrally
+				case "highlights":
+					heading = "Highlights";
+					break;
+				case "allfriends":
+					heading = "All friends";
+					break;
+			}
+		}
 
 		const contentParams = {
-			displayChannel:  !this.channelUrl,
-			displayUsername: !!this.channelUrl,
+			displayChannel:  !this.channelUrl || !!params.categoryName,
+			displayUsername: !!this.channelUrl || !!params.categoryName,
 			messages
 		};
 
@@ -474,6 +507,7 @@ class ChatView extends Component {
 }
 
 ChatView.propTypes = {
+	categoryCaches: PropTypes.object,
 	channelCaches: PropTypes.object,
 	logDetails: PropTypes.object,
 	logFiles: PropTypes.object,
@@ -484,11 +518,13 @@ ChatView.propTypes = {
 
 export default connect(
 	({
+		categoryCaches,
 		channelCaches,
 		logDetails,
 		logFiles,
 		userCaches
 	}) => ({
+		categoryCaches,
 		channelCaches,
 		logDetails,
 		logFiles,

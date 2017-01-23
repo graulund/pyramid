@@ -11,7 +11,7 @@ import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import { updateIrcConfigs } from "./lib/ircConfigs";
-import { homeUrl, channelUrl, userUrl } from "./lib/routeHelpers";
+import { categoryUrl, channelUrl, homeUrl, userUrl } from "./lib/routeHelpers";
 
 // Redux
 
@@ -64,6 +64,12 @@ if (main) {
 					<Route
 						path={channelUrl(":serverName/:channelName", ":logDate")}
 						component={ChatView} />
+					<Route
+						path={categoryUrl(":categoryName")}
+						component={ChatView} />
+					<Route
+						path="*"
+						component={NoChatView} />
 				</Route>
 			</Router>
 		</Provider>,

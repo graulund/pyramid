@@ -19,3 +19,9 @@ export function channelUrl(channelUri, logDate) {
 		(logDate ? "/log/" + logDate : "")
 	);
 }
+
+export function categoryUrl(categoryName) {
+	return internalUrl(
+		"/" + categoryName
+	);
+}

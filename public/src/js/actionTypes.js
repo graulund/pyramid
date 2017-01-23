@@ -1,3 +1,8 @@
+export const categoryCaches = {
+	"UPDATE": "categoryCaches/UPDATE",
+	"APPEND": "categoryCaches/APPEND"
+};
+
 export const channelCaches = {
 	"UPDATE": "channelCaches/UPDATE",
 	"APPEND": "channelCaches/APPEND"
