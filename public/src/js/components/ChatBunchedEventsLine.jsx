@@ -6,6 +6,7 @@ import UserLink from "./UserLink.jsx";
 const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;
+const DATE_STRING_FORMAT = "MMMM Do";
 
 class ChatUserEventLine extends PureComponent {
 	constructor(props) {
@@ -30,15 +31,21 @@ class ChatUserEventLine extends PureComponent {
 		const { events } = this.props;
 		const { expanded } = this.state;
 
-		var joins = [], parts = [], earliestTime, latestTime;
+		var joins = [], parts = [], eventOrder = [], earliestTime, latestTime;
 
 		events.forEach((event) => {
 			if (event) {
+				const eventName = event.type === "join" ? "join" : "part";
 				if (event.type === "join") {
+
 					joins.push(event.username);
 				}
 				else if (PART_EVENT_TYPES.indexOf(event.type) >= 0) {
 					parts.push(event.username);
+				}
+
+				if (eventOrder.indexOf(eventName) < 0) {
+					eventOrder.push(eventName);
 				}
 
 				if (!earliestTime || event.time < earliestTime) {
@@ -57,7 +64,7 @@ class ChatUserEventLine extends PureComponent {
 
 		// TODO: This hard coded order looks weird when it was the part that came first.
 
-		["join", "part"].forEach((category) => {
+		eventOrder.forEach((category) => {
 			var usernames, eventname;
 			if (category === "join") {
 				eventname = "joined";
@@ -107,14 +114,29 @@ class ChatUserEventLine extends PureComponent {
 		latestTime = latestTime ? moment(latestTime) : null;
 
 		var title = "";
-		const earliestTimeStamp = earliestTime && earliestTime.format("H:mm:ss");
 
 		// Be more explicit with the time difference if enough time passed
 
-		if (latestTime && latestTime.diff(earliestTime) >= MAX_TIME_DIFFERENCE_MS) {
-			content.push(` since ${earliestTimeStamp}`);
-		} else {
-			title = `Since ${earliestTimeStamp}`;
+		if (earliestTime) {
+			const earliestTimeStamp = earliestTime.format("H:mm:ss");
+
+			if (latestTime && latestTime.diff(earliestTime) >= MAX_TIME_DIFFERENCE_MS) {
+				const earliestTimeStampDate = earliestTime.format(DATE_STRING_FORMAT);
+				const latestTimeStampDate = latestTime.format(DATE_STRING_FORMAT);
+
+				if (earliestTimeStampDate != latestTimeStampDate) {
+					content.push(
+						` since ${earliestTimeStampDate} ${earliestTimeStamp}`
+					);
+				} else {
+					content.push(
+						` since ${earliestTimeStamp}`
+					);
+				}
+
+			} else {
+				title = `Since ${earliestTimeStamp}`;
+			}
 		}
 
 		const className = "bunchedevents" +

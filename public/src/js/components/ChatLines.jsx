@@ -1,6 +1,9 @@
 import React, { PureComponent, PropTypes } from "react";
+import moment from "moment";
 
 import ChatLine from "./ChatLine.jsx";
+
+const DATE_STRING_FORMAT = "dddd, MMMM Do YYYY";
 
 class ChatLines extends PureComponent {
 	render() {
@@ -10,14 +13,31 @@ class ChatLines extends PureComponent {
 			return null;
 		}
 
-		// TODO: Separate by date headers
+		var lastDateString = "";
 
-		const lines = messages.map(
-			(msg, index) => msg ? <ChatLine {...msg}
-				displayChannel={displayChannel}
-				displayUsername={displayUsername}
-				key={msg.id || index} /> : null
-		);
+		const lines = messages.map((msg, index) => {
+			if (msg) {
+				var dateString = moment(msg.time).format(DATE_STRING_FORMAT);
+				var line = <ChatLine {...msg}
+					displayChannel={displayChannel}
+					displayUsername={displayUsername}
+					key={msg.id || index} />;
+
+				if (dateString != lastDateString) {
+					lastDateString = dateString;
+					return [
+						(<li className="date-header" key={dateString}>
+							<span>{ dateString }</span>
+						</li>),
+						line
+					];
+				}
+
+				return line;
+			}
+
+			return null;
+		});
 
 		return <ul>{ lines }</ul>;
 	}

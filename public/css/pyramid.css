@@ -615,6 +615,12 @@ ul.statsuserlist {
 	text-align: center;
 }
 
+.chatview .date-header {
+	text-align: center;
+	margin: 1em 0;
+	color: #666;
+}
+
 @media only screen and (max-width: 767px) {
 	/* Mobile last styles */
 

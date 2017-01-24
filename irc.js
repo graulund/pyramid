@@ -605,12 +605,12 @@ module.exports = function(config, util, log){
 		client.addListener("quit", (username, reason, channels, message) => {
 			const line = "** " + username + " quit" +
 				(reason ? " (" + reason + ")" : "");
-			console.log(line);
-			// TODO: Network wide events, look at all current channel recipients that are on this network
-			/* handleEvent(
-				client, null, "quit", line,
-				{ username, reason, channels, message }
-			); */
+			channels.forEach((channel) => {
+				handleEvent(
+					client, channel, "quit", line,
+					{ username, reason, rawData: message }
+				);
+			});
 		});
 
 		client.addListener("kick", (channel, username, by, reason, message) => {
@@ -643,8 +643,12 @@ module.exports = function(config, util, log){
 		client.addListener("kill", (username, reason, channels, message) => {
 			const line = "** " + username + " was killed" +
 				(reason ? " (" + reason + ")" : "");
-			console.log(line);
-			// TODO
+			channels.forEach((channel) => {
+				handleEvent(
+					client, channel, "kill", line,
+					{ username, reason, rawData: message }
+				);
+			});
 		});
 	}
 
