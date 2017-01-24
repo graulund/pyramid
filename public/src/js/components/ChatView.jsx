@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
+import remove from "lodash/remove";
 
 import ChannelName from "./ChannelName.jsx";
 import ChannelUserList from "./ChannelUserList.jsx";
@@ -14,18 +15,32 @@ import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from ".
 import store from "../store";
 import actions from "../actions";
 
+const observerCallback = (entries, observer) => {
+	// TODO: Proper observer callback
+	console.log("Observation callback occured!", entries, observer);
+	entries.forEach((entry, index) => {
+		console.log("Entry #" + index + " ratio: " + entry.intersectionRatio);
+	});
+};
+
 class ChatView extends Component {
 	constructor(props) {
 		super(props);
 		const { params } = this.props;
 
+		// Methods to be called outside of scope
+
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
 		this.closeUserList = this.closeUserList.bind(this);
 		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
 		this.onClick = this.onClick.bind(this);
+		this.onObserve = this.onObserve.bind(this);
+		this.onUnobserve = this.onUnobserve.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
 		this.openUserList = this.openUserList.bind(this);
 		this.toggleUserList = this.toggleUserList.bind(this);
+
+		// Internal state
 
 		this.channelJustChanged = true;
 		this.linesBeingChanged = false;
@@ -34,8 +49,15 @@ class ChatView extends Component {
 			? channelUrlFromNames(params.serverName, params.channelName) : null;
 		this.wasAtBottomBeforeOpeningUserList = false;
 
+		// Request data
+
 		this.requestSubscription(params);
 		this.requestLogFileIfNeeded();
+
+		this.observerHandlers = { observe: this.onObserve, unobserve: this.onUnobserve };
+		this.clearObserver();
+
+		// View-related state
 
 		this.state = {
 			logBrowserOpen: false,
@@ -108,6 +130,7 @@ class ChatView extends Component {
 				this.requestSubscription(newParams);
 				this.requestUnsubscription(currentParams);
 				this.requestLogDetails(newProps);
+				this.clearObserver(newProps, newState);
 
 				this.lines = null;
 				newState.logBrowserOpen = false;
@@ -116,15 +139,16 @@ class ChatView extends Component {
 			}
 
 			// Logs change
-			if (currentParams.logDate != newParams.logDate) {
+			if (currentParams.logDate !== newParams.logDate) {
 				this.requestLogFileIfNeeded(newProps);
+				this.clearObserver(newProps, newState);
 			}
 
 			// Lines change
-			if (this.lines != newLines) {
+			if (this.lines !== newLines) {
 				this.lines = newLines;
 
-				if (newLines != null) {
+				if (newLines !== null) {
 					this.linesBeingChanged = true;
 				}
 				return true;
@@ -132,37 +156,50 @@ class ChatView extends Component {
 
 			// Logs change (Part two. Shoot me.)
 
-			if (currentParams.logDate != newParams.logDate) {
+			if (currentParams.logDate !== newParams.logDate) {
+				this.clearObserver(newProps, newState);
 				return true;
 			}
 
 			const subjectName = this.subjectName();
 
 			if (
-				newProps.logDetails[subjectName] !=
+				newProps.logDetails[subjectName] !==
 				this.props.logDetails[subjectName]
 			) {
 				return true;
 			}
 
 			if (
-				newProps.logFiles[subjectName] != this.props.logFiles[subjectName]
+				newProps.logFiles[subjectName] !== this.props.logFiles[subjectName]
 			) {
 				return true;
 			}
 		}
 
 		if (newState) {
-			if (newState.logBrowserOpen != this.state.logBrowserOpen) {
+			if (newState.logBrowserOpen !== this.state.logBrowserOpen) {
+				this.resetObserver(newProps, newState);
 				return true;
 			}
 
-			if (newState.userListOpen != this.state.userListOpen) {
+			if (newState.userListOpen !== this.state.userListOpen) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	clearObserver(props = this.props, state = this.state) {
+		if (this.observer) {
+			this.observer.disconnect();
+		}
+
+		this.setObserver(props, state);
+
+		// Do NOT carry old ones over
+		this.observed = [];
 	}
 
 	closeLogBrowser() {
@@ -174,10 +211,10 @@ class ChatView extends Component {
 	}
 
 	didChannelChange (currentParams, newParams) {
-		return currentParams.userName != newParams.userName ||
-			currentParams.channelName != newParams.channelName ||
-			currentParams.serverName != newParams.serverName ||
-			currentParams.categoryName != newParams.categoryName;
+		return currentParams.userName !== newParams.userName ||
+			currentParams.channelName !== newParams.channelName ||
+			currentParams.serverName !== newParams.serverName ||
+			currentParams.categoryName !== newParams.categoryName;
 	}
 
 	getLines (props = this.props) {
@@ -203,6 +240,34 @@ class ChatView extends Component {
 		}
 
 		return null;
+	}
+
+	getObserver (props = this.props, state = this.state) {
+		const { params } = props;
+		const logBrowserOpen = state ? state.logBrowserOpen : false;
+		const isLiveChannel = this.channelUrl && !params.logDate;
+
+		// Acknowledge that there's an overlay when we're viewing a live channel, coming from the input
+
+		var topMargin = -40, bottomMargin = 0;
+
+		if (isLiveChannel) {
+			bottomMargin = -80;
+		}
+
+		if (logBrowserOpen || params.logDate) {
+			topMargin = -70;
+		}
+
+		const rootMargin = topMargin + "px 0px " + bottomMargin + "px 0px";
+
+		var intersectionObserverOptions = {
+			root: null,
+			rootMargin,
+			threshold: 1.0
+		};
+
+		return new IntersectionObserver(observerCallback, intersectionObserverOptions);
 	}
 
 	logBrowserSubmit(evt) {
@@ -234,6 +299,22 @@ class ChatView extends Component {
 	openUserList() {
 		this.wasAtBottomBeforeOpeningUserList = areWeScrolledToTheBottom();
 		this.setState({ userListOpen: true });
+	}
+
+	onObserve(el) {
+		if (el && this.observer) {
+			this.observer.observe(el);
+			this.observed.push(el);
+		}
+	}
+
+	onUnobserve(el) {
+		if (el) {
+			if (this.observer) {
+				this.observer.unobserve(el);
+			}
+			remove(this.observed, (item) => item === el);
+		}
 	}
 
 	requestLogDetails(props = this.props) {
@@ -298,6 +379,22 @@ class ChatView extends Component {
 		else if (categoryName) {
 			unsubscribeFromCategory(categoryName);
 		}
+	}
+
+	resetObserver (props = this.props, state = this.state) {
+		if (this.observer) {
+			this.observer.disconnect();
+		}
+		this.setObserver(props, state);
+
+		// Carry old ones over
+		this.observed.forEach((el) => {
+			this.observer.observe(el);
+		});
+	}
+
+	setObserver (props = this.props, state = this.state) {
+		this.observer = this.getObserver(props, state);
 	}
 
 	subjectName(divider = ":") {
@@ -467,7 +564,8 @@ class ChatView extends Component {
 		const contentParams = {
 			displayChannel:  !this.channelUrl || !!params.categoryName,
 			displayUsername: !!this.channelUrl || !!params.categoryName,
-			messages
+			messages,
+			observer: this.observerHandlers
 		};
 
 		const content = <ChatLines {...contentParams} key="main" />;

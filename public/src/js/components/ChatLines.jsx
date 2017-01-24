@@ -7,7 +7,7 @@ const DATE_STRING_FORMAT = "dddd, MMMM Do YYYY";
 
 class ChatLines extends PureComponent {
 	render() {
-		const { displayChannel, displayUsername, messages } = this.props;
+		const { displayChannel, displayUsername, messages, observer } = this.props;
 
 		if (!messages || !messages.length) {
 			return null;
@@ -21,9 +21,10 @@ class ChatLines extends PureComponent {
 				var line = <ChatLine {...msg}
 					displayChannel={displayChannel}
 					displayUsername={displayUsername}
+					observer={observer}
 					key={msg.id || index} />;
 
-				if (dateString != lastDateString) {
+				if (dateString !== lastDateString) {
 					lastDateString = dateString;
 					return [
 						(<li className="date-header" key={dateString}>
@@ -46,7 +47,8 @@ class ChatLines extends PureComponent {
 ChatLines.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
-	messages: PropTypes.array
+	messages: PropTypes.array,
+	observer: PropTypes.object
 };
 
 export default ChatLines;

@@ -17,7 +17,7 @@ class ChannelUserList extends PureComponent {
 			var newUserList = newProps.channelUserLists &&
 			newProps.channelUserLists[newProps.channel];
 
-			if (oldUserList != newUserList) {
+			if (oldUserList !== newUserList) {
 				return true;
 			}
 
@@ -27,7 +27,7 @@ class ChannelUserList extends PureComponent {
 				for(var i = 0; i < mu.length; i++) {
 					if (
 						lastSeenUsers && newProps.lastSeenUsers &&
-						lastSeenUsers[mu[i]] != newProps.lastSeenUsers[mu[i]]
+						lastSeenUsers[mu[i]] !== newProps.lastSeenUsers[mu[i]]
 					) {
 						return true;
 					}

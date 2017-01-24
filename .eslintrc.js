@@ -15,6 +15,7 @@ module.exports = {
 		"react"
 	],
 	"rules": {
+		"eqeqeq": [2, "smart"],
 		"indent": 0,
 		"no-console": 0,
 		"no-tabs": 0,

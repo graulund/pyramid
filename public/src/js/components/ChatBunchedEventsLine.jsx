@@ -124,7 +124,7 @@ class ChatUserEventLine extends PureComponent {
 				const earliestTimeStampDate = earliestTime.format(DATE_STRING_FORMAT);
 				const latestTimeStampDate = latestTime.format(DATE_STRING_FORMAT);
 
-				if (earliestTimeStampDate != latestTimeStampDate) {
+				if (earliestTimeStampDate !== latestTimeStampDate) {
 					content.push(
 						` since ${earliestTimeStampDate} ${earliestTimeStamp}`
 					);

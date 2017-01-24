@@ -73,6 +73,7 @@ ChatLine.propTypes = {
 	isAction: PropTypes.bool,
 	message: PropTypes.string,
 	mode: PropTypes.string,
+	observer: PropTypes.object,
 	reason: PropTypes.string,
 	server: PropTypes.string,
 	symbol: PropTypes.string,

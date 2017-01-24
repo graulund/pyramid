@@ -51,7 +51,7 @@ class TimedItem extends PureComponent {
 			const { time: oldTime } = this.props;
 			const { time: newTime } = newProps;
 
-			if (oldTime != newTime) {
+			if (oldTime !== newTime) {
 				// Do a lil' flash!
 				this.flash();
 			}
@@ -73,7 +73,7 @@ class TimedItem extends PureComponent {
 		var sts = m.format("H:mm");
 		const ym = moment().subtract(1, "days").startOf("day");
 
-		if(timeInfo.day == 1 && ym < m){
+		if(timeInfo.day === 1 && ym < m){
 			sts = "yesterday " + sts;
 		}
 

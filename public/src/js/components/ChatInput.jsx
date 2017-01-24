@@ -27,7 +27,7 @@ class ChatInput extends Component {
 
 	shouldComponentUpdate(newProps) {
 		if (newProps) {
-			if (newProps.channel != this.props.channel) {
+			if (newProps.channel !== this.props.channel) {
 				return true;
 			}
 		}
