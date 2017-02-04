@@ -222,6 +222,15 @@ module.exports = function(config, util, log, irc) {
 				}
 			});
 
+			// See an unseen highlight
+
+			socket.on("reportHighlightAsSeen", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && typeof details.messageId === "string") {
+					irc.reportHighlightAsSeen(details.messageId);
+				}
+			});
+
 			// Sending messages
 
 			socket.on("sendMessage", (data) => {

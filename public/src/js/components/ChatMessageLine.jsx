@@ -1,37 +1,16 @@
 import React, { PureComponent, PropTypes } from "react";
-import { findDOMNode } from "react-dom";
 import Linkify from "react-linkify";
 import Highlighter from "react-highlight-words";
-import "intersection-observer";
 
+import HighlightObserver from "./HighlightObserver.jsx";
 import UserLink from "./UserLink.jsx";
 
 const linkifyProperties = { target: "_blank" };
 
-
 class ChatMessageLine extends PureComponent {
-	componentDidMount () {
-		const { highlight, observer } = this.props;
-
-		if (highlight && highlight.length && observer) {
-			const root = findDOMNode(this);
-			if (root) {
-				this.root = root;
-				observer.observe(root);
-				this.observed = true;
-			}
-		}
-	}
-
-	componentWillUnmount() {
-		if (this.observed && this.root && this.props.observer) {
-			this.props.observer.unobserve(this.root);
-		}
-	}
-
 	render() {
 		const {
-			displayUsername, highlight, isAction, message, symbol = "", username
+			displayUsername, highlight, id, isAction, message, observer, symbol = "", username
 		} = this.props;
 
 		const isHighlight = !!(highlight && highlight.length);
@@ -45,7 +24,7 @@ class ChatMessageLine extends PureComponent {
 			messageEl = <Highlighter searchWords={highlight} textToHighlight={message} />;
 		}
 
-		return (
+		const content = (
 			<span className={className}>
 				{ displayUsername
 					? (
@@ -60,6 +39,19 @@ class ChatMessageLine extends PureComponent {
 				</Linkify></span>
 			</span>
 		);
+
+		if (isHighlight) {
+			return (
+				<HighlightObserver
+					id={id}
+					observer={observer}
+					key="highlightobserver">
+					{ content }
+				</HighlightObserver>
+			);
+		}
+
+		return content;
 	}
 }
 

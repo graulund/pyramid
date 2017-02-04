@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import remove from "lodash/remove";
+import "intersection-observer";
 
 import ChannelName from "./ChannelName.jsx";
 import ChannelUserList from "./ChannelUserList.jsx";
@@ -9,19 +10,10 @@ import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
-import { requestLogDetailsForChannel, requestLogDetailsForUsername, requestLogFileForChannel, requestLogFileForUsername, subscribeToCategory, unsubscribeFromCategory, subscribeToChannel, unsubscribeFromChannel, subscribeToUser, unsubscribeFromUser } from "../lib/io";
-// TODO: Export a default object or something because this is crazy
+import * as io from "../lib/io";
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
-
-const observerCallback = (entries, observer) => {
-	// TODO: Proper observer callback
-	console.log("Observation callback occured!", entries, observer);
-	entries.forEach((entry, index) => {
-		console.log("Entry #" + index + " ratio: " + entry.intersectionRatio);
-	});
-};
 
 class ChatView extends Component {
 	constructor(props) {
@@ -32,6 +24,7 @@ class ChatView extends Component {
 
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
 		this.closeUserList = this.closeUserList.bind(this);
+		this.lineObserverCallback = this.lineObserverCallback.bind(this);
 		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
 		this.onClick = this.onClick.bind(this);
 		this.onObserve = this.onObserve.bind(this);
@@ -266,7 +259,10 @@ class ChatView extends Component {
 			threshold: 1.0
 		};
 
-		return new IntersectionObserver(observerCallback, intersectionObserverOptions);
+		return new IntersectionObserver(
+			this.lineObserverCallback,
+			intersectionObserverOptions
+		);
 	}
 
 	logBrowserSubmit(evt) {
@@ -284,6 +280,25 @@ class ChatView extends Component {
 
 	logUrl(timeStamp) {
 		return this.url() + "/log/" + timeStamp;
+	}
+
+	lineObserverCallback(entries) {
+		entries.forEach((entry) => {
+			if (
+				entry &&
+				entry.target &&
+				entry.target.messageId &&
+				entry.intersectionRatio >= 1 &&
+				this.observed.indexOf(entry.target) >= 0
+			) {
+				io.reportHighlightAsSeen(entry.target.messageId);
+				this.onUnobserve(entry.target);
+
+				if (entry.target.onUnobserve) {
+					entry.target.onUnobserve();
+				}
+			}
+		});
 	}
 
 	onClick() {
@@ -320,10 +335,10 @@ class ChatView extends Component {
 		const { params } = props;
 
 		if (params.channelName && params.serverName) {
-			requestLogDetailsForChannel(params.serverName + "/" + params.channelName);
+			io.requestLogDetailsForChannel(params.serverName + "/" + params.channelName);
 		}
 		else if (params.userName) {
-			requestLogDetailsForUsername(params.userName);
+			io.requestLogDetailsForUsername(params.userName);
 		}
 	}
 
@@ -332,13 +347,13 @@ class ChatView extends Component {
 
 		if (params.logDate) {
 			if (params.channelName && params.serverName) {
-				requestLogFileForChannel(
+				io.requestLogFileForChannel(
 					params.serverName + "/" + params.channelName,
 					params.logDate
 				);
 			}
 			else if (params.userName) {
-				requestLogFileForUsername(params.userName, params.logDate);
+				io.requestLogFileForUsername(params.userName, params.logDate);
 			}
 		}
 	}
@@ -357,26 +372,26 @@ class ChatView extends Component {
 	requestSubscription(params) {
 		const { categoryName, channelName, serverName, userName } = params;
 		if (channelName && serverName) {
-			subscribeToChannel(channelUrlFromNames(serverName, channelName));
+			io.subscribeToChannel(channelUrlFromNames(serverName, channelName));
 		}
 		else if (userName) {
-			subscribeToUser(userName);
+			io.subscribeToUser(userName);
 		}
 		else if (categoryName) {
-			subscribeToCategory(categoryName);
+			io.subscribeToCategory(categoryName);
 		}
 	}
 
 	requestUnsubscription(params) {
 		const { categoryName, channelName, serverName, userName } = params;
 		if (channelName && serverName) {
-			unsubscribeFromChannel(channelUrlFromNames(serverName, channelName));
+			io.unsubscribeFromChannel(channelUrlFromNames(serverName, channelName));
 		}
 		else if (userName) {
-			unsubscribeFromUser(userName);
+			io.unsubscribeFromUser(userName);
 		}
 		else if (categoryName) {
-			unsubscribeFromCategory(categoryName);
+			io.unsubscribeFromCategory(categoryName);
 		}
 	}
 

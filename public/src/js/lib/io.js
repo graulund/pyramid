@@ -120,6 +120,13 @@ export function requestLogFileForUsername(username, time) {
 	}
 }
 
+export function reportHighlightAsSeen(messageId) {
+	if (socket) {
+		console.log("Reporting message id as seen:", messageId);
+		socket.emit("reportHighlightAsSeen", { messageId });
+	}
+}
+
 var updateLastSeenChannels = (channelInfo) => {
 	store.dispatch(actions.lastSeenChannels.update(channelInfo));
 };

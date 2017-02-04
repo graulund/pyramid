@@ -743,6 +743,15 @@ module.exports = function(config, util, log){
 		}
 	};
 
+	// See an unseen highlight
+
+	var reportHighlightAsSeen = function(messageId) {
+		if (messageId) {
+			unseenHighlightIds.delete(messageId);
+			emitUnseenHighlights(io);
+		}
+	};
+
 	// Deferred socket.io availability support
 	var setIo = function(_io){
 		io = _io
@@ -777,6 +786,7 @@ module.exports = function(config, util, log){
 		removeUserRecipient,
 		addCategoryRecipient,
 		removeCategoryRecipient,
-		emitUnseenHighlights
+		emitUnseenHighlights,
+		reportHighlightAsSeen
 	};
 }
