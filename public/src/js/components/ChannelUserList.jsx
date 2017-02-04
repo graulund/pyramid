@@ -111,6 +111,7 @@ class ChannelUserList extends PureComponent {
 						userData={userData}
 						userName={userName}
 						symbol={symbol}
+						skipOld={false}
 						key={userName} />;
 				}
 			});

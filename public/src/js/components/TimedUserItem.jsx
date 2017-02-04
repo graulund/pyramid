@@ -9,7 +9,7 @@ import { RELATIONSHIP_BEST_FRIEND } from "../constants";
 class TimedUserItem extends PureComponent {
 
 	render() {
-		const { friendsList, symbol = "", userData, userName } = this.props;
+		const { friendsList, skipOld = true, symbol = "", userData, userName } = this.props;
 
 		var classNames = [];
 
@@ -45,6 +45,7 @@ class TimedUserItem extends PureComponent {
 				time={userData && userData.time}
 				prefix={prefix}
 				suffix={suffix}
+				skipOld={skipOld}
 				key="main"
 				/>;
 	}
@@ -52,9 +53,10 @@ class TimedUserItem extends PureComponent {
 
 TimedUserItem.propTypes = {
 	friendsList: PropTypes.object,
+	skipOld: PropTypes.bool,
+	symbol: PropTypes.string,
 	userData: PropTypes.object,
-	userName: PropTypes.string,
-	symbol: PropTypes.string
+	userName: PropTypes.string
 };
 
 export default connect(({ friendsList }) => ({ friendsList }))(TimedUserItem);
