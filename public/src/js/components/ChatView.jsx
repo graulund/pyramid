@@ -157,7 +157,6 @@ class ChatView extends Component {
 			// Logs change (Part two. Shoot me.)
 
 			if (currentParams.logDate !== newParams.logDate) {
-				this.clearObserver(newProps, newState);
 				return true;
 			}
 
