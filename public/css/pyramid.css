@@ -460,6 +460,11 @@ ul.statsuserlist {
 	white-space: nowrap;
 }
 
+.chatview .line__context {
+	float: right;
+	margin-left: 10px;
+}
+
 .chatview .msg__author,
 .chatview .msg__author a,
 .chatview .userevent__target,

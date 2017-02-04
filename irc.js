@@ -26,6 +26,19 @@ const BUNCHABLE_EVENT_TYPES =
 
 const SUPPORTED_CATEGORY_NAMES = ["highlights", "allfriends"];
 
+
+/*
+
+Great server refactoring plan:
+
+* IRC module should be lean. It should not matter where the lines come from.
+* The app specific logic should be in either IO (web facing) or Log (file facing) modules.
+* If there is shared code it should be in something similar to Util module.
+* Maybe an App module?
+* Get rid of "isAction" entirely.
+
+*/
+
 module.exports = function(config, util, log){
 
 	var io = {} // To be filled in later
@@ -426,7 +439,7 @@ module.exports = function(config, util, log){
 		});
 	};
 
-	var handleMessage = function(client, from, to, message, isAction){
+	var handleMessage = function(client, from, to, message, isAction) {
 
 		// Channel object
 		const chobj = channelObject(client, to);
@@ -438,10 +451,13 @@ module.exports = function(config, util, log){
 		const symbol = getUserCurrentSymbol(client, to, from);
 
 		// Log output
-		var line = "<" + symbol + from + "> " + message;
+		var line;
 
 		if (isAction) {
-			line = "* " + symbol + from + " " + message;
+			line = log.lineFormats.action.build(symbol, from, message);
+		}
+		else {
+			line = log.lineFormats.msg.build(symbol, from, message);
 		}
 
 		// Log the line!
@@ -592,19 +608,20 @@ module.exports = function(config, util, log){
 		});
 
 		client.addListener("join", (channel, username, message) => {
-			const line = "** " + username + " joined";
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.join.build(symbol, username);
 			handleEvent(client, channel, "join", line, { username, rawData: message });
 		});
 
 		client.addListener("part", (channel, username, reason, message) => {
-			const line = "** " + username + " left" +
-				(reason ? " (" + reason + ")" : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.part.build(symbol, username, reason);
 			handleEvent(client, channel, "part", line, { username, reason, rawData: message });
 		});
 
 		client.addListener("quit", (username, reason, channels, message) => {
-			const line = "** " + username + " quit" +
-				(reason ? " (" + reason + ")" : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.quit.build(symbol, username, reason);
 			channels.forEach((channel) => {
 				handleEvent(
 					client, channel, "quit", line,
@@ -614,8 +631,8 @@ module.exports = function(config, util, log){
 		});
 
 		client.addListener("kick", (channel, username, by, reason, message) => {
-			const line = "** " + username + " was kicked by " + by +
-				(reason ? " (" + reason + ")" : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.kick.build(symbol, username, by, reason);
 			handleEvent(
 				client, channel, "kick", line,
 				{ username, by, reason, rawData: message }
@@ -623,8 +640,8 @@ module.exports = function(config, util, log){
 		});
 
 		client.addListener("+mode", (channel, username, mode, argument, message) => {
-			const line = "** " + username + " sets mode: +" + mode +
-				(argument ? " " + argument : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.addMode.build(symbol, username, mode, argument);
 			handleEvent(
 				client, channel, "+mode", line,
 				{ username, mode, argument, rawData: message }
@@ -632,8 +649,8 @@ module.exports = function(config, util, log){
 		});
 
 		client.addListener("-mode", (channel, username, mode, argument, message) => {
-			const line = "** " + username + " sets mode: -" + mode +
-				(argument ? " " + argument : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.removeMode.build(symbol, username, mode, argument);
 			handleEvent(
 				client, channel, "-mode", line,
 				{ username, mode, argument, rawData: message }
@@ -641,8 +658,8 @@ module.exports = function(config, util, log){
 		});
 
 		client.addListener("kill", (username, reason, channels, message) => {
-			const line = "** " + username + " was killed" +
-				(reason ? " (" + reason + ")" : "");
+			const symbol = getUserCurrentSymbol(client, channel, username);
+			const line = log.lineFormats.kill.build(symbol, username, reason);
 			channels.forEach((channel) => {
 				handleEvent(
 					client, channel, "kill", line,

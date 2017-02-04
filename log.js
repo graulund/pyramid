@@ -7,10 +7,192 @@ const mkdirp = require("mkdirp");
 const path   = require("path");
 const lazy   = require("lazy");
 const async  = require("async");
+const lodash = require("lodash");
 
 const LOG_ROOT = path.join(__dirname, "public", "data", "logs");
 
+// TODO: Don't duplicate
+const BUNCHABLE_EVENT_TYPES =
+	["join", "part", "quit", "kill", "+mode", "-mode"];
+
+const USERNAME_SYMBOL_RGXSTR = "([@\\+%!\\.]*)([A-Za-z0-9|\\[\\]{}\\\\_-]+)";
+
+const eventWithReasonLogRegExp = (descriptor) => {
+	return new RegExp(
+		"^\\*\\*\\s*" +
+		USERNAME_SYMBOL_RGXSTR +
+		"\\s+" +
+		descriptor +
+		"(\\s+\\(([^\\)]+)\\))?$"
+	)
+};
+
+const eventWithReasonLogParser = (descriptor) => {
+	return (line) => {
+		var match = line.match(eventWithReasonLogRegExp(descriptor));
+		if (match) {
+			return {
+				reason: match[3],
+				symbol: match[1],
+				username: match[2]
+			};
+		}
+
+		return null;
+	}
+};
+
+const modeEventLogParser = (symbol) => {
+	return (line) => {
+		var match = line.match(new RegExp(
+			"^\\*\\*\\s*" +
+			USERNAME_SYMBOL_RGXSTR +
+			"\\s+" +
+			"sets mode:\\s+" + symbol +
+			"\\s*([^\\s]+)" +
+			"(\\s+(.+))?$"
+		));
+		if (match) {
+			return {
+				argument: match[4],
+				mode: match[3],
+				symbol: match[1],
+				username: match[2]
+			};
+		}
+
+		return null;
+	}
+};
+
 module.exports = function(config, util) {
+
+	var lineFormats = {
+		msg: {
+			build: (symbol, username, message) => {
+				return `<${symbol}${username}> ${message}`;
+			},
+			parse: (line) => {
+				var match = line.match(new RegExp(`^<${USERNAME_SYMBOL_RGXSTR}>\s*`));
+				if (match) {
+					return {
+						isAction: false,
+						message: line.substr(match[0].length),
+						symbol: match[1],
+						username: match[2]
+					};
+				}
+
+				return null;
+			}
+		},
+
+		action: {
+			build: (symbol, username, message) => {
+				return `* ${symbol}${username} ${message}`;
+			},
+			parse: (line) => {
+				var match = line.match(/^\*\s*([^\s\*]+)\s+/);
+				if (match) {
+					return {
+						isAction: true,
+						message: line.substr(match[0].length),
+						username: match[1]
+					};
+				}
+
+				return null;
+			}
+		},
+
+		join: {
+			build: (symbol, username) => {
+				return `** ${symbol}${username} joined`;
+			},
+			parse: (line) => {
+				var match = line.match(/^\*\*\s*([^\s\*]+)\s+joined$/);
+				if (match) {
+					return {
+						username: match[1]
+					};
+				}
+
+				return null;
+			}
+		},
+
+		part: {
+			build: (symbol, username, reason) => {
+				return `** ${symbol}${username} left` +
+					(reason ? " (" + reason + ")" : "");
+			},
+			parse: eventWithReasonLogParser("left")
+		},
+
+		quit: {
+			build: (symbol, username, reason) => {
+				return `** ${symbol}${username} quit` +
+					(reason ? " (" + reason + ")" : "");
+			},
+			parse: eventWithReasonLogParser("quit")
+		},
+
+		kick: {
+			build: (symbol, username, by, reason) => {
+				return `** ${symbol}${username} was kicked by ${by}` +
+					(reason ? " (" + reason + ")" : "");
+			},
+			parse: (line) => {
+				var match = line.match(
+					new RegExp(
+						"^\\*\\*\\s*" +
+						USERNAME_SYMBOL_RGXSTR +
+						"\\s+" +
+						"was kicked by" +
+						"\\s+" +
+						"([^\\s]+)" +
+						"(\\s+\\(([^\\)]+)\\))?$"
+					)
+				);
+				if (match) {
+					return {
+						by: match[3],
+						reason: match[4],
+						symbol: match[1],
+						username: match[2]
+					};
+				}
+
+				return null;
+			}
+		},
+
+		addMode: {
+			build: (symbol, username, mode, argument) => {
+				return `** ${symbol}${username} sets mode: +${mode}` +
+					(argument ? " " + argument : "");
+			},
+			parse: modeEventLogParser("\\+")
+		},
+
+		removeMode: {
+			build: (symbol, username, mode, argument) => {
+				return `** ${symbol}${username} sets mode: -${mode}` +
+					(argument ? " " + argument : "");
+			},
+			parse: modeEventLogParser("-")
+		},
+
+		kill: {
+			build: (symbol, username, reason) => {
+				return `** ${symbol}${username} was killed` +
+					(reason ? " (" + reason + ")" : "");
+			},
+			parse: eventWithReasonLogParser("was killed")
+		}
+	};
+
+	const lineTypes = Object.keys(lineFormats);
 
 	var getLastLinesFromUser = function(username, options, done) {
 
@@ -118,20 +300,26 @@ module.exports = function(config, util) {
 			dirty = true;
 		}
 
-		// Extract author (non-action)
-		if(m = obj.message.match(/^\s*<([^>\s]+)>\s*/)){
-			obj.username = obj.from = m[1]
-			obj.message = obj.message.substr(m[0].length)
-			obj.isAction = false
-			dirty = true;
-		}
+		// Extract contents
+		const innerLine = obj.message.trim();
+		for (var i = 0; i < lineTypes.length; i++) {
+			var type = lineTypes[i];
+			if (lineFormats[type]) {
+				const result = lineFormats[type].parse(innerLine);
 
-		// Extract author (action)
-		if(!obj.from && (m = obj.message.match(/^\s*\*\s*([^\s]+)\s+/))){
-			obj.username = obj.from = m[1]
-			obj.message = obj.message.substr(m[0].length)
-			obj.isAction = true
-			dirty = true;
+				if (result) {
+					if (type === "addMode") {
+						type = "+mode";
+					}
+					else if (type === "removeMode") {
+						type = "-mode";
+					}
+
+					obj = lodash.assign(obj, { type: type }, result);
+					dirty = true;
+					break;
+				}
+			}
 		}
 
 		if (!dirty) {
@@ -139,6 +327,39 @@ module.exports = function(config, util) {
 		}
 
 		return obj
+	};
+
+	var addLineObjectToList = function(linesList, data) {
+		if (data) {
+			// TODO: Don't Repeat Yourself (see like method in IRC object)
+			if (BUNCHABLE_EVENT_TYPES.indexOf(data.type) >= 0) {
+				const lastIndex = linesList.length-1;
+				const lastItem = linesList[lastIndex];
+				if (lastItem) {
+					if (BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
+						// Create bunch and insert in place
+						linesList[lastIndex] = {
+							events: [lastItem, data],
+							time: data.time,
+							type: "events"
+						};
+						return;
+					}
+					else if (lastItem.type === "events") {
+						// Add to bunch, resulting in a new, inserted in place
+						linesList[lastIndex] = {
+							events: lastItem.events.concat([data]),
+							time: data.time,
+							type: "events"
+						};
+						return;
+					}
+				}
+			}
+
+
+			linesList.push(data);
+		}
 	}
 
 	var convertLogFileToLineObjects = function(data, date) {
@@ -153,9 +374,7 @@ module.exports = function(config, util) {
 		for(var i = 0; i < rawLines.length; i++){
 			// Convert item to obj instead of str
 			var line = parseLogLine(rawLines[i], date);
-			if (line) {
-				lines.push(line);
-			}
+			addLineObjectToList(lines, line);
 		}
 		return lines
 	};
@@ -323,6 +542,7 @@ module.exports = function(config, util) {
 		pathHasLogsForToday,
 		pathHasLogsForYesterday,
 		getChannelLogDetails,
-		getUserLogDetails
+		getUserLogDetails,
+		lineFormats
 	}
 }

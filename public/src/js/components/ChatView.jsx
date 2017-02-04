@@ -576,7 +576,8 @@ class ChatView extends Component {
 		}
 
 		const contentParams = {
-			displayChannel:  !this.channelUrl || !!params.categoryName,
+			displayChannel: !this.channelUrl || !!params.categoryName,
+			displayContextLink: params.categoryName === "highlights",
 			displayUsername: !!this.channelUrl || !!params.categoryName,
 			messages,
 			observer: this.observerHandlers
