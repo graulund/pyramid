@@ -590,8 +590,14 @@ const loadLastSeenInfo = function(fileName) {
 		json = fs.readFileSync(fileName);
 	} catch(err) {
 		// Create empty file
-		var fd = fs.openSync(fileName, "w");
-		fs.closeSync(fd);
+		const dirName = path.dirname(fileName);
+		mkdirp(dirName, function(err) {
+			if (err) {
+				throw err;
+			}
+			var fd = fs.openSync(fileName, "w");
+			fs.closeSync(fd);
+		});
 	}
 
 	var output = {};
@@ -644,7 +650,7 @@ const logLine = function(line, dirName, fileName, callback = standardWritingCall
 			{ encoding: config.encoding },
 			callback
 		)
-	})
+	});
 };
 
 const writeLastSeen = function(fileName, data, callback = standardWritingCallback) {
