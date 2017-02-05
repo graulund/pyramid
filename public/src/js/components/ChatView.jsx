@@ -593,13 +593,13 @@ class ChatView extends Component {
 		const className = "chatview" +
 			(isLiveChannel ? " chatview--live-channel" : "") +
 			(logBrowser ? " chatview--logbrowsing" : "") +
-			(userListOpen ? " chatview--userlisting" : "");
+			(userListOpen && isLiveChannel ? " chatview--userlisting" : "");
 
 		var input = null, userList = null;
 
 		if (isLiveChannel) {
 			input = <ChatInput channel={this.channelUrl} key="input" />;
-			userList = userListOpen
+			userList = userListOpen && isLiveChannel
 				? <ChannelUserList channel={this.channelUrl} key="userList" />
 				: null;
 		}
