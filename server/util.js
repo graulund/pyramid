@@ -52,7 +52,7 @@ const channelServerNameFromUrl = function(url) {
 	return null;
 };
 
-const channelUrlFromNames = function(server, channel) {
+const channelUriFromNames = function(server, channel) {
 	return server + "/" + channel.replace(/^#/, "");
 };
 
@@ -121,7 +121,7 @@ module.exports = {
 	// Channel URL
 	channelNameFromUrl,
 	channelServerNameFromUrl,
-	channelUrlFromNames,
+	channelUriFromNames,
 
 	// Token
 	addToAcceptedTokens,

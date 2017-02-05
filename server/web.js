@@ -6,9 +6,10 @@ const bodyParser = require("body-parser");
 
 const config = require("../config");
 const constants = require("./constants");
+const log = require("./log");
 const util = require("./util");
 
-module.exports = function(log, irc, io){
+module.exports = function(main, io) {
 
 	// Prerequisites
 	const express  = require("express");
@@ -26,7 +27,7 @@ module.exports = function(log, irc, io){
 	app.use(partials());
 
 	// Routes
-	require("./routes")(app, config, util, log, irc);
+	require("./routes")(app, main);
 
 	// Fallback: 404 error
 	app.use(function(req, res, next) {

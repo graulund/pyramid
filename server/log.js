@@ -9,12 +9,26 @@ const lazy   = require("lazy");
 const async  = require("async");
 const lodash = require("lodash");
 
+const config = require("../config");
 const constants = require("./constants");
 const util = require("./util");
 
 const LOG_ROOT = constants.LOG_ROOT;
 
 const USERNAME_SYMBOL_RGXSTR = "([@\\+%!\\.]*)([A-Za-z0-9|\\[\\]{}\\\\_-]+)";
+
+const lastSeenChannelsFileName = path.join(
+	__dirname, "..", "data", "lastSeenChannels.json"
+);
+const lastSeenUsersFileName = path.join(
+	__dirname, "..", "data", "lastSeenUsers.json"
+);
+
+const standardWritingCallback = function(err){
+	if (err) {
+		throw err;
+	}
+};
 
 const eventWithReasonLogRegExp = (descriptor) => {
 	return new RegExp(
@@ -191,6 +205,48 @@ const lineFormats = {
 
 const lineTypes = Object.keys(lineFormats);
 
+const getLogLineFromData = function(type, data) {
+	if (type && data) {
+		switch (type) {
+			case "msg":
+			case "action":
+				return lineFormats[type].build(
+					data.symbol, data.username, data.message
+				);
+
+			case "join":
+				return lineFormats.join.build(
+					data.symbol, data.username
+				);
+
+			case "part":
+			case "quit":
+			case "kill":
+				return lineFormats[type].build(
+					data.symbol, data.username, data.reason
+				);
+
+			case "kick":
+				return lineFormats.kick.build(
+					data.symbol, data.username, data.by, data.reason
+				);
+
+			case "+mode":
+			case "-mode":
+				const t = type === "+mode" ? "addMode" : "removeMode";
+				return lineFormats[t].build(
+					data.symbol, data.username, data.mode, data.argument
+				);
+		}
+	}
+
+	return "";
+};
+
+const channelPrefix = function(line, channelName) {
+	return `[${channelName}] ${line}`;
+};
+
 var getLastLinesFromUser = function(username, options, done) {
 
 	var limit = options.limit
@@ -328,7 +384,7 @@ var parseLogLine = function(line, date) {
 
 var addLineObjectToList = function(linesList, data) {
 	if (data) {
-		// TODO: Don't Repeat Yourself (see like method in IRC object)
+		// TODO: Should be main logic?
 		if (constants.BUNCHABLE_EVENT_TYPES.indexOf(data.type) >= 0) {
 			const lastIndex = linesList.length-1;
 			const lastItem = linesList[lastIndex];
@@ -353,7 +409,6 @@ var addLineObjectToList = function(linesList, data) {
 				}
 			}
 		}
-
 
 		linesList.push(data);
 	}
@@ -406,15 +461,15 @@ var statsFromFile = function(channel, month, logFileName, done){
 					var l = parseLogLine(line.toString(config.encoding), fnDate)
 					if(l.type == "msg"){
 
-						var from = l.from.toLowerCase()
-						if(config.nonPeople.indexOf(from) >= 0){
-							return
+						var from = l.from.toLowerCase();
+						if (config.nonPeople.indexOf(from) >= 0) {
+							return;
 						}
 
-						if(!(from in userCounts)){
-							userCounts[from] = 0
+						if (!(from in userCounts)) {
+							userCounts[from] = 0;
 						}
-						userCounts[from]++
+						userCounts[from]++;
 					}
 				}
 			)
@@ -527,6 +582,88 @@ const getUserLogDetails = function(userName) {
 	};
 };
 
+// Load last seen info
+
+const loadLastSeenInfo = function(fileName) {
+	var json = "";
+	try {
+		json = fs.readFileSync(fileName);
+	} catch(err) {
+		// Create empty file
+		var fd = fs.openSync(fileName, "w");
+		fs.closeSync(fd);
+	}
+
+	var output = {};
+	try {
+		output = JSON.parse(json);
+	} catch(e){}
+
+	return output || {};
+};
+
+const loadLastSeenChannels = function() {
+	return loadLastSeenInfo(lastSeenChannelsFileName);
+};
+
+const loadLastSeenUsers = function() {
+	return loadLastSeenInfo(lastSeenUsersFileName);
+};
+
+// Logging
+
+const logChannelLine = function(channelUri, channelName, line, d) {
+	line = util.hmsPrefix(line, d);
+
+	if (config.debug) {
+		console.log(channelPrefix(line, channelName));
+	}
+
+	const dirName = path.join(constants.LOG_ROOT, channelUri, util.ym(d));
+
+	logLine(line, dirName, util.ymd(d));
+};
+
+const logCategoryLine = function(categoryName, channelUri, channelName, line, d) {
+	line = util.ymdhmsPrefix(line, d);
+	line = channelPrefix(line, channelName);
+
+	const dirName = path.join(constants.LOG_ROOT, "_global", util.ym(d));
+
+	logLine(line, dirName, categoryName);
+};
+
+const logLine = function(line, dirName, fileName, callback = standardWritingCallback) {
+	mkdirp(dirName, function(err) {
+		if (err) {
+			throw err;
+		}
+		fs.appendFile(
+			path.join(dirName, fileName + ".txt"),
+			line + "\n",
+			{ encoding: config.encoding },
+			callback
+		)
+	})
+};
+
+const writeLastSeen = function(fileName, data, callback = standardWritingCallback) {
+	fs.writeFile(
+		fileName,
+		JSON.stringify(data),
+		{ encoding: config.encoding },
+		callback
+	);
+};
+
+const writeLastSeenChannels = function(data, callback) {
+	writeLastSeen(lastSeenChannelsFileName, data, callback);
+};
+
+const writeLastSeenUsers = function(data, callback) {
+	writeLastSeen(lastSeenUsersFileName, data, callback);
+};
+
 module.exports = {
 	getLastLinesFromUser,
 	getChatroomLinesForDay,
@@ -540,5 +677,14 @@ module.exports = {
 	pathHasLogsForYesterday,
 	getChannelLogDetails,
 	getUserLogDetails,
-	lineFormats
+	getLogLineFromData,
+	lineFormats,
+	loadLastSeenInfo,
+	loadLastSeenChannels,
+	loadLastSeenUsers,
+	logChannelLine,
+	logCategoryLine,
+	writeLastSeen,
+	writeLastSeenChannels,
+	writeLastSeenUsers
 };

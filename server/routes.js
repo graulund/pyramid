@@ -4,20 +4,21 @@
 const moment = require("moment-timezone");
 const cookie = require("cookie");
 
-const TOKEN_COOKIE_NAME = "token"; // TODO: Don't redefine
-const TOKEN_COOKIE_SECONDS = 86400 * 365;
+const config = require("../config");
+const constants = require("./constants");
+const util = require("./util");
+const h = require("./viewhelpers");
 
-module.exports = function(app, config, util, log, irc){
+module.exports = function(app, main) {
 
 	// Helper methods
-	const h = require("./viewhelpers")(log);
 
 	// Access control ---------------------------------------------------------
 
 	const getUsedToken = function(req) {
 		var cookies = cookie.parse(req.headers.cookie || "");
-		if (cookies && cookies[TOKEN_COOKIE_NAME]) {
-			return cookies[TOKEN_COOKIE_NAME];
+		if (cookies && cookies[constants.TOKEN_COOKIE_NAME]) {
+			return cookies[constants.TOKEN_COOKIE_NAME];
 		}
 
 		return null;
@@ -50,7 +51,7 @@ module.exports = function(app, config, util, log, irc){
 		return res.set(
 			"Set-Cookie",
 			cookie.serialize(
-				TOKEN_COOKIE_NAME,
+				constants.TOKEN_COOKIE_NAME,
 				value,
 				params
 			)
@@ -93,7 +94,7 @@ module.exports = function(app, config, util, log, irc){
 				token,
 				{
 					httpOnly: true,
-					maxAge: TOKEN_COOKIE_SECONDS
+					maxAge: constants.TOKEN_COOKIE_SECONDS
 				}
 			);
 
@@ -125,9 +126,9 @@ module.exports = function(app, config, util, log, irc){
 		if (accepted) {
 			res.render("index", {
 				// Variables
-				lastSeenChannels: irc.lastSeenChannels(),
-				lastSeenUsers: irc.lastSeenUsers(),
-				ircConfig: irc.getIrcConfig(),
+				lastSeenChannels: main.lastSeenChannels(),
+				lastSeenUsers: main.lastSeenUsers(),
+				ircConfig: main.getIrcConfig(),
 				friends: config.friends,
 				bestFriends: config.bestFriends,
 				timezone: config.timeZone,

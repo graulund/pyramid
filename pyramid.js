@@ -1,19 +1,13 @@
 // PYRAMID
 
-// Configuration
-var config = require("./config");
+// Main app service
+const main = require("./server/main");
 
-// Utilities
-var util   = require("./server/util");
-
-// Logging service
-var log    = require("./server/log");
-
-// IRC service
-var irc    = require("./server/irc")(log);
+// Feed app into IRC service
+require("./server/irc")(main);
 
 // IO service
-var io     = require("./server/io")(log, irc);
+const io = require("./server/io")(main);
 
-// Web service
-var web    = require("./server/web")(log, irc, io);
+// Start web service
+require("./server/web")(main, io);

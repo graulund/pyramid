@@ -5,14 +5,15 @@
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
+const log = require("./log");
 const util = require("./util");
 
-module.exports = function(log, irc) {
+module.exports = function(main) {
 
 	var server, io;
 
 	// Pass through
-	var emit = () => {
+	const emit = () => {
 		if (io) {
 			return io.emit.apply(io, arguments);
 		};
@@ -20,49 +21,51 @@ module.exports = function(log, irc) {
 		return null;
 	};
 
-	var sendChannelCache = function(socket, channelUri) {
+	// Direct socket emissions
+
+	const emitChannelCache = function(socket, channelUri) {
 		socket.emit("channelCache", {
 			channelUri,
-			cache: irc.getChannelCache(channelUri)
+			cache: main.getChannelCache(channelUri)
 		});
 	};
 
-	var sendUserCache = function(socket, username) {
+	const emitUserCache = function(socket, username) {
 		socket.emit("userCache", {
 			username,
-			cache: irc.getUserCache(username)
+			cache: main.getUserCache(username)
 		});
 	};
 
-	var sendCategoryCache = function(socket, categoryName) {
+	const emitCategoryCache = function(socket, categoryName) {
 		socket.emit("categoryCache", {
 			categoryName,
-			cache: irc.getCategoryCache(categoryName)
+			cache: main.getCategoryCache(categoryName)
 		});
 	};
 
-	var sendChannelLogDetails = function(socket, channelUri) {
+	const emitChannelLogDetails = function(socket, channelUri) {
 		socket.emit("channelLogDetails", {
 			channelUri,
 			details: log.getChannelLogDetails(channelUri)
 		});
 	};
 
-	var sendUserLogDetails = function(socket, username) {
+	const emitUserLogDetails = function(socket, username) {
 		socket.emit("userLogDetails", {
 			username,
 			details: log.getUserLogDetails(username)
 		});
 	};
 
-	var sendChannelUserList = function(socket, channelUri) {
+	const emitChannelUserList = function(socket, channelUri) {
 		socket.emit("channelUserList", {
 			channel: channelUri,
-			list: irc.getChannelUserList(channelUri)
+			list: main.getChannelUserList(channelUri)
 		});
 	};
 
-	var sendChannelLogFile = function(socket, channelUri, time) {
+	const emitChannelLogFile = function(socket, channelUri, time) {
 		const ymd = util.ymd(time);
 		if (ymd) {
 			const [ server, channel ] = channelUri.split("/");
@@ -78,7 +81,7 @@ module.exports = function(log, irc) {
 		}
 	};
 
-	var sendUserLogFile = function(socket, username, time) {
+	const emitUserLogFile = function(socket, username, time) {
 		const ym = util.ym(time);
 		if (ym) {
 			log.getUserLinesForMonth(username, time, (err, file) => {
@@ -93,20 +96,58 @@ module.exports = function(log, irc) {
 		}
 	};
 
-	var sendUnseenHighlights = function(socket) {
-		irc.emitUnseenHighlights(socket);
+	// Overall list emissions
+
+	const emitEventToRecipients = function(list, eventName, eventData) {
+		if (list) {
+			list.forEach((socket) => {
+				if (socket) {
+					socket.emit(eventName, eventData);
+				}
+			});
+		}
 	};
 
-	// TODO: "Architecture" here is a bit of a mess. Some things are sent in the io module, some things in the irc module.
+	const emitMessageToRecipients = function(list, msg) {
+		emitEventToRecipients(list, "msg", msg);
+	};
+
+	const emitEventToChannel = function(channelUri, eventName, eventData) {
+		emitEventToRecipients(
+			main.getChannelRecipients(channelUri),
+			eventName,
+			eventData
+		);
+	};
+
+	const emitUnseenHighlights = function(socket) {
+		if (!socket) {
+			socket = io;
+		}
+		if (socket) {
+			socket.emit(
+				"unseenHighlights",
+				{ list: Array.from(main.unseenHighlightIds()) }
+			);
+		}
+	};
+
+	const emitChannelUserListToRecipients = function(channelUri) {
+		emitEventToChannel(channelUri, "channelUserList", {
+			channel: channelUri,
+			list: main.getChannelUserList(channelUri),
+			type: "userlist"
+		});
+	};
 
 	// Deferred server availability
-	var setServer = (_server) => {
+	const setServer = (_server) => {
 		server = _server;
 
-		io = require("socket.io")(server);
+		io = socketIo(server);
 
-		// Update IRC object with IO support
-		irc.setIo(io);
+		// Update main object with IO support
+		setSelf();
 
 		io.on("connection", (socket) => {
 			console.log("Someone connected!");
@@ -122,7 +163,7 @@ module.exports = function(log, irc) {
 					connectionToken = details.token;
 
 					if (util.isAnAcceptedToken(connectionToken)) {
-						sendUnseenHighlights(socket);
+						emitUnseenHighlights(socket);
 					}
 				}
 			})
@@ -132,21 +173,21 @@ module.exports = function(log, irc) {
 			socket.on("requestChannelCache", (channelUri) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channelUri === "string") {
-					sendChannelCache(socket, channelUri);
+					emitChannelCache(socket, channelUri);
 				}
 			});
 
 			socket.on("requestUserCache", (username) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
-					sendUserCache(socket, username);
+					emitUserCache(socket, username);
 				}
 			});
 
 			socket.on("requestCategoryCache", (categoryName) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof categoryName === "string") {
-					sendCategoryCache(socket, categoryName);
+					emitCategoryCache(socket, categoryName);
 				}
 			});
 
@@ -155,30 +196,30 @@ module.exports = function(log, irc) {
 			socket.on("subscribe", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
-					irc.addChannelRecipient(details.channel, socket);
-					sendChannelCache(socket, details.channel);
-					sendChannelUserList(socket, details.channel);
+					main.addChannelRecipient(details.channel, socket);
+					emitChannelCache(socket, details.channel);
+					emitChannelUserList(socket, details.channel);
 				}
 				else if (details && details.username) {
-					irc.addUserRecipient(details.username, socket);
-					sendUserCache(socket, details.username);
+					main.addUserRecipient(details.username, socket);
+					emitUserCache(socket, details.username);
 				}
 				else if (details && details.category) {
-					irc.addCategoryRecipient(details.category, socket);
-					sendCategoryCache(socket, details.category);
+					main.addCategoryRecipient(details.category, socket);
+					emitCategoryCache(socket, details.category);
 				}
 			});
 
 			socket.on("unsubscribe", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
-					irc.removeChannelRecipient(details.channel, socket);
+					main.removeChannelRecipient(details.channel, socket);
 				}
 				else if (details && details.username) {
-					irc.removeUserRecipient(details.username, socket);
+					main.removeUserRecipient(details.username, socket);
 				}
 				else if (details && details.category) {
-					irc.removeCategoryRecipient(details.category, socket);
+					main.removeCategoryRecipient(details.category, socket);
 				}
 			});
 
@@ -187,14 +228,14 @@ module.exports = function(log, irc) {
 			socket.on("requestUserLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
-					sendUserLogDetails(socket, details.username);
+					emitUserLogDetails(socket, details.username);
 				}
 			});
 
 			socket.on("requestChannelLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.channelUri === "string") {
-					sendChannelLogDetails(socket, details.channelUri);
+					emitChannelLogDetails(socket, details.channelUri);
 				}
 			});
 
@@ -205,7 +246,7 @@ module.exports = function(log, irc) {
 					typeof details.username === "string" &&
 					typeof details.time === "string"
 				) {
-					sendUserLogFile(socket, details.username, details.time);
+					emitUserLogFile(socket, details.username, details.time);
 				}
 			});
 
@@ -216,7 +257,7 @@ module.exports = function(log, irc) {
 					typeof details.channelUri === "string" &&
 					typeof details.time === "string"
 				) {
-					sendChannelLogFile(socket, details.channelUri, details.time);
+					emitChannelLogFile(socket, details.channelUri, details.time);
 				}
 			});
 
@@ -225,7 +266,7 @@ module.exports = function(log, irc) {
 			socket.on("reportHighlightAsSeen", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.messageId === "string") {
-					irc.reportHighlightAsSeen(details.messageId);
+					main.reportHighlightAsSeen(details.messageId);
 				}
 			});
 
@@ -239,15 +280,41 @@ module.exports = function(log, irc) {
 					// if it includes an accepted token
 
 					if (util.isAnAcceptedToken(data.token)) {
-						irc.sendOutgoingMessage(data.channel, data.message);
+						main.sendOutgoingMessage(data.channel, data.message);
 					}
 				}
 			});
 		});
 	};
 
-	return {
-		setServer: setServer,
-		emit: emit
+	// Send out updates to last seen
+	const broadcastLastSeenUpdates = function(){
+		if (io) {
+			const cachedLastSeens = main.flushCachedLastSeens();
+			if (cachedLastSeens) {
+				const values = Object.values(cachedLastSeens);
+				if (values && values.length) {
+					io.emit("lastSeen", values);
+				}
+			}
+		}
 	};
+
+	// Am I going to regret this?
+	setInterval(broadcastLastSeenUpdates, constants.LAST_SEEN_UPDATE_RATE);
+
+	const output = {
+		emit,
+		emitChannelUserListToRecipients,
+		emitEventToChannel,
+		emitMessageToRecipients,
+		emitUnseenHighlights,
+		setServer
+	};
+
+	const setSelf = () => {
+		main.setIo(output);
+	};
+
+	return output;
 };
