@@ -74,8 +74,8 @@ module.exports = function(main, io) {
 		// Secure HTTPS server
 		var https = require("https")
 		server = https.createServer({
-			key: fs.readFileSync(path.join(__dirname, config.sslKeyPath)),
-			cert: fs.readFileSync(path.join(__dirname, config.sslCertPath))
+			key: fs.readFileSync(path.join(__dirname, "..", config.sslKeyPath)),
+			cert: fs.readFileSync(path.join(__dirname, "..", config.sslCertPath))
 		}, app).listen(config.webPort, undefined, undefined, function(){
 			console.log("Listening securely on port %d", server.address().port);
 		});
