@@ -12,6 +12,7 @@ import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import * as io from "../lib/io";
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
+import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
 import actions from "../actions";
 
@@ -412,8 +413,6 @@ class ChatView extends Component {
 	}
 
 	subjectName(divider = ":") {
-		// TODO: Use subject names more widely and perhaps merge caches and lastseens
-
 		const { params } = this.props;
 		if (params.channelName && params.serverName) {
 			return `channel${divider}${params.serverName}/${params.channelName}`;
@@ -564,15 +563,7 @@ class ChatView extends Component {
 			heading = params.userName;
 		}
 		else if (params.categoryName) {
-			switch (params.categoryName) {
-				// TODO: Place this more centrally
-				case "highlights":
-					heading = "Highlights";
-					break;
-				case "allfriends":
-					heading = "All friends";
-					break;
-			}
+			heading = CATEGORY_NAMES[params.categoryName] || "";
 		}
 
 		const contentParams = {

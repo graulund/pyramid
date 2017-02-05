@@ -5,9 +5,10 @@ import { Link } from "react-router";
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
+import { internalUrl } from "../lib/routeHelpers";
+import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
 import actions from "../actions";
-import { internalUrl } from "../lib/routeHelpers";
 
 class Sidebar extends PureComponent {
 	constructor(props) {
@@ -94,9 +95,9 @@ class Sidebar extends PureComponent {
 					<li key="highlights">
 						<HighlightsLink />
 					</li>
-					<li key="allusers">
+					<li key="allfriends">
 						<Link to="/allfriends" className="sidebar__menu-link">
-							All friends
+							{ CATEGORY_NAMES.allfriends }
 						</Link>
 					</li>
 				</ul>
@@ -105,22 +106,28 @@ class Sidebar extends PureComponent {
 						<ul className="sidebar__tabs switcher" key="tabs">
 							<li key="user">
 								<button className="user"
-									onClick={() => this.setTab("user")}>Friends</button>
+									onClick={() => this.setTab("user")}>
+									Friends
+								</button>
 							</li>
 							<li key="channel">
 								<button className="channel"
-									onClick={() => this.setTab("channel")}>Channels</button>
+									onClick={() => this.setTab("channel")}>
+									Channels
+								</button>
 							</li>
 						</ul>
 						<div className="sidebar__sort" key="sort">
 							<ul className="switcher" key="sortswitcher">
 								<li key="alpha">
 									<button className="alpha"
-										onClick={() => this.setSort("alpha")}>Alphabetical</button>
+										onClick={() => this.setSort("alpha")}>Alphabetical
+									</button>
 								</li>
 								<li key="activity">
 									<button className="activity"
-										onClick={() => this.setSort("activity")}>Activity</button>
+										onClick={() => this.setSort("activity")}>Activity
+									</button>
 								</li>
 							</ul>
 						</div>

@@ -2,6 +2,8 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 
+import { CATEGORY_NAMES } from "../constants";
+
 class HighlightsLink extends PureComponent {
 	render() {
 		const { unseenHighlights } = this.props;
@@ -9,7 +11,11 @@ class HighlightsLink extends PureComponent {
 		var badge = null;
 
 		if (unseenHighlights && unseenHighlights.length) {
-			badge = <strong className="badge" key="badge">{ unseenHighlights.length }</strong>;
+			badge = (
+				<strong className="badge" key="badge">
+					{ unseenHighlights.length }
+				</strong>
+			);
 		}
 
 		const className = "sidebar__menu-link" +
@@ -17,7 +23,7 @@ class HighlightsLink extends PureComponent {
 
 		return (
 			<Link to="/highlights" className={className} key="main">
-				<span key="text">Highlights</span>
+				<span key="text">{ CATEGORY_NAMES.highlights }</span>
 				{ badge }
 			</Link>
 		);

@@ -9,3 +9,8 @@ export const CACHE_LINES = 150;
 export const RELATIONSHIP_NONE = 0;
 export const RELATIONSHIP_FRIEND = 1;
 export const RELATIONSHIP_BEST_FRIEND = 2;
+
+export const CATEGORY_NAMES = {
+	allfriends: "All friends",
+	highlights: "Highlights"
+};
