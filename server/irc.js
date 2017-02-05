@@ -1,19 +1,19 @@
-// IRC WATCHER
+// PYRAMID
 // IRC module
 
 // Prerequisites
-var irc    = require("irc"),
-	fs     = require("fs"),
-	mkdirp = require("mkdirp"),
-	path   = require("path"),
-	lodash = require("lodash"),
-	uuid   = require("node-uuid")
+const irc    = require("irc");
+const fs     = require("fs");
+const mkdirp = require("mkdirp");
+const path   = require("path");
+const lodash = require("lodash");
+const uuid   = require("node-uuid");
+
+const config = require("../config");
+const constants = require("./constants");
+const util = require("./util");
 
 // Constants
-const RELATIONSHIP_NONE = 0;
-const RELATIONSHIP_FRIEND = 1;
-const RELATIONSHIP_BEST_FRIEND = 2;
-
 const CACHE_LINES = 150;
 const LAST_SEEN_UPDATE_RATE = 500;
 
@@ -39,7 +39,7 @@ Great server refactoring plan:
 
 */
 
-module.exports = function(config, util, log){
+module.exports = function(log) {
 
 	var io = {} // To be filled in later
 
@@ -65,8 +65,12 @@ module.exports = function(config, util, log){
 
 	// TODO: ALL OF THIS NEEDS TO BE IN EITHER LOG OR IO MODEL
 
-	var lastSeenChannelsFileName = path.join(__dirname, "lastSeenChannels.json");
-	var lastSeenUsersFileName = path.join(__dirname, "lastSeenUsers.json");
+	var lastSeenChannelsFileName = path.join(
+		__dirname, "..", "data", "lastSeenChannels.json"
+	);
+	var lastSeenUsersFileName = path.join(
+		__dirname, "..", "data", "lastSeenUsers.json"
+	);
 
 	var lastSeenChannels = loadLastSeenInfo(lastSeenChannelsFileName);
 	var lastSeenUsers = loadLastSeenInfo(lastSeenUsersFileName);
@@ -221,7 +225,7 @@ module.exports = function(config, util, log){
 		}
 
 		// Determine log folders
-		var logDir = path.join(__dirname, "public", "data", "logs")
+		var logDir = path.join(__dirname, "..", "public", "data", "logs")
 		var ymText = util.ym(d)
 		if(filename){
 			logDir = path.join(logDir, "_global", ymText)
@@ -274,7 +278,7 @@ module.exports = function(config, util, log){
 
 		cachedLastSeens[`channel:${channel}`] = { channel, data: lastSeenChannels[channel] };
 
-		if (relationship >= RELATIONSHIP_FRIEND) {
+		if (relationship >= constants.RELATIONSHIP_FRIEND) {
 			lastSeenUsers[username] = {
 				channel,
 				channelName,
@@ -422,7 +426,7 @@ module.exports = function(config, util, log){
 
 		// Cache and emit
 		cacheChannelEvent(msg.channel, msg);
-		if (relationship >= RELATIONSHIP_FRIEND) {
+		if (relationship >= constants.RELATIONSHIP_FRIEND) {
 			cacheUserMessage(from, msg);
 			cacheCategoryMessage("allfriends", msg);
 		}
@@ -472,7 +476,7 @@ module.exports = function(config, util, log){
 
 		const relationship = util.getRelationship(from);
 
-		if (relationship >= RELATIONSHIP_FRIEND) {
+		if (relationship >= constants.RELATIONSHIP_FRIEND) {
 			// Add to specific logs
 			logLine(chobj, line, null, from.toLowerCase());
 		}

@@ -1,10 +1,14 @@
-// IRC WATCHER
+// PYRAMID
 // Web module
 
 const path = require("path");
 const bodyParser = require("body-parser");
 
-module.exports = function(config, util, log, irc, io){
+const config = require("../config");
+const constants = require("./constants");
+const util = require("./util");
+
+module.exports = function(log, irc, io){
 
 	// Prerequisites
 	const express  = require("express");
@@ -14,11 +18,11 @@ module.exports = function(config, util, log, irc, io){
 
 	// The web app
 	var app = express();
-	app.set("views", path.join(__dirname, "views"));
+	app.set("views", path.join(__dirname, "..", "views"));
 	app.set("view engine", "ejs");
 	//app.use(favicon());
 	app.use(bodyParser.urlencoded({ extended: "qs" }));
-	app.use(express.static(path.join(__dirname, "public")));
+	app.use(express.static(path.join(__dirname, "..", "public")));
 	app.use(partials());
 
 	// Routes

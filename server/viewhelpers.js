@@ -1,4 +1,4 @@
-// IRC WATCHER
+// PYRAMID
 // View helper functions
 
 module.exports = function(log){

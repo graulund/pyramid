@@ -2,14 +2,12 @@
 // IO module
 
 // Prerequisites
-var socketIo = require("socket.io");
+const socketIo = require("socket.io");
 
-// Constants
-const RELATIONSHIP_NONE = 0;
-const RELATIONSHIP_FRIEND = 1;
-const RELATIONSHIP_BEST_FRIEND = 2;
+const constants = require("./constants");
+const util = require("./util");
 
-module.exports = function(config, util, log, irc) {
+module.exports = function(log, irc) {
 
 	var server, io;
 

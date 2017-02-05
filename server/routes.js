@@ -1,4 +1,4 @@
-// IRC WATCHER
+// PYRAMID
 // Routes module
 
 const moment = require("moment-timezone");
