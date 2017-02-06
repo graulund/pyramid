@@ -92,6 +92,7 @@ ChatLine.propTypes = {
 	by: PropTypes.string,
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
+	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayContextLink: PropTypes.bool,
 	displayUsername: PropTypes.bool,

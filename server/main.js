@@ -2,6 +2,7 @@
 // Main data logic
 
 const lodash = require("lodash");
+const long   = require("long");
 const uuid   = require("uuid");
 
 const config = require("../config");
@@ -187,6 +188,7 @@ const cacheMessage = function(
 	const msg = {
 		channel: channelUri,
 		channelName: channelName,
+		color: getUserColorNumber(username),
 		highlight: highlightStrings,
 		id: uuid.v4(),
 		message,
@@ -220,6 +222,19 @@ const getUserCurrentSymbol = function(channelUri, userName) {
 	}
 
 	return "";
+};
+
+const getUserColorNumber = (username) => {
+	username = username.toLowerCase();
+
+	var hashedValue = new long(0);
+
+	for (var i = 0; i < username.length; i++) {
+		var c = username.charCodeAt(i);
+		hashedValue = hashedValue.shiftLeft(6).add(hashedValue).add(c);
+	}
+
+	return hashedValue.mod(30).toNumber();
 };
 
 const handleIncomingMessage = function(
