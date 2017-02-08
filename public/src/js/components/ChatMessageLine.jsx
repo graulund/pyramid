@@ -61,14 +61,14 @@ class ChatMessageLine extends PureComponent {
 			var output = [], lastEnd = 0, msgArray = [...message];
 
 			allEmotes.forEach((e, index) => {
-				output.push(msgArray.slice(lastEnd, e.start));
+				output.push(msgArray.slice(lastEnd, e.start).join(""));
 				output.push(this.renderEmoticon(
-					e.number, msgArray.slice(e.start, e.end + 1), index
+					e.number, msgArray.slice(e.start, e.end + 1).join(""), index
 				));
 				lastEnd = e.end + 1;
 			});
 
-			output.push(msgArray.slice(lastEnd));
+			output.push(msgArray.slice(lastEnd).join(""));
 			return output;
 		}
 
