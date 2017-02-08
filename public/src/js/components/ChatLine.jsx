@@ -106,6 +106,7 @@ ChatLine.propTypes = {
 	reason: PropTypes.string,
 	server: PropTypes.string,
 	symbol: PropTypes.string,
+	tags: PropTypes.object,
 	time: PropTypes.string,
 	type: PropTypes.string,
 	username: PropTypes.string

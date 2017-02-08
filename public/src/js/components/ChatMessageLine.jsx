@@ -1,13 +1,80 @@
 import React, { PureComponent, PropTypes } from "react";
 import Linkify from "react-linkify";
-import Highlighter from "react-highlight-words";
+//import Highlighter from "react-highlight-words";
 
 import HighlightObserver from "./HighlightObserver.jsx";
 import UserLink from "./UserLink.jsx";
 
 const linkifyProperties = { target: "_blank" };
 
+const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
+
 class ChatMessageLine extends PureComponent {
+
+	renderEmoticon(emoteId, emoteText, emoteKey) {
+		// TODO: THIS SHOULD SO MUCH BE SOME PLACE ELSE BUT SHUT IT FOR NOW
+
+		return <img
+			src={EMOTE_IMG_URL_ROOT + emoteId + "/1.0"}
+			srcSet={
+				EMOTE_IMG_URL_ROOT + emoteId + "/1.0 1x, " +
+				EMOTE_IMG_URL_ROOT + emoteId + "/2.0 2x"
+			}
+			alt={emoteText}
+			key={`emote-${emoteKey}`}
+			/>;
+	}
+
+	renderMessage() {
+		// Emoticons
+		// TODO: THIS SHOULD BE SOME PLACE ELSE
+
+		const { message, tags } = this.props;
+
+		if (tags && tags.emotes) {
+			// Find all indices and sort, return array
+			var allEmotes = [];
+			tags.emotes.forEach((e) => {
+				if (e && e.indices) {
+					e.indices.forEach((i) => {
+						if (i && i.start && i.end) {
+							allEmotes.push(
+								{
+									start: parseInt(i.start, 10),
+									end: parseInt(i.end, 10),
+									number: e.number
+								}
+							);
+						}
+					});
+				}
+			});
+
+			allEmotes.sort((a, b) => {
+				if (a && b) {
+					if (a.start < b.start) { return -1; }
+					if (a.start > b.start) { return 1; }
+					return 0;
+				}
+			});
+
+			var output = [], lastEnd = 0, msgArray = [...message];
+
+			allEmotes.forEach((e, index) => {
+				output.push(msgArray.slice(lastEnd, e.start));
+				output.push(this.renderEmoticon(
+					e.number, msgArray.slice(e.start, e.end + 1), index
+				));
+				lastEnd = e.end + 1;
+			});
+
+			output.push(msgArray.slice(lastEnd));
+			return output;
+		}
+
+		return message;
+	}
+
 	render() {
 		const {
 			color, displayUsername, highlight, id, isAction,
@@ -19,11 +86,12 @@ class ChatMessageLine extends PureComponent {
 			(isAction ? " msg--action" : "") +
 			(isHighlight ? " msg--highlight" : "");
 
-		var messageEl = message;
+		var messageEl = this.renderMessage(message);
 
-		if (highlight && highlight.length) {
+		/* if (highlight && highlight.length) {
+			// TODO: Find better non-plain text solution for this
 			messageEl = <Highlighter searchWords={highlight} textToHighlight={message} />;
-		}
+		} */
 
 		var authorClassName = "msg__author";
 
@@ -75,6 +143,7 @@ ChatMessageLine.propTypes = {
 	observer: PropTypes.object,
 	server: PropTypes.string,
 	symbol: PropTypes.string,
+	tags: PropTypes.object,
 	time: PropTypes.string,
 	type: PropTypes.string,
 	username: PropTypes.string

@@ -453,6 +453,10 @@ ul.statsuserlist {
 	word-break: break-word;
 }
 
+.chatview .msg img {
+	vertical-align: middle;
+}
+
 .chatview .line__channel,
 .chatview .line__channel a,
 .chatview .line time {

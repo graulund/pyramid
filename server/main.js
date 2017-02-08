@@ -183,7 +183,7 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 
 const cacheMessage = function(
 	channelUri, channelName, serverName, username, symbol,
-	time, type, message, relationship, highlightStrings
+	time, type, message, tags, relationship, highlightStrings
 ) {
 	const msg = {
 		channel: channelUri,
@@ -195,6 +195,7 @@ const cacheMessage = function(
 		relationship,
 		server: serverName,
 		symbol,
+		tags,
 		time,
 		type,
 		username
@@ -239,7 +240,7 @@ const getUserColorNumber = (username) => {
 
 const handleIncomingMessage = function(
 	channelUri, channelName, serverName, username,
-	time, type, message, meUsername
+	time, type, message, tags, meUsername
 ) {
 	const symbol = getUserCurrentSymbol(channelUri, username);
 	const line = log.lineFormats[type].build(symbol, username, message);
@@ -289,7 +290,7 @@ const handleIncomingMessage = function(
 	);
 	cacheMessage(
 		channelUri, channelName, serverName, username, symbol,
-		time, type, message, relationship, highlightStrings
+		time, type, message, tags, relationship, highlightStrings
 	);
 };
 
