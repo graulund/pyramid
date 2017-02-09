@@ -37,14 +37,19 @@ class ChatMessageLine extends PureComponent {
 			tags.emotes.forEach((e) => {
 				if (e && e.indices) {
 					e.indices.forEach((i) => {
-						if (i && i.start && i.end) {
-							allEmotes.push(
-								{
-									start: parseInt(i.start, 10),
-									end: parseInt(i.end, 10),
-									number: e.number
-								}
-							);
+						if (i) {
+							const start = parseInt(i.start, 10);
+							const end = parseInt(i.end, 10);
+
+							if (!isNaN(start) && !isNaN(end)) {
+								allEmotes.push(
+									{
+										start,
+										end,
+										number: e.number
+									}
+								);
+							}
 						}
 					});
 				}
