@@ -7,6 +7,7 @@ const uuid   = require("uuid");
 
 const config = require("../config");
 const constants = require("./constants");
+const plugins = require("./plugins");
 const log = require("./log");
 const util = require("./util");
 
@@ -426,6 +427,12 @@ const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
 
+// Startup
+
+plugins.init();
+
+// API
+
 module.exports = {
 	addCategoryRecipient,
 	addChannelRecipient,
@@ -446,6 +453,7 @@ module.exports = {
 	handleChatNetworkError,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
+	plugins,
 	removeCategoryRecipient,
 	removeChannelRecipient,
 	removeUserRecipient,

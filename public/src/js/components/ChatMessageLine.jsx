@@ -31,7 +31,7 @@ class ChatMessageLine extends PureComponent {
 
 		const { message, tags } = this.props;
 
-		if (tags && tags.emotes) {
+		if (tags && tags.emotes && tags.emotes instanceof Array) {
 			// Find all indices and sort, return array
 			var allEmotes = [];
 			tags.emotes.forEach((e) => {

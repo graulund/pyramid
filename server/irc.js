@@ -51,14 +51,6 @@ module.exports = function(main) {
 		return null;
 	}
 
-	const isTwitch = function(client) {
-		if (client && client.extConfig) {
-			return /irc\.(chat\.)?twitch\.tv/.test(client.extConfig.server);
-		}
-
-		return null;
-	}
-
 	const channelObject = function(client, channel) {
 		// "server" idenfitier is not actually server address;
 		// merely the identifying name given in its config section
@@ -103,39 +95,9 @@ module.exports = function(main) {
 		return null;
 	};
 
-	const parseSingleEmoticonIndices = function(data) {
-		// 25:11-15,23-27
-
-		const seqs = data.split(":");
-
-		if (seqs.length > 1) {
-			const number = seqs[0], indicesString = seqs[1];
-			const indices = indicesString.split(",").map((nums) => {
-				const i = nums.split("-");
-				return {
-					start: parseInt(i[0], 10),
-					end: parseInt(i[1], 10)
-				};
-			});
-			return { number, indices };
-		}
-
-		return null;
-	};
-
-	const parseEmoticonIndices = function(dataString) {
-		// 1902:17-21,29-33/25:11-15,23-27
-
-		const emoteDatas = dataString.split("/");
-		return emoteDatas.map(parseSingleEmoticonIndices);
-	};
-
-	const parseMessageTags = function(tags) {
+	const parseMessageTags = function(client, tags) {
 		if (tags) {
-			if (typeof tags.emotes === "string") {
-				tags.emotes = parseEmoticonIndices(tags.emotes);
-			}
-
+			main.plugins.handleEvent("messageTags", { client, tags });
 			return tags;
 		}
 
@@ -191,7 +153,7 @@ module.exports = function(main) {
 
 		main.handleIncomingMessage(
 			channelUri, channelName, serverName, username,
-			time, type, message, parseMessageTags(tags),
+			time, type, message, parseMessageTags(client, tags),
 			client.extConfig.me
 		);
 	};
@@ -212,13 +174,13 @@ module.exports = function(main) {
 	};
 
 	const setUpClient = function(client) {
+		client.addListener("connect", function() {
+			main.plugins.handleEvent("connect", { client });
+		});
 
-		if (isTwitch(client)) {
-			// TODO: Separate out into file
-			client.send("CAP", "REQ", "twitch.tv/membership");
-			client.send("CAP", "REQ", "twitch.tv/commands");
-			client.send("CAP", "REQ", "twitch.tv/tags");
-		}
+		client.addListener("registered", function() {
+			main.plugins.handleEvent("registered", { client });
+		});
 
 		client.addListener("motd", function (message) {
 			// In a standard IRC network, prefix info should be non-empty by now
