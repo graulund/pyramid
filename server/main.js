@@ -7,13 +7,12 @@ const uuid   = require("uuid");
 
 const config = require("../config");
 const constants = require("./constants");
-const plugins = require("./plugins");
 const log = require("./log");
 const util = require("./util");
 
 // Application state
 
-var io, irc;
+var io, irc, plugins;
 
 var lastSeenChannels = log.loadLastSeenChannels();
 var lastSeenUsers = log.loadLastSeenUsers();
@@ -34,6 +33,7 @@ var unseenHighlightIds = new Set();
 
 const setIo = function(_io) { io = _io; };
 const setIrc = function(_irc) { irc = _irc; };
+const setPlugins = function(_plugins) { plugins = _plugins; };
 
 const setLastSeenChannel = (channel, data) => {
 	lastSeenChannels[channel] = data;
@@ -427,10 +427,6 @@ const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
 
-// Startup
-
-plugins.init();
-
 // API
 
 module.exports = {
@@ -453,7 +449,7 @@ module.exports = {
 	handleChatNetworkError,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
-	plugins,
+	plugins: () => plugins,
 	removeCategoryRecipient,
 	removeChannelRecipient,
 	removeUserRecipient,
@@ -462,5 +458,6 @@ module.exports = {
 	setChannelUserList,
 	setIo,
 	setIrc,
+	setPlugins,
 	unseenHighlightIds: () => unseenHighlightIds
 };

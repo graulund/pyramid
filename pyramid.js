@@ -3,6 +3,9 @@
 // Main app service
 const main = require("./server/main");
 
+// Feed app into plugin service
+require("./server/plugins")(main);
+
 // Feed app into IRC service
 require("./server/irc")(main);
 

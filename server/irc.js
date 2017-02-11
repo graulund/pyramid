@@ -63,7 +63,11 @@ module.exports = function(main) {
 
 	const getChannelUri = function(chobj) {
 
-		var safeString = function(str){
+		var safeString = function(str) {
+			if (!str) {
+				return "";
+			}
+
 			return str.replace(/[^a-zA-Z0-9_-]+/g, "");
 		}
 
@@ -95,9 +99,11 @@ module.exports = function(main) {
 		return null;
 	};
 
-	const parseMessageTags = function(client, tags) {
+	const parseMessageTags = function(tags, client, channel, username) {
 		if (tags) {
-			main.plugins.handleEvent("messageTags", { client, tags });
+			main.plugins().handleEvent("messageTags", {
+				channel, client, tags, username
+			});
 			return tags;
 		}
 
@@ -151,10 +157,11 @@ module.exports = function(main) {
 		// Time
 		const time = new Date();
 
+		const parsedTags = parseMessageTags(tags, client, channelUri, username);
+
 		main.handleIncomingMessage(
 			channelUri, channelName, serverName, username,
-			time, type, message, parseMessageTags(client, tags),
-			client.extConfig.me
+			time, type, message, parsedTags, client.extConfig.me
 		);
 	};
 
@@ -168,6 +175,20 @@ module.exports = function(main) {
 		);
 	};
 
+	const handleIncomingUnhandledMessage = function(client, message) {
+		const username = message.nick;
+		const channel = message.args[0];
+		const chobj = channelObject(client, channel);
+		const channelUri = getChannelUri(chobj);
+
+		main.plugins().handleEvent("customMessage", {
+			channel: channelUri,
+			client,
+			message,
+			username
+		});
+	}
+
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
 		main.setChannelUserList(getChannelUri(chobj), userList);
@@ -175,11 +196,15 @@ module.exports = function(main) {
 
 	const setUpClient = function(client) {
 		client.addListener("connect", function() {
-			main.plugins.handleEvent("connect", { client });
+			main.plugins().handleEvent("connect", { client });
 		});
 
 		client.addListener("registered", function() {
-			main.plugins.handleEvent("registered", { client });
+			main.plugins().handleEvent("registered", { client });
+		});
+
+		client.addListener("unhandled", function(message) {
+			handleIncomingUnhandledMessage(client, message);
 		});
 
 		client.addListener("motd", function (message) {
