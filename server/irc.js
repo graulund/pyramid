@@ -99,12 +99,10 @@ module.exports = function(main) {
 		return null;
 	};
 
-	const parseMessageTags = function(tags, client, channel, username) {
-		if (tags) {
-			main.plugins().handleEvent("messageTags", {
-				channel, client, tags, username
-			});
-			return tags;
+	const parseMessageTags = function(data) {
+		if (data && data.tags) {
+			main.plugins().handleEvent("messageTags", data);
+			return data.tags;
 		}
 
 		return null;
@@ -132,10 +130,12 @@ module.exports = function(main) {
 				} else {
 					client.say(channelName, message);
 				}
+
 				// Handle our own message as if it's incoming
 				handleIncomingMessage(
 					client, client.extConfig.username,
-					channelName, type, message
+					channelName, type, message, {},
+					true
 				);
 				return true;
 			}
@@ -146,22 +146,29 @@ module.exports = function(main) {
 
 	// Handle incoming events
 
-	const handleIncomingMessage = function(client, username, channel, type, message, tags) {
+	const handleIncomingMessage = function(
+		client, username, channel, type, message, tags = {}, postedLocally = false
+	) {
 
-		// Channel object
+		// Context
 		const chobj = channelObject(client, channel);
 		const channelUri = getChannelUri(chobj);
 		const channelName = getChannelFullName(chobj);
 		const serverName = chobj.server;
+		const meUsername = client.extConfig.me;
 
 		// Time
 		const time = new Date();
 
-		const parsedTags = parseMessageTags(tags, client, channelUri, username);
+		// Parse tags, if any
+		const parsedTags = parseMessageTags({
+			client, channel: channelUri, message, meUsername,
+			postedLocally, serverName, tags, type, username
+		});
 
 		main.handleIncomingMessage(
 			channelUri, channelName, serverName, username,
-			time, type, message, parsedTags, client.extConfig.me
+			time, type, message, parsedTags, meUsername
 		);
 	};
 
@@ -180,11 +187,13 @@ module.exports = function(main) {
 		const channel = message.args[0];
 		const chobj = channelObject(client, channel);
 		const channelUri = getChannelUri(chobj);
+		const serverName = chobj.server;
 
 		main.plugins().handleEvent("customMessage", {
 			channel: channelUri,
 			client,
 			message,
+			serverName,
 			username
 		});
 	}
@@ -228,13 +237,13 @@ module.exports = function(main) {
 
 		client.addListener("message", function (username, channel, message, rawData) {
 			handleIncomingMessage(
-				client, username, channel, "msg", message, rawData.tags
+				client, username, channel, "msg", message, rawData.tags || {}
 			);
 		});
 
 		client.addListener("action", function (username, channel, message, rawData) {
 			handleIncomingMessage(
-				client, username, channel, "action", message, rawData.tags
+				client, username, channel, "action", message, rawData.tags || {}
 			);
 		});
 

@@ -38,14 +38,14 @@ class ChatMessageLine extends PureComponent {
 				if (e && e.indices) {
 					e.indices.forEach((i) => {
 						if (i) {
-							const start = parseInt(i.start, 10);
-							const end = parseInt(i.end, 10);
+							const first = parseInt(i.first, 10);
+							const last = parseInt(i.last, 10);
 
-							if (!isNaN(start) && !isNaN(end)) {
+							if (!isNaN(first) && !isNaN(last)) {
 								allEmotes.push(
 									{
-										start,
-										end,
+										first,
+										last,
 										number: e.number
 									}
 								);
@@ -57,8 +57,8 @@ class ChatMessageLine extends PureComponent {
 
 			allEmotes.sort((a, b) => {
 				if (a && b) {
-					if (a.start < b.start) { return -1; }
-					if (a.start > b.start) { return 1; }
+					if (a.first < b.first) { return -1; }
+					if (a.first > b.first) { return 1; }
 					return 0;
 				}
 			});
@@ -66,11 +66,11 @@ class ChatMessageLine extends PureComponent {
 			var output = [], lastEnd = 0, msgArray = [...message];
 
 			allEmotes.forEach((e, index) => {
-				output.push(msgArray.slice(lastEnd, e.start).join(""));
+				output.push(msgArray.slice(lastEnd, e.first).join(""));
 				output.push(this.renderEmoticon(
-					e.number, msgArray.slice(e.start, e.end + 1).join(""), index
+					e.number, msgArray.slice(e.first, e.last + 1).join(""), index
 				));
-				lastEnd = e.end + 1;
+				lastEnd = e.last + 1;
 			});
 
 			output.push(msgArray.slice(lastEnd).join(""));
