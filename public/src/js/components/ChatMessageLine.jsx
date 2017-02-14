@@ -3,87 +3,17 @@ import Linkify from "react-linkify";
 //import Highlighter from "react-highlight-words";
 
 import HighlightObserver from "./HighlightObserver.jsx";
+import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
 import UserLink from "./UserLink.jsx";
 
 const linkifyProperties = { target: "_blank" };
 
-const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
-
 class ChatMessageLine extends PureComponent {
-
-	renderEmoticon(emoteId, emoteText, emoteKey) {
-		// TODO: THIS SHOULD SO MUCH BE SOME PLACE ELSE BUT SHUT IT FOR NOW
-
-		return <img
-			src={EMOTE_IMG_URL_ROOT + emoteId + "/1.0"}
-			srcSet={
-				EMOTE_IMG_URL_ROOT + emoteId + "/1.0 1x, " +
-				EMOTE_IMG_URL_ROOT + emoteId + "/2.0 2x"
-			}
-			alt={emoteText}
-			key={`emote-${emoteKey}`}
-			/>;
-	}
-
-	renderMessage() {
-		// Emoticons
-		// TODO: THIS SHOULD BE SOME PLACE ELSE
-
-		const { message, tags } = this.props;
-
-		if (tags && tags.emotes && tags.emotes instanceof Array) {
-			// Find all indices and sort, return array
-			var allEmotes = [];
-			tags.emotes.forEach((e) => {
-				if (e && e.indices) {
-					e.indices.forEach((i) => {
-						if (i) {
-							const first = parseInt(i.first, 10);
-							const last = parseInt(i.last, 10);
-
-							if (!isNaN(first) && !isNaN(last)) {
-								allEmotes.push(
-									{
-										first,
-										last,
-										number: e.number
-									}
-								);
-							}
-						}
-					});
-				}
-			});
-
-			allEmotes.sort((a, b) => {
-				if (a && b) {
-					if (a.first < b.first) { return -1; }
-					if (a.first > b.first) { return 1; }
-					return 0;
-				}
-			});
-
-			var output = [], lastEnd = 0, msgArray = [...message];
-
-			allEmotes.forEach((e, index) => {
-				output.push(msgArray.slice(lastEnd, e.first).join(""));
-				output.push(this.renderEmoticon(
-					e.number, msgArray.slice(e.first, e.last + 1).join(""), index
-				));
-				lastEnd = e.last + 1;
-			});
-
-			output.push(msgArray.slice(lastEnd).join(""));
-			return output;
-		}
-
-		return message;
-	}
 
 	render() {
 		const {
 			color, displayUsername, highlight, id, isAction,
-			message, observer, symbol = "", username
+			message, observer, symbol = "", tags, username
 		} = this.props;
 
 		const isHighlight = !!(highlight && highlight.length);
@@ -91,7 +21,11 @@ class ChatMessageLine extends PureComponent {
 			(isAction ? " msg--action" : "") +
 			(isHighlight ? " msg--highlight" : "");
 
-		var messageEl = this.renderMessage(message);
+		var messageEl = message;
+
+		//if (isTwitch) {
+			messageEl = <TwitchMessageLine message={message} tags={tags} />;
+		//}
 
 		/* if (highlight && highlight.length) {
 			// TODO: Find better non-plain text solution for this
