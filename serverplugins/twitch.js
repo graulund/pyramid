@@ -2,6 +2,7 @@
 // Twitch support
 
 const lodash = require("lodash");
+const path = require("path");
 const qs = require("querystring");
 const request = require("request");
 
@@ -14,10 +15,23 @@ const USER_STATE_MESSAGE_FIELDS = [
 	"user-id", "user-type"
 ];
 
+const EXTERNAL_GLOBAL_EMOTE_ENDPOINTS = [
+	{ type: "ffz", url: "https://api.frankerfacez.com/v1/set/global" },
+	{ type: "bttv", url: "https://api.betterttv.net/2/emotes" }
+];
+
+const EXTERNAL_CHANNEL_EMOTE_ENDPOINTS = [
+	{ type: "ffz", prefix: "https://api.frankerfacez.com/v1/room/" },
+	{ type: "bttv", prefix: "https://api.betterttv.net/2/channels/" }
+];
+
 var emoticonImages = {};
 var roomStates = {};
 var userStates = {};
 var globalUserStates = {};
+
+var externalGlobalEmotes = [];
+var externalChannelEmotes = {};
 
 // Utility methods ----------------------------------------------------------------------
 
@@ -29,13 +43,31 @@ const isTwitch = function(client) {
 	return null;
 };
 
+const rangesOverlay = function (x1, x2, y1, y2) {
+	var low1, low2, high1, high2;
+	if (x1 <= y1) {
+		low1 = x1;
+		low2 = x2;
+		high1 = y1;
+		high2 = y2;
+	}
+	else {
+		low1 = y1;
+		low2 = y2;
+		high1 = x1;
+		high2 = x2;
+	}
+
+	return low1 <= high2 && high1 <= low2;
+};
+
 // Emoticons in messages ----------------------------------------------------------------
 
 const parseSingleEmoticonIndices = function(data) {
 	const seqs = data.split(":");
 
 	if (seqs.length > 1) {
-		const number = seqs[0], indicesString = seqs[1];
+		const id = seqs[0], indicesString = seqs[1];
 		const indices = indicesString.split(",").map((nums) => {
 			const i = nums.split("-");
 			return {
@@ -43,7 +75,7 @@ const parseSingleEmoticonIndices = function(data) {
 				last: parseInt(i[1], 10)
 			};
 		});
-		return { number, indices };
+		return { id, indices };
 	}
 
 	return null;
@@ -58,9 +90,27 @@ const generateEmoteRegex = function(code) {
 	return new RegExp(EMOTE_PREFIX_REGEX + "(" + code + ")" + EMOTE_SUFFIX_REGEX, "g");
 };
 
-const generateEmoticonIndices = function(message, emoteData) {
+const doNewIndicesOverlay = function(indices, emotes) {
+	if (emotes && emotes.length) {
+		for (var i = 0; i < emotes.length; i++) {
+			if (emotes[i] && emotes[i].indices) {
+				if (
+					rangesOverlay(
+						indices.first, indices.last,
+						emotes[i].indices.first, emotes[i].indices.last
+					)
+				) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+};
+
+const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 	// Expected emotedata: [ { id, code } ...]
-	const emotes = [];
 	if (message && message.length) {
 		emoteData.forEach((emote) => {
 			if (emote && emote.id && emote.code) {
@@ -73,18 +123,20 @@ const generateEmoticonIndices = function(message, emoteData) {
 					const prefix = result[1], code = result[2], suffix = result[3];
 					const firstIndex = result.index + prefix.length;
 					const lastIndex = firstIndex + code.length - 1;
+					const localIndices = { first: firstIndex, last: lastIndex };
 
-					indices.push({ first: firstIndex, last: lastIndex });
+					if (!doNewIndicesOverlay(localIndices, emotes)) {
+						indices.push(localIndices);
+					}
 
 					// Don't include the space suffix when doing the next search
 					rgx.lastIndex -= suffix.length;
 				}
 
 				if (indices.length) {
-					emotes.push({
-						number: emote.id,
-						indices
-					});
+					emotes.push(
+						lodash.assign(lodash.omit(emote, ["code"]), { indices })
+					);
 				}
 			}
 		})
@@ -124,6 +176,10 @@ const flattenEmoticonImagesData = function(data) {
 						if (ids.indexOf(emote.id) >= 0) {
 							return;
 						}
+
+						// Special Twitch emote code weirdness
+						emote.code = emote.code.replace(/\\&lt\\;/, "<");
+						emote.code = emote.code.replace(/\\&gt\\;/, ">");
 
 						list.push(emote);
 						ids.push(emote.id);
@@ -190,6 +246,145 @@ const requestEmoticonImagesIfNeeded = function(emotesets) {
 	}
 };
 
+const parseExternalEmoticon = function(type, data) {
+	if (data) {
+		var sizes = null;
+
+		if (typeof data.urls === "object") {
+			sizes = Object.keys(data.urls);
+		}
+
+		return {
+			code: lodash.escapeRegExp(data.code || data.name),
+			id: data.id,
+			imageType: data.imageType,
+			sizes,
+			type
+		};
+	}
+
+	return null;
+};
+
+const parseExternalEmoticons = function(type, list) {
+	const output = [];
+	if (list) {
+		list.forEach((data) => {
+			const emote = parseExternalEmoticon(type, data);
+			if (emote) {
+				output.push(emote);
+			}
+		})
+	}
+
+	return output;
+};
+
+const storeExternalEmotes = function(type, store, list) {
+	if (!store) {
+		store = [];
+	}
+	return store.concat(parseExternalEmoticons(type, list));
+}
+
+const requestExternalGlobalEmoticons = function() {
+	var uncleared = true;
+	EXTERNAL_GLOBAL_EMOTE_ENDPOINTS.forEach(({ type, url }) => {
+		request(url, (error, response, body) => {
+			if (!error && response.statusCode === 200) {
+				try {
+					const data = JSON.parse(body);
+					if (uncleared) {
+						uncleared = false;
+						externalGlobalEmotes = [];
+					}
+					if (data.default_sets && data.sets) {
+						// FFZ
+						data.default_sets.forEach((setId) => {
+							externalGlobalEmotes = storeExternalEmotes(
+								type, externalGlobalEmotes, data.sets[setId].emoticons
+							);
+							console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+							//console.log(externalGlobalEmotes);
+						})
+					}
+					else if (data.emotes) {
+						// BTTV
+						externalGlobalEmotes = storeExternalEmotes(
+							type, externalGlobalEmotes, data.emotes
+						);
+						console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+						//console.log(externalGlobalEmotes);
+					}
+				}
+				catch(e) {
+					console.warn(
+						`Error occurred trying to get external global emoticons (${type})`,
+						e
+					);
+				}
+			}
+		});
+	});
+};
+
+const requestExternalChannelEmoticons = function(channel) {
+	const segs = channel.split("/");
+	const channelName = segs[segs.length-1].replace(/^#/, "");
+	var uncleared = true;
+	if (channelName) {
+
+		// Clear the list quickly if it doesn't exist already
+		if (!(channelName in externalChannelEmotes)) {
+			uncleared = false;
+			externalChannelEmotes[channel] = [];
+		}
+
+		EXTERNAL_CHANNEL_EMOTE_ENDPOINTS.forEach(({ type, prefix }) => {
+			console.log("Requesting " + prefix + channelName);
+			request(prefix + channelName, (error, response, body) => {
+				if (!error && response.statusCode === 200) {
+					try {
+						const data = JSON.parse(body);
+
+						// Clear it if it wasn't already cleared
+						if (uncleared) {
+							uncleared = false;
+							externalChannelEmotes[channel] = [];
+						}
+
+						if (data.sets) {
+							// FFZ
+							lodash.forOwn(data.sets, (set) => {
+								externalChannelEmotes[channel] = storeExternalEmotes(
+									type, externalChannelEmotes[channel], set.emoticons
+								);
+							});
+
+							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							//console.log(externalChannelEmotes[channel]);
+						}
+						else if (data.emotes) {
+							// BTTV
+							externalChannelEmotes[channel] = storeExternalEmotes(
+								type, externalChannelEmotes[channel], data.emotes
+							);
+
+							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							//console.log(externalChannelEmotes[channel]);
+						}
+					}
+					catch(e) {
+						console.warn(
+							`Error occurred trying to get external emoticons for channel ${channelName} aka ${channel} (${type})`,
+							e
+						);
+					}
+				}
+			});
+		});
+	}
+};
 
 // Event handlers -----------------------------------------------------------------------
 
@@ -202,6 +397,18 @@ module.exports = function(main) {
 				"CAP", "REQ",
 				"twitch.tv/commands twitch.tv/membership twitch.tv/tags"
 			);
+
+			requestExternalGlobalEmoticons();
+			if (client.extConfig && client.extConfig.channels) {
+				client.extConfig.channels.forEach((channel) => {
+					// TODO: Find a better way to get the channelUri here... srs.
+					const channelUri = path.join(
+						client.extConfig.name, channel.replace(/^#/, "")
+					);
+					console.log(`Requesting channel emoticons for ${channelUri}`);
+					requestExternalChannelEmoticons(channelUri);
+				});
+			}
 		}
 	};
 
@@ -219,7 +426,8 @@ module.exports = function(main) {
 				}
 				else if (
 					postedLocally && username === meUsername &&
-					userStates[channel] && emoticonImages[userStates[channel]["emote-sets"]]
+					userStates[channel] &&
+					emoticonImages[userStates[channel]["emote-sets"]]
 				) {
 					// We posted this message
 					populateLocallyPostedTags(tags, serverName, channel, message);
@@ -227,6 +435,15 @@ module.exports = function(main) {
 				else if ("emotes" in tags) {
 					// Type normalization
 					tags.emotes = [];
+				}
+
+				// Add external emotes
+				if (externalChannelEmotes[channel]) {
+					tags.emotes = generateEmoticonIndices(
+						message,
+						externalGlobalEmotes.concat(externalChannelEmotes[channel]),
+						tags.emotes
+					);
 				}
 			}
 		}

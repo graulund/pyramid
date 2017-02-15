@@ -1,17 +1,53 @@
 import React, { PureComponent, PropTypes } from "react";
 
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
+const EMOTE_FFZ_IMG_URL_ROOT = "//cdn.frankerfacez.com/emoticon/";
+const EMOTE_BTTV_IMG_URL_ROOT = "//cdn.betterttv.net/emote/";
+
+const getEmoticonUrlsets = (emote) => {
+	const output = {};
+	switch (emote.type) {
+		case "ffz":
+			output.src = EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/1";
+			if (emote.sizes && emote.sizes.length) {
+				output.srcSet = emote.sizes.map((size) => {
+					return EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/" + size +
+						" " + size + "x";
+				});
+			}
+			else {
+				output.srcSet = [output.src + " 1x"];
+			}
+			break;
+		case "bttv":
+			output.src = EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x";
+			output.srcSet = [
+				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x 1x",
+				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/2x 2x",
+				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/3x 3x"
+			];
+			break;
+		default:
+			// Assume normal
+			output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
+			output.srcSet = [
+				EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
+				EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x"
+			];
+	}
+
+	return output;
+};
 
 class TwitchMessageLine extends PureComponent {
 
-	renderEmoticon(emoteId, emoteText, emoteKey) {
+	renderEmoticon(emote, emoteText, emoteKey) {
+		const url = getEmoticonUrlsets(emote);
 		return <img
-			src={EMOTE_IMG_URL_ROOT + emoteId + "/1.0"}
-			srcSet={
-				EMOTE_IMG_URL_ROOT + emoteId + "/1.0 1x, " +
-				EMOTE_IMG_URL_ROOT + emoteId + "/2.0 2x"
-			}
+			src={url.src}
+			srcSet={url.srcSet.join(", ")}
 			alt={emoteText}
+			title={emoteText}
 			key={`emote-${emoteKey}`}
 			/>;
 	}
@@ -33,9 +69,9 @@ class TwitchMessageLine extends PureComponent {
 							if (!isNaN(first) && !isNaN(last)) {
 								allEmotes.push(
 									{
+										...e,
 										first,
-										last,
-										number: e.number
+										last
 									}
 								);
 							}
@@ -59,7 +95,7 @@ class TwitchMessageLine extends PureComponent {
 			allEmotes.forEach((e, index) => {
 				output.push(msgArray.slice(lastEnd, e.first).join(""));
 				output.push(this.renderEmoticon(
-					e.number, msgArray.slice(e.first, e.last + 1).join(""), index
+					e, msgArray.slice(e.first, e.last + 1).join(""), index
 				));
 				lastEnd = e.last + 1;
 			});
