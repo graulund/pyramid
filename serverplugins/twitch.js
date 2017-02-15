@@ -301,11 +301,13 @@ const requestExternalGlobalEmoticons = function() {
 					if (data.default_sets && data.sets) {
 						// FFZ
 						data.default_sets.forEach((setId) => {
-							externalGlobalEmotes = storeExternalEmotes(
-								type, externalGlobalEmotes, data.sets[setId].emoticons
-							);
-							console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
-							//console.log(externalGlobalEmotes);
+							if (data.sets[setId]) {
+								externalGlobalEmotes = storeExternalEmotes(
+									type, externalGlobalEmotes, data.sets[setId].emoticons
+								);
+								console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+								//console.log(externalGlobalEmotes);
+							}
 						})
 					}
 					else if (data.emotes) {
@@ -335,7 +337,7 @@ const requestExternalChannelEmoticons = function(channel) {
 	if (channelName) {
 
 		// Clear the list quickly if it doesn't exist already
-		if (!(channelName in externalChannelEmotes)) {
+		if (!(channel in externalChannelEmotes)) {
 			uncleared = false;
 			externalChannelEmotes[channel] = [];
 		}
