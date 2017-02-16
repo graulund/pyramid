@@ -100,6 +100,10 @@ class TimedItem extends PureComponent {
 			classNames.push("flash");
 		}
 
+		if (typeof this.stStr === "string" && !this.stStr) {
+			classNames.push("notime");
+		}
+
 		return classNames.join(" ");
 	}
 
@@ -124,6 +128,8 @@ class TimedItem extends PureComponent {
 			const secondaryTimestamp = this.renderSecondaryTimestamp(m, timeInfo);
 			styles = timeColors(m, ms);
 
+			this.stStr = secondaryTimestamp;
+
 			// Livestamp content; if we pretend like the livestamp script has already taken effect,
 			// it looks more smooth when updating
 			const livestampContent = this.hasRenderedOnce
@@ -139,6 +145,7 @@ class TimedItem extends PureComponent {
 		} else {
 			const nullMoment = moment("1970-01-01 00:00:00");
 			styles = timeColors(nullMoment, moment().diff(nullMoment));
+			this.stStr = "";
 		}
 
 		// Class names

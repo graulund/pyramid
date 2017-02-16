@@ -79,6 +79,10 @@ header {
 	position: relative;
 }
 
+.itemlist li.notime {
+	padding-right: 10px;
+}
+
 .itemlist li:not(.bestfriend){
 	/*font-size: 85%;*/
 	line-height: 1.6em;
