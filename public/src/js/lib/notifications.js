@@ -1,3 +1,5 @@
+const icon = "/img/touchicon.png";
+
 function closeNotificationAfterTimeout(n) {
 	setTimeout(n.close.bind(n), 5000);
 }
@@ -8,14 +10,14 @@ function sendNotification(title, body) {
 	}
 
 	else if (Notification.permission === "granted") {
-		var n = new Notification(title, { body });
+		var n = new Notification(title, { body, icon });
 		closeNotificationAfterTimeout(n);
 	}
 
 	else if (Notification.permission !== "denied") {
 		Notification.requestPermission((permission) => {
 			if (permission === "granted") {
-				var n = new Notification(title, { body });
+				var n = new Notification(title, { body, icon });
 				closeNotificationAfterTimeout(n);
 			}
 		});
