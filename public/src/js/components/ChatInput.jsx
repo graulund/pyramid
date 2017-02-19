@@ -88,7 +88,11 @@ class ChatInput extends Component {
 
 		const { input: inputEl } = this.refs;
 		if (inputEl && inputEl.value) {
-			inputEl.value = convertCodesToEmojis(inputEl.value);
+			const val = inputEl.value;
+			const convertedValue = convertCodesToEmojis(val);
+			if (convertedValue !== val) {
+				inputEl.value = convertedValue;
+			}
 		}
 	}
 

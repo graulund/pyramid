@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
+import { storeViewState } from "../lib/io";
 import { internalUrl } from "../lib/routeHelpers";
 import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
@@ -17,12 +18,6 @@ class Sidebar extends PureComponent {
 		this.onClick = this.onClick.bind(this);
 		this.setSort = this.setSort.bind(this);
 		this.setTab = this.setTab.bind(this);
-
-		this.state = {
-			hidden: false,
-			sort: "alpha",
-			tab: "user"
-		};
 	}
 
 	onClick(evt) {
@@ -41,34 +36,43 @@ class Sidebar extends PureComponent {
 					)
 				)
 			) {
-				this.setHidden(true);
+				this.setVisible(false);
 			}
 		}
 	}
 
-	setHidden(hidden) {
-		store.dispatch(actions.viewState.update({ sidebarVisible: !hidden }));
-	}
-
 	setSort(sort) {
-		this.setState({ sort });
+		const change = { sidebarSort: sort };
+		store.dispatch(actions.viewState.update(change));
+		storeViewState(change);
 	}
 
 	setTab(tab) {
-		this.setState({ tab });
+		const change = { sidebarTab: tab };
+		store.dispatch(actions.viewState.update(change));
+		storeViewState(change);
+	}
+
+	setVisible(visible) {
+		store.dispatch(actions.viewState.update({ sidebarVisible: visible }));
+
+		// This is not stored remotely, as it follows special behavior once loaded,
+		// depending on which page you're on, and your viewport
 	}
 
 	render() {
-		const { viewState } = this.props;
-		const { sort, tab } = this.state;
+		const { viewState = {} } = this.props;
 
-		const sidebarVisible = viewState ? viewState.sidebarVisible : true;
-		const hidden = !sidebarVisible;
+		const {
+			sidebarSort: sort = "alpha",
+			sidebarTab: tab = "user",
+			sidebarVisible: visible = true
+		} = viewState;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
 			" sidebar--" + sort +
-			(hidden ? " sidebar--hidden" : "");
+			(!visible ? " sidebar--hidden" : "");
 
 		var content = null;
 
@@ -83,7 +87,7 @@ class Sidebar extends PureComponent {
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
 					<h1>Pyramid</h1>
-					<a className="sidebar__close" href="javascript://" onClick={() => this.setHidden(true)}>
+					<a className="sidebar__close" href="javascript://" onClick={() => this.setVisible(false)}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
 					<ul className="controls sidebar__controls">
@@ -143,4 +147,5 @@ Sidebar.propTypes = {
 	viewState: PropTypes.object
 };
 
+// TODO: Only connect the relevant subproperties of viewState
 export default connect(({ viewState }) => ({ viewState }))(Sidebar);

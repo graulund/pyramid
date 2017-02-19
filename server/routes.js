@@ -126,13 +126,14 @@ module.exports = function(app, main) {
 		if (accepted) {
 			res.render("index", {
 				// Variables
+				bestFriends: config.bestFriends,
+				friends: config.friends,
+				ircConfig: main.getIrcConfig(),
 				lastSeenChannels: main.lastSeenChannels(),
 				lastSeenUsers: main.lastSeenUsers(),
-				ircConfig: main.getIrcConfig(),
-				friends: config.friends,
-				bestFriends: config.bestFriends,
 				timezone: config.timeZone,
 				token: getUsedToken(req),
+				viewState: main.currentViewState(),
 				// Includes
 				moment,
 				h

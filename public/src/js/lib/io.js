@@ -139,13 +139,19 @@ export function reportHighlightAsSeen(messageId) {
 	}
 }
 
-var updateLastSeenChannels = (channelInfo) => {
-	store.dispatch(actions.lastSeenChannels.update(channelInfo));
-};
+export function storeViewState(viewState) {
+	if (socket && viewState) {
+		socket.emit("storeViewState", { viewState });
+	}
+}
 
-var updateLastSeenUsers = (userInfo) => {
+function updateLastSeenChannels(channelInfo) {
+	store.dispatch(actions.lastSeenChannels.update(channelInfo));
+}
+
+function updateLastSeenUsers(userInfo) {
 	store.dispatch(actions.lastSeenUsers.update(userInfo));
-};
+}
 
 export function initializeIo() {
 	if (window.io) {

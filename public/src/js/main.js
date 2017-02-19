@@ -13,9 +13,15 @@ import { initializeIo } from "./lib/io";
 import { updateIrcConfigs } from "./lib/ircConfigs";
 import { categoryUrl, channelUrl, homeUrl, userUrl } from "./lib/routeHelpers";
 
-// Redux
+// Data store
 
-store.dispatch(actions.viewState.update({ sidebarVisible: location.pathname === "/" }));
+var currentViewState = { sidebarVisible: location.pathname === "/" };
+
+if (window.pyramid_viewState) {
+	currentViewState = { ...currentViewState, ...window.pyramid_viewState };
+}
+
+store.dispatch(actions.viewState.update(currentViewState));
 
 if (window.pyramid_myToken) {
 	store.dispatch(actions.token.set(window.pyramid_myToken));
@@ -40,9 +46,11 @@ if (window.pyramid_lastSeenUsers) {
 	store.dispatch(actions.lastSeenUsers.update(window.pyramid_lastSeenUsers));
 }
 
+// Sockets
+
 initializeIo();
 
-// React
+// View
 
 const main = document.querySelector("main");
 

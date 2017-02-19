@@ -31,6 +31,8 @@ var cachedLastSeens = {};
 
 var unseenHighlightIds = new Set();
 
+var currentViewState = {};
+
 const setIo = function(_io) { io = _io; };
 const setIrc = function(_irc) { irc = _irc; };
 const setPlugins = function(_plugins) { plugins = _plugins; };
@@ -428,6 +430,10 @@ const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
 
+const storeViewState = function(viewState) {
+	currentViewState = lodash.assign({}, currentViewState, viewState);
+};
+
 // API
 
 module.exports = {
@@ -436,6 +442,7 @@ module.exports = {
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
+	currentViewState: () => currentViewState,
 	flushCachedLastSeens,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
 	getChannelCache: (channelUri) => channelCaches[channelUri],
@@ -460,5 +467,6 @@ module.exports = {
 	setIo,
 	setIrc,
 	setPlugins,
+	storeViewState,
 	unseenHighlightIds: () => unseenHighlightIds
 };

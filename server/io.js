@@ -282,6 +282,15 @@ module.exports = function(main) {
 				}
 			});
 
+			// Storing view state
+
+			socket.on("storeViewState", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.viewState) {
+					main.storeViewState(details.viewState);
+				}
+			});
+
 			// Sending messages
 
 			socket.on("sendMessage", (data) => {
