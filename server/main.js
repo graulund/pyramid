@@ -253,6 +253,7 @@ const handleIncomingMessage = function(
 	log.logChannelLine(channelUri, channelName, line, time);
 
 	// Don't go further if this guy is "not a person"
+	// TODO: Deprecate
 	if (config.nonPeople.indexOf(username) >= 0) {
 		return
 	}

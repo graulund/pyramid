@@ -17,7 +17,6 @@ function emitSubscribe(type, subject) {
 		socket.emit("subscribe", { [type]: subject });
 		const subscriptionName = type + ":" + subject;
 		currentSubscriptions = [ ...currentSubscriptions, subscriptionName ];
-		console.log("Current subscriptions are now:", currentSubscriptions);
 	}
 }
 
@@ -26,7 +25,6 @@ function emitUnsubscribe(type, subject) {
 		socket.emit("unsubscribe", { [type]: subject });
 		const subscriptionName = type + ":" + subject;
 		currentSubscriptions = without(currentSubscriptions, subscriptionName);
-		console.log("Current subscriptions are now:", currentSubscriptions);
 	}
 }
 
