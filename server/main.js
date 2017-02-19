@@ -131,6 +131,7 @@ const cacheCategoryMessage = function(categoryName, msg) {
 		unseenHighlightIds.add(msg.id);
 
 		if (io) {
+			io.emitNewHighlight(null, msg);
 			io.emitUnseenHighlights();
 		}
 	}

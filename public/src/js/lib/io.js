@@ -1,49 +1,64 @@
 import actions from "../actions";
 import store from "../store";
 import pull from "lodash/pull";
+import without from "lodash/without";
 
 import { CACHE_LINES } from "../constants";
+import { sendMessageNotification } from "./notifications";
 import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
 var io;
 var socket;
 
-export function subscribeToChannel(channelUrl) {
+var currentSubscriptions = [];
+
+function emitSubscribe(type, subject) {
 	if (socket) {
-		socket.emit("subscribe", { channel: channelUrl });
+		socket.emit("subscribe", { [type]: subject });
+		const subscriptionName = type + ":" + subject;
+		currentSubscriptions = [ ...currentSubscriptions, subscriptionName ];
+		console.log("Current subscriptions are now:", currentSubscriptions);
 	}
+}
+
+function emitUnsubscribe(type, subject) {
+	if (socket) {
+		socket.emit("unsubscribe", { [type]: subject });
+		const subscriptionName = type + ":" + subject;
+		currentSubscriptions = without(currentSubscriptions, subscriptionName);
+		console.log("Current subscriptions are now:", currentSubscriptions);
+	}
+}
+
+function emitCurrentSubscriptions() {
+	currentSubscriptions.forEach((sub) => {
+		const { type, subject } = sub.split(":");
+		emitSubscribe(type, subject);
+	});
+}
+
+export function subscribeToChannel(channelUrl) {
+	emitSubscribe("channel", channelUrl);
 }
 
 export function unsubscribeFromChannel(channelUrl) {
-	if (socket) {
-		socket.emit("unsubscribe", { channel: channelUrl });
-	}
+	emitUnsubscribe("channel", channelUrl);
 }
 
 export function subscribeToUser(username) {
-	if (socket) {
-		socket.emit("subscribe", { username });
-	}
+	emitSubscribe("username", username);
 }
 
 export function unsubscribeFromUser(username) {
-	if (socket) {
-		socket.emit("unsubscribe", { username });
-	}
+	emitUnsubscribe("username", username);
 }
 
 export function subscribeToCategory(categoryName) {
-	if (socket) {
-		console.log("Emitting subscribing to category", categoryName);
-		socket.emit("subscribe", { category: categoryName });
-	}
+	emitSubscribe("category", categoryName);
 }
 
 export function unsubscribeFromCategory(categoryName) {
-	if (socket) {
-		console.log("Emitting unsubscribing from category", categoryName);
-		socket.emit("unsubscribe", { category: categoryName });
-	}
+	emitUnsubscribe("category", categoryName);
 }
 
 export function sendMessage(channelUrl, message) {
@@ -108,21 +123,18 @@ export function requestLogDetailsForUsername(username) {
 
 export function requestLogFileForChannel(channelUri, time) {
 	if (socket) {
-		console.log("Requesting channel log file:", { channelUri, time });
 		socket.emit("requestChannelLogFile", { channelUri, time });
 	}
 }
 
 export function requestLogFileForUsername(username, time) {
 	if (socket) {
-		console.log("Requesting user log file:", { time, username });
 		socket.emit("requestUserLogFile", { time, username });
 	}
 }
 
 export function reportHighlightAsSeen(messageId) {
 	if (socket) {
-		console.log("Reporting message id as seen:", messageId);
 		socket.emit("reportHighlightAsSeen", { messageId });
 	}
 }
@@ -150,31 +162,34 @@ export function initializeIo() {
 		});
 
 		socket.on("error", () => {
-			console.warn("Socket connection error occurred", arguments);
+			console.warn("Socket connection error occurred");
 		});
 
 		socket.on("disconnect", () => {
-			console.warn("Socket disconnected", arguments);
+			console.warn("Socket disconnected");
 		});
 
 		socket.on("reconnect", () => {
 			console.log("Socket reconnected");
+			emitCurrentSubscriptions();
 		});
 
 		socket.on("reconnect_attempt", () => {
-			console.log("Socket attempting to reconnect", arguments);
+			console.log("Socket attempting to reconnect");
 		});
 
 		socket.on("reconnecting", () => {
-			console.log("Socket reconnecting", arguments);
+			console.log("Socket reconnecting");
 		});
 
 		socket.on("reconnect_error", () => {
-			console.warn("Socket reconnection error occurred", arguments);
+			console.warn("Socket reconnection error occurred");
 		});
 
 		socket.on("reconnect_failed", () => {
-			console.warn("Socket reconnection failed", arguments);
+			// TODO: Set up interval to try to reconnect every now and then
+			// TODO: Set up button for user to force reconnect attempt now
+			console.warn("Socket reconnection failed");
 		});
 
 		const onChatEvent = (details) => {
@@ -212,15 +227,6 @@ export function initializeIo() {
 					item: details
 				}));
 			}
-
-			// DEBUG
-			/*
-			console.log("msg", details);
-			console.log(
-				"%c" + details.username + " in " + details.channel + ": %c" +
-				details.message, "font-size: 24px; font-weight: bold", "font-size: 24px"
-			);
-			*/
 		};
 
 		socket.on("msg", onChatEvent);
@@ -232,7 +238,6 @@ export function initializeIo() {
 		socket.on("events", onChatEvent);
 
 		socket.on("channelUserList", (details) => {
-			console.log("Received channel user list event:", details);
 			if (details && details.channel && details.list) {
 				store.dispatch(actions.channelUserLists.update({
 					[details.channel]: details.list
@@ -270,7 +275,6 @@ export function initializeIo() {
 		});
 
 		socket.on("channelCache", (details) => {
-			console.log("Received channel cache!", details);
 			if (details && details.channelUri && details.cache) {
 				store.dispatch(actions.channelCaches.update({
 					[details.channelUri]: details.cache
@@ -279,7 +283,6 @@ export function initializeIo() {
 		});
 
 		socket.on("userCache", (details) => {
-			console.log("Received user cache!", details);
 			if (details && details.username && details.cache) {
 				store.dispatch(actions.userCaches.update({
 					[details.username]: details.cache
@@ -288,7 +291,6 @@ export function initializeIo() {
 		});
 
 		socket.on("categoryCache", (details) => {
-			console.log("Received category cache!", details);
 			if (details && details.categoryName && details.cache) {
 				store.dispatch(actions.categoryCaches.update({
 					[details.categoryName]: details.cache
@@ -297,7 +299,6 @@ export function initializeIo() {
 		});
 
 		socket.on("channelLogDetails", (details) => {
-			console.log("Received channel log details!", details);
 			if (details && details.channelUri && details.details) {
 				store.dispatch(actions.logDetails.update({
 					["channel:" + details.channelUri]: details.details
@@ -306,7 +307,6 @@ export function initializeIo() {
 		});
 
 		socket.on("userLogDetails", (details) => {
-			console.log("Received user log details!", details);
 			if (details && details.username && details.details) {
 				store.dispatch(actions.logDetails.update({
 					["user:" + details.username]: details.details
@@ -315,7 +315,6 @@ export function initializeIo() {
 		});
 
 		socket.on("channelLogFile", (details) => {
-			console.log("Received channel log file!", details);
 			if (details && details.channelUri && details.file && details.time) {
 				store.dispatch(actions.logFiles.update({
 					["channel:" + details.channelUri]: {
@@ -326,7 +325,6 @@ export function initializeIo() {
 		});
 
 		socket.on("userLogFile", (details) => {
-			console.log("Received user log file!", details);
 			if (details && details.username && details.file && details.time) {
 				store.dispatch(actions.logFiles.update({
 					["user:" + details.username]: {
@@ -337,12 +335,16 @@ export function initializeIo() {
 		});
 
 		socket.on("unseenHighlights", (details) => {
-			console.log("Received unseen highlights event:", details);
-			if (details.list) {
+			if (details && details.list) {
 				store.dispatch(actions.unseenHighlights.set(details.list));
 			}
 		});
 
-		window.socket = socket; // tmp
+		socket.on("newHighlight", (details) => {
+			if (details && details.message) {
+				// TODO: Don't alert if the window is in focus and you're viewing a source where this appears
+				sendMessageNotification(details.message);
+			}
+		});
 	}
 }

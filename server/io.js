@@ -132,6 +132,18 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitNewHighlight = function(socket, message) {
+		if (!socket) {
+			socket = io;
+		}
+		if (socket) {
+			socket.emit(
+				"newHighlight",
+				{ message }
+			);
+		}
+	};
+
 	const emitChannelUserListToRecipients = function(channelUri) {
 		emitEventToChannel(channelUri, "channelUserList", {
 			channel: channelUri,
@@ -308,6 +320,7 @@ module.exports = function(main) {
 		emitChannelUserListToRecipients,
 		emitEventToChannel,
 		emitMessageToRecipients,
+		emitNewHighlight,
 		emitUnseenHighlights,
 		setServer
 	};

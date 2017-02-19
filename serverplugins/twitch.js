@@ -25,6 +25,8 @@ const EXTERNAL_CHANNEL_EMOTE_ENDPOINTS = [
 	{ type: "bttv", prefix: "https://api.betterttv.net/2/channels/" }
 ];
 
+const ASTRAL_SYMBOLS_REGEX = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+
 var emoticonImages = {};
 var roomStates = {};
 var userStates = {};
@@ -59,6 +61,11 @@ const rangesOverlay = function (x1, x2, y1, y2) {
 	}
 
 	return low1 <= high2 && high1 <= low2;
+};
+
+const stringWithoutAstralSymbols = function(str) {
+	// Prevent index issues when astral symbols are involved in index-generating routine
+	return str.replace(ASTRAL_SYMBOLS_REGEX, "_");
 };
 
 // Emoticons in messages ----------------------------------------------------------------
@@ -117,7 +124,7 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 				const indices = [];
 				const rgx = generateEmoteRegex(emote.code);
 
-				while ((result = rgx.exec(message)) !== null) {
+				while ((result = rgx.exec(stringWithoutAstralSymbols(message))) !== null) {
 
 					// Calculate indices for this occurrence
 					const prefix = result[1], code = result[2], suffix = result[3];

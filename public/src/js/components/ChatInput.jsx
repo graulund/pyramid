@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
 import moment from "moment";
 
+import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem, sendMessage } from "../lib/io";
 
 const YOUNG_MESSAGE_MS = 1800000;
@@ -84,11 +85,19 @@ class ChatInput extends Component {
 
 	onChange() {
 		this.resetCurrentHistory();
+
+		const { input: inputEl } = this.refs;
+		if (inputEl && inputEl.value) {
+			inputEl.value = convertCodesToEmojis(inputEl.value);
+		}
 	}
 
 	onKeyDown(evt) {
 		const { channel } = this.props;
 		const { input: inputEl } = this.refs;
+
+		// Note: These things are in the keydown event because they are not acting
+		// correctly when they are in keyup.
 
 		if (
 			channel &&
@@ -107,6 +116,7 @@ class ChatInput extends Component {
 			) {
 
 				// Tab complete handling
+
 				if (nevt.keyCode === 9 && val) {
 					evt.preventDefault();
 					const tokens = val.replace(TAB_COMPLETE_CLEAN_REGEX, "").split(/\b/);
@@ -148,6 +158,8 @@ class ChatInput extends Component {
 						return;
 					}
 				}
+
+				// Arrow up-down history handling
 
 				else if (nevt.keyCode === 38 || nevt.keyCode === 40) {
 					const direction = nevt.keyCode === 38 ? "back" : "forward";
