@@ -306,7 +306,6 @@ const requestExternalGlobalEmoticons = function() {
 									type, externalGlobalEmotes, data.sets[setId].emoticons
 								);
 								console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
-								//console.log(externalGlobalEmotes);
 							}
 						})
 					}
@@ -316,7 +315,6 @@ const requestExternalGlobalEmoticons = function() {
 							type, externalGlobalEmotes, data.emotes
 						);
 						console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
-						//console.log(externalGlobalEmotes);
 					}
 				}
 				catch(e) {
@@ -343,7 +341,6 @@ const requestExternalChannelEmoticons = function(channel) {
 		}
 
 		EXTERNAL_CHANNEL_EMOTE_ENDPOINTS.forEach(({ type, prefix }) => {
-			console.log("Requesting " + prefix + channelName);
 			request(prefix + channelName, (error, response, body) => {
 				if (!error && response.statusCode === 200) {
 					try {
@@ -364,7 +361,6 @@ const requestExternalChannelEmoticons = function(channel) {
 							});
 
 							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
-							//console.log(externalChannelEmotes[channel]);
 						}
 						else if (data.emotes) {
 							// BTTV
@@ -373,7 +369,6 @@ const requestExternalChannelEmoticons = function(channel) {
 							);
 
 							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
-							//console.log(externalChannelEmotes[channel]);
 						}
 					}
 					catch(e) {

@@ -43,6 +43,8 @@ class TimedItem extends PureComponent {
 					}
 				}
 			});
+
+			this.handleWideSts();
 		}
 	}
 
@@ -55,6 +57,27 @@ class TimedItem extends PureComponent {
 				// Do a lil' flash!
 				this.flash();
 			}
+		}
+	}
+
+	componentDidUpdate() {
+		this.handleWideSts();
+	}
+
+	handleWideSts() {
+		// Handle abnormally long strings in the STS
+		if (this.root) {
+			if (this.stStr && this.stStr.length > 6) {
+				if (this.refs.sts) {
+					const stsWidth = this.refs.sts.getBoundingClientRect().width;
+					if (stsWidth > 35) {
+						this.root.style.paddingRight = (stsWidth + 15) + "px";
+						return;
+					}
+				}
+			}
+
+			this.root.style.paddingRight = "";
 		}
 	}
 
@@ -73,18 +96,16 @@ class TimedItem extends PureComponent {
 		var sts = m.format("H:mm");
 		const ym = moment().subtract(1, "days").startOf("day");
 
-		if(timeInfo.day === 1 && ym < m){
+		if (timeInfo.day === 1 && ym < m) {
 			sts = "yesterday " + sts;
 		}
 
 		// If the date is before yesterday midnight, it's earlier than yesterday.
-		if(ym > m){
+		if (ym > m) {
 			sts = "";
 		}
 
 		return sts;
-
-		// TODO: Fix right padding in item so it varies
 	}
 
 	renderClassName(flashing = false) {

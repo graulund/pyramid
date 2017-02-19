@@ -58,6 +58,16 @@ export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
 	};
 }
 
+export function minuteTime(timeStamp) {
+	// Less granularity
+
+	if (typeof timeStamp === "string") {
+		return timeStamp.replace(/T([0-9]+:[0-9]+)([:.0-9]*)/, "T$1");
+	}
+
+	return timeStamp;
+}
+
 export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
 }

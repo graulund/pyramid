@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 
 import TimedChannelItem from "./TimedChannelItem.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
+import { minuteTime } from "../lib/formatting";
 
 class ChannelList extends PureComponent {
 	render() {
@@ -49,7 +50,9 @@ class ChannelList extends PureComponent {
 			// Sorting by last activity
 			ircChannels.sort((a, b) => {
 				if (a && b) {
-					var sort = -1 * a.lastSeen.time.localeCompare(b.lastSeen.time);
+					var sort = -1 * minuteTime(a.lastSeen.time).localeCompare(
+						minuteTime(b.lastSeen.time)
+					);
 
 					if (sort === 0) {
 						// Sort by channel name as a backup

@@ -1,5 +1,7 @@
 import React, { PureComponent, PropTypes } from "react";
 
+import { stickToTheBottom } from "../lib/visualBehavior";
+
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
 const EMOTE_FFZ_IMG_URL_ROOT = "//cdn.frankerfacez.com/emoticon/";
 const EMOTE_BTTV_IMG_URL_ROOT = "//cdn.betterttv.net/emote/";
@@ -32,7 +34,8 @@ const getEmoticonUrlsets = (emote) => {
 			output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
 			output.srcSet = [
 				EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
-				EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x"
+				EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x",
+				EMOTE_IMG_URL_ROOT + emote.id + "/3.0 3x"
 			];
 	}
 
@@ -49,6 +52,7 @@ class TwitchMessageLine extends PureComponent {
 			alt={emoteText}
 			title={emoteText}
 			key={`emote-${emoteKey}`}
+			onLoad={() => stickToTheBottom()}
 			/>;
 	}
 

@@ -1,22 +1,28 @@
 import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
-import escapeStringRegexp from "escape-string-regexp";
+import escapeRegExp from "lodash/escapeRegExp";
+import moment from "moment";
 
-import { sendMessage } from "../lib/io";
+import { cacheItem, sendMessage } from "../lib/io";
+
+const YOUNG_MESSAGE_MS = 1800000;
 
 const TAB_COMPLETE_INITIAL_SUFFIX = ", ";
 const TAB_COMPLETE_DEFAULT_SUFFIX = " ";
 
 const TAB_COMPLETE_CLEAN_REGEX = new RegExp(
-	"(" + escapeStringRegexp(TAB_COMPLETE_INITIAL_SUFFIX) + "|" +
-	escapeStringRegexp(TAB_COMPLETE_DEFAULT_SUFFIX) + ")$"
+	"(" + escapeRegExp(TAB_COMPLETE_INITIAL_SUFFIX) + "|" +
+	escapeRegExp(TAB_COMPLETE_DEFAULT_SUFFIX) + ")$"
 );
+
+var inputHistory = {}, currentInput = "", currentHistoryIndex = -1;
 
 class ChatInput extends Component {
 
 	constructor(props) {
 		super(props);
 
+		this.onChange = this.onChange.bind(this);
 		this.onKeyDown = this.onKeyDown.bind(this);
 		this.onKeyUp = this.onKeyUp.bind(this);
 		this.submit = this.submit.bind(this);
@@ -35,18 +41,49 @@ class ChatInput extends Component {
 		return false;
 	}
 
+	componentWillReceiveProps(newProps) {
+		if (newProps) {
+			if (newProps.channel !== this.props.channel) {
+				this.resetCurrentHistory();
+			}
+		}
+	}
+
 	currentUserNames() {
-		const { channel, channelUserLists } = this.props;
+		const { channel, channelCaches, channelUserLists } = this.props;
+
+		var userNames = [];
+
+		// Read from user list
 		if (channelUserLists[channel]) {
-			var userNames = Object.keys(channelUserLists[channel]);
-			userNames.sort();
-			return userNames;
+			userNames = Object.keys(channelUserLists[channel]);
 		}
 
-		// TODO: Consider including the authors of the messages in current channel cache?
-		// TODO: Sorting?
+		// Add missing users by reading the cache directly
+		if (channelCaches[channel] && channelCaches[channel].length) {
+			const now = moment();
+			channelCaches[channel].forEach((evt) => {
+				if (evt && evt.username && evt.time) {
+					if (
+						now.diff(evt.time) <= YOUNG_MESSAGE_MS &&
+						userNames.indexOf(evt.username) < 0
+					) {
+						userNames.push(evt.username);
+					}
+				}
+			});
+		}
 
-		return [];
+		userNames.sort();
+		return userNames;
+
+		// TODO: More clever sorting?
+		// * Most recently speaking first?
+		// * The ones you talked to more recently first?
+	}
+
+	onChange() {
+		this.resetCurrentHistory();
 	}
 
 	onKeyDown(evt) {
@@ -56,58 +93,104 @@ class ChatInput extends Component {
 		if (
 			channel &&
 			inputEl &&
-			inputEl.value &&
 			evt &&
 			evt.nativeEvent
 		) {
 			const val = inputEl.value;
 			const nevt = evt.nativeEvent;
 
-			// Tab complete handling
 			if (
-				nevt.keyCode === 9 &&
 				!nevt.altKey &&
 				!nevt.ctrlKey &&
 				!nevt.metaKey &&
 				!nevt.shiftKey
 			) {
-				evt.preventDefault();
-				const tokens = val.replace(TAB_COMPLETE_CLEAN_REGEX, "").split(/\b/);
 
-				if (tokens && tokens.length) {
+				// Tab complete handling
+				if (nevt.keyCode === 9 && val) {
+					evt.preventDefault();
+					const tokens = val.replace(TAB_COMPLETE_CLEAN_REGEX, "").split(/\b/);
 
-					const last = tokens.length-1;
-					const suffix = last === 0
-						? TAB_COMPLETE_INITIAL_SUFFIX
-						: TAB_COMPLETE_DEFAULT_SUFFIX;
+					if (tokens && tokens.length) {
 
-					if (!this.currentCyclingNames) {
+						const last = tokens.length-1;
+						const suffix = last === 0
+							? TAB_COMPLETE_INITIAL_SUFFIX
+							: TAB_COMPLETE_DEFAULT_SUFFIX;
 
-						// Initiate the list of names we're currently cycling over
-						const currentNames = this.currentUserNames();
-						const lastToken = tokens[last].toLowerCase();
+						if (!this.currentCyclingNames) {
 
-						const matchingNames = currentNames.filter(
-							(n) => n.slice(0, lastToken.length).toLowerCase() === lastToken
-						);
-						this.currentCyclingNames = matchingNames.length ? matchingNames : null;
-						this.currentCyclingOffset = 0;
+							// Initiate the list of names we're currently cycling over
+							const currentNames = this.currentUserNames();
+							const lastToken = tokens[last].toLowerCase();
 
-					} else {
+							const matchingNames = currentNames.filter(
+								(n) => n.slice(0, lastToken.length).toLowerCase() === lastToken
+							);
+							this.currentCyclingNames = matchingNames.length ? matchingNames : null;
+							this.currentCyclingOffset = 0;
 
-						// Bump offset
-						this.currentCyclingOffset =
-							(this.currentCyclingOffset + 1) %
-								this.currentCyclingNames.length;
+						} else {
+
+							// Bump offset
+							this.currentCyclingOffset =
+								(this.currentCyclingOffset + 1) %
+									this.currentCyclingNames.length;
+						}
+
+						if (this.currentCyclingNames) {
+							tokens[last] =
+								this.currentCyclingNames[this.currentCyclingOffset] +
+								suffix;
+							inputEl.value = tokens.join("");
+							this.resetCurrentHistory();
+						}
+						return;
 					}
+				}
 
-					if (this.currentCyclingNames) {
-						tokens[last] =
-							this.currentCyclingNames[this.currentCyclingOffset] +
-							suffix;
-						inputEl.value = tokens.join("");
+				else if (nevt.keyCode === 38 || nevt.keyCode === 40) {
+					const direction = nevt.keyCode === 38 ? "back" : "forward";
+					const origHistory = inputHistory[channel];
+					var next;
+
+					if (origHistory && origHistory.length) {
+						evt.preventDefault();
+
+						const history = currentInput
+							? [ ...origHistory, currentInput ]
+							: origHistory;
+
+						if (direction === "back") {
+							if (currentHistoryIndex < 0) {
+								next = origHistory.length - 1;
+							}
+							else if (currentHistoryIndex === 0) {
+								next = -1;
+							}
+							else {
+								next = currentHistoryIndex - 1;
+							}
+						}
+						else if (currentHistoryIndex >= 0) {
+							if (currentHistoryIndex === origHistory.length - 1) {
+								next = -1;
+							}
+							else {
+								next = (currentHistoryIndex + 1);
+							}
+						}
+
+						if (typeof next === "number") {
+							currentHistoryIndex = next >= origHistory.length ? -1 : next;
+							if (next < 0) {
+								inputEl.value = currentInput || "";
+							}
+							else {
+								inputEl.value = history[next] || "";
+							}
+						}
 					}
-					return;
 				}
 			}
 		}
@@ -124,11 +207,30 @@ class ChatInput extends Component {
 			channel &&
 			inputEl &&
 			evt &&
-			evt.nativeEvent &&
-			evt.nativeEvent.keyCode === 13
+			evt.nativeEvent
 		) {
-			this.submit();
+			const nevt = evt.nativeEvent;
+			if (nevt.keyCode === 13) {
+				if (
+					!nevt.altKey &&
+					!nevt.ctrlKey &&
+					!nevt.metaKey &&
+					!nevt.shiftKey &&
+					inputEl.value
+				) {
+					this.submit();
+				}
+			}
 		}
+	}
+
+	resetCurrentHistory() {
+		// Call if the contents of the field has been edited
+
+		const { input: inputEl } = this.refs;
+
+		currentInput = inputEl && inputEl.value || "";
+		currentHistoryIndex = -1;
 	}
 
 	submit(evt) {
@@ -141,8 +243,17 @@ class ChatInput extends Component {
 
 		if (channel && inputEl) {
 			const message = inputEl.value;
+
+			// Clean up
 			inputEl.value = "";
+			this.resetCurrentHistory();
+
+			// Send and store
 			sendMessage(channel, message);
+			inputHistory[channel] = cacheItem(
+				inputHistory[channel] || [],
+				message
+			);
 		}
 	}
 
@@ -152,6 +263,7 @@ class ChatInput extends Component {
 				<input
 					type="text"
 					ref="input"
+					onChange={this.onChange}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
 					tabIndex={0}
@@ -164,12 +276,15 @@ class ChatInput extends Component {
 }
 
 ChatInput.propTypes = {
+	channelCaches: PropTypes.object,
 	channelUserLists: PropTypes.object,
 	channel: PropTypes.string
 };
 
 export default connect(({
+	channelCaches,
 	channelUserLists
 }) => ({
+	channelCaches,
 	channelUserLists
 }))(ChatInput);

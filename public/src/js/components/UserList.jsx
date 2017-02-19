@@ -2,6 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 
 import TimedUserItem from "./TimedUserItem.jsx";
+import { minuteTime } from "../lib/formatting";
 
 class UserList extends PureComponent {
 	render() {
@@ -20,7 +21,7 @@ class UserList extends PureComponent {
 			}
 			datas.sort((a, b) => {
 				if (a && b) {
-					return -1 * a.time.localeCompare(b.time);
+					return -1 * minuteTime(a.time).localeCompare(minuteTime(b.time));
 				}
 				return 1;
 			});
