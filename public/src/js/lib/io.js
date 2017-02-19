@@ -149,6 +149,34 @@ export function initializeIo() {
 			}
 		});
 
+		socket.on("error", () => {
+			console.warn("Socket connection error occurred", arguments);
+		});
+
+		socket.on("disconnect", () => {
+			console.warn("Socket disconnected", arguments);
+		});
+
+		socket.on("reconnect", () => {
+			console.log("Socket reconnected");
+		});
+
+		socket.on("reconnect_attempt", () => {
+			console.log("Socket attempting to reconnect", arguments);
+		});
+
+		socket.on("reconnecting", () => {
+			console.log("Socket reconnecting", arguments);
+		});
+
+		socket.on("reconnect_error", () => {
+			console.warn("Socket reconnection error occurred", arguments);
+		});
+
+		socket.on("reconnect_failed", () => {
+			console.warn("Socket reconnection failed", arguments);
+		});
+
 		const onChatEvent = (details) => {
 			const { channel, highlight, relationship, type, username } = details;
 

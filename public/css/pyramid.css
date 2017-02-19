@@ -377,7 +377,7 @@ ul.statsuserlist {
 	display: none;
 	position: absolute;
 	top: 12px;
-	left: 0;
+	right: 10px;
 }
 
 .sidebar__open {
@@ -650,6 +650,10 @@ ul.statsuserlist {
 
 	.sidebar__close {
 		display: block;
+	}
+
+	.sidebar__controls {
+		right: 40px;
 	}
 
 	.sidebar__tabs {
