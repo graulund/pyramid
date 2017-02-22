@@ -3,6 +3,9 @@
 // Main app service
 const main = require("./server/main");
 
+// Feed app into DB service
+require("./server/db")(main);
+
 // Feed app into plugin service
 require("./server/plugins")(main);
 

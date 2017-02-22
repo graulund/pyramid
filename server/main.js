@@ -5,14 +5,14 @@ const lodash = require("lodash");
 const long   = require("long");
 const uuid   = require("uuid");
 
-const config = require("../config");
+//const config = require("../config");
 const constants = require("./constants");
 const log = require("./log");
 const util = require("./util");
 
 // Application state
 
-var io, irc, plugins;
+var db, io, irc, plugins;
 
 var lastSeenChannels = log.loadLastSeenChannels();
 var lastSeenUsers = log.loadLastSeenUsers();
@@ -33,6 +33,7 @@ var unseenHighlightIds = new Set();
 
 var currentViewState = {};
 
+const setDb = function(_db) { db = _db; };
 const setIo = function(_io) { io = _io; };
 const setIrc = function(_irc) { irc = _irc; };
 const setPlugins = function(_plugins) { plugins = _plugins; };
@@ -252,12 +253,6 @@ const handleIncomingMessage = function(
 	// Log the line!
 	log.logChannelLine(channelUri, channelName, line, time);
 
-	// Don't go further if this guy is "not a person"
-	// TODO: Deprecate
-	if (config.nonPeople.indexOf(username) >= 0) {
-		return
-	}
-
 	// Is this from a person among our friends? Note down "last seen" time.
 
 	const relationship = util.getRelationship(username);
@@ -416,23 +411,26 @@ const reportHighlightAsSeen = function(messageId) {
 		}
 	}
 };
-
-const getIrcConfig = function() {
-	var ircConfig = lodash.cloneDeep(config.irc);
-	return ircConfig.map((item) => {
-		if (item) {
-			delete item.password;
-		}
-		return item;
-	})
-};
-
 const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
 
 const storeViewState = function(viewState) {
 	currentViewState = lodash.assign({}, currentViewState, viewState);
+};
+
+// Load configuration
+
+const getIrcConfig = function(callback) {
+	db.getIrcConfig(callback);
+};
+
+const getConfigValue = (name, callback) => {
+	db.getConfigValue(name, callback);
+};
+
+const getAllConfigValues = (callback) => {
+	db.getAllConfigValues(callback);
 };
 
 // API
@@ -445,10 +443,12 @@ module.exports = {
 	clearCachedLastSeens,
 	currentViewState: () => currentViewState,
 	flushCachedLastSeens,
+	getAllConfigValues,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
 	getChannelCache: (channelUri) => channelCaches[channelUri],
 	getChannelRecipients: (channelUri) => channelRecipients[channelUri],
 	getChannelUserList: (channelUri) => channelUserLists[channelUri],
+	getConfigValue,
 	getIrcConfig,
 	getUserCache: (username) => userCaches[username],
 	getUserCurrentSymbol,
@@ -465,6 +465,7 @@ module.exports = {
 	reportHighlightAsSeen,
 	sendOutgoingMessage,
 	setChannelUserList,
+	setDb,
 	setIo,
 	setIrc,
 	setPlugins,

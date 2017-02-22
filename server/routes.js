@@ -1,6 +1,7 @@
 // PYRAMID
 // Routes module
 
+const async = require("async");
 const moment = require("moment-timezone");
 const cookie = require("cookie");
 
@@ -124,20 +125,32 @@ module.exports = function(app, main) {
 	app.get("*", function(req, res) {
 		const accepted = denyAccessWithoutToken(req, res);
 		if (accepted) {
-			res.render("index", {
-				// Variables
-				bestFriends: config.bestFriends,
-				friends: config.friends,
-				ircConfig: main.getIrcConfig(),
-				lastSeenChannels: main.lastSeenChannels(),
-				lastSeenUsers: main.lastSeenUsers(),
-				timezone: config.timeZone,
-				token: getUsedToken(req),
-				viewState: main.currentViewState(),
-				// Includes
-				moment,
-				h
+			async.parallel({
+				ircConfig: main.getIrcConfig,
+				allConfigs: main.getAllConfigValues
+			}, function(err, results) {
+				if (err) {
+					// TODO: handle lol
+					throw err;
+				}
+
+				res.render("index", {
+					// Variables
+					allConfigs: results.allConfigs,
+					bestFriends: config.bestFriends, // TODO convert
+					friends: config.friends, // TODO convert
+					ircConfig: results.ircConfig,
+					lastSeenChannels: main.lastSeenChannels(),
+					lastSeenUsers: main.lastSeenUsers(),
+					timezone: config.timeZone, // TODO deprecated
+					token: getUsedToken(req),
+					viewState: main.currentViewState(),
+					// Includes
+					moment,
+					h
+				});
 			});
+
 		}
 	});
 }
