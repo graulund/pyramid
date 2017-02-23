@@ -114,14 +114,17 @@ const generateAcceptedToken = function(length = 60) {
 
 // Relationship utilities
 
-const getRelationship = function(username) {
+const getRelationship = function(username, friendsList) {
 	username = username.toLowerCase();
 	var relationship = constants.RELATIONSHIP_NONE;
 
-	allFriends = allFriends || config.bestFriends.concat(config.friends);
+	const bestFriends = friendsList[constants.RELATIONSHIP_BEST_FRIEND] || [];
+	const friends = friendsList[constants.RELATIONSHIP_FRIEND] || [];
+
+	allFriends = allFriends || bestFriends.concat(friends);
 
 	if (allFriends.indexOf(username) >= 0) {
-		var isBestFriend = config.bestFriends.indexOf(username) >= 0;
+		var isBestFriend = bestFriends.indexOf(username) >= 0;
 		relationship = isBestFriend
 			? constants.RELATIONSHIP_BEST_FRIEND
 			: constants.RELATIONSHIP_FRIEND;

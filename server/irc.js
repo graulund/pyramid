@@ -309,10 +309,10 @@ module.exports = function(main) {
 		const ircConfig = main.currentIrcConfig();
 		for (i = 0; i < ircConfig.length; i++) {
 			var cf = ircConfig[i];
-			console.log("Connecting to " + cf.server + " as " + cf.username);
+			console.log("Connecting to " + cf.hostname + " as " + cf.nickname);
 
 			var c = new irc.Client(
-				cf.hostname, cf.username, // TODO: Should this be nickname?
+				cf.hostname, cf.nickname,
 				{
 					channels:    convertChannelObjects(cf.channels),
 					port:        cf.port || 6667,

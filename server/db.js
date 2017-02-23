@@ -247,7 +247,14 @@ module.exports = function(main) {
 		db.get(
 			sq("config", ["value"], ["name"]),
 			dollarize({ name }),
-			callback
+			(err, row) => {
+				if (err) {
+					callback(err);
+				}
+				else {
+					callback(null, JSON.parse(row.value));
+				}
+			}
 		);
 	};
 
@@ -259,7 +266,11 @@ module.exports = function(main) {
 					callback(err);
 				}
 				else {
-					callback(null, nameValueRowsToObject(rows));
+					var obj = nameValueRowsToObject(rows);
+					lodash.forOwn(obj, (value, key) => {
+						obj[key] = JSON.parse(value);
+					});
+					callback(null, obj);
 				}
 			}
 		);
@@ -269,7 +280,7 @@ module.exports = function(main) {
 		upsert(
 			uq("config", ["value"], ["name"]),
 			iq("config", ["name", "value"]),
-			dollarize({ name, value }),
+			dollarize({ name, value: JSON.stringify(value) }),
 			callback
 		);
 	};
@@ -460,10 +471,10 @@ module.exports = function(main) {
 				friends.forEach((friend, i) => {
 					const { isBestFriend, username } = friend;
 					if (isBestFriend) {
-						friendsList[constants.RELATIONSHIP_BEST_FRIEND].push(friend);
+						friendsList[constants.RELATIONSHIP_BEST_FRIEND].push(username);
 					}
 					else {
-						friendsList[constants.RELATIONSHIP_FRIEND].push(friend);
+						friendsList[constants.RELATIONSHIP_FRIEND].push(username);
 					}
 				});
 

@@ -4,6 +4,7 @@
 const async = require("async");
 const moment = require("moment-timezone");
 const cookie = require("cookie");
+const lodash = require("lodash");
 
 const constants = require("./constants");
 const util = require("./util");
@@ -143,8 +144,8 @@ module.exports = function(app, main) {
 					token: getUsedToken(req),
 					viewState: main.currentViewState(),
 					// Includes
-					moment,
-					h
+					constants,
+					lodash
 				});
 			});
 

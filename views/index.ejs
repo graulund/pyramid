@@ -2,16 +2,15 @@
 	// PYRAMID
 	// Index page
 
-	const constants = require("../server/constants");
-
-	var friendsList = {
-		[constants.RELATIONSHIP_FRIEND]: friends,
-		[constants.RELATIONSHIP_BEST_FRIEND]: bestFriends
-	};
-
 	var ircConfigDict = {};
 	ircConfig.forEach((config) => {
-		ircConfigDict[config.name] = config;
+		var outConfig = lodash.omit(config, ["password"]);
+		if (outConfig.channels) {
+			outConfig.channels.forEach((val, i) => {
+				outConfig.channels[i] = val.name;
+			});
+		}
+		ircConfigDict[config.name] = outConfig;
 	});
 
 	var inscriptEscape = (str) => {

@@ -347,7 +347,7 @@ const handleIncomingMessage = function(
 
 	// Is this from a person among our friends? Note down "last seen" time.
 
-	const relationship = util.getRelationship(username);
+	const relationship = util.getRelationship(username, currentFriendsList);
 
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		// Add to specific logs
@@ -431,7 +431,7 @@ const handleIncomingEvent = function(
 		channel: channelUri,
 		channelName,
 		id: uuid.v4(),
-		relationship: data && data.username && util.getRelationship(data.username),
+		relationship: data && data.username && util.getRelationship(data.username, currentFriendsList),
 		server: serverName,
 		time: time || new Date(),
 		type
