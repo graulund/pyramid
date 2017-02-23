@@ -296,45 +296,56 @@ module.exports = function(main) {
 		});
 	};
 
+	const convertChannelObjects = (channels) => {
+		return channels.map((channel) => {
+			return "#" + channel.name;
+		});
+	}
+
 	// Set up clients
 
-	for(i = 0; i < config.irc.length; i++){
-		var cf = config.irc[i];
-		console.log("Connecting to " + cf.server + " as " + cf.username);
+	const go = () => {
+		const appConfig = main.currentAppConfig();
+		const ircConfig = main.currentIrcConfig();
+		for (i = 0; i < ircConfig.length; i++) {
+			var cf = ircConfig[i];
+			console.log("Connecting to " + cf.server + " as " + cf.username);
 
-		var c = new irc.Client(
-			cf.server, cf.username,
-			{
-				channels:    cf.channels,
-				port:        cf.port || 6667,
-				userName:    cf.username,
-				realName:    cf.realname || cf.username,
-				password:    cf.password || "",
-				secure:      cf.secure || false,
-				selfSigned:  cf.selfSigned || false,
-				certExpired: cf.certExpired || false,
-				debug:       config.debug,
-				showErrors:  config.debug,
-				retryCount:  999
-			}
-		);
-		c.extConfig = cf;
-		clients.push(c);
-	}
-
-	calibrateMultiServerChannels();
-
-	for (i = 0; i < clients.length; i++) {
-		var client = clients[i];
-		if (client) {
-			setUpClient(client);
+			var c = new irc.Client(
+				cf.hostname, cf.username, // TODO: Should this be nickname?
+				{
+					channels:    convertChannelObjects(cf.channels),
+					port:        cf.port || 6667,
+					userName:    cf.username,
+					realName:    cf.realname || cf.username,
+					password:    cf.password || "",
+					secure:      cf.secure || false,
+					selfSigned:  cf.selfSigned || false,
+					certExpired: cf.certExpired || false,
+					debug:       appConfig.debug || false,
+					showErrors:  appConfig.debug || false,
+					retryCount:  999
+				}
+			);
+			c.extConfig = cf;
+			clients.push(c);
 		}
-	}
+
+		calibrateMultiServerChannels();
+
+		for (i = 0; i < clients.length; i++) {
+			var client = clients[i];
+			if (client) {
+				setUpClient(client);
+			}
+		}
+	};
 
 	// Exported objects and methods
 	const output = {
-		client,
+		clients,
 		calibrateMultiServerChannels,
+		go,
 		sendOutgoingMessage
 	};
 

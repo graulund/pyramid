@@ -1,31 +1,31 @@
 <%
-    // PYRAMID
-    // Index page
+	// PYRAMID
+	// Index page
 
-    const RELATIONSHIP_FRIEND = 1; // TODO: Don't redefine
-    const RELATIONSHIP_BEST_FRIEND = 2;
+	const constants = require("../server/constants");
 
-    var friendsList = {
-        [RELATIONSHIP_FRIEND]: friends,
-        [RELATIONSHIP_BEST_FRIEND]: bestFriends
-    };
+	var friendsList = {
+		[constants.RELATIONSHIP_FRIEND]: friends,
+		[constants.RELATIONSHIP_BEST_FRIEND]: bestFriends
+	};
 
-    var ircConfigDict = {};
-    ircConfig.forEach((config) => {
-        ircConfigDict[config.name] = config;
-    });
+	var ircConfigDict = {};
+	ircConfig.forEach((config) => {
+		ircConfigDict[config.name] = config;
+	});
 
-    var inscriptEscape = (str) => {
-        return str.replace(/<\/script/g, "\\x3c/script");
-    };
+	var inscriptEscape = (str) => {
+		return str.replace(/<\/script/g, "\\x3c/script");
+	};
 %>
 <script>
-    var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
-    var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
-    var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfigDict)) %>;
-    var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
-    var pyramid_lastSeenUsers = <%- inscriptEscape(JSON.stringify(lastSeenUsers)) %>;
-    var pyramid_viewState = <%- inscriptEscape(JSON.stringify(viewState)) %>;
+	var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
+	var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
+	var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfigDict)) %>;
+	var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
+	var pyramid_lastSeenUsers = <%- inscriptEscape(JSON.stringify(lastSeenUsers)) %>;
+	var pyramid_viewState = <%- inscriptEscape(JSON.stringify(viewState)) %>;
+	var pyramid_appConfig = <%- inscriptEscape(JSON.stringify(appConfig)) %>;
 </script>
 <main></main>
 <noscript>Please <strong>turn JavaScript on</strong> to experience Pyramid. Sorry about that.</noscript>

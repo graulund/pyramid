@@ -9,7 +9,6 @@ const lazy   = require("lazy");
 const async  = require("async");
 const lodash = require("lodash");
 
-const config = require("../config");
 const constants = require("./constants");
 const util = require("./util");
 
@@ -269,7 +268,7 @@ var getLastLinesFromUser = function(username, options, done) {
 			return
 		}
 
-		data = data.toString(config.encoding)
+		data = data.toString(constants.FILE_ENCODING)
 
 		var lines = data.split("\n")
 
@@ -290,7 +289,7 @@ var getLinesForFile = function(filePath, date, done) {
 			return;
 		}
 
-		data = data.toString(config.encoding);
+		data = data.toString(constants.FILE_ENCODING);
 		const lines = convertLogFileToLineObjects(data, date);
 		done(null, lines);
 	});
@@ -431,104 +430,6 @@ var convertLogFileToLineObjects = function(data, date) {
 	return lines
 };
 
-var statsFromFile = function(channel, month, logFileName, done){
-
-	console.log("Checking out " + logFileName)
-
-	// Gather the file path
-	var filePath = path.join(LOG_ROOT, channel, month, logFileName.toLowerCase() + ".txt")
-
-	// Only continue if this file exists
-	fs.exists(filePath, function(exists){
-
-		// Return if it doesn't exist
-		if(!exists){
-			done(null, null)
-			return
-		}
-
-		// Extract date from log file name if applicable
-		var fnDate = /^[0-9-]+$/.test(logFileName) ? logFileName : ""
-
-		// The output
-		var userCounts = {}
-
-		// Let's do it!
-		new lazy(fs.createReadStream(filePath))
-			.lines
-			.forEach(
-				function(line){
-					var l = parseLogLine(line.toString(config.encoding), fnDate)
-					if(l.type == "msg"){
-
-						var from = l.from.toLowerCase();
-						if (config.nonPeople.indexOf(from) >= 0) {
-							return;
-						}
-
-						if (!(from in userCounts)) {
-							userCounts[from] = 0;
-						}
-						userCounts[from]++;
-					}
-				}
-			)
-			.on("pipe", function(){
-				console.log("Got values for " + logFileName) //DEBUG
-
-				// It ended!
-				done(null, userCounts)
-			})
-	})
-}
-
-var statsFromFileWithArray = function(args, done){
-	statsFromFile(args[0], args[1], args[2], done)
-}
-
-var statsFromDays = function(channel, firstDay, lastDay, done){
-
-	var first = moment(firstDay)
-	var now   = moment(lastDay)
-
-	if(!first.isValid() || !now.isValid()){
-		return false
-	}
-
-	// Preparing args for the methods
-	var dayArgs = []
-	while(now > firstDay){
-		var ym = util.ym(now), ymd = util.ymd(now)
-		dayArgs.push([channel, ym, ymd])
-		now.subtract(1, "days")
-	}
-
-	// One big maddafackin' async call!
-	async.map(dayArgs, statsFromFileWithArray, function(err, results){
-		// Turn the results array into a dictionary so we have an idea what's what.
-		var resultsDict = {}
-		if(typeof results == "object" && results instanceof Array){
-			for(var i = 0; i < results.length; i++){
-				resultsDict[dayArgs[i][2]] = results[i]
-			}
-		}
-		done(err, resultsDict)
-	})
-	return true
-}
-
-var statsFromLastDays = function(channel, dayAmount, done){
-	if(typeof dayAmount != "number" || dayAmount <= 0){
-		// Default: The last X days.
-		dayAmount = 16
-	}
-
-	var today = moment()
-	var firstDay = moment(today).subtract(dayAmount, "days")
-
-	return statsFromDays(channel, firstDay, today, done)
-};
-
 const pathHasAnyLogs = function(channelPath) {
 	try {
 		// Throws on fail, does nothing otherwise
@@ -621,7 +522,7 @@ const loadLastSeenUsers = function() {
 const logChannelLine = function(channelUri, channelName, line, d) {
 	line = util.hmsPrefix(line, d);
 
-	if (config.debug) {
+	if (constants.DEBUG) {
 		console.log(channelPrefix(line, channelName));
 	}
 
@@ -647,7 +548,7 @@ const logLine = function(line, dirName, fileName, callback = standardWritingCall
 		fs.appendFile(
 			path.join(dirName, fileName + ".txt"),
 			line + "\n",
-			{ encoding: config.encoding },
+			{ encoding: constants.FILE_ENCODING },
 			callback
 		)
 	});
@@ -657,7 +558,7 @@ const writeLastSeen = function(fileName, data, callback = standardWritingCallbac
 	fs.writeFile(
 		fileName,
 		JSON.stringify(data),
-		{ encoding: config.encoding },
+		{ encoding: constants.FILE_ENCODING },
 		callback
 	);
 };
@@ -675,8 +576,6 @@ module.exports = {
 	getChatroomLinesForDay,
 	getUserLinesForMonth,
 	parseLogLine,
-	statsFromFile,
-	statsFromLastDays,
 	pathHasAnyLogs,
 	pathHasLogsForDay,
 	pathHasLogsForToday,

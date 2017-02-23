@@ -1,6 +1,7 @@
 // PYRAMID
 // Main data logic
 
+const async  = require("async");
 const lodash = require("lodash");
 const long   = require("long");
 const uuid   = require("uuid");
@@ -12,7 +13,10 @@ const util = require("./util");
 
 // Application state
 
-var db, io, irc, plugins;
+var currentAppConfig = {};
+var currentIrcConfig = [];
+var currentNicknames = [];
+var currentFriendsList = [];
 
 var lastSeenChannels = log.loadLastSeenChannels();
 var lastSeenUsers = log.loadLastSeenUsers();
@@ -33,10 +37,98 @@ var unseenHighlightIds = new Set();
 
 var currentViewState = {};
 
-const setDb = function(_db) { db = _db; };
-const setIo = function(_io) { io = _io; };
-const setIrc = function(_irc) { irc = _irc; };
-const setPlugins = function(_plugins) { plugins = _plugins; };
+// Delayed singletons
+
+var db, io, irc, plugins, web;
+
+var dbCallback, ioCallback, ircCallback, pluginsCallback, webCallback;
+
+const setDb = function(_db) {
+	db = _db;
+
+	if (typeof dbCallback === "function") {
+		dbCallback(null, db);
+	}
+};
+
+const setIo = function(_io) {
+	io = _io;
+
+	if (typeof ioCallback === "function") {
+		ioCallback(null, io);
+	}
+};
+
+const setIrc = function(_irc) {
+	irc = _irc;
+
+	if (typeof ircCallback === "function") {
+		ircCallback(null, irc);
+	}
+};
+
+const setPlugins = function(_plugins) {
+	plugins = _plugins;
+
+	if (typeof pluginsCallback === "function") {
+		pluginsCallback(null, plugins);
+	}
+};
+
+const setWeb = function(_web) {
+	web = _web;
+
+	if (typeof webCallback === "function") {
+		webCallback(null, web);
+	}
+};
+
+const onDb = function(callback) {
+	if (db) {
+		callback(null, db);
+	}
+	else {
+		dbCallback = callback;
+	}
+};
+
+const onIo = function(callback) {
+	if (io) {
+		callback(null, io);
+	}
+	else {
+		ioCallback = callback;
+	}
+};
+
+const onIrc = function(callback) {
+	if (irc) {
+		callback(null, irc);
+	}
+	else {
+		ircCallback = callback;
+	}
+};
+
+const onPlugins = function(callback) {
+	if (plugins) {
+		callback(null, plugins);
+	}
+	else {
+		pluginsCallback = callback;
+	}
+};
+
+const onWeb = function(callback) {
+	if (web) {
+		callback(null, web);
+	}
+	else {
+		webCallback = callback;
+	}
+};
+
+// Chat code
 
 const setLastSeenChannel = (channel, data) => {
 	lastSeenChannels[channel] = data;
@@ -273,10 +365,13 @@ const handleIncomingMessage = function(
 		loggedMention = true;
 	}
 
-	for (var i = 0; i < config.nicknames.length; i++) {
-		var nickRegex = new RegExp("\\b" + config.nicknames[i] + "\\b", "i")
-		if (nickRegex.test(message)) {
-			highlightStrings.push(config.nicknames[i]);
+	for (var i = 0; i < currentNicknames.length; i++) {
+		var nickRegex = new RegExp("\\b" + currentNicknames[i].nickname + "\\b", "i")
+		if (
+			nickRegex.test(message) &&
+			util.passesChannelWhiteBlacklist(currentNicknames, channelUri)
+		) {
+			highlightStrings.push(currentNicknames[i].nickname);
 
 			if (!loggedMention) {
 				log.logCategoryLine("mentions", channelUri, channelName, line, time);
@@ -425,13 +520,119 @@ const getIrcConfig = function(callback) {
 	db.getIrcConfig(callback);
 };
 
-const getConfigValue = (name, callback) => {
+const getConfigValue = function(name, callback) {
 	db.getConfigValue(name, callback);
 };
 
-const getAllConfigValues = (callback) => {
+const getAllConfigValues = function(callback) {
 	db.getAllConfigValues(callback);
 };
+
+const getNicknames = function(callback) {
+	db.getNicknames(callback);
+};
+
+const getFriendsList = function(callback) {
+	db.getFriendsList(callback);
+};
+
+const loadIrcConfig = function(callback) {
+	getIrcConfig((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			currentIrcConfig = data;
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+const loadAppConfig = function(callback) {
+	getAllConfigValues((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			currentAppConfig = data;
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+const loadNicknames = function(callback) {
+	getNicknames((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			currentNicknames = data;
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+const loadFriendsList = function(callback) {
+	getFriendsList((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			currentFriendsList = data;
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+// Startup
+onDb((err) => {
+	console.log("Got db");
+	if (err) {
+		console.error("Got error loading database during startup", err);
+		process.exit(1);
+	}
+	else {
+		async.parallel(
+			[
+				onIo,
+				onIrc,
+				onPlugins,
+				onWeb,
+				loadIrcConfig,
+				loadAppConfig,
+				loadNicknames,
+				loadFriendsList
+			],
+			(err, results) => {
+				console.log("Everything's ready!");
+				if (err) {
+					console.error("Got error during startup", err);
+					process.exit(1);
+				}
+				else {
+					irc.go();
+					web.go();
+				}
+			}
+		);
+	}
+})
 
 // API
 
@@ -441,15 +642,16 @@ module.exports = {
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
+	currentAppConfig: () => currentAppConfig,
+	currentFriendsList: () => currentFriendsList,
+	currentIrcConfig: () => currentIrcConfig,
+	currentNicknames: () => currentNicknames,
 	currentViewState: () => currentViewState,
 	flushCachedLastSeens,
-	getAllConfigValues,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
 	getChannelCache: (channelUri) => channelCaches[channelUri],
 	getChannelRecipients: (channelUri) => channelRecipients[channelUri],
 	getChannelUserList: (channelUri) => channelUserLists[channelUri],
-	getConfigValue,
-	getIrcConfig,
 	getUserCache: (username) => userCaches[username],
 	getUserCurrentSymbol,
 	getUserRecipients: (username) => userRecipients[username],
@@ -458,6 +660,10 @@ module.exports = {
 	handleChatNetworkError,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
+	loadAppConfig,
+	loadFriendsList,
+	loadIrcConfig,
+	loadNicknames,
 	plugins: () => plugins,
 	removeCategoryRecipient,
 	removeChannelRecipient,
@@ -469,6 +675,7 @@ module.exports = {
 	setIo,
 	setIrc,
 	setPlugins,
+	setWeb,
 	storeViewState,
 	unseenHighlightIds: () => unseenHighlightIds
 };

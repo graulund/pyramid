@@ -6,6 +6,8 @@ const sqlite = require("sqlite3");
 const async = require("async");
 const lodash = require("lodash");
 
+const constants = require("./constants");
+
 const ASC = 0, DESC = 1;
 
 const close = () => { db.close() };
@@ -14,13 +16,26 @@ const getDateFromTimestamp = (timestamp) => {
 	return timestamp.split("T")[0];
 };
 
+const nameValueRowsToObject = (rows) => {
+	var output = {};
+	if (rows && rows.length) {
+		rows.forEach((row) => {
+			if (row && row.name) {
+				output[row.name] = row.value;
+			}
+		})
+	}
+
+	return output;
+};
+
 module.exports = function(main) {
 
 	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
-		db.run(updateQuery, params, (err, data) => {
-			if (err) {
+		db.run(updateQuery, params, function(err, data) {
+			if (err || !this.changes) {
 				db.run(insertQuery, params, callback);
 			}
 			else {
@@ -138,9 +153,8 @@ module.exports = function(main) {
 
 	const getFriends = (callback) => {
 		db.all(
-			"SELECT * FROM friends " +
-			"WHERE isEnabled = 1 " +
-			"ORDER BY username DESC",
+			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", DESC),
+			{ $isEnabled: 1 },
 			callback
 		);
 	};
@@ -149,7 +163,7 @@ module.exports = function(main) {
 		upsert(
 			uq("friends", ["isBestFriend"], ["serverId", "username"]),
 			iq("friends", ["serverId", "username", "isBestFriend"]),
-			dollarize({ serverId, username, isBestFriend }),
+			dollarize({ serverId, username, isBestFriend: +isBestFriend }),
 			callback
 		);
 	};
@@ -240,7 +254,14 @@ module.exports = function(main) {
 	const getAllConfigValues = (callback) => {
 		db.all(
 			sq("config", ["name", "value"]),
-			callback
+			(err, rows) => {
+				if (err) {
+					callback(err);
+				}
+				else {
+					callback(null, nameValueRowsToObject(rows));
+				}
+			}
 		);
 	};
 
@@ -288,8 +309,7 @@ module.exports = function(main) {
 
 	const getNicknames = (callback) => {
 		db.all(
-			"SELECT * FROM nicknames " +
-			"ORDER BY nickname DESC",
+			sq("nicknames", ["*"]) + " " + oq("nickname", DESC),
 			callback
 		);
 	};
@@ -426,6 +446,32 @@ module.exports = function(main) {
 		});
 	};
 
+	const getFriendsList = (callback) => {
+		getFriends((err, friends) => {
+			if (err) {
+				callback(err);
+			}
+			else {
+				const friendsList = {
+					[constants.RELATIONSHIP_FRIEND]: [],
+					[constants.RELATIONSHIP_BEST_FRIEND]: []
+				};
+
+				friends.forEach((friend, i) => {
+					const { isBestFriend, username } = friend;
+					if (isBestFriend) {
+						friendsList[constants.RELATIONSHIP_BEST_FRIEND].push(friend);
+					}
+					else {
+						friendsList[constants.RELATIONSHIP_FRIEND].push(friend);
+					}
+				});
+
+				callback(null, friendsList);
+			}
+		});
+	};
+
 	const output = {
 		addChannelToIrcConfig,
 		addServerToIrcConfig,
@@ -436,6 +482,7 @@ module.exports = function(main) {
 		getChannelUri,
 		getConfigValue,
 		getFriends,
+		getFriendsList,
 		getIrcChannel,
 		getIrcChannels,
 		getIrcConfig,

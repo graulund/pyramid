@@ -158,9 +158,6 @@ module.exports = function(main) {
 
 		io = socketIo(server);
 
-		// Update main object with IO support
-		setSelf();
-
 		io.on("connection", (socket) => {
 			console.log("Someone connected!");
 
@@ -334,9 +331,6 @@ module.exports = function(main) {
 		setServer
 	};
 
-	const setSelf = () => {
-		main.setIo(output);
-	};
-
+	main.setIo(output);
 	return output;
 };

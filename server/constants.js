@@ -4,6 +4,9 @@
 const path = require("path");
 
 module.exports = {
+	DEBUG: true,
+	FILE_ENCODING: "utf8",
+
 	LOG_ROOT: path.join(__dirname, "..", "public", "data", "logs"),
 
 	RELATIONSHIP_NONE: 0,

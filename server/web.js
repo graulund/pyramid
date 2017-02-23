@@ -1,95 +1,104 @@
 // PYRAMID
 // Web module
 
+const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
+const express = require("express");
+//const favicon = require("serve-favicon");
+const partials = require("express-partials");
 
-const config = require("../config");
 const constants = require("./constants");
 const log = require("./log");
 const util = require("./util");
 
 module.exports = function(main, io) {
 
-	// Prerequisites
-	const express  = require("express");
-	//const favicon  = require("serve-favicon");
-	const partials = require("express-partials");
-	const fs       = require("fs");
+	const go = () => {
 
-	// The web app
-	var app = express();
-	app.set("views", path.join(__dirname, "..", "views"));
-	app.set("view engine", "ejs");
-	//app.use(favicon());
-	app.use(bodyParser.urlencoded({ extended: "qs" }));
-	app.use(express.static(path.join(__dirname, "..", "public")));
-	app.use(partials());
+		// The web app
+		var app = express();
+		app.set("views", path.join(__dirname, "..", "views"));
+		app.set("view engine", "ejs");
+		//app.use(favicon());
+		app.use(bodyParser.urlencoded({ extended: "qs" }));
+		app.use(express.static(path.join(__dirname, "..", "public")));
+		app.use(partials());
 
-	// Routes
-	require("./routes")(app, main);
+		// Routes
+		require("./routes")(app, main);
 
-	// Fallback: 404 error
-	app.use(function(req, res, next) {
-		var err = new Error("Not Found");
-		err.status = 404;
-		next(err);
-	});
+		// Fallback: 404 error
+		app.use(function(req, res, next) {
+			var err = new Error("Not Found");
+			err.status = 404;
+			next(err);
+		});
 
-	// --------------------------------------------------------
-	// Error handlers
+		// --------------------------------------------------------
+		// Error handlers
 
-	// Development error handler
-	// (Will print stacktrace)
-	if (app.get("env") === "development") {
+		// Development error handler
+		// (Will print stacktrace)
+		if (app.get("env") === "development") {
+			app.use(function(err, req, res, next) {
+				res.status(err.status || 500);
+				res.render("error", {
+					message: err.message,
+					error: err
+				});
+			});
+		}
+
+		// Production error handler
+		// (No stacktraces leaked to user)
 		app.use(function(err, req, res, next) {
 			res.status(err.status || 500);
 			res.render("error", {
 				message: err.message,
-				error: err
+				error: {}
 			});
 		});
+
+		// --------------------------------------------------------
+		// Server
+		// (HTTPS if specified)
+
+		var server;
+
+		var config = main.currentAppConfig();
+
+		console.log(config);
+
+		if(
+			typeof config.sslKeyPath == "string" && config.sslKeyPath != "" &&
+			typeof config.sslCertPath == "string" && config.sslCertPath != ""
+		){
+			// Secure HTTPS server
+			var https = require("https")
+			server = https.createServer({
+				key: fs.readFileSync(path.join(__dirname, "..", config.sslKeyPath)),
+				cert: fs.readFileSync(path.join(__dirname, "..", config.sslCertPath))
+			}, app).listen(config.webPort, undefined, undefined, function(){
+				console.log("Listening securely on port %d", server.address().port);
+			});
+		} else {
+			// Plain HTTP server
+			server = app.listen(config.webPort, function() {
+				console.log("Listening on port %d", server.address().port);
+			});
+		}
+
+		app.server = server;
+		io.setServer(app.server);
+
+		return app;
 	}
 
-	// Production error handler
-	// (No stacktraces leaked to user)
-	app.use(function(err, req, res, next) {
-		res.status(err.status || 500);
-		res.render("error", {
-			message: err.message,
-			error: {}
-		});
-	});
+	const output = {
+		go
+	};
 
-	// --------------------------------------------------------
-	// Server
-	// (HTTPS if specified)
-
-	var server;
-
-	if(
-		typeof config.sslKeyPath == "string" && config.sslKeyPath != "" &&
-		typeof config.sslCertPath == "string" && config.sslCertPath != ""
-	){
-		// Secure HTTPS server
-		var https = require("https")
-		server = https.createServer({
-			key: fs.readFileSync(path.join(__dirname, "..", config.sslKeyPath)),
-			cert: fs.readFileSync(path.join(__dirname, "..", config.sslCertPath))
-		}, app).listen(config.webPort, undefined, undefined, function(){
-			console.log("Listening securely on port %d", server.address().port);
-		});
-	} else {
-		// Plain HTTP server
-		server = app.listen(config.webPort, function() {
-			console.log("Listening on port %d", server.address().port);
-		});
-	}
-
-	app.server = server;
-	io.setServer(app.server);
-
-	return {
-		app: app
-	}
-}
+	main.setWeb(output);
+	return output;
+};

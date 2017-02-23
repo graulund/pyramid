@@ -5,7 +5,6 @@ const async = require("async");
 const moment = require("moment-timezone");
 const cookie = require("cookie");
 
-const config = require("../config");
 const constants = require("./constants");
 const util = require("./util");
 const h = require("./viewhelpers");
@@ -83,7 +82,7 @@ module.exports = function(app, main) {
 	});
 
 	app.post("/login", function(req, res) {
-		if (req.body && req.body.password === config.webPassword) {
+		if (req.body && req.body.password === main.currentAppConfig().webPassword) {
 
 			if (req.body.logOutOtherSessions) {
 				util.clearAcceptedTokens();
@@ -126,8 +125,8 @@ module.exports = function(app, main) {
 		const accepted = denyAccessWithoutToken(req, res);
 		if (accepted) {
 			async.parallel({
-				ircConfig: main.getIrcConfig,
-				allConfigs: main.getAllConfigValues
+				ircConfig: main.loadIrcConfig,
+				appConfig: main.loadAppConfig
 			}, function(err, results) {
 				if (err) {
 					// TODO: handle lol
@@ -136,13 +135,11 @@ module.exports = function(app, main) {
 
 				res.render("index", {
 					// Variables
-					allConfigs: results.allConfigs,
-					bestFriends: config.bestFriends, // TODO convert
-					friends: config.friends, // TODO convert
+					appConfig: results.appConfig,
+					friendsList: main.currentFriendsList(),
 					ircConfig: results.ircConfig,
 					lastSeenChannels: main.lastSeenChannels(),
 					lastSeenUsers: main.lastSeenUsers(),
-					timezone: config.timeZone, // TODO deprecated
 					token: getUsedToken(req),
 					viewState: main.currentViewState(),
 					// Includes

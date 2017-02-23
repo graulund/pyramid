@@ -3,7 +3,6 @@
 
 const moment = require("moment-timezone");
 
-const config = require("../config");
 const constants = require("./constants");
 
 var allFriends = null;
@@ -12,17 +11,17 @@ var allFriends = null;
 
 const hms = function(d) {
 	if (!d) { d = new Date(); }
-	return moment(d).tz(config.timeZone).format("HH:mm:ss");
+	return moment(d).format("HH:mm:ss");
 };
 
 const ymd = function(d) {
 	if (!d) { d = new Date(); }
-	return moment(d).tz(config.timeZone).format("YYYY-MM-DD")
+	return moment(d).format("YYYY-MM-DD")
 };
 
 const ym = function(d){
 	if (!d) { d = new Date(); }
-	return moment(d).tz(config.timeZone).format("YYYY-MM")
+	return moment(d).format("YYYY-MM")
 };
 
 const hmsPrefix = function(str, d){
@@ -54,6 +53,30 @@ const channelServerNameFromUrl = function(url) {
 
 const channelUriFromNames = function(server, channel) {
 	return server + "/" + channel.replace(/^#/, "");
+};
+
+const passesChannelWhiteBlacklist = function(target, query) {
+	if (target) {
+
+		// If there is a white list, and we're not on it, return false
+		if (
+			target.channelWhitelist &&
+			target.channelWhitelist.length &&
+			target.channelWhitelist.indexOf(query) < 0
+		) {
+			return false;
+		}
+
+		// If we're on the blacklist, return false
+		if (
+			target.channelBlacklist &&
+			target.channelBlacklist.indexOf(query) >= 0
+		) {
+			return false;
+		}
+	}
+
+	return true;
 };
 
 // Token utilities
@@ -122,6 +145,7 @@ module.exports = {
 	channelNameFromUrl,
 	channelServerNameFromUrl,
 	channelUriFromNames,
+	passesChannelWhiteBlacklist,
 
 	// Token
 	addToAcceptedTokens,
