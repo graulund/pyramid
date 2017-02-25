@@ -12,8 +12,24 @@ const ASC = 0, DESC = 1;
 
 const close = () => { db.close() };
 
-const getDateFromTimestamp = (timestamp) => {
-	return timestamp.split("T")[0];
+const getTimestamp = (t) => {
+
+	if (t && t instanceof Date) {
+		return t.toISOString();
+	}
+
+	return t;
+};
+
+const getDateFromTimestamp = (t) => {
+
+	const timestamp = getTimestamp(t);
+
+	if (timestamp) {
+		return timestamp.split("T")[0];
+	}
+
+	return null;
 };
 
 const nameValueRowsToObject = (rows) => {
@@ -296,6 +312,7 @@ module.exports = function(main) {
 	const storeLine = (channelId, line, callback) => {
 		db.run(
 			iq("lines", [
+				"lineId",
 				"channelId",
 				"type",
 				"time",
@@ -306,13 +323,15 @@ module.exports = function(main) {
 				"tags"
 			]),
 			{
+				$lineId: line.id,
+				$channelId: channelId,
 				$type: line.type,
-				$time: line.time,
+				$time: getTimestamp(line.time),
 				$date: getDateFromTimestamp(line.time),
 				$username: line.username,
 				$message: line.message,
 				$symbol: line.symbol,
-				$tags: line.tags
+				$tags: line.tags && JSON.stringify(line.tags)
 			},
 			callback
 		);

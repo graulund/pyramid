@@ -6,6 +6,8 @@ const path = require("path");
 const qs = require("querystring");
 const request = require("request");
 
+const util = require("../server/util");
+
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
 const EMOTE_PREFIX_REGEX = "(\\s|^)";
@@ -39,7 +41,7 @@ var externalChannelEmotes = {};
 
 const isTwitch = function(client) {
 	if (client && client.extConfig) {
-		return /irc\.(chat\.)?twitch\.tv/.test(client.extConfig.server);
+		return /irc\.(chat\.)?twitch\.tv/.test(client.extConfig.hostname);
 	}
 
 	return null;
@@ -406,10 +408,7 @@ module.exports = function(main) {
 			requestExternalGlobalEmoticons();
 			if (client.extConfig && client.extConfig.channels) {
 				client.extConfig.channels.forEach((channel) => {
-					// TODO: Find a better way to get the channelUri here... srs.
-					const channelUri = path.join(
-						client.extConfig.name, channel.replace(/^#/, "")
-					);
+					const channelUri = util.getChannelUri(channel.name, client.extConfig.name);
 					console.log(`Requesting channel emoticons for ${channelUri}`);
 					requestExternalChannelEmoticons(channelUri);
 				});

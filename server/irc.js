@@ -49,7 +49,7 @@ module.exports = function(main) {
 		}
 
 		return null;
-	}
+	};
 
 	const channelObject = function(client, channel) {
 		// "server" idenfitier is not actually server address;
@@ -62,22 +62,7 @@ module.exports = function(main) {
 	};
 
 	const getChannelUri = function(chobj) {
-
-		var safeString = function(str) {
-			if (!str) {
-				return "";
-			}
-
-			return str.replace(/[^a-zA-Z0-9_-]+/g, "");
-		}
-
-		var c = safeString(chobj.channel);
-
-		if (chobj.server) {
-			return path.join(safeString(chobj.server), c);
-		}
-
-		return c;
+		return util.getChannelUri(chobj.channel, chobj.server);
 	};
 
 	const getChannelFullName = function(chobj) {

@@ -37,6 +37,11 @@ var unseenHighlightIds = new Set();
 
 var currentViewState = {};
 
+// (name/uri => id caches)
+
+var channelIdCache = {};
+var serverIdCache = {};
+
 // Delayed singletons
 
 var db, io, irc, plugins, web;
@@ -187,10 +192,29 @@ const cacheItem = function(cache, data) {
 };
 
 const cacheChannelEvent = function(channelUri, data) {
+
+	// Add to local cache
+
 	if (!channelCaches[channelUri]) {
 		channelCaches[channelUri] = [];
 	}
 	cacheItem(channelCaches[channelUri], data);
+
+	// Add to db
+
+	const channelId = channelIdCache[channelUri];
+	if (channelId) {
+		storeLine(channelId, data, (err, data) => {
+			if (err) {
+				console.log("Error storing line", err);
+			}
+			else if (data) {
+				console.log("Data after storing line", data);
+			}
+		});
+	}
+
+	// Send to users
 
 	if (io) {
 		io.emitEventToChannel(channelUri, data.type, data);
@@ -232,16 +256,24 @@ const cacheCategoryMessage = function(categoryName, msg) {
 	}
 };
 
+const replaceLastCacheItem = function(channelUri, data) {
+	const cache = channelCaches[channelUri];
+	if (cache && cache.length) {
+		cache[cache.length-1] = data;
+	}
+
+	// TODO: db support for bunches
+};
+
 const cacheBunchableChannelEvent = function(channelUri, data) {
 	const cache = channelCaches[channelUri];
 	if (cache && cache.length) {
-		const lastIndex = cache.length-1;
-		const lastItem = cache[lastIndex];
+		const lastItem = cache[cache.length-1];
 		if (lastItem) {
 			var bunch;
 			if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
 				// Create bunch and insert in place
-				cache[lastIndex] = bunch = {
+				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: [lastItem, data],
@@ -254,7 +286,7 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 			}
 			else if (lastItem.type === "events") {
 				// Add to bunch, resulting in a new, inserted in place
-				cache[lastIndex] = bunch = {
+				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: lastItem.events.concat([data]),
@@ -266,6 +298,8 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 				};
 			}
 			if (bunch) {
+				replaceLastCacheItem(channelUri, bunch);
+
 				if (io) {
 					io.emitEventToChannel(channelUri, bunch.type, bunch);
 				}
@@ -549,6 +583,7 @@ const loadIrcConfig = function(callback) {
 		}
 		else {
 			currentIrcConfig = data;
+			generateIrcConfigCaches();
 			if (typeof callback === "function") {
 				callback(null, data);
 			}
@@ -602,6 +637,29 @@ const loadFriendsList = function(callback) {
 			}
 		}
 	});
+};
+
+const generateIrcConfigCaches = function(config = currentIrcConfig) {
+	var serverIds = {}, channelIds = {};
+
+	if (config && config.length) {
+		config.forEach((server) => {
+			if (server && server.serverId && server.name) {
+				serverIds[server.name] = server.serverId;
+
+				if (server.channels && server.channels.length) {
+					server.channels.forEach((channel) => {
+						if (channel && channel.channelId && channel.name) {
+							const channelUri = util.getChannelUri(channel.name, server.name);
+							channelIds[channelUri] = channel.channelId;
+						}
+					});
+				}
+			}
+		});
+		serverIdCache = serverIds;
+		channelIdCache = channelIds;
+	}
 };
 
 // Startup

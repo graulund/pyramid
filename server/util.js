@@ -1,6 +1,7 @@
 // PYRAMID
 // Utilities module
 
+const path = require("path");
 const moment = require("moment-timezone");
 
 const constants = require("./constants");
@@ -32,7 +33,26 @@ const ymdhmsPrefix = function(str, d){
 	return "[" + ymd(d) + " " + hms(d) + "] " + str;
 };
 
-// Channel URL utilities
+// Channel URI utilities
+
+const getChannelUri = function(channelName, serverName) {
+
+	var safeString = function(str) {
+		if (!str) {
+			return "";
+		}
+
+		return str.replace(/[^a-zA-Z0-9_-]+/g, "");
+	}
+
+	var c = safeString(channelName);
+
+	if (serverName) {
+		return path.join(safeString(serverName), c);
+	}
+
+	return c;
+};
 
 const channelNameFromUrl = function(url) {
 	if (url && url.replace) {
@@ -52,7 +72,8 @@ const channelServerNameFromUrl = function(url) {
 };
 
 const channelUriFromNames = function(server, channel) {
-	return server + "/" + channel.replace(/^#/, "");
+	// TODO: Deprecate
+	return getChannelUri(channel, server);
 };
 
 const passesChannelWhiteBlacklist = function(target, query) {
@@ -145,6 +166,7 @@ module.exports = {
 	ymdhmsPrefix,
 
 	// Channel URL
+	getChannelUri,
 	channelNameFromUrl,
 	channelServerNameFromUrl,
 	channelUriFromNames,
