@@ -140,7 +140,7 @@ module.exports = function(main) {
 		const channelUri = getChannelUri(chobj);
 		const channelName = getChannelFullName(chobj);
 		const serverName = chobj.server;
-		const meUsername = client.extConfig.me;
+		const meUsername = client.extConfig.nickname;
 
 		// Time
 		const time = new Date();
