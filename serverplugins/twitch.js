@@ -119,12 +119,13 @@ const doNewIndicesOverlay = function(indices, emotes) {
 const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 	// Expected emotedata: [ { id, code } ...]
 	if (message && message.length) {
+		const cleanedMessage = stringWithoutAstralSymbols(message);
 		emoteData.forEach((emote) => {
 			if (emote && emote.id && emote.code) {
 				const indices = [];
 				const rgx = generateEmoteRegex(emote.code);
 
-				while ((result = rgx.exec(stringWithoutAstralSymbols(message))) !== null) {
+				while ((result = rgx.exec(cleanedMessage)) !== null) {
 
 					// Calculate indices for this occurrence
 					const prefix = result[1], code = result[2], suffix = result[3];

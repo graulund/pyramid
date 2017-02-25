@@ -536,6 +536,10 @@ const getFriendsList = function(callback) {
 	db.getFriendsList(callback);
 };
 
+const storeLine = function(channelId, line, callback = function(){}) {
+	db.storeLine(channelId, line, callback);
+};
+
 const loadIrcConfig = function(callback) {
 	getIrcConfig((err, data) => {
 		if (err) {
