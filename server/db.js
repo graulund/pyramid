@@ -45,6 +45,17 @@ const nameValueRowsToObject = (rows) => {
 	return output;
 };
 
+const formatIn = (list) => {
+	if (list && list instanceof Array) {
+		const json = JSON.stringify(list);
+		if (json) {
+			return "(" + json.substr(1, json.length-2) + ")";
+		}
+	}
+
+	return "()";
+};
+
 module.exports = function(main) {
 
 	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
@@ -310,6 +321,14 @@ module.exports = function(main) {
 	};
 
 	const storeLine = (channelId, line, callback) => {
+		var eventData = null;
+		if (
+			(line.events && line.events.length) ||
+			(line.prevIds && line.prevIds.length)
+		) {
+			eventData = { events: line.events, prevIds: line.prevIds };
+		}
+
 		db.run(
 			iq("lines", [
 				"lineId",
@@ -320,7 +339,8 @@ module.exports = function(main) {
 				"username",
 				"message",
 				"symbol",
-				"tags"
+				"tags",
+				"eventData"
 			]),
 			{
 				$lineId: line.id,
@@ -331,8 +351,16 @@ module.exports = function(main) {
 				$username: line.username,
 				$message: line.message,
 				$symbol: line.symbol,
-				$tags: line.tags && JSON.stringify(line.tags)
+				$tags: line.tags && JSON.stringify(line.tags),
+				$eventData: eventData && JSON.stringify(eventData)
 			},
+			callback
+		);
+	};
+
+	const deleteLinesWithLineIds = (lineIds, callback) => {
+		db.run(
+			"DELETE FROM lines WHERE lineId IN " + formatIn(lineIds),
 			callback
 		);
 	};
@@ -507,6 +535,7 @@ module.exports = function(main) {
 		addServerToIrcConfig,
 		addToFriends,
 		close,
+		deleteLinesWithLineIds,
 		getAllConfigValues,
 		getChannelId,
 		getChannelUri,

@@ -42,6 +42,9 @@ var currentViewState = {};
 var channelIdCache = {};
 var serverIdCache = {};
 
+var bunchableLinesToInsert = {};
+var lineIdsToDelete = new Set();
+
 // Delayed singletons
 
 var db, io, irc, plugins, web;
@@ -204,14 +207,7 @@ const cacheChannelEvent = function(channelUri, data) {
 
 	const channelId = channelIdCache[channelUri];
 	if (channelId) {
-		storeLine(channelId, data, (err, data) => {
-			if (err) {
-				console.log("Error storing line", err);
-			}
-			else if (data) {
-				console.log("Data after storing line", data);
-			}
-		});
+		storeLine(channelId, data);
 	}
 
 	// Send to users
@@ -257,13 +253,45 @@ const cacheCategoryMessage = function(categoryName, msg) {
 };
 
 const replaceLastCacheItem = function(channelUri, data) {
+
+	// Replace in cache
+
 	const cache = channelCaches[channelUri];
 	if (cache && cache.length) {
 		cache[cache.length-1] = data;
 	}
 
-	// TODO: db support for bunches
+	// Add to db, but remove old ids
+
+	storeBunchableLine(channelUri, data);
+
+	if (data.prevIds && data.prevIds.length) {
+		deleteLinesWithLineIds(data.prevIds);
+	}
 };
+
+const storeBunchableLine = function(channelUri, data) {
+	// Store them in a cache...
+	if (data && data.id) {
+		bunchableLinesToInsert[data.id] = { channelUri, data };
+	}
+};
+
+const _scheduledBunchableStore = function() {
+	console.log(`>>> Storing ${Object.keys(bunchableLinesToInsert).length} bunchable lines`);
+	lodash.forOwn(bunchableLinesToInsert, (line, key) => {
+		if (line && line.channelUri && line.data) {
+			const channelId = channelIdCache[line.channelUri];
+			if (channelId) {
+				storeLine(channelId, line.data);
+			}
+		}
+		delete bunchableLinesToInsert[key];
+	});
+};
+
+// ...And insert them all regularly
+setInterval(_scheduledBunchableStore, 10000);
 
 const cacheBunchableChannelEvent = function(channelUri, data) {
 	const cache = channelCaches[channelUri];
@@ -573,6 +601,27 @@ const getFriendsList = function(callback) {
 const storeLine = function(channelId, line, callback = function(){}) {
 	db.storeLine(channelId, line, callback);
 };
+
+const deleteLinesWithLineIds = function(lineIds) {
+	lineIds.forEach((lineId) => {
+		// Store them
+		lineIdsToDelete.add(lineId);
+		// Remove it immediately from insert cache...
+		delete bunchableLinesToInsert[lineId];
+	});
+};
+
+// ...And combine and delete all at an interval
+const _scheduledLineDelete = function() {
+	if (lineIdsToDelete && lineIdsToDelete.size) {
+		console.log(`>>> Deleting ${lineIdsToDelete.size} old lines from db`);
+		const a = Array.from(lineIdsToDelete);
+		lineIdsToDelete.clear();
+		db.deleteLinesWithLineIds(a, function(){});
+	}
+};
+
+setInterval(_scheduledLineDelete, 10000);
 
 const loadIrcConfig = function(callback) {
 	getIrcConfig((err, data) => {
