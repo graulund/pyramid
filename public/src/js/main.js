@@ -6,12 +6,13 @@ import { Router, Route, IndexRoute, browserHistory } from "react-router";
 import App from "./components/App.jsx";
 import ChatView from "./components/ChatView.jsx";
 import NoChatView from "./components/NoChatView.jsx";
+import SettingsView from "./components/SettingsView.jsx";
 
 import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import { updateIrcConfigs } from "./lib/ircConfigs";
-import { categoryUrl, channelUrl, homeUrl, userUrl } from "./lib/routeHelpers";
+import * as routes from "./lib/routeHelpers";
 
 // Data store
 
@@ -46,6 +47,10 @@ if (window.pyramid_lastSeenUsers) {
 	store.dispatch(actions.lastSeenUsers.update(window.pyramid_lastSeenUsers));
 }
 
+if (window.pyramid_appConfig) {
+	store.dispatch(actions.appConfig.update(window.pyramid_appConfig));
+}
+
 // Sockets
 
 initializeIo();
@@ -58,22 +63,26 @@ if (main) {
 	render(
 		<Provider store={store}>
 			<Router history={browserHistory}>
-				<Route path={homeUrl} component={App}>
+				<Route path={routes.homeUrl} component={App}>
 					<IndexRoute component={NoChatView} />
 					<Route
-						path={userUrl(":userName")}
+						path={routes.userUrl(":userName")}
 						component={ChatView} />
 					<Route
-						path={channelUrl(":serverName/:channelName")}
+						path={routes.channelUrl(":serverName/:channelName")}
 						component={ChatView} />
 					<Route
-						path={userUrl(":userName", ":logDate")}
+						path={routes.userUrl(":userName", ":logDate")}
 						component={ChatView} />
 					<Route
-						path={channelUrl(":serverName/:channelName", ":logDate")}
+						path={routes.channelUrl(":serverName/:channelName", ":logDate")}
 						component={ChatView} />
 					<Route
-						path={categoryUrl(":categoryName")}
+						path={routes.settingsPattern}
+						component={SettingsView}
+						/>
+					<Route
+						path={routes.categoryUrl(":categoryName")}
 						component={ChatView} />
 					<Route
 						path="*"

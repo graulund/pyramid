@@ -91,7 +91,7 @@ class Sidebar extends PureComponent {
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
 					<ul className="controls sidebar__controls">
-						<li><a href="javascript://">Settings</a></li>
+						<li><Link to={internalUrl("/settings")}>Settings</Link></li>
 						<li><a href={internalUrl("/logout")}>Log out</a></li>
 					</ul>
 				</div>
@@ -100,7 +100,7 @@ class Sidebar extends PureComponent {
 						<HighlightsLink />
 					</li>
 					<li key="allfriends">
-						<Link to="/allfriends" className="sidebar__menu-link">
+						<Link to={internalUrl("/allfriends")} className="sidebar__menu-link">
 							{ CATEGORY_NAMES.allfriends }
 						</Link>
 					</li>

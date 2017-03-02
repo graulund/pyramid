@@ -290,7 +290,6 @@ module.exports = function(main) {
 	// Set up clients
 
 	const go = () => {
-		const appConfig = main.currentAppConfig();
 		const ircConfig = main.currentIrcConfig();
 		for (i = 0; i < ircConfig.length; i++) {
 			var cf = ircConfig[i];
@@ -307,8 +306,8 @@ module.exports = function(main) {
 					secure:      cf.secure || false,
 					selfSigned:  cf.selfSigned || false,
 					certExpired: cf.certExpired || false,
-					debug:       appConfig.debug || false,
-					showErrors:  appConfig.debug || false,
+					debug:       main.configValue("debug") || false,
+					showErrors:  main.configValue("debug") || false,
 					retryCount:  999
 				}
 			);

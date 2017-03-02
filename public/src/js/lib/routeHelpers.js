@@ -25,3 +25,12 @@ export function categoryUrl(categoryName) {
 		"/" + categoryName
 	);
 }
+
+export function settingsUrl(settingsPageName) {
+	return internalUrl(
+		"/settings" +
+		(settingsPageName ? "/" + settingsPageName : "")
+	);
+}
+
+export const settingsPattern = "/settings(/:pageName)";

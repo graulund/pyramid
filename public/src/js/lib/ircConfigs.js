@@ -34,3 +34,5 @@ export function updateIrcConfigs(ircConfigs) {
 	// Check multi server channels now
 	resetMultiServerChannels();
 }
+
+// TODO: Turn this into a saga?

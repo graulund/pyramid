@@ -436,7 +436,7 @@ ul.statsuserlist {
 	margin-right: 280px;
 }
 
-.chatview h1 {
+.nochatview h1 {
 	font-size: 48px;
 	text-align: center;
 	margin: 0;
@@ -632,6 +632,21 @@ ul.statsuserlist {
 	text-align: center;
 	margin: 1em 0;
 	color: #666;
+}
+
+.settingsview {
+	padding: 30px;
+	margin-top: 0;
+}
+
+.settings__section {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ccc;
+}
+
+.settings__section {
+	margin-bottom: 20px;
 }
 
 @media only screen and (max-width: 767px) {

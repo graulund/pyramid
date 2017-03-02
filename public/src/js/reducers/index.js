@@ -1,5 +1,6 @@
 import { combineReducers } from "redux";
 
+import appConfig from "./appConfig";
 import categoryCaches from "./categoryCaches";
 import channelCaches from "./channelCaches";
 import channelUserLists from "./channelUserLists";
@@ -16,6 +17,7 @@ import userCaches from "./userCaches";
 import viewState from "./viewState";
 
 export default combineReducers({
+	appConfig,
 	categoryCaches,
 	channelCaches,
 	channelUserLists,

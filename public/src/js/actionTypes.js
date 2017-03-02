@@ -1,3 +1,7 @@
+export const appConfig = {
+	"UPDATE": "appConfig/UPDATE"
+};
+
 export const categoryCaches = {
 	"UPDATE": "categoryCaches/UPDATE",
 	"APPEND": "categoryCaches/APPEND"

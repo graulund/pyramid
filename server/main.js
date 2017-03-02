@@ -8,6 +8,7 @@ const uuid   = require("uuid");
 
 //const config = require("../config");
 const constants = require("./constants");
+const configDefaults = require("./defaults");
 const log = require("./log");
 const util = require("./util");
 
@@ -205,9 +206,11 @@ const cacheChannelEvent = function(channelUri, data) {
 
 	// Add to db
 
-	const channelId = channelIdCache[channelUri];
-	if (channelId) {
-		storeLine(channelId, data);
+	if (configValue("logLinesDb")) {
+		const channelId = channelIdCache[channelUri];
+		if (channelId) {
+			storeLine(channelId, data);
+		}
 	}
 
 	// Send to users
@@ -272,7 +275,7 @@ const replaceLastCacheItem = function(channelUri, data) {
 
 const storeBunchableLine = function(channelUri, data) {
 	// Store them in a cache...
-	if (data && data.id) {
+	if (configValue("logLinesDb") && data && data.id) {
 		bunchableLinesToInsert[data.id] = { channelUri, data };
 	}
 };
@@ -711,6 +714,10 @@ const generateIrcConfigCaches = function(config = currentIrcConfig) {
 	}
 };
 
+const configValue = function(name) {
+	return currentAppConfig[name] || configDefaults[name];
+};
+
 // Startup
 onDb((err) => {
 	console.log("Got db");
@@ -743,7 +750,7 @@ onDb((err) => {
 			}
 		);
 	}
-})
+});
 
 // API
 
@@ -753,6 +760,7 @@ module.exports = {
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
+	configValue,
 	currentAppConfig: () => currentAppConfig,
 	currentFriendsList: () => currentFriendsList,
 	currentIrcConfig: () => currentIrcConfig,

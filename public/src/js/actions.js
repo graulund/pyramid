@@ -1,6 +1,14 @@
 import * as actionTypes from "./actionTypes";
 
 export default {
+	appConfig: {
+		update(data) {
+			return {
+				type: actionTypes.appConfig.UPDATE,
+				data
+			};
+		}
+	},
 	categoryCaches: {
 		append(data) {
 			return {

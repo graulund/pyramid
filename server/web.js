@@ -66,25 +66,20 @@ module.exports = function(main, io) {
 
 		var server;
 
-		var config = main.currentAppConfig();
+		var config = main.configValue;
 
-		console.log(config);
-
-		if(
-			typeof config.sslKeyPath == "string" && config.sslKeyPath != "" &&
-			typeof config.sslCertPath == "string" && config.sslCertPath != ""
-		){
+		if (config("sslKeyPath") && config("sslCertPath")){
 			// Secure HTTPS server
 			var https = require("https")
 			server = https.createServer({
-				key: fs.readFileSync(path.join(__dirname, "..", config.sslKeyPath)),
-				cert: fs.readFileSync(path.join(__dirname, "..", config.sslCertPath))
-			}, app).listen(config.webPort, undefined, undefined, function(){
+				key: fs.readFileSync(path.join(__dirname, "..", config("sslKeyPath"))),
+				cert: fs.readFileSync(path.join(__dirname, "..", config("sslCertPath")))
+			}, app).listen(config("webPort"), undefined, undefined, function(){
 				console.log("Listening securely on port %d", server.address().port);
 			});
 		} else {
 			// Plain HTTP server
-			server = app.listen(config.webPort, function() {
+			server = app.listen(config("webPort"), function() {
 				console.log("Listening on port %d", server.address().port);
 			});
 		}
