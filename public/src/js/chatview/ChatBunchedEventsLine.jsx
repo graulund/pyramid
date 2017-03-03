@@ -1,7 +1,7 @@
 import React, { PureComponent, PropTypes } from "react";
 import moment from "moment";
 
-import UserLink from "./UserLink.jsx";
+import UserLink from "../components/UserLink.jsx";
 
 const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
 const MAX_USERNAMES = 5;

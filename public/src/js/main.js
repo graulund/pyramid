@@ -4,9 +4,9 @@ import { Provider } from "react-redux";
 import { Router, Route, IndexRoute, browserHistory } from "react-router";
 
 import App from "./components/App.jsx";
-import ChatView from "./components/ChatView.jsx";
+import ChatView from "./chatview/ChatView.jsx";
 import NoChatView from "./components/NoChatView.jsx";
-import SettingsView from "./components/SettingsView.jsx";
+import SettingsView from "./settingsview/SettingsView.jsx";
 
 import store from "./store";
 import actions from "./actions";

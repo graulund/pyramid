@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import forOwn from "lodash/forOwn";
 import without from "lodash/without";
 
-import TimedUserItem from "./TimedUserItem.jsx";
+import TimedUserItem from "../components/TimedUserItem.jsx";
 
 const USER_SYMBOL_ORDER = ["~", "&", "@", "%", "+"];
 

@@ -420,8 +420,12 @@ ul.statsuserlist {
 	right: 10px;
 }
 
+.mainview {
+	margin: 60px 0 60px 320px;
+}
+
 .chatview {
-	margin: 60px 0 20px 320px;
+	margin-bottom: 20px;
 }
 
 .chatview--live-channel {
@@ -637,12 +641,19 @@ ul.statsuserlist {
 .settingsview {
 	padding: 30px;
 	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .settings__section {
 	margin-top: 20px;
 	padding-top: 20px;
 	border-top: 1px solid #ccc;
+}
+
+.settings__section h2 {
+	color: #999;
+	font-size: .85rem;
+	text-transform: uppercase;
 }
 
 .settings__setting {
@@ -685,6 +696,10 @@ ul.statsuserlist {
 
 	.sidebar--hidden {
 		left: -360px;
+	}
+
+	.mainview {
+		margin: 0;
 	}
 
 	.chatview {

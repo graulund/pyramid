@@ -4,7 +4,7 @@ import Linkify from "react-linkify";
 
 import HighlightObserver from "./HighlightObserver.jsx";
 import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
-import UserLink from "./UserLink.jsx";
+import UserLink from "../components/UserLink.jsx";
 
 const linkifyProperties = { target: "_blank" };
 

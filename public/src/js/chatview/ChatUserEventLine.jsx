@@ -1,6 +1,6 @@
 import React, { PureComponent, PropTypes } from "react";
 
-import UserLink from "./UserLink.jsx";
+import UserLink from "../components/UserLink.jsx";
 
 class ChatUserEventLine extends PureComponent {
 	render() {

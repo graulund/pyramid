@@ -2,7 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { Link } from "react-router";
 import moment from "moment";
 
-import ChannelLink from "./ChannelLink.jsx";
+import ChannelLink from "../components/ChannelLink.jsx";
 import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";

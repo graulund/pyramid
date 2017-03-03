@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import remove from "lodash/remove";
 import "intersection-observer";
 
-import ChannelName from "./ChannelName.jsx";
+import ChannelName from "../components/ChannelName.jsx";
 import ChannelUserList from "./ChannelUserList.jsx";
 import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
@@ -581,7 +581,7 @@ class ChatView extends Component {
 
 		const isLiveChannel = this.channelUrl && !params.logDate;
 
-		const className = "chatview" +
+		const className = "mainview chatview" +
 			(isLiveChannel ? " chatview--live-channel" : "") +
 			(logBrowser ? " chatview--logbrowsing" : "") +
 			(userListOpen && isLiveChannel ? " chatview--userlisting" : "");
@@ -596,7 +596,7 @@ class ChatView extends Component {
 		}
 
 		return (
-			<div id="chatview" className={className} onClick={this.onClick}>
+			<div className={className} onClick={this.onClick}>
 				<div className="chatview__top">
 					<h2>{ heading }</h2>
 					{ controls }

@@ -20,7 +20,6 @@ class SettingsView extends PureComponent {
 					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
 				}
 			],
-			irc: [],
 			behavior: [
 				{
 					name: "darkMode",
@@ -70,6 +69,7 @@ class SettingsView extends PureComponent {
 	renderSection(name, settings) {
 		return (
 			<div className="settings__section" key={name}>
+				<h2>{ name }</h2>
 				{ settings.map((setting) => this.renderSetting(setting)) }
 			</div>
 		);
@@ -84,7 +84,7 @@ class SettingsView extends PureComponent {
 		});
 
 		return (
-			<div className="chatview settingsview">
+			<div className="mainview settingsview">
 				<h1>Settings</h1>
 				{ content }
 			</div>
