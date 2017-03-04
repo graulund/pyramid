@@ -1,99 +1,65 @@
 import React, { PureComponent, PropTypes } from "react";
-import { connect } from "react-redux";
+import { Link } from "react-router";
+
+import SettingsFriendsView from "./SettingsFriendsView.jsx";
+import SettingsGeneralView from "./SettingsGeneralView.jsx";
+import SettingsIrcView from "./SettingsIrcView.jsx";
+import { settingsUrl } from "../lib/routeHelpers";
 
 class SettingsView extends PureComponent {
-	constructor(props) {
-		super(props);
-
-		this.settings = {
-			web: [
-				{
-					name: "webPort",
-					readableName: "Web port",
-					type: "number",
-					description: "The port number the web server should start at"
-				},
-				{
-					name: "webPassword",
-					readableName: "Web password",
-					type: "password",
-					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
-				}
-			],
-			behavior: [
-				{
-					name: "darkMode",
-					readableName: "Dark mode",
-					type: "bool",
-					description: "Invert the colors of Pyramid, giving a dark experience"
-				},
-				{
-					name: "debug",
-					readableName: "Debug mode (developers only)",
-					type: "bool",
-					description: "Display extra information in the console"
-				}
-			]
-		};
-	}
-
-	renderSetting(setting) {
-		const { appConfig } = this.props;
-		const { name, readableName, type, description } = setting;
-
-		var prefixInput = null, mainInput = null;
-
-		switch (type) {
-			case "bool":
-				prefixInput = <input
-					type="checkbox"
-					checked={appConfig[name]}
-					key="input" />;
-				break;
-			default:
-				mainInput = <input
-					type={type}
-					value={appConfig[name] || ""}
-					key="input" />;
-		}
-
-		return (
-			<div className="settings__setting" key={name}>
-				<h3>{ prefixInput } { readableName }</h3>
-				{ mainInput }
-				<p>{ description }</p>
-			</div>
-		);
-	}
-
-	renderSection(name, settings) {
-		return (
-			<div className="settings__section" key={name}>
-				<h2>{ name }</h2>
-				{ settings.map((setting) => this.renderSetting(setting)) }
-			</div>
-		);
-	}
 
 	render() {
-		var content = [];
-		Object.keys(this.settings).forEach((sectionName) => {
-			if (this.settings[sectionName]) {
-				content.push(this.renderSection(sectionName, this.settings[sectionName]));
-			}
-		});
+		const { params } = this.props;
+		var { pageName } = params;
+
+		if (!pageName) {
+			pageName = "general";
+		}
+
+		var page;
+		switch (pageName) {
+			case "friends":
+				page = <SettingsFriendsView />;
+				break;
+			case "irc":
+				page = <SettingsIrcView />;
+				break;
+			default:
+				page = <SettingsGeneralView />;
+		}
+
+		const className = "mainview settingsview settingsview--" + pageName;
 
 		return (
-			<div className="mainview settingsview">
-				<h1>Settings</h1>
-				{ content }
+			<div className={className}>
+				<div className="mainview__top settingsview__top">
+					<h2>Settings</h2>
+					<ul className="settingsview__tabs switcher" key="tabs">
+						<li key="general">
+							<Link className="general" to={settingsUrl()}>
+								General
+							</Link>
+						</li>
+						<li key="friends">
+							<Link className="friends" to={settingsUrl("friends")}>
+								Friends
+							</Link>
+						</li>
+						<li key="irc">
+							<Link className="irc" to={settingsUrl("irc")}>
+								IRC
+							</Link>
+						</li>
+					</ul>
+				</div>
+				{ page }
 			</div>
 		);
 	}
 }
 
 SettingsView.propTypes = {
-	appConfig: PropTypes.object
+	params: PropTypes.object
 };
 
-export default connect(({ appConfig }) => ({ appConfig }))(SettingsView);
+export default SettingsView;

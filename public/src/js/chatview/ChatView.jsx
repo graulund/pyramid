@@ -597,7 +597,7 @@ class ChatView extends Component {
 
 		return (
 			<div className={className} onClick={this.onClick}>
-				<div className="chatview__top">
+				<div className="mainview__top">
 					<h2>{ heading }</h2>
 					{ controls }
 					{ logBrowser }

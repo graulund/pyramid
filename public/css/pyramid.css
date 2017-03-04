@@ -323,8 +323,10 @@ ul.statsuserlist {
 	display: inline-block;
 }
 
-.switcher button {
+.switcher button, .switcher a {
+	color: inherit;
 	font-family: inherit;
+	font-weight: inherit;
 	font-size: 100%;
 	line-height: 20px;
 	background-color: transparent;
@@ -336,8 +338,9 @@ ul.statsuserlist {
 	-webkit-appearance: none;
 }
 
-.switcher button:hover {
+.switcher button:hover, .switcher a:hover {
 	background-color: rgba(0, 0, 51, 0.067);
+	text-decoration: none;
 }
 
 .sidebar__list-head {
@@ -515,7 +518,7 @@ ul.statsuserlist {
 	cursor: pointer;
 }
 
-.chatview__top {
+.mainview__top {
 	position: fixed;
 	top: 0;
 	left: 320px;
@@ -527,7 +530,7 @@ ul.statsuserlist {
 	z-index: 5;
 }
 
-.chatview__top h2 {
+.mainview__top h2 {
 	margin: 0;
 	line-height: 20px;
 }
@@ -639,12 +642,17 @@ ul.statsuserlist {
 }
 
 .settingsview {
-	padding: 30px;
-	margin-top: 0;
+	padding: 20px;
+	margin-top: 40px;
 	margin-bottom: 0;
 }
 
-.settings__section {
+.settingsview__top h2 {
+	float: left;
+	margin-right: 10px;
+}
+
+.settings__section + .settings__section {
 	margin-top: 20px;
 	padding-top: 20px;
 	border-top: 1px solid #ccc;
@@ -652,8 +660,9 @@ ul.statsuserlist {
 
 .settings__section h2 {
 	color: #999;
-	font-size: .85rem;
+	font-size: 1em;
 	text-transform: uppercase;
+	margin-top: 0;
 }
 
 .settings__setting {
@@ -662,10 +671,47 @@ ul.statsuserlist {
 
 .settings__setting h3 {
 	margin: 0 0 .25em;
+	font-size: 1em;
 }
 
 .settings__setting p {
 	margin: .25em 0;
+}
+
+.settingsview--general .settingsview__tabs a.general,
+.settingsview--friends .settingsview__tabs a.friends,
+.settingsview--irc .settingsview__tabs a.irc {
+	font-weight: bold;
+}
+
+.settings__list {
+	border: 1px solid #ccc;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.settings__list-item {
+	display: flex;
+	border-bottom: 1px solid #ccc;
+	padding: 3px 0;
+}
+
+.settings__list-item > * {
+	margin: 0 10px;
+}
+
+.settings__list-item strong {
+	flex: 1 1 auto;
+}
+
+.settings__list-item em {
+	flex: 0 0 auto;
+	font-style: normal;
+}
+
+.settings__list-item button {
+	flex: 0 0 auto;
 }
 
 @media only screen and (max-width: 767px) {
@@ -718,13 +764,13 @@ ul.statsuserlist {
 		margin-right: 0;
 	}
 
-	.chatview__top, .chatview__input {
+	.mainview__top, .chatview__input {
 		left: 0;
 		padding-left: 10px;
 		padding-right: 10px;
 	}
 
-	.chatview__top {
+	.mainview__top {
 		padding-left: 40px;
 	}
 

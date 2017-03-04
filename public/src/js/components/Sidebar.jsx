@@ -6,7 +6,7 @@ import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
 import { storeViewState } from "../lib/io";
-import { internalUrl } from "../lib/routeHelpers";
+import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
 import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
 import actions from "../actions";
@@ -91,7 +91,7 @@ class Sidebar extends PureComponent {
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
 					<ul className="controls sidebar__controls">
-						<li><Link to={internalUrl("/settings")}>Settings</Link></li>
+						<li><Link to={settingsUrl()}>Settings</Link></li>
 						<li><a href={internalUrl("/logout")}>Log out</a></li>
 					</ul>
 				</div>
@@ -100,7 +100,7 @@ class Sidebar extends PureComponent {
 						<HighlightsLink />
 					</li>
 					<li key="allfriends">
-						<Link to={internalUrl("/allfriends")} className="sidebar__menu-link">
+						<Link to={categoryUrl("allfriends")} className="sidebar__menu-link">
 							{ CATEGORY_NAMES.allfriends }
 						</Link>
 					</li>

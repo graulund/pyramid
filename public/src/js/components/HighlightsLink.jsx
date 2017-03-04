@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { Link } from "react-router";
 
 import { CATEGORY_NAMES } from "../constants";
+import { categoryUrl } from "../lib/routeHelpers";
 
 class HighlightsLink extends PureComponent {
 	render() {
@@ -22,7 +23,7 @@ class HighlightsLink extends PureComponent {
 			(badge ? " sidebar__menu-link--highlighted" : "");
 
 		return (
-			<Link to="/highlights" className={className} key="main">
+			<Link to={categoryUrl("highlights")} className={className} key="main">
 				<span key="text">{ CATEGORY_NAMES.highlights }</span>
 				{ badge }
 			</Link>
