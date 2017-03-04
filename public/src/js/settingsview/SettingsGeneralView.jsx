@@ -37,6 +37,10 @@ class SettingsGeneralView extends PureComponent {
 		};
 	}
 
+	onChangeValue(name, value) {
+		console.log("Tried to set value", name, value);
+	}
+
 	renderSetting(setting) {
 		const { appConfig } = this.props;
 		const { name, readableName, type, description } = setting;
@@ -47,19 +51,23 @@ class SettingsGeneralView extends PureComponent {
 			case "bool":
 				prefixInput = <input
 					type="checkbox"
-					checked={appConfig[name]}
+					id={name}
+					defaultChecked={appConfig[name]}
+					onChange={(evt) => this.onChangeValue(name, evt.target.checked)}
 					key="input" />;
 				break;
 			default:
 				mainInput = <input
 					type={type}
-					value={appConfig[name] || ""}
+					id={name}
+					defaultValue={appConfig[name] || ""}
+					onChange={(evt) => this.onChangeValue(name, evt.target.value)}
 					key="input" />;
 		}
 
 		return (
 			<div className="settings__setting" key={name}>
-				<h3>{ prefixInput } { readableName }</h3>
+				<h3>{ prefixInput } <label htmlFor={name}>{ readableName }</label></h3>
 				{ mainInput }
 				<p>{ description }</p>
 			</div>

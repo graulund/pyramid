@@ -2,16 +2,39 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import forOwn from "lodash/forOwn";
 
-class SettingsFriendsView extends PureComponent {
-	renderLevelName(level) {
-		if (level === 1) {
-			return "Friend";
-		}
-		if (level === 2) {
-			return "Best friend";
-		}
+import SettingsList from "./SettingsList.jsx";
 
-		return "";
+class SettingsFriendsView extends PureComponent {
+	constructor(props) {
+		super(props);
+
+		this.renderLevelSelector = this.renderLevelSelector.bind(this);
+	}
+
+	onAdd(friend) {
+		console.log("Tried to add friend", friend);
+	}
+
+	onRemove(friend) {
+		if (confirm(`Are you sure you want to remove ${friend.name} as a friend?`)) {
+			console.log("Tried to remove friend", friend);
+		}
+	}
+
+	onChangeLevel(friend, level) {
+		console.log("Tried to change friend level", friend, level);
+	}
+
+	renderLevelSelector(friend) {
+		const onChange = friend
+			? (evt) => this.onChangeLevel(friend, evt.target.value)
+			: null;
+		return (
+			<select defaultValue={friend && friend.level} onChange={onChange}>
+				<option value="1">Friend</option>
+				<option value="2">Best friend</option>
+			</select>
+		);
 	}
 
 	render() {
@@ -27,22 +50,14 @@ class SettingsFriendsView extends PureComponent {
 
 		allFriends.sort((a, b) => a.name < b.name ? -1 : 1);
 
-		return (
-			<div key="main">
-				<button>Add friend</button>
-				<ul className="settings__list">
-					{
-						allFriends.map((friend) => (
-							<li className="settings__list-item" key={friend.name}>
-								<strong>{ friend.name }</strong>
-								<em>{ this.renderLevelName(friend.level) }</em>
-								<button>Remove friend</button>
-							</li>
-						))
-					}
-				</ul>
-			</div>
-		);
+		return <SettingsList
+			extraColumn={this.renderLevelSelector}
+			extraColumnName="level"
+			itemKindName="friend"
+			list={allFriends}
+			onAdd={this.onAdd}
+			onRemove={this.onRemove}
+		/>;
 	}
 }
 

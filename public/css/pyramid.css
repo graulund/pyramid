@@ -714,6 +714,41 @@ ul.statsuserlist {
 	flex: 0 0 auto;
 }
 
+.settings__container {
+	border: 1px solid #ccc;
+	padding: 20px;
+	margin: 0 0 20px;
+}
+
+.settings__container h1 {
+	margin-top: 0;
+}
+
+.settings__add {
+	border: 2px solid #ccc;
+	border-radius: 6px;
+	padding: 20px;
+	margin: 0 0 20px;
+}
+
+.settings__add h3 {
+	margin-top: 0;
+}
+
+.settings__rightcontrol {
+	float: right;
+	margin: 0 0 10px 10px;
+}
+
+p.l {
+	clear: left;
+}
+
+p.l label {
+	float: left;
+	width: 10em;
+}
+
 @media only screen and (max-width: 767px) {
 	/* Mobile last styles */
 
