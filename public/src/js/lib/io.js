@@ -4,6 +4,7 @@ import pull from "lodash/pull";
 import without from "lodash/without";
 
 import { CACHE_LINES } from "../constants";
+import { updateIrcConfigs } from "./ircConfigs";
 import { sendMessageNotification } from "./notifications";
 import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
@@ -402,6 +403,31 @@ export function initializeIo() {
 			if (details && details.message) {
 				// TODO: Don't alert if the window is in focus and you're viewing a source where this appears
 				sendMessageNotification(details.message);
+			}
+		});
+
+		// Data store refreshes
+
+		socket.on("friendsList", (details) => {
+			if (details && details.list) {
+				console.log("Received friendsList", details);
+				for (var level in details.list) {
+					store.dispatch(actions.friendsList.update(level, window.pyramid_friendsList[level]));
+				}
+			}
+		});
+
+		socket.on("ircConfig", (details) => {
+			if (details && details.data) {
+				console.log("Received ircConfig", details);
+				updateIrcConfigs(details.data);
+			}
+		});
+
+		socket.on("appConfig", (details) => {
+			if (details && details.data) {
+				console.log("Received appConfig", details);
+				store.dispatch(actions.appConfig.update(details.data));
 			}
 		});
 	}

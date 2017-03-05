@@ -96,6 +96,28 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitFriendsList = function(socket) {
+		socket.emit("friendsList", {
+			list: main.currentFriendsList()
+		});
+	};
+
+	const emitAppConfig = function(socket) {
+		main.loadAppConfig((err, data) => {
+			if (!err) {
+				socket.emit("appConfig", { data });
+			}
+		});
+	};
+
+	const emitIrcConfig = function(socket) {
+		main.loadIrcConfig((err, data) => {
+			if (!err) {
+				socket.emit("ircConfig", { data });
+			}
+		});
+	};
+
 	// Overall list emissions
 
 	const emitEventToRecipients = function(list, eventName, eventData) {
@@ -300,6 +322,192 @@ module.exports = function(main) {
 					if (util.isAnAcceptedToken(data.token)) {
 						main.sendOutgoingMessage(data.channel, data.message);
 					}
+				}
+			});
+
+			// Storing settings
+
+			socket.on("addNewFriend", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.username) {
+					main.addToFriends(
+						0,
+						details.username,
+						parseInt(details.level) === 2,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred adding friend", err);
+							}
+							else {
+								emitFriendsList(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("changeFriendLevel", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.username && details.level) {
+					main.modifyFriend(
+						0,
+						details.username,
+						{
+							isBestFriend:
+								parseInt(details.level) === 2
+						},
+						(err) => {
+							if (err) {
+								console.warn("Error occurred changing friend level", err);
+							}
+							else {
+								emitFriendsList(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("removeFriend", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.username) {
+					main.removeFromFriends(
+						0,
+						details.username,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred removing friend", err);
+							}
+							else {
+								emitFriendsList(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("setAppConfigValue", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.key) {
+					main.storeConfigValue(
+						details.key, details.value,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred setting app config value", err);
+							}
+							else {
+								emitAppConfig(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("addIrcServer", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.name && details.data) {
+					main.addServerToIrcConfig(
+					lodash.assign({}, details.data, { name: details.name }),
+					(err, result) => {
+						if (err) {
+							console.warn("Error occurred adding irc server", err);
+						}
+						else {
+
+							const done = () => {
+								emitIrcConfig(socket);
+								main.connectUnconnectedIrcs();
+							};
+
+							// Add all channels
+							if (result.insertId && details.channel && details.channel.length) {
+								const channelNames = [];
+								details.channel.forEach((channel) => {
+									const channelName = channel.name || channel;
+
+									if (typeof channelName === "string" && channelName) {
+										channelNames.push(channelName);
+									}
+								});
+								if (channelNames.length) {
+									async.parallel(
+										channelNames.map((name) =>
+											((callback) => main.addChannelToIrcConfig(details.name, name, callback))
+										), () => {
+											done();
+										}
+									);
+								}
+								else {
+									done();
+								}
+							}
+							else {
+								done();
+							}
+						}
+					})
+				}
+			});
+
+			socket.on("changeIrcServer", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.name && details.data) {
+					main.modifyServerInIrcConfig(
+						data.serverId, details.data,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred changing irc server", err);
+							}
+							else {
+								emitIrcConfig(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("removeIrcServer", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.name) {
+					main.removeServerFromIrcConfig(
+						details.name,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred removing irc server", err);
+							}
+							else {
+								main.disconnectIrcServer(details.name);
+								emitIrcConfig(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("addIrcChannel", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.serverName && details.name) {
+					main.addChannelToIrcConfig(
+						details.serverName, details.name,
+						(err) => {
+							main.joinIrcChannel(details.serverName, details.name);
+							emitIrcConfig(socket);
+						}
+					);
+				}
+			});
+
+			socket.on("removeIrcChannel", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.serverName && details.name) {
+					main.removeChannelFromIrcConfig(
+						details.serverName, details.name,
+						(err) => {
+							main.partIrcChannel(serverName, details.name);
+							emitIrcConfig(socket);
+						}
+					);
 				}
 			});
 		});

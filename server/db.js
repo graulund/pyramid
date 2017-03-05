@@ -10,8 +10,6 @@ const constants = require("./constants");
 
 const ASC = 0, DESC = 1;
 
-const close = () => { db.close() };
-
 const getTimestamp = (t) => {
 
 	if (t && t instanceof Date) {
@@ -59,6 +57,8 @@ const formatIn = (list) => {
 module.exports = function(main) {
 
 	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
+
+	const close = () => { db.close() };
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
 		db.run(updateQuery, params, function(err, data) {
@@ -182,6 +182,14 @@ module.exports = function(main) {
 		db.all(
 			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", DESC),
 			{ $isEnabled: 1 },
+			callback
+		);
+	};
+
+	const getFriend = (serverId, username, callback) => {
+		db.get(
+			sq("friends", ["*"], ["isEnabled", "serverId", "username"]),
+			dollarize({ isEnabled: 1, serverId, username }),
 			callback
 		);
 	};
@@ -530,6 +538,45 @@ module.exports = function(main) {
 		});
 	};
 
+	/*
+
+	API:
+
+	addChannelToIrcConfig(serverId, name, callback)
+	addServerToIrcConfig(data, callback)
+	addToFriends(serverId, username, isBestFriend, callback)
+	close()
+	deleteLinesWithLineIds(lineIds, callback)
+	getAllConfigValues(callback)
+	getChannelId(serverName, channelName, callback)
+	getChannelUri(serverId, channelName, callback)
+	getConfigValue(name, callback)
+	getFriend(serverId, username, callback)
+	getFriends(callback)
+	getFriendsList(callback)
+	getIrcChannel(channelId, callback)
+	getIrcChannels(callback)
+	getIrcConfig(callback)
+	getIrcServer(serverId, callback)
+	getIrcServers(callback)
+	getLastSeenChannels(callback)
+	getLastSeenUsers(callback)
+	getLinesForDate(server, channelId, date, callback)
+	getNicknames(callback)
+	getServerId(name, callback)
+	getServerName(serverId, callback)
+	modifyChannelInIrcConfig(channelId, data, callback)
+	modifyFriend(friendId, data, callback)
+	modifyServerInIrcConfig(serverId, data, callback)
+	removeChannelFromIrcConfig(channelId, callback)
+	removeFromFriends(friendId, callback)
+	removeServerFromIrcConfig(serverId, callback)
+	storeConfigValue(name, value, callback)
+	storeLine(channelId, line, callback)
+	storeNickname(nickname, channelWhitelist, channelBlacklist, callback)
+
+	*/
+
 	const output = {
 		addChannelToIrcConfig,
 		addServerToIrcConfig,
@@ -540,6 +587,7 @@ module.exports = function(main) {
 		getChannelId,
 		getChannelUri,
 		getConfigValue,
+		getFriend,
 		getFriends,
 		getFriendsList,
 		getIrcChannel,
@@ -547,6 +595,8 @@ module.exports = function(main) {
 		getIrcConfig,
 		getIrcServer,
 		getIrcServers,
+		getLastSeenChannels,
+		getLastSeenUsers,
 		getLinesForDate,
 		getNicknames,
 		getServerId,

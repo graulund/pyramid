@@ -718,6 +718,85 @@ const configValue = function(name) {
 	return currentAppConfig[name] || configDefaults[name];
 };
 
+// Storing settings
+
+const getServerId = function(serverName, callback) {
+	db.getServerId(serverName, callback);
+};
+
+const addServerToIrcConfig = function(data, callback) {
+	db.addServerToIrcConfig(data, callback);
+};
+
+const addToFriends = function(serverId, username, isBestFriend, callback) {
+	db.addToFriends(serverId, username, isBestFriend, callback);
+};
+
+const storeConfigValue = function(name, value, callback) {
+	db.storeConfigValue(name, value, callback);
+};
+
+// TODO: Use server name instead of server id here
+const modifyFriend = function(serverId, username, data, callback) {
+	async.waterfall([
+		(callback) => getFriend(serverId, username, callback),
+		(friend, callback) => db.modifyFriend(friend.friendId, data, callback)
+	], callback);
+};
+
+const removeFromFriends = function(serverId, username, callback) {
+	async.waterfall([
+		(callback) => getFriend(serverId, username, callback),
+		(friend, callback) => db.removeFromFriends(friend.friendId, callback)
+	], callback);
+};
+
+const modifyServerInIrcConfig = function(serverName, details, callback) {
+	async.waterfall([
+		(callback) => getServerId(serverName, callback),
+		(data, callback) => db.modifyServerInIrcConfig(data.serverId, details, callback)
+	], callback);
+};
+
+const removeServerFromIrcConfig = function(serverName, callback) {
+	async.waterfall([
+		(callback) => getServerId(serverName, callback),
+		(data, callback) => db.removeServerFromIrcConfig(data.serverId, callback)
+	], callback);
+};
+
+const addChannelToIrcConfig = function(serverName, name, callback) {
+	async.waterfall([
+		(callback) => getServerId(serverName, callback),
+		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, callback)
+	], callback);
+};
+
+const removeChannelFromIrcConfig = function(serverName, name, callback) {
+	async.waterfall([
+		(callback) => getChannelId(serverName, name, callback),
+		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
+	], callback);
+};
+
+// Remote control IRC
+
+const connectUnconnectedIrcs = function() {
+	irc.connectUnconnectedClients();
+};
+
+const disconnectIrcServer = function(serverName) {
+	irc.disconnectServer(serverName);
+}
+
+const joinIrcChannel = function(serverName, channelName) {
+	irc.joinChannel(serverName, channelName);
+};
+
+const partIrcChannel = function(serverName, channelName) {
+	irc.partChannel(serverName, channelName);
+};
+
 // Startup
 onDb((err) => {
 	console.log("Got db");
@@ -757,15 +836,20 @@ onDb((err) => {
 module.exports = {
 	addCategoryRecipient,
 	addChannelRecipient,
+	addChannelToIrcConfig,
+	addServerToIrcConfig,
+	addToFriends,
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
 	configValue,
+	connectUnconnectedIrcs,
 	currentAppConfig: () => currentAppConfig,
 	currentFriendsList: () => currentFriendsList,
 	currentIrcConfig: () => currentIrcConfig,
 	currentNicknames: () => currentNicknames,
 	currentViewState: () => currentViewState,
+	disconnectIrcServer,
 	flushCachedLastSeens,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
 	getChannelCache: (channelUri) => channelCaches[channelUri],
@@ -774,18 +858,25 @@ module.exports = {
 	getUserCache: (username) => userCaches[username],
 	getUserCurrentSymbol,
 	getUserRecipients: (username) => userRecipients[username],
+	handleChatNetworkError,
 	handleIncomingEvent,
 	handleIncomingMessage,
-	handleChatNetworkError,
+	joinIrcChannel,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
 	loadAppConfig,
 	loadFriendsList,
 	loadIrcConfig,
 	loadNicknames,
+	modifyFriend,
+	modifyServerInIrcConfig,
+	partIrcChannel,
 	plugins: () => plugins,
 	removeCategoryRecipient,
+	removeChannelFromIrcConfig,
 	removeChannelRecipient,
+	removeFromFriends,
+	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,
 	sendOutgoingMessage,
@@ -795,6 +886,7 @@ module.exports = {
 	setIrc,
 	setPlugins,
 	setWeb,
+	storeConfigValue,
 	storeViewState,
 	unseenHighlightIds: () => unseenHighlightIds
 };

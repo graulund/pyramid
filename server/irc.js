@@ -93,6 +93,10 @@ module.exports = function(main) {
 		return null;
 	};
 
+	const formatChannelName = function(channelName) {
+		return "#" + channelName.replace(/^#/, "");
+	};
+
 	// Send message
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
@@ -289,10 +293,8 @@ module.exports = function(main) {
 
 	// Set up clients
 
-	const go = () => {
-		const ircConfig = main.currentIrcConfig();
-		for (i = 0; i < ircConfig.length; i++) {
-			var cf = ircConfig[i];
+	const initiateClient = (cf) => {
+		if (cf && cf.hostname) {
 			console.log("Connecting to " + cf.hostname + " as " + cf.nickname);
 
 			var c = new irc.Client(
@@ -314,22 +316,81 @@ module.exports = function(main) {
 			c.extConfig = cf;
 			clients.push(c);
 		}
+	}
+
+	const go = () => {
+		const ircConfig = main.currentIrcConfig();
+		ircConfig.forEach((config) => {
+			if (config) {
+				initiateClient(config);
+			}
+		});
 
 		calibrateMultiServerChannels();
 
-		for (i = 0; i < clients.length; i++) {
-			var client = clients[i];
+		clients.forEach((client) => {
 			if (client) {
 				setUpClient(client);
 			}
+		});
+	};
+
+	const connectUnconnectedClients = () => {
+		const newNames = [];
+		const ircConfig = main.currentIrcConfig();
+		ircConfig.forEach((config) => {
+			if (
+				config &&
+				config.name &&
+				!findClientByServerName(config.name)
+			) {
+				initiateClient(config);
+				newNames.push(config.name);
+			}
+		});
+
+		calibrateMultiServerChannels();
+
+		clients.forEach((client) => {
+			if (
+				client &&
+				newNames.indexOf(clientServerName(client)) >= 0
+			) {
+				setUpClient(client);
+			}
+		});
+	};
+
+	const joinChannel = function(serverName, channelName) {
+		const c = findClientByServerName(serverName);
+		if (c) {
+			c.join(formatChannelName(channelName));
+		}
+	};
+
+	const partChannel = function(serverName, channelName) {
+		const c = findClientByServerName(serverName);
+		if (c) {
+			c.part(formatChannelName(channelName));
+		}
+	};
+
+	const disconnectServer = function(serverName) {
+		const c = findClientByServerName(serverName);
+		if (c) {
+			c.disconnect();
 		}
 	};
 
 	// Exported objects and methods
 	const output = {
-		clients,
 		calibrateMultiServerChannels,
+		clients,
+		connectUnconnectedClients,
+		disconnectServer,
 		go,
+		joinChannel,
+		partChannel,
 		sendOutgoingMessage
 	};
 
