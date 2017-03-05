@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import forOwn from "lodash/forOwn";
 
 import SettingsList from "./SettingsList.jsx";
+import * as io from "../lib/io";
 
 class SettingsFriendsView extends PureComponent {
 	constructor(props) {
@@ -13,16 +14,19 @@ class SettingsFriendsView extends PureComponent {
 
 	onAdd(friend) {
 		console.log("Tried to add friend", friend);
+		io.addNewFriend(friend.name, friend.level);
 	}
 
 	onRemove(friend) {
 		if (confirm(`Are you sure you want to remove ${friend.name} as a friend?`)) {
 			console.log("Tried to remove friend", friend);
+			io.removeFriend(friend.name);
 		}
 	}
 
 	onChangeLevel(friend, level) {
 		console.log("Tried to change friend level", friend, level);
+		io.changeFriendLevel(friend.name, level);
 	}
 
 	renderLevelSelector(friend) {

@@ -1,5 +1,9 @@
 import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
+import debounce from "lodash/debounce";
+
+import { CHANGE_DEBOUNCE_MS } from "../constants";
+import * as io from "../lib/io";
 
 class SettingsGeneralView extends PureComponent {
 	constructor(props) {
@@ -39,6 +43,7 @@ class SettingsGeneralView extends PureComponent {
 
 	onChangeValue(name, value) {
 		console.log("Tried to set value", name, value);
+		io.setAppConfigValue(name, value);
 	}
 
 	renderSetting(setting) {
@@ -47,13 +52,15 @@ class SettingsGeneralView extends PureComponent {
 
 		var prefixInput = null, mainInput = null;
 
+		const myChangeValue = debounce(this.onChangeValue, CHANGE_DEBOUNCE_MS);
+
 		switch (type) {
 			case "bool":
 				prefixInput = <input
 					type="checkbox"
 					id={name}
 					defaultChecked={appConfig[name]}
-					onChange={(evt) => this.onChangeValue(name, evt.target.checked)}
+					onChange={(evt) => myChangeValue(name, evt.target.checked)}
 					key="input" />;
 				break;
 			default:
@@ -61,7 +68,7 @@ class SettingsGeneralView extends PureComponent {
 					type={type}
 					id={name}
 					defaultValue={appConfig[name] || ""}
-					onChange={(evt) => this.onChangeValue(name, evt.target.value)}
+					onChange={(evt) => myChangeValue(name, evt.target.value)}
 					key="input" />;
 		}
 

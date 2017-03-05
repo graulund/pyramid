@@ -697,6 +697,10 @@ ul.statsuserlist {
 	padding: 3px 0;
 }
 
+.settings__list-item:last-child {
+	border-bottom: none;
+}
+
 .settings__list-item > * {
 	margin: 0 10px;
 }

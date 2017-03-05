@@ -151,6 +151,60 @@ function updateLastSeenUsers(userInfo) {
 	store.dispatch(actions.lastSeenUsers.update(userInfo));
 }
 
+export function addNewFriend(username, level) {
+	if (socket) {
+		socket.emit("addNewFriend", { username, level });
+	}
+}
+
+export function changeFriendLevel(username, level) {
+	if (socket) {
+		socket.emit("changeFriendLevel", { username, level });
+	}
+}
+
+export function removeFriend(username) {
+	if (socket) {
+		socket.emit("removeFriend", { username });
+	}
+}
+
+export function setAppConfigValue(key, value) {
+	if (socket) {
+		socket.emit("setAppConfigValue", { key, value });
+	}
+}
+
+export function addIrcServer(name, data) {
+	if (socket) {
+		socket.emit("addIrcServer", { name, data });
+	}
+}
+
+export function changeIrcServer(name, data) {
+	if (socket) {
+		socket.emit("changeIrcServer", { name, data });
+	}
+}
+
+export function removeIrcServer(name) {
+	if (socket) {
+		socket.emit("removeIrcServer", { name });
+	}
+}
+
+export function addIrcChannel(serverName, name) {
+	if (socket) {
+		socket.emit("addIrcChannel", { serverName, name });
+	}
+}
+
+export function removeIrcChannel(serverName, name) {
+	if (socket) {
+		socket.emit("removeIrcChannel", { serverName, name });
+	}
+}
+
 export function initializeIo() {
 	if (window.io) {
 		io = window.io;

@@ -1,5 +1,6 @@
 import React, { PureComponent, PropTypes } from "react";
 
+import { INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
 
 class SettingsList extends PureComponent {
@@ -7,15 +8,31 @@ class SettingsList extends PureComponent {
 		super(props);
 
 		this.onSubmit = this.onSubmit.bind(this);
-		this.showForm = this.showForm.bind(this);
+		this.showAddForm = this.showAddForm.bind(this);
 
 		this.state = {
-			showingForm: false
+			showingAddForm: false
 		};
 	}
 
-	showForm() {
-		this.setState({ showingForm: true });
+	componentDidUpdate(prevProps, prevState) {
+		const { showingAddForm } = this.state;
+		const { addForm } = this.refs;
+
+		// Automatically add focus to the first input element
+		// if we just started showing a form
+
+		if (addForm && showingAddForm && !prevState.showingAddForm) {
+			const input = addForm.querySelector(INPUT_SELECTOR);
+
+			if (input) {
+				input.focus();
+			}
+		}
+	}
+
+	showAddForm() {
+		this.setState({ showingAddForm: true });
 	}
 
 	onSubmit(evt) {
@@ -27,7 +44,7 @@ class SettingsList extends PureComponent {
 		const name = addName.value;
 
 		if (extraColumnName && addExtraContainer) {
-			const extraInput = addExtraContainer.querySelector("input, select, textarea");
+			const extraInput = addExtraContainer.querySelector(INPUT_SELECTOR);
 			const extra = extraInput.value;
 
 			onAdd({ name, [extraColumnName]: extra });
@@ -37,13 +54,13 @@ class SettingsList extends PureComponent {
 			onAdd({ name });
 		}
 
-		this.setState({ showingForm: false });
+		this.setState({ showingAddForm: false });
 	}
 
-	renderForm() {
+	renderAddForm() {
 		const { extraColumn, extraColumnName, itemKindName } = this.props;
 		return (
-			<form className="settings__add" key="add" onSubmit={this.onSubmit}>
+			<form className="settings__add" onSubmit={this.onSubmit} key="add" ref="addForm">
 				<h3>Add { itemKindName }</h3>
 				<p className="l">
 					<label htmlFor="name">Name </label>
@@ -66,11 +83,11 @@ class SettingsList extends PureComponent {
 
 	render() {
 		const { extraColumn, itemKindName, list, onAdd, onRemove } = this.props;
-		const { showingForm } = this.state;
+		const { showingAddForm } = this.state;
 
-		const adder = showingForm
-					? this.renderForm()
-					: <button onClick={this.showForm}>Add { itemKindName }</button>;
+		const adder = showingAddForm
+					? this.renderAddForm()
+					: <button onClick={this.showAddForm}>Add { itemKindName }</button>;
 
 		return (
 			<div key="main">
