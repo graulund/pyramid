@@ -113,6 +113,7 @@ module.exports = function(main) {
 	const emitIrcConfig = function(socket) {
 		main.loadIrcConfig((err, data) => {
 			if (!err) {
+				data = main.safeIrcConfigDict(data);
 				socket.emit("ircConfig", { data });
 			}
 		});

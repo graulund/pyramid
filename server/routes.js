@@ -138,7 +138,7 @@ module.exports = function(app, main) {
 					// Variables
 					appConfig: results.appConfig,
 					friendsList: main.currentFriendsList(),
-					ircConfig: results.ircConfig,
+					ircConfig: main.safeIrcConfigDict(results.ircConfig),
 					lastSeenChannels: main.lastSeenChannels(),
 					lastSeenUsers: main.lastSeenUsers(),
 					token: getUsedToken(req),

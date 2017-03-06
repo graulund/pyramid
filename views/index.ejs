@@ -2,17 +2,6 @@
 	// PYRAMID
 	// Index page
 
-	var ircConfigDict = {};
-	ircConfig.forEach((config) => {
-		var outConfig = lodash.omit(config, ["password"]);
-		if (outConfig.channels) {
-			outConfig.channels.forEach((val, i) => {
-				outConfig.channels[i] = val.name;
-			});
-		}
-		ircConfigDict[config.name] = outConfig;
-	});
-
 	var inscriptEscape = (str) => {
 		return str.replace(/<\/script/g, "\\x3c/script");
 	};
@@ -20,7 +9,7 @@
 <script>
 	var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
 	var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
-	var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfigDict)) %>;
+	var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfig)) %>;
 	var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
 	var pyramid_lastSeenUsers = <%- inscriptEscape(JSON.stringify(lastSeenUsers)) %>;
 	var pyramid_viewState = <%- inscriptEscape(JSON.stringify(viewState)) %>;

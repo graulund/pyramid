@@ -714,6 +714,21 @@ const generateIrcConfigCaches = function(config = currentIrcConfig) {
 	}
 };
 
+const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
+	var ircConfigDict = {};
+	ircConfig.forEach((config) => {
+		var outConfig = lodash.omit(config, ["password"]);
+		if (outConfig.channels) {
+			outConfig.channels = outConfig.channels.map(
+				(val) => val.name
+			);
+		}
+		ircConfigDict[config.name] = outConfig;
+	});
+
+	return ircConfigDict;
+};
+
 const configValue = function(name) {
 	return currentAppConfig[name] || configDefaults[name];
 };
@@ -879,6 +894,7 @@ module.exports = {
 	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,
+	safeIrcConfigDict,
 	sendOutgoingMessage,
 	setChannelUserList,
 	setDb,
