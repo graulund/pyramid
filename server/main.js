@@ -729,6 +729,15 @@ const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 	return ircConfigDict;
 };
 
+const nicknamesDict = function(nicknames = currentNicknames) {
+	const out = {};
+	nicknames.forEach((nickname) => {
+		out[nickname.nickname] = nickname;
+	});
+
+	return out;
+};
+
 const configValue = function(name) {
 	return currentAppConfig[name] || configDefaults[name];
 };
@@ -749,6 +758,10 @@ const addToFriends = function(serverId, username, isBestFriend, callback) {
 
 const storeConfigValue = function(name, value, callback) {
 	db.storeConfigValue(name, value, callback);
+};
+
+const storeNickname = function(nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback) {
+	db.storeNickname(nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback);
 };
 
 // TODO: Use server name instead of server id here
@@ -885,6 +898,7 @@ module.exports = {
 	loadNicknames,
 	modifyFriend,
 	modifyServerInIrcConfig,
+	nicknamesDict,
 	partIrcChannel,
 	plugins: () => plugins,
 	removeCategoryRecipient,
@@ -903,6 +917,7 @@ module.exports = {
 	setPlugins,
 	setWeb,
 	storeConfigValue,
+	storeNickname,
 	storeViewState,
 	unseenHighlightIds: () => unseenHighlightIds
 };

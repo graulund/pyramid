@@ -109,6 +109,14 @@ export default {
 			};
 		}
 	},
+	nicknames: {
+		update(data) {
+			return {
+				type: actionTypes.nicknames.UPDATE,
+				data
+			};
+		}
+	},
 	token: {
 		set(data) {
 			return {

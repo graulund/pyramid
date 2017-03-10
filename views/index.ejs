@@ -7,13 +7,14 @@
 	};
 %>
 <script>
-	var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
+	var pyramid_appConfig = <%- inscriptEscape(JSON.stringify(appConfig)) %>;
 	var pyramid_friendsList = <%- inscriptEscape(JSON.stringify(friendsList)) %>;
 	var pyramid_ircConfigs = <%- inscriptEscape(JSON.stringify(ircConfig)) %>;
 	var pyramid_lastSeenChannels = <%- inscriptEscape(JSON.stringify(lastSeenChannels)) %>;
 	var pyramid_lastSeenUsers = <%- inscriptEscape(JSON.stringify(lastSeenUsers)) %>;
+	var pyramid_myToken = <%- inscriptEscape(JSON.stringify(token)) %>;
+	var pyramid_nicknames = <%- inscriptEscape(JSON.stringify(nicknames)) %>;
 	var pyramid_viewState = <%- inscriptEscape(JSON.stringify(viewState)) %>;
-	var pyramid_appConfig = <%- inscriptEscape(JSON.stringify(appConfig)) %>;
 </script>
 <main></main>
 <noscript>Please <strong>turn JavaScript on</strong> to experience Pyramid. Sorry about that.</noscript>

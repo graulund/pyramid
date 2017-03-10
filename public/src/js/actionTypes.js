@@ -45,6 +45,10 @@ export const multiServerChannels = {
 	"SET": "multiServerChannels/SET"
 };
 
+export const nicknames = {
+	"UPDATE": "nicknames/UPDATE"
+};
+
 export const token = {
 	"SET": "token/SET"
 };

@@ -380,10 +380,10 @@ module.exports = function(main) {
 		);
 	};
 
-	const storeNickname = (nickname, channelWhitelist, channelBlacklist, callback) => {
+	const storeNickname = (nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback) => {
 		upsert(
-			uq("nicknames", ["channelWhitelist", "channelBlacklist"], ["nickname"]),
-			iq("nicknames", ["nickname", "channelWhitelist", "channelBlacklist"]),
+			uq("nicknames", ["channelWhitelist", "channelBlacklist", "serverWhitelist", "serverBlacklist"], ["nickname"]),
+			iq("nicknames", ["nickname", "channelWhitelist", "channelBlacklist", "serverWhitelist", "serverBlacklist"]),
 			dollarize({ nickname, channelWhitelist, channelBlacklist }),
 			callback
 		);

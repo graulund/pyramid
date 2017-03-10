@@ -141,6 +141,7 @@ module.exports = function(app, main) {
 					ircConfig: main.safeIrcConfigDict(results.ircConfig),
 					lastSeenChannels: main.lastSeenChannels(),
 					lastSeenUsers: main.lastSeenUsers(),
+					nicknames: main.nicknamesDict(),
 					token: getUsedToken(req),
 					viewState: main.currentViewState(),
 					// Includes

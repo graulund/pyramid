@@ -430,5 +430,12 @@ export function initializeIo() {
 				store.dispatch(actions.appConfig.update(details.data));
 			}
 		});
+
+		socket.on("nicknames", (details) => {
+			if (details && details.data) {
+				console.log("Received nicknames", details);
+				store.dispatch(actions.nicknames.update(details.data));
+			}
+		});
 	}
 }

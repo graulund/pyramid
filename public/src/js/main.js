@@ -51,6 +51,10 @@ if (window.pyramid_appConfig) {
 	store.dispatch(actions.appConfig.update(window.pyramid_appConfig));
 }
 
+if (window.pyramid_nicknames) {
+	store.dispatch(actions.nicknames.update(window.pyramid_nicknames));
+}
+
 // Sockets
 
 initializeIo();

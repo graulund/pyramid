@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import SettingsFriendsView from "./SettingsFriendsView.jsx";
 import SettingsGeneralView from "./SettingsGeneralView.jsx";
 import SettingsIrcView from "./SettingsIrcView.jsx";
+import SettingsNicknamesView from "./SettingsNicknamesView.jsx";
 import { settingsUrl } from "../lib/routeHelpers";
 
 class SettingsView extends PureComponent {
@@ -23,6 +24,9 @@ class SettingsView extends PureComponent {
 				break;
 			case "irc":
 				page = <SettingsIrcView />;
+				break;
+			case "nicknames":
+				page = <SettingsNicknamesView />;
 				break;
 			default:
 				page = <SettingsGeneralView />;
@@ -48,6 +52,11 @@ class SettingsView extends PureComponent {
 						<li key="irc">
 							<Link className="irc" to={settingsUrl("irc")}>
 								IRC
+							</Link>
+						</li>
+						<li key="nicknames">
+							<Link className="nicknames" to={settingsUrl("nicknames")}>
+								Nicknames
 							</Link>
 						</li>
 					</ul>

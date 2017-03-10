@@ -119,6 +119,14 @@ module.exports = function(main) {
 		});
 	};
 
+	const emitNicknames = function(socket) {
+		main.loadNicknames((err, data) => {
+			if (!err) {
+				socket.emit("nicknames", { data });
+			}
+		});
+	};
+
 	// Overall list emissions
 
 	const emitEventToRecipients = function(list, eventName, eventData) {

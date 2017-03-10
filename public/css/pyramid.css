@@ -680,7 +680,8 @@ ul.statsuserlist {
 
 .settingsview--general .settingsview__tabs a.general,
 .settingsview--friends .settingsview__tabs a.friends,
-.settingsview--irc .settingsview__tabs a.irc {
+.settingsview--irc .settingsview__tabs a.irc,
+.settingsview--nicknames .settingsview__tabs a.nicknames {
 	font-weight: bold;
 }
 
