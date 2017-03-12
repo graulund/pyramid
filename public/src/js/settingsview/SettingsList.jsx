@@ -11,6 +11,7 @@ class SettingsList extends PureComponent {
 		this.showAddForm = this.showAddForm.bind(this);
 
 		this.state = {
+			selectedItem: null,
 			showingAddForm: false
 		};
 	}
@@ -28,6 +29,15 @@ class SettingsList extends PureComponent {
 			if (input) {
 				input.focus();
 			}
+		}
+	}
+
+	handleClick(item) {
+		const { onSelect } = this.props;
+
+		if (onSelect) {
+			this.setState({ selectedItem: item });
+			onSelect(item);
 		}
 	}
 
@@ -57,6 +67,15 @@ class SettingsList extends PureComponent {
 		this.setState({ showingAddForm: false });
 	}
 
+	renderAddButton() {
+		const { itemKindName } = this.props;
+		return (
+			<div className="settings__list-buttons">
+				<button onClick={this.showAddForm}>Add { itemKindName }</button>
+			</div>
+		);
+	}
+
 	renderAddForm() {
 		const { extraColumn, extraColumnName, itemKindName } = this.props;
 		return (
@@ -82,20 +101,33 @@ class SettingsList extends PureComponent {
 	}
 
 	render() {
-		const { extraColumn, itemKindName, list, onAdd, onRemove } = this.props;
-		const { showingAddForm } = this.state;
+		const { extraColumn, itemKindName, list, onAdd, onRemove, onSelect } = this.props;
+		const { selectedItem, showingAddForm } = this.state;
 
 		const adder = showingAddForm
 					? this.renderAddForm()
-					: <button onClick={this.showAddForm}>Add { itemKindName }</button>;
+					: this.renderAddButton();
+
+		const itemClassName = (item) => {
+			return "settings__list-item" + (
+				item === selectedItem
+					? " settings__list-item--selected"
+					: ""
+			);
+		};
+
+		const className = "settings__list" + (
+			onSelect ? " settings__list--selectable" : ""
+		);
 
 		return (
-			<div key="main">
+			<div className={className} key="main">
 				{ typeof onAdd === "function" ? adder : null }
-				<ul className="settings__list">
+				<ul>
 					{
 						list.map((item, i) => (
-							<li className="settings__list-item" key={i}>
+							<li className={itemClassName(item)} key={i}
+								onClick={() => this.handleClick(item)}>
 								<strong>{ item.name || item }</strong>
 								{
 									(typeof extraColumn === "function")
@@ -105,7 +137,7 @@ class SettingsList extends PureComponent {
 								{
 									(typeof onRemove === "function")
 									? (
-										<button onClick={() => onRemove(item)}>
+										<button onClick={(evt) => onRemove(item, evt)}>
 											Remove { itemKindName }
 										</button>
 									)
@@ -126,7 +158,8 @@ SettingsList.propTypes = {
 	itemKindName: PropTypes.string,
 	list: PropTypes.array,
 	onAdd: PropTypes.func,
-	onRemove: PropTypes.func
+	onRemove: PropTypes.func,
+	onSelect: PropTypes.func
 };
 
 export default SettingsList;

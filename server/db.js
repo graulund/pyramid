@@ -180,7 +180,7 @@ module.exports = function(main) {
 
 	const getFriends = (callback) => {
 		db.all(
-			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", DESC),
+			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", ASC),
 			{ $isEnabled: 1 },
 			callback
 		);
@@ -206,13 +206,13 @@ module.exports = function(main) {
 	const modifyFriend = (friendId, data, callback) => {
 		db.run(
 			uq("friends", Object.keys(data), ["friendId"]),
-			dollarize(data),
+			dollarize(lodash.assign({ friendId }, data)),
 			callback
 		);
 	};
 
 	const removeFromFriends = (friendId, callback) => {
-		dq.run(
+		db.run(
 			dq("friends", ["friendId"]),
 			dollarize({ friendId }),
 			callback
@@ -374,17 +374,73 @@ module.exports = function(main) {
 	};
 
 	const getNicknames = (callback) => {
+		const prepareNicknameListValue = (list) => {
+			if (list) {
+				return list.split("\n");
+			}
+
+			return list;
+		};
+
+		const prepareNicknameValues = (err, data) => {
+			if (data && data.length) {
+				data.forEach((item) => {
+					[
+						"channelBlacklist", "channelWhitelist",
+						"serverBlacklist", "serverWhitelist"
+					].forEach((key) => {
+						if (item[key]) {
+							item[key] = prepareNicknameListValue(item[key]);
+						}
+					});
+				});
+			}
+
+			callback(err, data);
+		};
+
 		db.all(
-			sq("nicknames", ["*"]) + " " + oq("nickname", DESC),
+			sq("nicknames", ["*"]) + " " + oq("nickname", ASC),
+			prepareNicknameValues
+		);
+	};
+
+	const addNickname = (nickname, callback) => {
+		console.log("AddNickname",
+			iq("nicknames", ["nickname"]),
+			dollarize({ nickname })
+		);
+		db.run(
+			iq("nicknames", ["nickname"]),
+			dollarize({ nickname }),
 			callback
 		);
 	};
 
-	const storeNickname = (nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback) => {
-		upsert(
-			uq("nicknames", ["channelWhitelist", "channelBlacklist", "serverWhitelist", "serverBlacklist"], ["nickname"]),
-			iq("nicknames", ["nickname", "channelWhitelist", "channelBlacklist", "serverWhitelist", "serverBlacklist"]),
-			dollarize({ nickname, channelWhitelist, channelBlacklist }),
+	const modifyNickname = (nickname, data, callback) => {
+		const keys = Object.keys(data);
+
+		keys.forEach((key) => {
+			if (data[key] && data[key] instanceof Array) {
+				data[key] = data[key].join("\n").toLowerCase() || null;
+			}
+		});
+
+		db.run(
+			uq("nicknames", keys, ["nickname"]),
+			dollarize(lodash.assign({ nickname }, data)),
+			callback
+		);
+	};
+
+	const removeNickname = (nickname, callback) => {
+		console.log("removeNickname",
+			dq("nicknames", ["nickname"]),
+			dollarize({ nickname })
+		);
+		db.run(
+			dq("nicknames", ["nickname"]),
+			dollarize({ nickname }),
 			callback
 		);
 	};
@@ -543,6 +599,7 @@ module.exports = function(main) {
 	API:
 
 	addChannelToIrcConfig(serverId, name, callback)
+	addNickname(nickname, callback)
 	addServerToIrcConfig(data, callback)
 	addToFriends(serverId, username, isBestFriend, callback)
 	close()
@@ -567,18 +624,20 @@ module.exports = function(main) {
 	getServerName(serverId, callback)
 	modifyChannelInIrcConfig(channelId, data, callback)
 	modifyFriend(friendId, data, callback)
+	modifyNickname(nickname, data, callback)
 	modifyServerInIrcConfig(serverId, data, callback)
 	removeChannelFromIrcConfig(channelId, callback)
 	removeFromFriends(friendId, callback)
+	removeNickname(nickname, callback)
 	removeServerFromIrcConfig(serverId, callback)
 	storeConfigValue(name, value, callback)
 	storeLine(channelId, line, callback)
-	storeNickname(nickname, channelWhitelist, channelBlacklist, callback)
 
 	*/
 
 	const output = {
 		addChannelToIrcConfig,
+		addNickname,
 		addServerToIrcConfig,
 		addToFriends,
 		close,
@@ -603,13 +662,14 @@ module.exports = function(main) {
 		getServerName,
 		modifyChannelInIrcConfig,
 		modifyFriend,
+		modifyNickname,
 		modifyServerInIrcConfig,
 		removeChannelFromIrcConfig,
 		removeFromFriends,
+		removeNickname,
 		removeServerFromIrcConfig,
 		storeConfigValue,
-		storeLine,
-		storeNickname
+		storeLine
 	};
 
 	main.setDb(output);

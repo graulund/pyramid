@@ -4,7 +4,7 @@ import pull from "lodash/pull";
 import without from "lodash/without";
 
 import { CACHE_LINES } from "../constants";
-import { updateIrcConfigs } from "./ircConfigs";
+import { setIrcConfigs } from "./ircConfigs";
 import { sendMessageNotification } from "./notifications";
 import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
@@ -203,6 +203,24 @@ export function addIrcChannel(serverName, name) {
 export function removeIrcChannel(serverName, name) {
 	if (socket) {
 		socket.emit("removeIrcChannel", { serverName, name });
+	}
+}
+
+export function addNickname(nickname) {
+	if (socket) {
+		socket.emit("addNickname", { nickname });
+	}
+}
+
+export function changeNicknameValue(nickname, key, value) {
+	if (socket) {
+		socket.emit("changeNicknameValue", { nickname, key, value });
+	}
+}
+
+export function removeNickname(nickname) {
+	if (socket) {
+		socket.emit("removeNickname", { nickname });
 	}
 }
 
@@ -409,18 +427,16 @@ export function initializeIo() {
 		// Data store refreshes
 
 		socket.on("friendsList", (details) => {
-			if (details && details.list) {
+			if (details && details.data) {
 				console.log("Received friendsList", details);
-				for (var level in details.list) {
-					store.dispatch(actions.friendsList.update(level, window.pyramid_friendsList[level]));
-				}
+				store.dispatch(actions.friendsList.set(details.data));
 			}
 		});
 
 		socket.on("ircConfig", (details) => {
 			if (details && details.data) {
 				console.log("Received ircConfig", details);
-				updateIrcConfigs(details.data);
+				setIrcConfigs(details.data);
 			}
 		});
 
@@ -434,7 +450,7 @@ export function initializeIo() {
 		socket.on("nicknames", (details) => {
 			if (details && details.data) {
 				console.log("Received nicknames", details);
-				store.dispatch(actions.nicknames.update(details.data));
+				store.dispatch(actions.nicknames.set(details.data));
 			}
 		});
 	}

@@ -12,26 +12,26 @@ class SettingsFriendsView extends PureComponent {
 		this.renderLevelSelector = this.renderLevelSelector.bind(this);
 	}
 
-	onAdd(friend) {
+	handleAdd(friend) {
 		console.log("Tried to add friend", friend);
 		io.addNewFriend(friend.name, friend.level);
 	}
 
-	onRemove(friend) {
+	handleRemove(friend) {
 		if (confirm(`Are you sure you want to remove ${friend.name} as a friend?`)) {
 			console.log("Tried to remove friend", friend);
 			io.removeFriend(friend.name);
 		}
 	}
 
-	onChangeLevel(friend, level) {
+	handleChangeLevel(friend, level) {
 		console.log("Tried to change friend level", friend, level);
 		io.changeFriendLevel(friend.name, level);
 	}
 
 	renderLevelSelector(friend) {
 		const onChange = friend
-			? (evt) => this.onChangeLevel(friend, evt.target.value)
+			? (evt) => this.handleChangeLevel(friend, evt.target.value)
 			: null;
 		return (
 			<select defaultValue={friend && friend.level} onChange={onChange}>
@@ -59,8 +59,8 @@ class SettingsFriendsView extends PureComponent {
 			extraColumnName="level"
 			itemKindName="friend"
 			list={allFriends}
-			onAdd={this.onAdd}
-			onRemove={this.onRemove}
+			onAdd={this.handleAdd}
+			onRemove={this.handleRemove}
 		/>;
 	}
 }

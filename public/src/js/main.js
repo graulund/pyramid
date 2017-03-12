@@ -11,7 +11,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
-import { updateIrcConfigs } from "./lib/ircConfigs";
+import { setIrcConfigs } from "./lib/ircConfigs";
 import * as routes from "./lib/routeHelpers";
 
 // Data store
@@ -30,13 +30,11 @@ if (window.pyramid_myToken) {
 }
 
 if (window.pyramid_friendsList) {
-	for (var level in window.pyramid_friendsList) {
-		store.dispatch(actions.friendsList.update(level, window.pyramid_friendsList[level]));
-	}
+	store.dispatch(actions.friendsList.set(window.pyramid_friendsList));
 }
 
 if (window.pyramid_ircConfigs) {
-	updateIrcConfigs(window.pyramid_ircConfigs);
+	setIrcConfigs(window.pyramid_ircConfigs);
 }
 
 if (window.pyramid_lastSeenChannels) {
@@ -52,7 +50,7 @@ if (window.pyramid_appConfig) {
 }
 
 if (window.pyramid_nicknames) {
-	store.dispatch(actions.nicknames.update(window.pyramid_nicknames));
+	store.dispatch(actions.nicknames.set(window.pyramid_nicknames));
 }
 
 // Sockets

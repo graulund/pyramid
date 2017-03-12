@@ -17,10 +17,12 @@ export const channelUserLists = {
 };
 
 export const friendsList = {
+	"SET": "friendsList/SET",
 	"UPDATE": "friendsList/UPDATE"
 };
 
 export const ircConfigs = {
+	"SET": "ircConfigs/SET",
 	"UPDATE": "ircConfigs/UPDATE"
 };
 
@@ -46,6 +48,7 @@ export const multiServerChannels = {
 };
 
 export const nicknames = {
+	"SET": "nicknames/SET",
 	"UPDATE": "nicknames/UPDATE"
 };
 

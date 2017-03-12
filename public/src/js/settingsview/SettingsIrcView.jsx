@@ -46,7 +46,8 @@ class SettingsIrcView extends PureComponent {
 	onAddServer() {
 		var newServerName = prompt(
 			"Please type a name for the new server. " +
-			"It is only for your own identification, but it cannot be changed."
+			"It is only for your own identification, but it cannot be changed. " +
+			"Spaces and / are not allowed."
 		);
 		if (newServerName) {
 			console.log("Started process to add server", newServerName);

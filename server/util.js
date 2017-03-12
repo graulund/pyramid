@@ -8,6 +8,57 @@ const constants = require("./constants");
 
 var allFriends = null;
 
+// Input string utilities
+
+const normalise = function(s) {
+	if (s && s.replace) {
+		return s.replace(/\s+/g, " ");
+	}
+
+	return s;
+};
+
+const clean = function(s) {
+	if (s && s.trim) {
+		return normalise(s).trim();
+	}
+
+	return s;
+};
+
+const oneWord = function(s) {
+	const cleanedString = clean(s);
+
+	// Only return the first word in the string, for strings where space is not allowed
+	if (s && s.replace) {
+		return s.replace(/\s.*$/, "");
+	}
+
+	return s;
+};
+
+const formatUriName = function(s) {
+	const cleanedString = oneWord(s);
+
+	// No slashes allowed, and all lowercase
+	if (s && s.replace) {
+		return s.replace(/\//g, "").toLowerCase();
+	}
+
+	return s;
+};
+
+const lowerClean = function(s) {
+	const cleanedString = clean(s);
+
+	// All lowercase
+	if (s && s.toLowerCase) {
+		return s.toLowerCase();
+	}
+
+	return s;
+};
+
 // Time utilities
 
 const hms = function(d) {
@@ -76,14 +127,19 @@ const channelUriFromNames = function(server, channel) {
 	return getChannelUri(channel, server);
 };
 
-const passesChannelWhiteBlacklist = function(target, query) {
+const passesChannelWhiteBlacklist = function(target, channelUri) {
+
+	const segs = channelUri.toLowerCase().split("/");
+	const server = segs[0], channel = segs[1];
+	console.log(server, channel);
+
 	if (target) {
 
 		// If there is a white list, and we're not on it, return false
 		if (
 			target.channelWhitelist &&
 			target.channelWhitelist.length &&
-			target.channelWhitelist.indexOf(query) < 0
+			target.channelWhitelist.indexOf(channel) < 0
 		) {
 			return false;
 		}
@@ -91,7 +147,24 @@ const passesChannelWhiteBlacklist = function(target, query) {
 		// If we're on the blacklist, return false
 		if (
 			target.channelBlacklist &&
-			target.channelBlacklist.indexOf(query) >= 0
+			target.channelBlacklist.indexOf(channel) >= 0
+		) {
+			return false;
+		}
+
+		// Same for servers
+
+		if (
+			target.serverWhitelist &&
+			target.serverWhitelist.length &&
+			target.serverWhitelist.indexOf(server) < 0
+		) {
+			return false;
+		}
+
+		if (
+			target.serverBlacklist &&
+			target.serverBlacklist.indexOf(server) >= 0
 		) {
 			return false;
 		}
@@ -137,26 +210,31 @@ const generateAcceptedToken = function(length = 60) {
 
 const getRelationship = function(username, friendsList) {
 	username = username.toLowerCase();
-	var relationship = constants.RELATIONSHIP_NONE;
 
 	const bestFriends = friendsList[constants.RELATIONSHIP_BEST_FRIEND] || [];
 	const friends = friendsList[constants.RELATIONSHIP_FRIEND] || [];
 
-	allFriends = allFriends || bestFriends.concat(friends);
-
-	if (allFriends.indexOf(username) >= 0) {
-		var isBestFriend = bestFriends.indexOf(username) >= 0;
-		relationship = isBestFriend
-			? constants.RELATIONSHIP_BEST_FRIEND
-			: constants.RELATIONSHIP_FRIEND;
+	if (bestFriends.indexOf(username) >= 0) {
+		return constants.RELATIONSHIP_BEST_FRIEND;
 	}
 
-	return relationship;
+	if (friends.indexOf(username) >= 0) {
+		return constants.RELATIONSHIP_FRIEND;
+	}
+
+	return constants.RELATIONSHIP_NONE;
 };
 
 // API
 
 module.exports = {
+
+	// Strings
+	normalise,
+	clean,
+	oneWord,
+	formatUriName,
+	lowerClean,
 
 	// Time
 	hms,

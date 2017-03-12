@@ -35,4 +35,12 @@ export function updateIrcConfigs(ircConfigs) {
 	resetMultiServerChannels();
 }
 
-// TODO: Turn this into a saga?
+export function setIrcConfigs(ircConfigs) {
+	// Add the new ones
+	store.dispatch(actions.ircConfigs.set(ircConfigs));
+
+	// Check multi server channels now
+	resetMultiServerChannels();
+}
+
+// TODO: Turn these into sagas?

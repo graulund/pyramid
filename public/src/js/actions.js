@@ -46,6 +46,12 @@ export default {
 		}
 	},
 	friendsList: {
+		set(data) {
+			return {
+				type: actionTypes.friendsList.SET,
+				data
+			};
+		},
 		update(level, data) {
 			return {
 				type: actionTypes.friendsList.UPDATE,
@@ -55,6 +61,12 @@ export default {
 		}
 	},
 	ircConfigs: {
+		set(data) {
+			return {
+				type: actionTypes.ircConfigs.SET,
+				data
+			};
+		},
 		update(data) {
 			return {
 				type: actionTypes.ircConfigs.UPDATE,
@@ -110,6 +122,12 @@ export default {
 		}
 	},
 	nicknames: {
+		set(data) {
+			return {
+				type: actionTypes.nicknames.SET,
+				data
+			};
+		},
 		update(data) {
 			return {
 				type: actionTypes.nicknames.UPDATE,

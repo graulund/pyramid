@@ -41,7 +41,7 @@ class SettingsGeneralView extends PureComponent {
 		};
 	}
 
-	onChangeValue(name, value) {
+	handleValueChange(name, value) {
 		console.log("Tried to set value", name, value);
 		io.setAppConfigValue(name, value);
 	}
@@ -52,7 +52,7 @@ class SettingsGeneralView extends PureComponent {
 
 		var prefixInput = null, mainInput = null;
 
-		const myChangeValue = debounce(this.onChangeValue, CHANGE_DEBOUNCE_MS);
+		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
 
 		switch (type) {
 			case "bool":

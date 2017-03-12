@@ -647,6 +647,10 @@ ul.statsuserlist {
 	margin-bottom: 0;
 }
 
+.settingsview > div > *:first-child {
+	margin-top: 0;
+}
+
 .settingsview__top h2 {
 	float: left;
 	margin-right: 10px;
@@ -685,11 +689,15 @@ ul.statsuserlist {
 	font-weight: bold;
 }
 
-.settings__list {
+.settings__list ul {
 	border: 1px solid #ccc;
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
+}
+
+.settings__list--selectable .settings__list-item {
+	cursor: pointer;
 }
 
 .settings__list-item {
@@ -700,6 +708,12 @@ ul.statsuserlist {
 
 .settings__list-item:last-child {
 	border-bottom: none;
+}
+
+.settings__list-item--selected {
+	background-color: #225;
+	border-color: #225;
+	color: #fff;
 }
 
 .settings__list-item > * {
@@ -717,6 +731,11 @@ ul.statsuserlist {
 
 .settings__list-item button {
 	flex: 0 0 auto;
+}
+
+.settings__list-buttons {
+	text-align: right;
+	padding: 0 0 3px;
 }
 
 .settings__container {
@@ -752,6 +771,72 @@ p.l {
 p.l label {
 	float: left;
 	width: 10em;
+}
+
+p.ta label {
+	display: block;
+}
+
+p.ta textarea {
+	width: 100%;
+	height: 100px;
+}
+
+.settings__detail-view {
+	display: flex;
+	border: 1px solid #ccc;
+	background-color: #eee;
+}
+
+.settings__detail-view .settings__list {
+	flex: 0 0 auto;
+	width: 30%;
+	background-color: #fff;
+	overflow: hidden;
+}
+
+.settings__detail-view .settings__list ul {
+	border-left: none;
+	border-right: none;
+	margin-bottom: 10px;
+}
+
+.settings__detail-view .settings__list-buttons {
+	padding: 10px;
+}
+
+.settings__detail-view .settings__detail-item,
+.settings__detail-view .settings__detail-noitem {
+	flex: 1 1 auto;
+	padding: 20px;
+	min-height: 400px;
+}
+
+.settings__detail-view .settings__detail-noitem {
+	text-align: center;
+	font-size: 125%;
+	color: #999;
+}
+
+.settings__detail-view .settings__detail-item h3 {
+	margin-top: 0;
+}
+
+.settings__detail-view .settings__add {
+	margin: 10px;
+	padding: 10px 15px;
+}
+
+.settings__detail-view .settings__add h3 {
+	margin: 0;
+}
+
+.settings__detail-view .settings__add p {
+	margin: .5em 0;
+}
+
+.settings__detail-view .settings__add p.l label {
+	width: 5em;
 }
 
 @media only screen and (max-width: 767px) {

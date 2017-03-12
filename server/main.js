@@ -140,15 +140,33 @@ const onWeb = function(callback) {
 // Chat code
 
 const setLastSeenChannel = (channel, data) => {
-	lastSeenChannels[channel] = data;
+	if (data) {
+		// Update
+		lastSeenChannels[channel] = data;
+		cachedLastSeens[`channel:${channel}`] = { channel, data };
+	}
+	else {
+		// Delete
+		delete lastSeenChannels[channel];
+		delete cachedLastSeens[`channel:${channel}`];
+	}
+
 	log.writeLastSeenChannels(lastSeenChannels);
-	cachedLastSeens[`channel:${channel}`] = { channel, data };
 };
 
 const setLastSeenUser = (username, data) => {
-	lastSeenUsers[username] = data;
+	if (data) {
+		// Update
+		lastSeenUsers[username] = data;
+		cachedLastSeens[`user:${username}`] = { username, data };
+	}
+	else {
+		// Delete
+		delete lastSeenUsers[username];
+		delete cachedLastSeens[`user:${username}`];
+	}
+
 	log.writeLastSeenUsers(lastSeenUsers);
-	cachedLastSeens[`user:${username}`] = { username, data };
 };
 
 const updateLastSeen = function(
@@ -430,20 +448,20 @@ const handleIncomingMessage = function(
 		loggedMention = true;
 	}
 
-	for (var i = 0; i < currentNicknames.length; i++) {
-		var nickRegex = new RegExp("\\b" + currentNicknames[i].nickname + "\\b", "i")
+	currentNicknames.forEach((nickname) => {
+		var nickRegex = new RegExp("\\b" + nickname.nickname + "\\b", "i")
 		if (
 			nickRegex.test(message) &&
-			util.passesChannelWhiteBlacklist(currentNicknames, channelUri)
+			util.passesChannelWhiteBlacklist(nickname, channelUri)
 		) {
-			highlightStrings.push(currentNicknames[i].nickname);
+			highlightStrings.push(nickname.nickname);
 
 			if (!loggedMention) {
 				log.logCategoryLine("mentions", channelUri, channelName, line, time);
 				loggedMention = true;
 			}
 		}
-	}
+	});
 
 	updateLastSeen(
 		channelUri, channelName, username, time, relationship
@@ -744,10 +762,6 @@ const configValue = function(name) {
 
 // Storing settings
 
-const getServerId = function(serverName, callback) {
-	db.getServerId(serverName, callback);
-};
-
 const addServerToIrcConfig = function(data, callback) {
 	db.addServerToIrcConfig(data, callback);
 };
@@ -760,49 +774,57 @@ const storeConfigValue = function(name, value, callback) {
 	db.storeConfigValue(name, value, callback);
 };
 
-const storeNickname = function(nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback) {
-	db.storeNickname(nickname, channelWhitelist, channelBlacklist, serverWhitelist, serverBlacklist, callback);
+const addNickname = function(nickname, callback) {
+	db.addNickname(nickname, callback);
+};
+
+const modifyNickname = function(nickname, data, callback) {
+	db.modifyNickname(nickname, data, callback);
+};
+
+const removeNickname = function(nickname, callback) {
+	db.removeNickname(nickname, callback);
 };
 
 // TODO: Use server name instead of server id here
 const modifyFriend = function(serverId, username, data, callback) {
 	async.waterfall([
-		(callback) => getFriend(serverId, username, callback),
+		(callback) => db.getFriend(serverId, username, callback),
 		(friend, callback) => db.modifyFriend(friend.friendId, data, callback)
 	], callback);
 };
 
 const removeFromFriends = function(serverId, username, callback) {
 	async.waterfall([
-		(callback) => getFriend(serverId, username, callback),
+		(callback) => db.getFriend(serverId, username, callback),
 		(friend, callback) => db.removeFromFriends(friend.friendId, callback)
 	], callback);
 };
 
 const modifyServerInIrcConfig = function(serverName, details, callback) {
 	async.waterfall([
-		(callback) => getServerId(serverName, callback),
+		(callback) => db.getServerId(serverName, callback),
 		(data, callback) => db.modifyServerInIrcConfig(data.serverId, details, callback)
 	], callback);
 };
 
 const removeServerFromIrcConfig = function(serverName, callback) {
 	async.waterfall([
-		(callback) => getServerId(serverName, callback),
+		(callback) => db.getServerId(serverName, callback),
 		(data, callback) => db.removeServerFromIrcConfig(data.serverId, callback)
 	], callback);
 };
 
 const addChannelToIrcConfig = function(serverName, name, callback) {
 	async.waterfall([
-		(callback) => getServerId(serverName, callback),
+		(callback) => db.getServerId(serverName, callback),
 		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, callback)
 	], callback);
 };
 
 const removeChannelFromIrcConfig = function(serverName, name, callback) {
 	async.waterfall([
-		(callback) => getChannelId(serverName, name, callback),
+		(callback) => db.getChannelId(serverName, name, callback),
 		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
 	], callback);
 };
@@ -865,6 +887,7 @@ module.exports = {
 	addCategoryRecipient,
 	addChannelRecipient,
 	addChannelToIrcConfig,
+	addNickname,
 	addServerToIrcConfig,
 	addToFriends,
 	addUserRecipient,
@@ -897,6 +920,7 @@ module.exports = {
 	loadIrcConfig,
 	loadNicknames,
 	modifyFriend,
+	modifyNickname,
 	modifyServerInIrcConfig,
 	nicknamesDict,
 	partIrcChannel,
@@ -905,6 +929,7 @@ module.exports = {
 	removeChannelFromIrcConfig,
 	removeChannelRecipient,
 	removeFromFriends,
+	removeNickname,
 	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,
@@ -917,7 +942,6 @@ module.exports = {
 	setPlugins,
 	setWeb,
 	storeConfigValue,
-	storeNickname,
 	storeViewState,
 	unseenHighlightIds: () => unseenHighlightIds
 };

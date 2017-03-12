@@ -97,8 +97,10 @@ module.exports = function(main) {
 	};
 
 	const emitFriendsList = function(socket) {
-		socket.emit("friendsList", {
-			list: main.currentFriendsList()
+		main.loadFriendsList((err, data) => {
+			if (!err) {
+				socket.emit("friendsList", { data });
+			}
 		});
 	};
 
@@ -122,7 +124,8 @@ module.exports = function(main) {
 	const emitNicknames = function(socket) {
 		main.loadNicknames((err, data) => {
 			if (!err) {
-				socket.emit("nicknames", { data });
+				const dict = main.nicknamesDict(data);
+				socket.emit("nicknames", { data: dict });
 			}
 		});
 	};
@@ -326,10 +329,11 @@ module.exports = function(main) {
 				if (data && data.channel && data.message && data.token) {
 
 					// Only allow this socket to send a message
-					// if it includes an accepted token
+					// if the command itself includes an accepted token
 
 					if (util.isAnAcceptedToken(data.token)) {
-						main.sendOutgoingMessage(data.channel, data.message);
+						const message = util.normalise(data.message);
+						main.sendOutgoingMessage(data.channel, message);
 					}
 				}
 			});
@@ -339,9 +343,11 @@ module.exports = function(main) {
 			socket.on("addNewFriend", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
+					const username = util.formatUriName(details.username);
+
 					main.addToFriends(
 						0,
-						details.username,
+						username,
 						parseInt(details.level) === 2,
 						(err) => {
 							if (err) {
@@ -358,9 +364,11 @@ module.exports = function(main) {
 			socket.on("changeFriendLevel", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username && details.level) {
+					const username = util.formatUriName(details.username);
+
 					main.modifyFriend(
 						0,
-						details.username,
+						username,
 						{
 							isBestFriend:
 								parseInt(details.level) === 2
@@ -380,9 +388,11 @@ module.exports = function(main) {
 			socket.on("removeFriend", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
+					const username = util.formatUriName(details.username);
+
 					main.removeFromFriends(
 						0,
-						details.username,
+						username,
 						(err) => {
 							if (err) {
 								console.warn("Error occurred removing friend", err);
@@ -415,8 +425,10 @@ module.exports = function(main) {
 			socket.on("addIrcServer", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name && details.data) {
+					const name = util.formatUriName(details.name);
+
 					main.addServerToIrcConfig(
-					lodash.assign({}, details.data, { name: details.name }),
+					lodash.assign({}, details.data, { name }),
 					(err, result) => {
 						if (err) {
 							console.warn("Error occurred adding irc server", err);
@@ -435,13 +447,13 @@ module.exports = function(main) {
 									const channelName = channel.name || channel;
 
 									if (typeof channelName === "string" && channelName) {
-										channelNames.push(channelName);
+										channelNames.push(util.formatUriName(channelName));
 									}
 								});
 								if (channelNames.length) {
 									async.parallel(
-										channelNames.map((name) =>
-											((callback) => main.addChannelToIrcConfig(details.name, name, callback))
+										channelNames.map((channelName) =>
+											((callback) => main.addChannelToIrcConfig(name, channelName, callback))
 										), () => {
 											done();
 										}
@@ -462,8 +474,10 @@ module.exports = function(main) {
 			socket.on("changeIrcServer", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name && details.data) {
+					const name = util.formatUriName(details.name);
+
 					main.modifyServerInIrcConfig(
-						data.serverId, details.data,
+						name, details.data,
 						(err) => {
 							if (err) {
 								console.warn("Error occurred changing irc server", err);
@@ -479,8 +493,10 @@ module.exports = function(main) {
 			socket.on("removeIrcServer", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
+					const name = util.formatUriName(details.name);
+
 					main.removeServerFromIrcConfig(
-						details.name,
+						name,
 						(err) => {
 							if (err) {
 								console.warn("Error occurred removing irc server", err);
@@ -497,10 +513,13 @@ module.exports = function(main) {
 			socket.on("addIrcChannel", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
+					const serverName = util.formatUriName(details.serverName);
+					const name = util.formatUriName(details.name);
+
 					main.addChannelToIrcConfig(
-						details.serverName, details.name,
+						serverName, name,
 						(err) => {
-							main.joinIrcChannel(details.serverName, details.name);
+							main.joinIrcChannel(serverName, name);
 							emitIrcConfig(socket);
 						}
 					);
@@ -510,11 +529,75 @@ module.exports = function(main) {
 			socket.on("removeIrcChannel", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
+					const serverName = util.formatUriName(details.serverName);
+					const name = util.formatUriName(details.name);
+
 					main.removeChannelFromIrcConfig(
-						details.serverName, details.name,
+						serverName, name,
 						(err) => {
-							main.partIrcChannel(serverName, details.name);
+							main.partIrcChannel(serverName, name);
 							emitIrcConfig(socket);
+						}
+					);
+				}
+			});
+
+			socket.on("addNickname", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.nickname) {
+					const nickname = util.lowerClean(details.nickname);
+
+					main.addNickname(
+						nickname,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred adding nickname", err);
+							}
+							else {
+								emitNicknames(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("changeNicknameValue", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.nickname && details.key) {
+					const nickname = util.lowerClean(details.nickname);
+
+					main.modifyNickname(
+						nickname,
+						{ [details.key]: details.value },
+						(err) => {
+							if (err) {
+								console.warn(
+									"Error occurred changing nickname value",
+									err
+								);
+							}
+							else {
+								emitNicknames(socket);
+							}
+						}
+					);
+				}
+			});
+
+			socket.on("removeNickname", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.nickname) {
+					const nickname = util.lowerClean(details.nickname);
+
+					main.removeNickname(
+						nickname,
+						(err) => {
+							if (err) {
+								console.warn("Error occurred removing nickname", err);
+							}
+							else {
+								emitNicknames(socket);
+							}
 						}
 					);
 				}

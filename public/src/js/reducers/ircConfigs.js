@@ -10,6 +10,9 @@ export default function (state = ircConfigsInitialState, action) {
 				...state,
 				...action.data
 			};
+
+		case actionTypes.ircConfigs.SET:
+			return action.data;
 	}
 
 	return state;
