@@ -114,11 +114,15 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitIrcConfig = function(socket) {
+	const emitIrcConfig = function(socket, callback) {
 		main.loadIrcConfig((err, data) => {
 			if (!err) {
 				data = main.safeIrcConfigDict(data);
 				socket.emit("ircConfig", { data });
+			}
+
+			if (typeof callback === "function") {
+				callback(err, data);
 			}
 		});
 	};
@@ -438,8 +442,10 @@ module.exports = function(main) {
 						else {
 
 							const done = () => {
-								emitIrcConfig(socket);
-								main.connectUnconnectedIrcs();
+								emitIrcConfig(
+									socket,
+									() => main.connectUnconnectedIrcs()
+								);
 							};
 
 							// Add all channels
