@@ -236,15 +236,14 @@ module.exports = function(main) {
 	};
 
 	const getChannelId = (serverName, channelName, callback) => {
-		db.get(
-			sq("ircChannels", ["serverId"], ["name"]),
-			{ $name: serverName },
+		getServerId(
+			serverName,
 			function(err, row) {
 				if (err) {
 					callback(err);
 				}
 				else {
-					const serverId = row["serverId"];
+					const serverId = row.serverId;
 					db.get(
 						sq("ircChannels", ["channelId"], ["name", "serverId"]),
 						dollarize({ name: channelName, serverId }),

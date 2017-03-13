@@ -122,7 +122,7 @@ module.exports = function(main) {
 
 				// Handle our own message as if it's incoming
 				handleIncomingMessage(
-					client, client.extConfig.username,
+					client, client.extConfig.nickname,
 					channelName, type, message, {},
 					true
 				);
@@ -296,6 +296,7 @@ module.exports = function(main) {
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
 			console.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+			cf.username = cf.username || cf.nickname;
 
 			var c = new irc.Client(
 				cf.hostname, cf.nickname,
@@ -303,7 +304,7 @@ module.exports = function(main) {
 					channels:    convertChannelObjects(cf.channels),
 					port:        cf.port || 6667,
 					userName:    cf.username,
-					realName:    cf.realname || cf.username,
+					realName:    cf.realname || cf.nickname || cf.username,
 					password:    cf.password || "",
 					secure:      cf.secure || false,
 					selfSigned:  cf.selfSigned || false,
@@ -342,6 +343,7 @@ module.exports = function(main) {
 			if (
 				config &&
 				config.name &&
+				config.hostname &&
 				!findClientByServerName(config.name)
 			) {
 				initiateClient(config);

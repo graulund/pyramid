@@ -2,6 +2,8 @@
 // IO module
 
 // Prerequisites
+
+const lodash = require("lodash");
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
@@ -441,7 +443,7 @@ module.exports = function(main) {
 							};
 
 							// Add all channels
-							if (result.insertId && details.channel && details.channel.length) {
+							if (details.channel && details.channel.length) {
 								const channelNames = [];
 								details.channel.forEach((channel) => {
 									const channelName = channel.name || channel;
