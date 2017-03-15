@@ -4,6 +4,7 @@
 const async  = require("async");
 const lodash = require("lodash");
 const long   = require("long");
+const moment = require("moment-timezone");
 const uuid   = require("uuid");
 
 //const config = require("../config");
@@ -829,6 +830,122 @@ const removeChannelFromIrcConfig = function(serverName, name, callback) {
 	], callback);
 };
 
+// Storing lines
+
+const parseDbLines = function(lines, callback) {
+	const outLines = [];
+
+	lines.forEach((line) => {
+		if (line) {
+			const l = lodash.clone(line);
+
+			if (typeof l.tags === "string") {
+				try {
+					l.tags = JSON.parse(l.tags);
+				} catch(e) {}
+			}
+			if (typeof l.eventData === "string") {
+				try {
+					l.eventData = JSON.parse(l.eventData);
+
+					if (l.eventData) {
+						l.events  = l.eventData.events;
+						l.prevIds = l.eventData.prevIds;
+					}
+
+				} catch(e) {}
+
+				delete l.eventData;
+			}
+
+			outLines.push(l);
+		}
+	});
+
+	if (typeof callback === "function") {
+		callback(null, outLines);
+	}
+
+	return outLines;
+};
+
+const getDateLineCountForChannel = function(channelUri, date, callback) {
+	const serverName = util.channelServerNameFromUrl(channelUri);
+	const channelName = util.channelNameFromUrl(channelUri);
+
+	async.waterfall([
+		(callback) => db.getChannelId(serverName, channelName, callback),
+		(data, callback) => db.getDateLineCountForChannel(data.channelId, date, callback)
+	], callback);
+};
+
+const getDateLinesForChannel = function(channelUri, date, callback) {
+	const serverName = util.channelServerNameFromUrl(channelUri);
+	const channelName = util.channelNameFromUrl(channelUri);
+
+	async.waterfall([
+		(callback) => db.getChannelId(serverName, channelName, callback),
+		(data, callback) => db.getDateLinesForChannel(data.channelId, date, callback),
+		(lines, callback) => parseDbLines(lines, callback)
+	], callback);
+};
+
+const getDateLineCountForUsername = function(username, date, callback) {
+	db.getDateLineCountForUsername(username, date, callback);
+};
+
+const getDateLinesForUsername = function(username, date, callback) {
+	async.waterfall([
+		(callback) => db.getDateLinesForUsername(username, date, callback),
+		(lines, callback) => parseDbLines(lines, callback)
+	], callback);
+};
+
+const getChannelLogDetails = function(channelUri, callback) {
+	const today = util.ymd(moment());
+	const yesterday = util.ymd(moment().subtract(1, "day"));
+
+	// TODO: Time zone issue, database dates are UTC
+
+	async.parallel([
+		(callback) => getDateLineCountForChannel(channelUri, today, callback),
+		(callback) => getDateLineCountForChannel(channelUri, yesterday, callback)
+	], (err, results) => {
+		if (err) {
+			callback(err);
+		}
+		else {
+			const t = results[0], y = results[1];
+			callback(null, {
+				[today]: !!(t && t.count && t.count > 0),
+				[yesterday]: !!(y && y.count && y.count > 0)
+			});
+		}
+	});
+};
+
+const getUserLogDetails = function(username, callback) {
+	const today = util.ymd(moment());
+	const yesterday = util.ymd(moment().subtract(1, "day"));
+
+	async.parallel([
+		(callback) => getDateLineCountForUser(username, today, callback),
+		(callback) => getDateLineCountForUser(username, yesterday, callback)
+	], (err, results) => {
+		if (err) {
+			callback(err);
+		}
+		else {
+			const t = results[0], y = results[1];
+			callback(null, {
+				[today]: !!(t && t.count && t.count > 0),
+				[yesterday]: !!(y && y.count && y.count > 0)
+			});
+		}
+	});
+};
+
+
 // Remote control IRC
 
 const connectUnconnectedIrcs = function() {
@@ -904,10 +1021,16 @@ module.exports = {
 	flushCachedLastSeens,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
 	getChannelCache: (channelUri) => channelCaches[channelUri],
+	getChannelLogDetails,
 	getChannelRecipients: (channelUri) => channelRecipients[channelUri],
 	getChannelUserList: (channelUri) => channelUserLists[channelUri],
+	getDateLineCountForChannel,
+	getDateLineCountForUsername,
+	getDateLinesForChannel,
+	getDateLinesForUsername,
 	getUserCache: (username) => userCaches[username],
 	getUserCurrentSymbol,
+	getUserLogDetails,
 	getUserRecipients: (username) => userRecipients[username],
 	handleChatNetworkError,
 	handleIncomingEvent,

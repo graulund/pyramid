@@ -101,7 +101,7 @@ module.exports = function(main) {
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 		const serverName  = util.channelServerNameFromUrl(channelUri);
-		const channelName = util.channelNameFromUrl(channelUri);
+		const channelName = util.channelNameFromUrl(channelUri, "#");
 		if (serverName && channelName) {
 			const client = findClientByServerName(serverName);
 			if (client) {

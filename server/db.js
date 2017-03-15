@@ -319,59 +319,6 @@ module.exports = function(main) {
 		);
 	};
 
-	const getLinesForDate = (server, channelId, date, callback) => {
-		db.all(
-			sq("lines", ["*"], ["channelId", "date"]),
-			dollarize({ channelId, date }),
-			callback
-		);
-	};
-
-	const storeLine = (channelId, line, callback) => {
-		var eventData = null;
-		if (
-			(line.events && line.events.length) ||
-			(line.prevIds && line.prevIds.length)
-		) {
-			eventData = { events: line.events, prevIds: line.prevIds };
-		}
-
-		db.run(
-			iq("lines", [
-				"lineId",
-				"channelId",
-				"type",
-				"time",
-				"date",
-				"username",
-				"message",
-				"symbol",
-				"tags",
-				"eventData"
-			]),
-			{
-				$lineId: line.id,
-				$channelId: channelId,
-				$type: line.type,
-				$time: getTimestamp(line.time),
-				$date: getDateFromTimestamp(line.time),
-				$username: line.username,
-				$message: line.message,
-				$symbol: line.symbol,
-				$tags: line.tags && JSON.stringify(line.tags),
-				$eventData: eventData && JSON.stringify(eventData)
-			},
-			callback
-		);
-	};
-
-	const deleteLinesWithLineIds = (lineIds, callback) => {
-		db.run(
-			"DELETE FROM lines WHERE lineId IN " + formatIn(lineIds),
-			callback
-		);
-	};
-
 	const getNicknames = (callback) => {
 		const prepareNicknameListValue = (list) => {
 			if (list) {
@@ -593,6 +540,83 @@ module.exports = function(main) {
 		});
 	};
 
+	const getDateLinesForChannel = (channelId, date, callback) => {
+		db.all(
+			sq("lines", ["*"], ["channelId", "date"]),
+			dollarize({ channelId, date }),
+			callback
+		);
+	};
+
+	const getDateLineCountForChannel = (channelId, date, callback) => {
+		db.get(
+			sq("lines", ["COUNT(*) AS count"], ["channelId", "date"]),
+			dollarize({ channelId, date }),
+			callback
+		);
+	};
+
+	const getDateLinesForUsername = (username, date, callback) => {
+		db.all(
+			sq("lines", ["*"], ["username", "date"]),
+			dollarize({ username, date }),
+			callback
+		);
+	};
+
+	const getDateLineCountForUsername = (username, date, callback) => {
+		db.get(
+			sq("lines", ["COUNT(*) AS count"], ["username", "date"]),
+			dollarize({ username, date }),
+			callback
+		);
+	};
+
+	const storeLine = (channelId, line, callback) => {
+		var eventData = null;
+		if (
+			(line.events && line.events.length) ||
+			(line.prevIds && line.prevIds.length)
+		) {
+			eventData = { events: line.events, prevIds: line.prevIds };
+		}
+
+		db.run(
+			iq("lines", [
+				"lineId",
+				"channelId",
+				"type",
+				"time",
+				"date",
+				"username",
+				"message",
+				"symbol",
+				"tags",
+				"eventData"
+			]),
+			{
+				$lineId: line.id,
+				$channelId: channelId,
+				$type: line.type,
+				$time: getTimestamp(line.time),
+				$date: getDateFromTimestamp(line.time),
+				$username: line.username,
+				$message: line.message,
+				$symbol: line.symbol,
+				$tags: line.tags && JSON.stringify(line.tags),
+				$eventData: eventData && JSON.stringify(eventData)
+			},
+			callback
+		);
+	};
+
+	const deleteLinesWithLineIds = (lineIds, callback) => {
+		db.run(
+			"DELETE FROM lines WHERE lineId IN " + formatIn(lineIds),
+			callback
+		);
+	};
+
 	/*
 
 	API:
@@ -607,6 +631,10 @@ module.exports = function(main) {
 	getChannelId(serverName, channelName, callback)
 	getChannelUri(serverId, channelName, callback)
 	getConfigValue(name, callback)
+	getDateLineCountForChannel(channelId, date, callback)
+	getDateLineCountForUsername(username, date, callback)
+	getDateLinesForChannel(channelId, date, callback)
+	getDateLinesForUsername(username, date, callback)
 	getFriend(serverId, username, callback)
 	getFriends(callback)
 	getFriendsList(callback)
@@ -617,7 +645,6 @@ module.exports = function(main) {
 	getIrcServers(callback)
 	getLastSeenChannels(callback)
 	getLastSeenUsers(callback)
-	getLinesForDate(server, channelId, date, callback)
 	getNicknames(callback)
 	getServerId(name, callback)
 	getServerName(serverId, callback)
@@ -645,6 +672,10 @@ module.exports = function(main) {
 		getChannelId,
 		getChannelUri,
 		getConfigValue,
+		getDateLineCountForChannel,
+		getDateLineCountForUsername,
+		getDateLinesForChannel,
+		getDateLinesForUsername,
 		getFriend,
 		getFriends,
 		getFriendsList,
@@ -655,7 +686,6 @@ module.exports = function(main) {
 		getIrcServers,
 		getLastSeenChannels,
 		getLastSeenUsers,
-		getLinesForDate,
 		getNicknames,
 		getServerId,
 		getServerName,

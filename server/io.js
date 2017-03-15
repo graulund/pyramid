@@ -47,16 +47,24 @@ module.exports = function(main) {
 	};
 
 	const emitChannelLogDetails = function(socket, channelUri) {
-		socket.emit("channelLogDetails", {
-			channelUri,
-			details: log.getChannelLogDetails(channelUri)
+		main.getChannelLogDetails(channelUri, (err, details) => {
+			if (!err) {
+				socket.emit("channelLogDetails", {
+					channelUri,
+					details
+				});
+			}
 		});
 	};
 
 	const emitUserLogDetails = function(socket, username) {
-		socket.emit("userLogDetails", {
-			username,
-			details: log.getUserLogDetails(username)
+		main.getUserLogDetails(username, (err, details) => {
+			if (!err) {
+				socket.emit("userLogDetails", {
+					channelUri,
+					details
+				});
+			}
 		});
 	};
 
@@ -70,8 +78,7 @@ module.exports = function(main) {
 	const emitChannelLogFile = function(socket, channelUri, time) {
 		const ymd = util.ymd(time);
 		if (ymd) {
-			const [ server, channel ] = channelUri.split("/");
-			log.getChatroomLinesForDay(server, channel, time, (err, file) => {
+			main.getDateLinesForChannel(channelUri, ymd, (err, file) => {
 				if (!err) {
 					socket.emit("channelLogFile", {
 						channelUri,
@@ -84,13 +91,13 @@ module.exports = function(main) {
 	};
 
 	const emitUserLogFile = function(socket, username, time) {
-		const ym = util.ym(time);
-		if (ym) {
-			log.getUserLinesForMonth(username, time, (err, file) => {
+		const ym = util.ymd(time);
+		if (ymd) {
+			main.getDateLinesForUsername(username, ymd, (err, file) => {
 				if (!err) {
 					socket.emit("userLogFile", {
 						file,
-						time: ym,
+						time: ymd,
 						username
 					});
 				}

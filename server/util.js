@@ -105,9 +105,9 @@ const getChannelUri = function(channelName, serverName) {
 	return c;
 };
 
-const channelNameFromUrl = function(url) {
+const channelNameFromUrl = function(url, prefix = "") {
 	if (url && url.replace) {
-		return url.replace(/^[^\/]+\//, "#");
+		return url.replace(/^[^\/]+\//, prefix);
 	}
 
 	return null;
