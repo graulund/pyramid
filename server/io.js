@@ -61,7 +61,7 @@ module.exports = function(main) {
 		main.getUserLogDetails(username, (err, details) => {
 			if (!err) {
 				socket.emit("userLogDetails", {
-					channelUri,
+					username,
 					details
 				});
 			}
@@ -91,7 +91,7 @@ module.exports = function(main) {
 	};
 
 	const emitUserLogFile = function(socket, username, time) {
-		const ym = util.ymd(time);
+		const ymd = util.ymd(time);
 		if (ymd) {
 			main.getDateLinesForUsername(username, ymd, (err, file) => {
 				if (!err) {

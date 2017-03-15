@@ -929,8 +929,8 @@ const getUserLogDetails = function(username, callback) {
 	const yesterday = util.ymd(moment().subtract(1, "day"));
 
 	async.parallel([
-		(callback) => getDateLineCountForUser(username, today, callback),
-		(callback) => getDateLineCountForUser(username, yesterday, callback)
+		(callback) => getDateLineCountForUsername(username, today, callback),
+		(callback) => getDateLineCountForUsername(username, yesterday, callback)
 	], (err, results) => {
 		if (err) {
 			callback(err);
