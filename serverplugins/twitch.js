@@ -47,7 +47,7 @@ const isTwitch = function(client) {
 	return null;
 };
 
-const rangesOverlay = function (x1, x2, y1, y2) {
+const rangesOverlap = function (x1, x2, y1, y2) {
 	var low1, low2, high1, high2;
 	if (x1 <= y1) {
 		low1 = x1;
@@ -99,18 +99,21 @@ const generateEmoteRegex = function(code) {
 	return new RegExp(EMOTE_PREFIX_REGEX + "(" + code + ")" + EMOTE_SUFFIX_REGEX, "g");
 };
 
-const doNewIndicesOverlay = function(indices, emotes) {
+const doNewIndicesOverlap = function(indices, emotes) {
 	if (emotes && emotes.length) {
 		for (var i = 0; i < emotes.length; i++) {
 			if (emotes[i] && emotes[i].indices) {
-				if (
-					rangesOverlay(
-						indices.first, indices.last,
-						emotes[i].indices.first, emotes[i].indices.last
-					)
-				) {
-					return true;
+				for (var j = 0; j < emotes[i].indices.length; j++) {
+					if (
+						rangesOverlap(
+							indices.first, indices.last,
+							emotes[i].indices[j].first, emotes[i].indices[j].last
+						)
+					) {
+						return true;
+					}
 				}
+
 			}
 		}
 	}
@@ -135,7 +138,7 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 					const lastIndex = firstIndex + code.length - 1;
 					const localIndices = { first: firstIndex, last: lastIndex };
 
-					if (!doNewIndicesOverlay(localIndices, emotes)) {
+					if (!doNewIndicesOverlap(localIndices, emotes)) {
 						indices.push(localIndices);
 					}
 
