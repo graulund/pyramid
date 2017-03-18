@@ -58,11 +58,15 @@ class TwitchMessageLine extends PureComponent {
 			/>;
 	}
 
-	renderText(text) {
+	renderText(text, key) {
 		const { linkify = true } = this.props;
 
 		if (linkify && text) {
-			return <Linkify properties={LINKIFY_PROPERTIES}>{ text }</Linkify>;
+			return (
+				<Linkify properties={LINKIFY_PROPERTIES} key={`text-${key}`}>
+					{ text }
+				</Linkify>
+			);
 		}
 
 		return text;
@@ -107,7 +111,7 @@ class TwitchMessageLine extends PureComponent {
 				allEmotes.forEach((e, index) => {
 					output.push(
 						this.renderText(
-							msgArray.slice(lastEnd, e.first).join("")
+							msgArray.slice(lastEnd, e.first).join(""), index
 						)
 					);
 					output.push(
@@ -120,7 +124,7 @@ class TwitchMessageLine extends PureComponent {
 
 				output.push(
 					this.renderText(
-						msgArray.slice(lastEnd).join("")
+						msgArray.slice(lastEnd).join(""), "final"
 					)
 				);
 			}
