@@ -1,0 +1,65 @@
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 85%;
+	line-height: 1.6em;
+	color: #000;
+	background-color: #fff;
+	margin: 0;
+	-webkit-font-smoothing: antialiased;
+}
+
+strong, dt {
+	font-weight: bold;
+}
+
+em {
+	font-style: italic;
+}
+
+a {
+	color: #29d;
+	font-weight: bold;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
+
+	&.invisible {
+		font-weight: normal;
+	}
+}
+
+h1 {
+	font-size: 150%;
+	margin: 10px 0;
+
+	a {
+		color: inherit;
+	}
+}
+
+h2 {
+	font-size: 125%;
+	margin: 10px 0;
+}
+
+p.l {
+	clear: left;
+
+	label {
+		float: left;
+		width: 10em;
+	}
+}
+
+p.ta {
+	label {
+		display: block;
+	}
+
+	textarea {
+		width: 100%;
+		height: 100px;
+	}
+}

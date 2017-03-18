@@ -1,0 +1,40 @@
+.logbrowser {
+	&__request {
+		float: right;
+		margin-left: 20px;
+		line-height: 2em;
+	}
+
+	&__request input {
+		vertical-align: middle;
+	}
+
+	&__items {
+		list-style-type: none;
+		margin: 0 0 0 -10px;
+		padding: 0;
+		line-height: 2em;
+	}
+
+	&__items li {
+		display: inline-block;
+	}
+
+	&__items a {
+		display: block;
+		padding: 0 10px;
+	}
+
+	&__items a.current {
+		background-color: #003;
+		color: #fff;
+	}
+
+	@media #{$mobile-media} {
+		&__request {
+			float: none;
+			margin-left: 0;
+			margin-bottom: 5px;
+		}
+	}
+}

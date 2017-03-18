@@ -1,0 +1,151 @@
+.sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	z-index: 10;
+	width: 320px;
+	background-color: #fff;
+	overflow: auto;
+
+	&:after {
+		content: "";
+		position: fixed;
+		top: 0;
+		left: 319px;
+		bottom: 0;
+		z-index: 11;
+		width: 1px;
+		background: rgba(0,0,51,.067);
+	}
+
+	.itemlist {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	&__head {
+		padding: 0 10px;
+		border-bottom: 1px solid #ccc;
+	}
+
+	&__head h1 {
+		line-height: 20px;
+	}
+
+	&__list {
+		position: relative;
+		border-top: 1px solid #ccc;
+	}
+
+	&__list .itemlist {
+		margin-top: 0;
+	}
+
+	&__list-head {
+		padding: 10px 0;
+		border-bottom: 1px solid #ccc;
+	}
+
+	&__tabs {
+		padding: 0 4px;
+	}
+
+	&__sort {
+		position: absolute;
+		top: 10px;
+		right: 0;
+		padding: 0 4px;
+	}
+
+	&__sort p {
+		display: inline-block;
+		margin: 0;
+		opacity: .5;
+	}
+
+	&--user button.user,
+	&--channel button.channel,
+	&--alpha button.alpha,
+	&--activity button.activity {
+		font-weight: bold;
+	}
+
+	&--user #channellist, &--channel #userlist {
+		display: none;
+	}
+
+	&__close {
+		display: none;
+		position: absolute;
+		top: 12px;
+		right: 10px;
+	}
+
+	&__open {
+		position: fixed;
+		top: 12px;
+		left: 10px;
+		padding: 0 3px;
+		z-index: 9;
+	}
+
+	&__menu {
+		list-style-type: none;
+		margin: 10px 0;
+		padding: 0;
+	}
+
+	&__menu-link {
+		display: block;
+		padding: 5px 10px;
+		line-height: 17px;
+	}
+
+	&__menu-link--highlighted {
+		background-color: #fff0aa;
+	}
+
+	&__menu-link .badge {
+		position: absolute;
+		right: 10px;
+		background-color: #b9af7c;
+		color: #fff;
+		padding: 2px 6px;
+		border-radius: 8px;
+		line-height: 1em;
+	}
+
+	&__controls {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+	}
+
+	@media #{$mobile-media} {
+		/* Sidebar actually an overlay */
+
+		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
+		transition: .5s left ease-in-out;
+
+		&:after {
+			display: none;
+		}
+
+		&__close {
+			display: block;
+		}
+
+		&__controls {
+			right: 40px;
+		}
+
+		&__tabs {
+			padding-left: 30px;
+		}
+
+		&--hidden {
+			left: -360px;
+		}
+	}
+}

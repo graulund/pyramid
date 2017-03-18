@@ -1,0 +1,31 @@
+.mainview {
+	margin: 60px 0 60px 320px;
+
+	&__top {
+		position: fixed;
+		top: 0;
+		left: 320px;
+		right: 0;
+		padding: 10px 20px;
+		background-color: #fff;
+		border-bottom: 1px solid #ccc;
+		white-space: nowrap;
+		z-index: 5;
+	}
+
+	&__top h2 {
+		margin: 0;
+		line-height: 20px;
+	}
+
+	@media #{$mobile-media} {
+		margin: 0;
+
+		&__top {
+			left: 0;
+			padding-left: 40px;
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+	}
+}

@@ -1,10 +1,15 @@
-var path = require("path");
-var webpack = require("webpack");
+const path = require("path");
+const webpack = require("webpack");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
-var config = {};
+const extractSass = new ExtractTextPlugin({
+	filename: "css/[name].css"
+});
 
 const cwd = path.resolve("./");
 const node_modules = path.resolve("./node_modules");
+
+var config = {};
 
 // Setup entry points
 config.entry = {
@@ -55,6 +60,19 @@ config.module.rules.push({
 		]
 	}
 });
+
+// Sass
+config.module.rules.push({
+	test: /\.scss$/,
+	use: extractSass.extract({
+		use: [
+			{ loader: "css-loader" },
+			{ loader: "sass-loader" }
+		]
+	})
+});
+
+config.plugins.push(extractSass);
 
 // Set production/development related settings.
 config.plugins.push(

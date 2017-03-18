@@ -14,6 +14,8 @@ import { initializeIo } from "./lib/io";
 import { setIrcConfigs } from "./lib/ircConfigs";
 import * as routes from "./lib/routeHelpers";
 
+import "../scss/site.scss";
+
 // Data store
 
 var currentViewState = { sidebarVisible: location.pathname === "/" };
