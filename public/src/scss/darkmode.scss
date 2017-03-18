@@ -69,11 +69,17 @@ body.darkmode {
 			&-28 { color: #f46a87; }
 			&-29 { color: #a96369; }
 		}
+	}
 
-		// Highlights
-		.line--highlight {
-			background-color: #059;
-		}
+
+	// Highlights
+	.chatview .line--highlight,
+	.sidebar__menu-link--highlighted {
+		background-color: #059;
+	}
+
+	.sidebar__menu-link .badge {
+		background-color: rgba(0,0,0,.25);
 	}
 
 	.sidebar:after {
