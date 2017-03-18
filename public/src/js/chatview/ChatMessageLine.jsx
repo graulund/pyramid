@@ -24,7 +24,7 @@ class ChatMessageLine extends PureComponent {
 		var messageEl = message;
 
 		//if (isTwitch) {
-			messageEl = <TwitchMessageLine message={message} tags={tags} />;
+			messageEl = <TwitchMessageLine tags={tags}>{ message }</TwitchMessageLine>;
 		//}
 
 		/* if (highlight && highlight.length) {

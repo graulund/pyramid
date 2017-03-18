@@ -57,8 +57,9 @@ class TwitchMessageLine extends PureComponent {
 	}
 
 	render() {
-		const { message, tags } = this.props;
-		var output = message;
+		const { children, message, tags } = this.props;
+		const input = message || children;
+		var output = input;
 
 		if (tags && tags.emotes && tags.emotes instanceof Array) {
 			// Find all indices and sort, return array
@@ -92,19 +93,21 @@ class TwitchMessageLine extends PureComponent {
 				}
 			});
 
-			var lastEnd = 0, msgArray = [...message];
+			if (typeof input === "string") {
+				var lastEnd = 0, msgArray = [...input];
 
-			output = [];
+				output = [];
 
-			allEmotes.forEach((e, index) => {
-				output.push(msgArray.slice(lastEnd, e.first).join(""));
-				output.push(this.renderEmoticon(
-					e, msgArray.slice(e.first, e.last + 1).join(""), index
-				));
-				lastEnd = e.last + 1;
-			});
+				allEmotes.forEach((e, index) => {
+					output.push(msgArray.slice(lastEnd, e.first).join(""));
+					output.push(this.renderEmoticon(
+						e, msgArray.slice(e.first, e.last + 1).join(""), index
+					));
+					lastEnd = e.last + 1;
+				});
 
-			output.push(msgArray.slice(lastEnd).join(""));
+				output.push(msgArray.slice(lastEnd).join(""));
+			}
 		}
 
 		return <span>{ output }</span>;
@@ -112,6 +115,7 @@ class TwitchMessageLine extends PureComponent {
 }
 
 TwitchMessageLine.propTypes = {
+	children: PropTypes.node,
 	message: PropTypes.string,
 	tags: PropTypes.object
 };
