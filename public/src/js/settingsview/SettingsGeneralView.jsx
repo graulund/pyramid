@@ -29,7 +29,7 @@ class SettingsGeneralView extends PureComponent {
 					name: "darkMode",
 					readableName: "Dark mode",
 					type: "bool",
-					description: "Invert the colors of Pyramid, giving a dark experience"
+					description: "Invert the colors of Pyramid, giving a dark experience (requires reload in your browser)"
 				},
 				{
 					name: "debug",

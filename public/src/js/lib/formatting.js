@@ -1,4 +1,16 @@
-import { DEFAULT_COLOR_RGB, ROOT_PATHNAME } from "../constants";
+import {
+	DEFAULT_COLOR_RGB, DEFAULT_DARKMODE_COLOR_RGB, ROOT_PATHNAME
+} from "../constants";
+import store from "../store";
+
+function isDarkMode() {
+	if (store) {
+		const state = store.getState();
+		return state && state.appConfig && state.appConfig.darkMode;
+	}
+
+	return false;
+}
 
 export function ucfirst(str){
 	var f = str.charAt(0)
@@ -42,13 +54,19 @@ export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
 	// m: Moment instance expected
 	// ms: Moment diff instance expected; moment().diff(m)
 
+	const darkMode = isDarkMode();
+
+	if (color === DEFAULT_COLOR_RGB && darkMode) {
+		color = DEFAULT_DARKMODE_COLOR_RGB;
+	}
+
 	// Color
 	var backgroundOpacity = timeOpacity(ms/1000),
-		textColor = "#000",
+		textColor = darkMode ? "#ccc" : "#000",
 		opacity = timeTextOpacity(ms/1000);
 
-	if(backgroundOpacity >= 0.3){
-		textColor = "#fff";
+	if (backgroundOpacity >= 0.3) {
+		textColor = darkMode ? "#000" : "#fff";
 	}
 
 	return {

@@ -1,0 +1,115 @@
+body.darkmode {
+	&,
+	.sidebar,
+	.mainview__top,
+	.chatview__input,
+	.chatview__input input[type="text"],
+	.chatview__controls {
+		background-color: #111;
+		color: #ccc;
+
+		border-color: #444;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		color: #eee;
+	}
+
+	.sidebar__head,
+	.sidebar__list,
+	.sidebar__list-head,
+	.settings__section,
+	.settings__container,
+	.settings__list ul,
+	.settings__list-item,
+	.settings__add,
+	.settings__detail-view {
+		border-color: #444;
+	}
+
+	.chatview {
+		.line__channel,
+		.line__channel a,
+		.line time,
+		.userevent,
+		.bunchedevents {
+			color: #777;
+		}
+
+		.msg__author--color {
+			// Inverted name colors
+			&-0 { color: #ff7f00; }
+			&-1 { color: #fa6ffa; }
+			&-2 { color: #57ffab; }
+			&-3 { color: #64f24e; }
+			&-4 { color: #ef779f; }
+			&-5 { color: #80b000; }
+			&-6 { color: #a78fe5; }
+			&-7 { color: #9df571; }
+			&-8 { color: #44fff7; }
+			&-9 { color: #bbcba0; }
+			&-10 { color: #d0acac; }
+			&-11 { color: #6fbfff; }
+			&-12 { color: #7f7fff; }
+			&-13 { color: #a88681; }
+			&-14 { color: #cc2; }
+			&-15 { color: #a0b2dd; }
+			&-16 { color: #8f99e9; }
+			&-17 { color: #b98663; }
+			&-18 { color: #7fc8d1; }
+			&-19 { color: #70b871; }
+			&-20 { color: #a461b3; }
+			&-21 { color: #ec7d93; }
+			&-22 { color: #4ec9c8; }
+			&-23 { color: #1ba2a6; }
+			&-24 { color: #e4ae51; }
+			&-25 { color: #b7aa53; }
+			&-26 { color: #80e279; }
+			&-27 { color: #8c9bc0; }
+			&-28 { color: #f46a87; }
+			&-29 { color: #a96369; }
+		}
+
+		// Highlights
+		.line--highlight {
+			background-color: #059;
+		}
+	}
+
+	.sidebar:after {
+		background-color: rgba(255,255,255,.2);
+	}
+
+	// Links
+	a {
+		color: #72bee9;
+	}
+
+	.itemlist a {
+		color: inherit;
+	}
+
+	// Chromes
+	.settingsview input,
+	.settingsview button,
+	.settingsview select,
+	.settingsview textarea {
+		border-color: #666;
+		background-color: #333;
+		color: #eee;
+	}
+
+	.settings__detail-view {
+		background-color: #222;
+	}
+
+	.settings__detail-view .settings__list {
+		background-color: #111;
+	}
+
+	.settings__list-item--selected {
+		background-color: #72bee9;
+		border-color: #72bee9;
+		color: #000;
+	}
+}

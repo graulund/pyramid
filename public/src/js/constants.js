@@ -19,3 +19,5 @@ export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
 
 export const LINKIFY_PROPERTIES = { target: "_blank" };
+
+export const DEFAULT_DARKMODE_COLOR_RGB = "114,190,233";
