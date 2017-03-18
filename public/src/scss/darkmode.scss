@@ -93,7 +93,8 @@ body.darkmode {
 	.settingsview input,
 	.settingsview button,
 	.settingsview select,
-	.settingsview textarea {
+	.settingsview textarea,
+	.logbrowser input {
 		border-color: #666;
 		background-color: #333;
 		color: #eee;
@@ -107,7 +108,8 @@ body.darkmode {
 		background-color: #111;
 	}
 
-	.settings__list-item--selected {
+	.settings__list-item--selected,
+	.logbrowser__items a.current {
 		background-color: #72bee9;
 		border-color: #72bee9;
 		color: #000;
