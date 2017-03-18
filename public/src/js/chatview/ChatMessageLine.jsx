@@ -5,8 +5,7 @@ import Linkify from "react-linkify";
 import HighlightObserver from "./HighlightObserver.jsx";
 import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
 import UserLink from "../components/UserLink.jsx";
-
-const linkifyProperties = { target: "_blank" };
+import { LINKIFY_PROPERTIES } from "../constants";
 
 class ChatMessageLine extends PureComponent {
 
@@ -23,9 +22,14 @@ class ChatMessageLine extends PureComponent {
 
 		var messageEl = message;
 
-		//if (isTwitch) {
+		const isTwitch = true; // TEMP
+
+		if (isTwitch) {
 			messageEl = <TwitchMessageLine tags={tags}>{ message }</TwitchMessageLine>;
-		//}
+		}
+		else {
+			messageEl = <Linkify properties={LINKIFY_PROPERTIES}>{ messageEl }</Linkify>;
+		}
 
 		/* if (highlight && highlight.length) {
 			// TODO: Find better non-plain text solution for this
@@ -48,9 +52,7 @@ class ChatMessageLine extends PureComponent {
 							{" "}
 						</strong>
 					) : null }
-				<span><Linkify properties={linkifyProperties}>
-					{ messageEl }
-				</Linkify></span>
+				{ messageEl }
 			</span>
 		);
 

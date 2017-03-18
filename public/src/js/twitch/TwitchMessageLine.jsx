@@ -1,6 +1,8 @@
 import React, { PureComponent, PropTypes } from "react";
+import Linkify from "react-linkify";
 
 import { stickToTheBottom } from "../lib/visualBehavior";
+import { LINKIFY_PROPERTIES } from "../constants";
 
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
 const EMOTE_FFZ_IMG_URL_ROOT = "//cdn.frankerfacez.com/emoticon/";
@@ -56,6 +58,16 @@ class TwitchMessageLine extends PureComponent {
 			/>;
 	}
 
+	renderText(text) {
+		const { linkify = true } = this.props;
+
+		if (linkify && text) {
+			return <Linkify properties={LINKIFY_PROPERTIES}>{ text }</Linkify>;
+		}
+
+		return text;
+	}
+
 	render() {
 		const { children, message, tags } = this.props;
 		const input = message || children;
@@ -72,13 +84,7 @@ class TwitchMessageLine extends PureComponent {
 							const last = parseInt(i.last, 10);
 
 							if (!isNaN(first) && !isNaN(last)) {
-								allEmotes.push(
-									{
-										...e,
-										first,
-										last
-									}
-								);
+								allEmotes.push({ ...e, first, last });
 							}
 						}
 					});
@@ -99,14 +105,24 @@ class TwitchMessageLine extends PureComponent {
 				output = [];
 
 				allEmotes.forEach((e, index) => {
-					output.push(msgArray.slice(lastEnd, e.first).join(""));
-					output.push(this.renderEmoticon(
-						e, msgArray.slice(e.first, e.last + 1).join(""), index
-					));
+					output.push(
+						this.renderText(
+							msgArray.slice(lastEnd, e.first).join("")
+						)
+					);
+					output.push(
+						this.renderEmoticon(
+							e, msgArray.slice(e.first, e.last + 1).join(""), index
+						)
+					);
 					lastEnd = e.last + 1;
 				});
 
-				output.push(msgArray.slice(lastEnd).join(""));
+				output.push(
+					this.renderText(
+						msgArray.slice(lastEnd).join("")
+					)
+				);
 			}
 		}
 
@@ -116,6 +132,7 @@ class TwitchMessageLine extends PureComponent {
 
 TwitchMessageLine.propTypes = {
 	children: PropTypes.node,
+	linkify: PropTypes.bool,
 	message: PropTypes.string,
 	tags: PropTypes.object
 };

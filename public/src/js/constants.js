@@ -17,3 +17,5 @@ export const CATEGORY_NAMES = {
 
 export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
+
+export const LINKIFY_PROPERTIES = { target: "_blank" };
