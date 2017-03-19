@@ -44,3 +44,11 @@ export function setIrcConfigs(ircConfigs) {
 }
 
 // TODO: Turn these into sagas?
+
+export function isTwitch(ircConfig) {
+	if (ircConfig) {
+		return /irc\.(chat\.)?twitch\.tv/.test(ircConfig.hostname);
+	}
+
+	return false;
+}

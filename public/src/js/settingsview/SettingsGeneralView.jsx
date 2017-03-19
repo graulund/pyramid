@@ -10,7 +10,7 @@ class SettingsGeneralView extends PureComponent {
 		super(props);
 
 		this.settings = {
-			web: [
+			"Web": [
 				{
 					name: "webPort",
 					readableName: "Web port",
@@ -24,13 +24,7 @@ class SettingsGeneralView extends PureComponent {
 					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
 				}
 			],
-			behavior: [
-				{
-					name: "darkMode",
-					readableName: "Dark mode",
-					type: "bool",
-					description: "Invert the colors of Pyramid, giving a dark experience (requires reload in your browser)"
-				},
+			"Storage": [
 				{
 					name: "logLinesDb",
 					readableName: "Log lines in the database",
@@ -42,7 +36,107 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Log lines to text files",
 					type: "bool",
 					description: "Log all chat lines to separate text files for each channel and date; does not save meta data, but is saved in a universal human readable plain text format"
+				}
+			],
+			"Appearance": [
+				{
+					name: "enableDarkMode",
+					readableName: "Dark mode",
+					type: "bool",
+					description: "Invert the colors of Pyramid, giving a dark experience (requires reload in your browser)"
 				},
+				{
+					name: "enableUsernameColors",
+					readableName: "Username colors",
+					type: "bool",
+					description: "Enable automatically generated username colors"
+				},
+				{
+					name: "enableEmojiCodes",
+					readableName: "Emoji codes",
+					type: "bool",
+					description: "Converts type codes like :thinking: to emoji like 🤔"
+				}
+			],
+			"Twitch": [
+				{
+					name: "enableTwitch",
+					readableName: "Enable Twitch",
+					type: "bool",
+					description: "Enable special features for Twitch"
+				},
+				{
+					name: "enableTwitchColors",
+					readableName: "Enable Twitch username colors (WIP)",
+					type: "bool",
+					description: "Show the username colors set by users on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableTwitchDisplayNames",
+					readableName: "Enable Twitch display names (WIP)",
+					type: "bool",
+					description: "Show the display names set by users on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableFfzEmoticons",
+					readableName: "Enable FrankerFaceZ emoticons",
+					type: "bool",
+					description: "Enable custom Twitch emoticons hosted on the FrankerFaceZ service",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableFfzGlobalEmoticons",
+					readableName: "Enable FrankerFaceZ global emoticons",
+					type: "bool",
+					description: "Enable FrankerFaceZ emoticons that apply to all channels",
+					requires: ["enableTwitch", "enableFfzEmoticons"]
+				},
+				{
+					name: "enableFfzChannelEmoticons",
+					readableName: "Enable FrankerFaceZ channel emoticons",
+					type: "bool",
+					description: "Enable FrankerFaceZ emoticons that apply to specific channels only",
+					requires: ["enableTwitch", "enableFfzEmoticons"]
+				},
+				{
+					name: "enableBttvEmoticons",
+					readableName: "Enable BTTV emoticons",
+					type: "bool",
+					description: "Enable custom Twitch emoticons hosted on the BTTV service",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableBttvGlobalEmoticons",
+					readableName: "Enable BTTV global emoticons",
+					type: "bool",
+					description: "Enable BTTV emoticons that apply to all channels",
+					requires: ["enableTwitch", "enableBttvEmoticons"]
+				},
+				{
+					name: "enableBttvChannelEmoticons",
+					readableName: "Enable BTTV channel emoticons",
+					type: "bool",
+					description: "Enable BTTV emoticons that apply to specific channels only",
+					requires: ["enableTwitch", "enableBttvEmoticons"]
+				},
+				{
+					name: "enableBttvAnimatedEmoticons",
+					readableName: "Enable BTTV animated emoticons",
+					type: "bool",
+					description: "Enable BTTV emoticons that are animated",
+					requires: ["enableTwitch", "enableBttvEmoticons"]
+				},
+				{
+					name: "enableBttvPersonalEmoticons",
+					readableName: "Enable BTTV personal emoticons (WIP)",
+					type: "bool",
+					description: "Enable BTTV emoticons that apply to specific people only",
+					requires: ["enableTwitch", "enableBttvEmoticons"]
+				}
+			],
+			"Debug": [
 				{
 					name: "debug",
 					readableName: "Debug mode (developers only)",
@@ -60,12 +154,23 @@ class SettingsGeneralView extends PureComponent {
 
 	renderSetting(setting) {
 		const { appConfig } = this.props;
-		const { name, readableName, type, description } = setting;
+		const { name, readableName, type, description, requires } = setting;
 
-		var prefixInput = null, mainInput = null;
+		var prefixInput = null, mainInput = null, isDisabled = false;
 
+		// Disable the field if any of its prerequisites are disabled
+		if (requires && requires.length) {
+			requires.forEach((fieldName) => {
+				if (appConfig && !appConfig[fieldName]) {
+					isDisabled = true;
+				}
+			});
+		}
+
+		// Change handler
 		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
 
+		// Input field
 		switch (type) {
 			case "bool":
 				prefixInput = <input
@@ -73,6 +178,7 @@ class SettingsGeneralView extends PureComponent {
 					id={name}
 					defaultChecked={appConfig[name]}
 					onChange={(evt) => myChangeValue(name, evt.target.checked)}
+					disabled={isDisabled}
 					key="input" />;
 				break;
 			default:
@@ -81,11 +187,17 @@ class SettingsGeneralView extends PureComponent {
 					id={name}
 					defaultValue={appConfig[name] || ""}
 					onChange={(evt) => myChangeValue(name, evt.target.value)}
+					disabled={isDisabled}
 					key="input" />;
 		}
 
+		// Class name
+		const className = "settings__setting" +
+			(isDisabled ? " settings__setting--disabled" : "");
+
+		// Output
 		return (
-			<div className="settings__setting" key={name}>
+			<div className={className} key={name}>
 				<h3>{ prefixInput } <label htmlFor={name}>{ readableName }</label></h3>
 				{ mainInput }
 				<p>{ description }</p>

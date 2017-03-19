@@ -7,6 +7,7 @@ const lodash = require("lodash");
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
+const configDefaults = require("./defaults");
 const log = require("./log");
 const util = require("./util");
 
@@ -116,6 +117,7 @@ module.exports = function(main) {
 	const emitAppConfig = function(socket) {
 		main.loadAppConfig((err, data) => {
 			if (!err) {
+				data = lodash.assign({}, configDefaults, data);
 				socket.emit("appConfig", { data });
 			}
 		});

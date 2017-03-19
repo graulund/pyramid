@@ -13,5 +13,20 @@ module.exports = {
 	sslCertPath: "",
 	sslKeyPath: "",
 	timeZone: "UTC",
-	webPort: 54335
+	webPort: 54335,
+
+	enableUsernameColors: true,
+	enableDarkMode: false,
+	enableEmojiCodes: true,
+	enableTwitch: true,
+	enableTwitchColors: false,
+	enableTwitchDisplayNames: false,
+	enableFfzEmoticons: true,
+	enableFfzGlobalEmoticons: true,
+	enableFfzChannelEmoticons: true,
+	enableBttvEmoticons: true,
+	enableBttvGlobalEmoticons: true,
+	enableBttvChannelEmoticons: true,
+	enableBttvAnimatedEmoticons: true,
+	enableBttvPersonalEmoticons: true
 };

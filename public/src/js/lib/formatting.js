@@ -3,10 +3,10 @@ import {
 } from "../constants";
 import store from "../store";
 
-function isDarkMode() {
+function darkModeEnabled() {
 	if (store) {
 		const state = store.getState();
-		return state && state.appConfig && state.appConfig.darkMode;
+		return state && state.appConfig && state.appConfig.enableDarkMode;
 	}
 
 	return false;
@@ -54,7 +54,7 @@ export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
 	// m: Moment instance expected
 	// ms: Moment diff instance expected; moment().diff(m)
 
-	const darkMode = isDarkMode();
+	const darkMode = darkModeEnabled();
 
 	if (color === DEFAULT_COLOR_RGB && darkMode) {
 		color = DEFAULT_DARKMODE_COLOR_RGB;

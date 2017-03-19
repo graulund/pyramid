@@ -44,7 +44,7 @@ const isTwitch = function(client) {
 		return /irc\.(chat\.)?twitch\.tv/.test(client.extConfig.hostname);
 	}
 
-	return null;
+	return false;
 };
 
 const rangesOverlap = function (x1, x2, y1, y2) {
