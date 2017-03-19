@@ -86,8 +86,9 @@ class ChatInput extends Component {
 	onChange() {
 		this.resetCurrentHistory();
 
+		const { enableEmojiCodes } = this.props;
 		const { input: inputEl } = this.refs;
-		if (inputEl && inputEl.value) {
+		if (inputEl && inputEl.value && enableEmojiCodes) {
 			const val = inputEl.value;
 			const convertedValue = convertCodesToEmojis(val);
 			if (convertedValue !== val) {
@@ -294,13 +295,16 @@ class ChatInput extends Component {
 ChatInput.propTypes = {
 	channelCaches: PropTypes.object,
 	channelUserLists: PropTypes.object,
-	channel: PropTypes.string
+	channel: PropTypes.string,
+	enableEmojiCodes: PropTypes.bool
 };
 
 export default connect(({
+	appConfig: { enableEmojiCodes },
 	channelCaches,
 	channelUserLists
 }) => ({
 	channelCaches,
-	channelUserLists
+	channelUserLists,
+	enableEmojiCodes
 }))(ChatInput);
