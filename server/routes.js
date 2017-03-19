@@ -7,6 +7,7 @@ const cookie = require("cookie");
 const lodash = require("lodash");
 
 const constants = require("./constants");
+const configDefaults = require("./defaults");
 const util = require("./util");
 const h = require("./viewhelpers");
 
@@ -76,7 +77,7 @@ module.exports = function(app, main) {
 
 	app.get("/login", function(req, res) {
 		if (!isLoggedIn(req, res)) {
-			res.render("login");
+			res.render("login", { appConfig: null });
 		} else {
 			redirectBack(req, res);
 		}
@@ -136,7 +137,7 @@ module.exports = function(app, main) {
 
 				res.render("index", {
 					// Variables
-					appConfig: results.appConfig,
+					appConfig: lodash.assign({}, configDefaults, results.appConfig),
 					friendsList: main.currentFriendsList(),
 					ircConfig: main.safeIrcConfigDict(results.ircConfig),
 					lastSeenChannels: main.lastSeenChannels(),

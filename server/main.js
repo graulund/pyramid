@@ -427,13 +427,18 @@ const handleIncomingMessage = function(
 	const line = log.lineFormats[type].build(symbol, username, message);
 
 	// Log the line!
-	log.logChannelLine(channelUri, channelName, line, time);
+	if (configValue("logLinesFile")) {
+		log.logChannelLine(channelUri, channelName, line, time);
+	}
+	else if (configValue("debug")) {
+		console.log(`[${channelName}] ${line}`);
+	}
 
 	// Is this from a person among our friends? Note down "last seen" time.
 
 	const relationship = util.getRelationship(username, currentFriendsList);
 
-	if (relationship >= constants.RELATIONSHIP_FRIEND) {
+	if (relationship >= constants.RELATIONSHIP_FRIEND && configValue("logLinesFile")) {
 		// Add to specific logs
 		log.logCategoryLine(username.toLowerCase(), channelUri, channelName, line, time);
 	}
@@ -445,7 +450,11 @@ const handleIncomingMessage = function(
 	var loggedMention = false;
 	if (meRegex.test(message)) {
 		highlightStrings.push(meUsername);
-		log.logCategoryLine("mentions", channelUri, channelName, line, time);
+
+		if (configValue("logLinesFile")) {
+			log.logCategoryLine("mentions", channelUri, channelName, line, time);
+		}
+
 		loggedMention = true;
 	}
 
@@ -458,7 +467,9 @@ const handleIncomingMessage = function(
 			highlightStrings.push(nickname.nickname);
 
 			if (!loggedMention) {
-				log.logCategoryLine("mentions", channelUri, channelName, line, time);
+				if (configValue("logLinesFile")) {
+					log.logCategoryLine("mentions", channelUri, channelName, line, time);
+				}
 				loggedMention = true;
 			}
 		}
@@ -484,7 +495,7 @@ const handleIncomingEvent = function(
 
 	const line = log.getLogLineFromData(type, data);
 
-	if (line) {
+	if (line && configValue("logLinesFile")) {
 		log.logChannelLine(channelUri, channelName, line, time);
 	}
 

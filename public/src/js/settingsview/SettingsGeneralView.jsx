@@ -15,7 +15,7 @@ class SettingsGeneralView extends PureComponent {
 					name: "webPort",
 					readableName: "Web port",
 					type: "number",
-					description: "The port number the web server should listen to. (Change here only applies after restart)"
+					description: "The port number the web server should listen to (requires server restart)"
 				},
 				{
 					name: "webPassword",
@@ -30,6 +30,18 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Dark mode",
 					type: "bool",
 					description: "Invert the colors of Pyramid, giving a dark experience (requires reload in your browser)"
+				},
+				{
+					name: "logLinesDb",
+					readableName: "Log lines in the database",
+					type: "bool",
+					description: "Log all chat lines in the database; saves meta data but takes up disk space"
+				},
+				{
+					name: "logLinesFile",
+					readableName: "Log lines to text files",
+					type: "bool",
+					description: "Log all chat lines to separate text files for each channel and date; does not save meta data, but is saved in a universal human readable plain text format"
 				},
 				{
 					name: "debug",
