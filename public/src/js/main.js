@@ -11,7 +11,6 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
-import { setIrcConfigs } from "./lib/ircConfigs";
 import * as routes from "./lib/routeHelpers";
 
 import "../scss/site.scss";
@@ -36,7 +35,7 @@ if (window.pyramid_friendsList) {
 }
 
 if (window.pyramid_ircConfigs) {
-	setIrcConfigs(window.pyramid_ircConfigs);
+	store.dispatch(actions.ircConfigs.set(window.pyramid_ircConfigs));
 }
 
 if (window.pyramid_lastSeenChannels) {

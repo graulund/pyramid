@@ -27,24 +27,6 @@ export function resetMultiServerChannels() {
 	));
 }
 
-export function updateIrcConfigs(ircConfigs) {
-	// Add the new ones
-	store.dispatch(actions.ircConfigs.update(ircConfigs));
-
-	// Check multi server channels now
-	resetMultiServerChannels();
-}
-
-export function setIrcConfigs(ircConfigs) {
-	// Add the new ones
-	store.dispatch(actions.ircConfigs.set(ircConfigs));
-
-	// Check multi server channels now
-	resetMultiServerChannels();
-}
-
-// TODO: Turn these into sagas?
-
 export function isTwitch(ircConfig) {
 	if (ircConfig) {
 		return /irc\.(chat\.)?twitch\.tv/.test(ircConfig.hostname);

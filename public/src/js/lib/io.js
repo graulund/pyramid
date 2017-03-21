@@ -4,7 +4,6 @@ import pull from "lodash/pull";
 import without from "lodash/without";
 
 import { CACHE_LINES } from "../constants";
-import { setIrcConfigs } from "./ircConfigs";
 import { sendMessageNotification } from "./notifications";
 import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
@@ -436,7 +435,7 @@ export function initializeIo() {
 		socket.on("ircConfig", (details) => {
 			if (details && details.data) {
 				console.log("Received ircConfig", details);
-				setIrcConfigs(details.data);
+				store.dispatch(actions.ircConfigs.set(details.data));
 			}
 		});
 
