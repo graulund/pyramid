@@ -29,6 +29,8 @@ const EXTERNAL_CHANNEL_EMOTE_ENDPOINTS = [
 
 const ASTRAL_SYMBOLS_REGEX = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
 
+const EMOTE_RELOAD_INTERVAL_MS = 3600000;
+
 var emoticonImages = {};
 var roomStates = {};
 var userStates = {};
@@ -298,11 +300,20 @@ const storeExternalEmotes = function(type, store, list) {
 		store = [];
 	}
 	return store.concat(parseExternalEmoticons(type, list));
-}
+};
 
-const requestExternalGlobalEmoticons = function() {
+const requestExternalGlobalEmoticons = function(enabledTypes) {
+	if (!enabledTypes || !enabledTypes.length) {
+		return;
+	}
+
 	var uncleared = true;
 	EXTERNAL_GLOBAL_EMOTE_ENDPOINTS.forEach(({ type, url }) => {
+
+		if (enabledTypes.indexOf(type) < 0) {
+			return;
+		}
+
 		request(url, (error, response, body) => {
 			if (!error && response.statusCode === 200) {
 				try {
@@ -341,10 +352,15 @@ const requestExternalGlobalEmoticons = function() {
 	});
 };
 
-const requestExternalChannelEmoticons = function(channel) {
+const requestExternalChannelEmoticons = function(channel, enabledTypes) {
+	if (!enabledTypes || !enabledTypes.length) {
+		return;
+	}
+
 	const segs = channel.split("/");
 	const channelName = segs[segs.length-1].replace(/^#/, "");
 	var uncleared = true;
+
 	if (channelName) {
 
 		// Clear the list quickly if it doesn't exist already
@@ -354,6 +370,11 @@ const requestExternalChannelEmoticons = function(channel) {
 		}
 
 		EXTERNAL_CHANNEL_EMOTE_ENDPOINTS.forEach(({ type, prefix }) => {
+
+			if (enabledTypes.indexOf(type) < 0) {
+				return;
+			}
+
 			request(prefix + channelName, (error, response, body) => {
 				if (!error && response.statusCode === 200) {
 					try {
@@ -396,9 +417,91 @@ const requestExternalChannelEmoticons = function(channel) {
 	}
 };
 
+const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
+	const enabledTypes = [];
+
+	if (ffzEnabled) {
+		enabledTypes.push("ffz");
+	}
+
+	if (bttvEnabled) {
+		enabledTypes.push("bttv");
+	}
+
+	return enabledTypes;
+};
+
 // Event handlers -----------------------------------------------------------------------
 
 module.exports = function(main) {
+
+	// Utility
+
+	const enabledGlobalEmoteTypes = () => {
+		return getEnabledExternalEmoticonTypes(
+			main.configValue("enableFfzEmoticons") &&
+			main.configValue("enableFfzGlobalEmoticons"),
+			main.configValue("enableBttvEmoticons") &&
+			main.configValue("enableBttvGlobalEmoticons")
+		);
+	};
+
+	const enabledChannelEmoteTypes = () => {
+		return getEnabledExternalEmoticonTypes(
+			main.configValue("enableFfzEmoticons") &&
+			main.configValue("enableFfzChannelEmoticons"),
+			main.configValue("enableBttvEmoticons") &&
+			main.configValue("enableBttvChannelEmoticons")
+		);
+	};
+
+	const loadExternalEmotesForClient = (client) => {
+		if (isTwitch(client)) {
+			const globalEnabledTypes = enabledGlobalEmoteTypes();
+			requestExternalGlobalEmoticons(globalEnabledTypes);
+
+			if (client.extConfig && client.extConfig.channels) {
+				const channelEnabledTypes = enabledChannelEmoteTypes();
+
+				client.extConfig.channels.forEach((channel) => {
+					const channelUri = util.getChannelUri(
+						channel.name, client.extConfig.name
+					);
+					console.log(`Requesting channel emoticons for ${channelUri}`);
+					requestExternalChannelEmoticons(
+						channelUri, channelEnabledTypes
+					);
+				});
+			}
+		}
+	};
+
+	const getExternalEmotesForChannel = (channel) => {
+		const globalEnabledTypes = enabledGlobalEmoteTypes();
+		const channelEnabledTypes = enabledChannelEmoteTypes();
+
+		// Filter away the non-preferred types
+
+		var g = externalGlobalEmotes.filter(
+			({ type }) => globalEnabledTypes.indexOf(type) >= 0
+		);
+		var c = (externalChannelEmotes[channel] || []).filter(
+			({ type }) => channelEnabledTypes.indexOf(type) >= 0
+		);
+
+		// Filter away animated emotes
+
+		if (!main.configValue("enableBttvAnimatedEmoticons")) {
+			g = g.filter(({ imageType }) => imageType !== "gif");
+			c = c.filter(({ imageType }) => imageType !== "gif");
+		}
+
+		// Combine and return
+
+		return g.concat(c);
+	};
+
+	// Events
 
 	const onConnect = (data) => {
 		const { client } = data;
@@ -408,14 +511,7 @@ module.exports = function(main) {
 				"twitch.tv/commands twitch.tv/membership twitch.tv/tags"
 			);
 
-			requestExternalGlobalEmoticons();
-			if (client.extConfig && client.extConfig.channels) {
-				client.extConfig.channels.forEach((channel) => {
-					const channelUri = util.getChannelUri(channel.name, client.extConfig.name);
-					console.log(`Requesting channel emoticons for ${channelUri}`);
-					requestExternalChannelEmoticons(channelUri);
-				});
-			}
+			loadExternalEmotesForClient(client);
 		}
 	};
 
@@ -424,34 +520,32 @@ module.exports = function(main) {
 			client, channel, message, meUsername, postedLocally,
 			serverName, tags, username
 		} = data;
-		if (isTwitch(client)) {
-			if (tags) {
-				if (tags.emotes) {
-					if (typeof tags.emotes === "string") {
-						tags.emotes = parseEmoticonIndices(tags.emotes);
-					}
+		if (isTwitch(client) && tags) {
+			if (tags.emotes) {
+				if (typeof tags.emotes === "string") {
+					tags.emotes = parseEmoticonIndices(tags.emotes);
 				}
-				else if (
-					postedLocally && username === meUsername &&
-					userStates[channel] &&
-					emoticonImages[userStates[channel]["emote-sets"]]
-				) {
-					// We posted this message
-					populateLocallyPostedTags(tags, serverName, channel, message);
-				}
-				else if ("emotes" in tags) {
-					// Type normalization
-					tags.emotes = [];
-				}
+			}
+			else if (
+				postedLocally && username === meUsername &&
+				userStates[channel] &&
+				emoticonImages[userStates[channel]["emote-sets"]]
+			) {
+				// We posted this message
+				populateLocallyPostedTags(tags, serverName, channel, message);
+			}
+			else if ("emotes" in tags) {
+				// Type normalization
+				tags.emotes = [];
+			}
 
-				// Add external emotes
-				if (externalChannelEmotes[channel]) {
-					tags.emotes = generateEmoticonIndices(
-						message,
-						externalGlobalEmotes.concat(externalChannelEmotes[channel]),
-						tags.emotes
-					);
-				}
+			// Add external emotes
+			if (externalChannelEmotes[channel]) {
+				tags.emotes = generateEmoticonIndices(
+					message,
+					getExternalEmotesForChannel(channel),
+					tags.emotes
+				);
 			}
 		}
 	};
@@ -484,6 +578,25 @@ module.exports = function(main) {
 			}
 		}
 	};
+
+	const loadExternalEmotesForAllClients = () => {
+		console.log("Reloading emotes for all clients...");
+
+		const clients = main.currentIrcClients();
+
+		if (clients && clients.length) {
+			clients.forEach((client) => loadExternalEmotesForClient(client));
+		}
+	};
+
+	// Reload emotes every hour
+
+	setInterval(
+		loadExternalEmotesForAllClients,
+		EMOTE_RELOAD_INTERVAL_MS
+	);
+
+	// Events API
 
 	return {
 		onConnect,

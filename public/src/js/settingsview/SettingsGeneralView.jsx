@@ -15,7 +15,8 @@ class SettingsGeneralView extends PureComponent {
 					name: "webPort",
 					readableName: "Web port",
 					type: "number",
-					description: "The port number the web server should listen to (requires server restart)"
+					description: "The port number the web server should listen to",
+					notice: "Requires server restart"
 				},
 				{
 					name: "webPassword",
@@ -43,7 +44,8 @@ class SettingsGeneralView extends PureComponent {
 					name: "enableDarkMode",
 					readableName: "Dark mode",
 					type: "bool",
-					description: "Invert the colors of Pyramid, giving a dark experience (requires reload in your browser)"
+					description: "Invert the colors of Pyramid, giving a dark experience",
+					notice: "Requires reload in your browser"
 				},
 				{
 					name: "enableUsernameColors",
@@ -84,6 +86,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable FrankerFaceZ emoticons",
 					type: "bool",
 					description: "Enable custom Twitch emoticons hosted on the FrankerFaceZ service",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch"]
 				},
 				{
@@ -91,6 +94,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable FrankerFaceZ global emoticons",
 					type: "bool",
 					description: "Enable FrankerFaceZ emoticons that apply to all channels",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableFfzEmoticons"]
 				},
 				{
@@ -98,6 +102,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable FrankerFaceZ channel emoticons",
 					type: "bool",
 					description: "Enable FrankerFaceZ emoticons that apply to specific channels only",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableFfzEmoticons"]
 				},
 				{
@@ -105,6 +110,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable BTTV emoticons",
 					type: "bool",
 					description: "Enable custom Twitch emoticons hosted on the BTTV service",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch"]
 				},
 				{
@@ -112,6 +118,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable BTTV global emoticons",
 					type: "bool",
 					description: "Enable BTTV emoticons that apply to all channels",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
 				},
 				{
@@ -119,6 +126,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable BTTV channel emoticons",
 					type: "bool",
 					description: "Enable BTTV emoticons that apply to specific channels only",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
 				},
 				{
@@ -126,6 +134,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable BTTV animated emoticons",
 					type: "bool",
 					description: "Enable BTTV emoticons that are animated",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
 				},
 				{
@@ -133,6 +142,7 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Enable BTTV personal emoticons (WIP)",
 					type: "bool",
 					description: "Enable BTTV emoticons that apply to specific people only",
+					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
 				}
 			],
@@ -154,7 +164,7 @@ class SettingsGeneralView extends PureComponent {
 
 	renderSetting(setting) {
 		const { appConfig } = this.props;
-		const { name, readableName, type, description, requires } = setting;
+		const { description, name, notice, readableName, requires, type } = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
 
@@ -201,6 +211,7 @@ class SettingsGeneralView extends PureComponent {
 				<h3>{ prefixInput } <label htmlFor={name}>{ readableName }</label></h3>
 				{ mainInput }
 				<p>{ description }</p>
+				{ notice ? <p><em>{ notice }</em></p> : null }
 			</div>
 		);
 	}

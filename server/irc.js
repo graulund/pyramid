@@ -387,7 +387,7 @@ module.exports = function(main) {
 	// Exported objects and methods
 	const output = {
 		calibrateMultiServerChannels,
-		clients,
+		clients: () => clients,
 		connectUnconnectedClients,
 		disconnectServer,
 		go,

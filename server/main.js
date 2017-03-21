@@ -769,7 +769,12 @@ const nicknamesDict = function(nicknames = currentNicknames) {
 };
 
 const configValue = function(name) {
-	return currentAppConfig[name] || configDefaults[name];
+
+	if (typeof currentAppConfig[name] !== "undefined") {
+		return currentAppConfig[name];
+	}
+
+	return configDefaults[name];
 };
 
 // Storing settings
@@ -783,6 +788,7 @@ const addToFriends = function(serverId, username, isBestFriend, callback) {
 };
 
 const storeConfigValue = function(name, value, callback) {
+	// TODO: Handle new value, for example fetch FFZ emotes if it's turned on...
 	db.storeConfigValue(name, value, callback);
 };
 
@@ -975,6 +981,10 @@ const partIrcChannel = function(serverName, channelName) {
 	irc.partChannel(serverName, channelName);
 };
 
+const currentIrcClients = function() {
+	return irc.clients();
+};
+
 // Startup
 onDb((err) => {
 	console.log("Got db");
@@ -1026,6 +1036,7 @@ module.exports = {
 	currentAppConfig: () => currentAppConfig,
 	currentFriendsList: () => currentFriendsList,
 	currentIrcConfig: () => currentIrcConfig,
+	currentIrcClients,
 	currentNicknames: () => currentNicknames,
 	currentViewState: () => currentViewState,
 	disconnectIrcServer,

@@ -4,7 +4,8 @@ body.darkmode {
 	.mainview__top,
 	.chatview__input,
 	.chatview__input input[type="text"],
-	.chatview__controls {
+	.chatview__controls,
+	.channeluserlist {
 		background-color: #111;
 		color: #ccc;
 
@@ -89,6 +90,10 @@ body.darkmode {
 			display: block;
 			transition: .5s left ease-in-out;
 		}
+	}
+
+	.channeluserlist:after {
+		background-color: rgba(255,255,255,.2);
 	}
 
 	.sidebar--hidden:after {
