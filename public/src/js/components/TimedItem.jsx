@@ -1,4 +1,5 @@
 import React, { PureComponent, PropTypes } from "react";
+import { connect } from "react-redux";
 import { findDOMNode } from "react-dom";
 import moment from "moment";
 
@@ -192,10 +193,11 @@ class TimedItem extends PureComponent {
 
 TimedItem.propTypes = {
 	className: PropTypes.string,
+	enableDarkMode: PropTypes.bool,
 	prefix: PropTypes.node,
 	skipOld: PropTypes.bool,
 	suffix: PropTypes.node,
 	time: PropTypes.string
 };
 
-export default TimedItem;
+export default connect(({ appConfig: { enableDarkMode }}) => ({ enableDarkMode }))(TimedItem);

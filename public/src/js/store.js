@@ -22,7 +22,7 @@ var store = createStore(
 );
 
 if (sagas) {
-	sagaMiddleware.run(sagas);
+	sagas.forEach((saga) => sagaMiddleware.run(saga));
 }
 
 export default store;

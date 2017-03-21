@@ -1,4 +1,4 @@
-// sagas
-const sagas = null;
+import appConfig from "./sagas/appConfig";
+
+const sagas = [appConfig];
 export default sagas;
-// TODO: Remove this if it isn't used...

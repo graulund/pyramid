@@ -44,8 +44,7 @@ class SettingsGeneralView extends PureComponent {
 					name: "enableDarkMode",
 					readableName: "Dark mode",
 					type: "bool",
-					description: "Invert the colors of Pyramid, giving a dark experience",
-					notice: "Requires reload in your browser"
+					description: "Invert the colors of Pyramid, giving a dark experience"
 				},
 				{
 					name: "enableUsernameColors",
