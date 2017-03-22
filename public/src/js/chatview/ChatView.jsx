@@ -11,6 +11,7 @@ import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import * as io from "../lib/io";
+import { parseLineIdHash } from "../lib/routeHelpers";
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
@@ -71,8 +72,7 @@ class ChatView extends Component {
 			this.linesBeingChanged = false;
 			if (this.channelJustChanged) {
 				this.channelJustChanged = false;
-				console.log("Channel was just changed, and lines are being changed, scrolling!");
-				scrollToTheBottom();
+				this.onFirstContent();
 				return;
 			}
 		}
@@ -305,6 +305,25 @@ class ChatView extends Component {
 	onClick() {
 		// Hide the sidebar if it is not already hidden
 		store.dispatch(actions.viewState.update({ sidebarVisible: false }));
+	}
+
+	onFirstContent() {
+		console.log("Channel was just changed, and lines are being changed, scrolling!");
+		scrollToTheBottom();
+		console.log("Hash:", location.hash);
+
+		if (location.hash) {
+			const lineId = parseLineIdHash(location.hash);
+			if (lineId) {
+				// TODO: Check if the id in the hash exists in the current log
+				// If it does, scroll to it.
+				// If it does not, send the request for line info:
+
+				io.requestLineInfo(lineId);
+
+				// Then respond to line info update, and then navigate to the log with the given date.
+			}
+		}
 	}
 
 	openLogBrowser() {
@@ -613,6 +632,7 @@ class ChatView extends Component {
 ChatView.propTypes = {
 	categoryCaches: PropTypes.object,
 	channelCaches: PropTypes.object,
+	lineInfo: PropTypes.object,
 	logDetails: PropTypes.object,
 	logFiles: PropTypes.object,
 	params: PropTypes.object,
@@ -624,12 +644,14 @@ export default connect(
 	({
 		categoryCaches,
 		channelCaches,
+		lineInfo,
 		logDetails,
 		logFiles,
 		userCaches
 	}) => ({
 		categoryCaches,
 		channelCaches,
+		lineInfo,
 		logDetails,
 		logFiles,
 		userCaches

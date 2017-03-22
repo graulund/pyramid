@@ -90,6 +90,14 @@ export default {
 			};
 		}
 	},
+	lineInfo: {
+		update(data) {
+			return {
+				type: actionTypes.lineInfo.UPDATE,
+				data
+			};
+		}
+	},
 	logDetails: {
 		update(data) {
 			return {

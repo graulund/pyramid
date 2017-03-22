@@ -193,6 +193,14 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitLineInfo = function(socket, lineId) {
+		main.getLineByLineId(lineId, (err, line) => {
+			if (!err) {
+				socket.emit("lineInfo", { line });
+			}
+		});
+	};
+
 	const emitChannelUserListToRecipients = function(channelUri) {
 		emitEventToChannel(channelUri, "channelUserList", {
 			channel: channelUri,
@@ -339,17 +347,29 @@ module.exports = function(main) {
 
 			// Sending messages
 
-			socket.on("sendMessage", (data) => {
+			socket.on("sendMessage", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				if (data && data.channel && data.message && data.token) {
+				if (details && details.channel && details.message && details.token) {
 
 					// Only allow this socket to send a message
 					// if the command itself includes an accepted token
 
-					if (util.isAnAcceptedToken(data.token)) {
-						const message = util.normalise(data.message);
-						main.sendOutgoingMessage(data.channel, message);
+					if (util.isAnAcceptedToken(details.token)) {
+						const message = util.normalise(details.message);
+						main.sendOutgoingMessage(details.channel, message);
 					}
+				}
+			});
+
+			// Requesting line info
+
+			socket.on("requestLineInfo", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (
+					details &&
+					typeof details.lineId === "string"
+				) {
+					emitLineInfo(socket, details.lineId);
 				}
 			});
 

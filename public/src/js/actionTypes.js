@@ -26,6 +26,10 @@ export const ircConfigs = {
 	"UPDATE": "ircConfigs/UPDATE"
 };
 
+export const lineInfo = {
+	"UPDATE": "lineInfo/UPDATE"
+};
+
 export const logDetails = {
 	"UPDATE": "logDetails/UPDATE"
 };

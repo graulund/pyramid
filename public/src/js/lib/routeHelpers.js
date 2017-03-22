@@ -34,3 +34,12 @@ export function settingsUrl(settingsPageName) {
 }
 
 export const settingsPattern = "/settings(/:pageName)";
+
+export function parseLineIdHash(hash) {
+	const m = hash.match(/^#line-([a-z0-9-]+)$/i);
+	if (m && m[1]) {
+		return m[1];
+	}
+
+	return null;
+}

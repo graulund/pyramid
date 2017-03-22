@@ -131,6 +131,12 @@ export function requestLogFileForUsername(username, time) {
 	}
 }
 
+export function requestLineInfo(lineId) {
+	if (socket) {
+		socket.emit("requestLineInfo", { lineId });
+	}
+}
+
 export function reportHighlightAsSeen(messageId) {
 	if (socket) {
 		socket.emit("reportHighlightAsSeen", { messageId });
@@ -420,6 +426,14 @@ export function initializeIo() {
 			if (details && details.message) {
 				// TODO: Don't alert if the window is in focus and you're viewing a source where this appears
 				sendMessageNotification(details.message);
+			}
+		});
+
+		socket.on("lineInfo", (details) => {
+			if (details && details.line && details.line.lineId) {
+				store.dispatch(actions.lineInfo.update({
+					[details.line.lineId]: details.line
+				}));
 			}
 		});
 

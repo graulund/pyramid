@@ -8,6 +8,7 @@ import friendsList from "./friendsList";
 import ircConfigs from "./ircConfigs";
 import lastSeenChannels from "./lastSeenChannels";
 import lastSeenUsers from "./lastSeenUsers";
+import lineInfo from "./lineInfo";
 import logDetails from "./logDetails";
 import logFiles from "./logFiles";
 import multiServerChannels from "./multiServerChannels";
@@ -26,6 +27,7 @@ export default combineReducers({
 	ircConfigs,
 	lastSeenChannels,
 	lastSeenUsers,
+	lineInfo,
 	logDetails,
 	logFiles,
 	multiServerChannels,

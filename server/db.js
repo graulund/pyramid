@@ -617,6 +617,14 @@ module.exports = function(main) {
 		);
 	};
 
+	const getLineByLineId = (lineId, callback) => {
+		db.get(
+			sq("lines", ["*"], ["lineId"]),
+			dollarize({ lineId }),
+			callback
+		);
+	};
+
 	/*
 
 	API:
@@ -645,6 +653,7 @@ module.exports = function(main) {
 	getIrcServers(callback)
 	getLastSeenChannels(callback)
 	getLastSeenUsers(callback)
+	getLineByLineId(lineId, callback)
 	getNicknames(callback)
 	getServerId(name, callback)
 	getServerName(serverId, callback)
@@ -686,6 +695,7 @@ module.exports = function(main) {
 		getIrcServers,
 		getLastSeenChannels,
 		getLastSeenUsers,
+		getLineByLineId,
 		getNicknames,
 		getServerId,
 		getServerName,

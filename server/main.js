@@ -816,8 +816,6 @@ const storeConfigValue = function(name, value, callback) {
 			}
 		}
 	);
-
-
 };
 
 const addNickname = function(nickname, callback) {
@@ -896,32 +894,44 @@ const addConfigValueChangeHandler = function(name, handler) {
 
 // Storing lines
 
+const parseDbLine = function(line, callback) {
+	var l = null;
+	if (line) {
+		l = lodash.clone(line);
+
+		if (typeof l.tags === "string") {
+			try {
+				l.tags = JSON.parse(l.tags);
+			} catch(e) {}
+		}
+		if (typeof l.eventData === "string") {
+			try {
+				l.eventData = JSON.parse(l.eventData);
+
+				if (l.eventData) {
+					l.events  = l.eventData.events;
+					l.prevIds = l.eventData.prevIds;
+				}
+
+			} catch(e) {}
+
+			delete l.eventData;
+		}
+	}
+
+	if (typeof callback === "function") {
+		callback(null, l);
+	}
+
+	return l;
+};
+
 const parseDbLines = function(lines, callback) {
 	const outLines = [];
 
 	lines.forEach((line) => {
 		if (line) {
-			const l = lodash.clone(line);
-
-			if (typeof l.tags === "string") {
-				try {
-					l.tags = JSON.parse(l.tags);
-				} catch(e) {}
-			}
-			if (typeof l.eventData === "string") {
-				try {
-					l.eventData = JSON.parse(l.eventData);
-
-					if (l.eventData) {
-						l.events  = l.eventData.events;
-						l.prevIds = l.eventData.prevIds;
-					}
-
-				} catch(e) {}
-
-				delete l.eventData;
-			}
-
+			const l = parseDbLine(line);
 			outLines.push(l);
 		}
 	});
@@ -962,6 +972,13 @@ const getDateLinesForUsername = function(username, date, callback) {
 	async.waterfall([
 		(callback) => db.getDateLinesForUsername(username, date, callback),
 		(lines, callback) => parseDbLines(lines, callback)
+	], callback);
+};
+
+const getLineByLineId = function(lineId, callback) {
+	async.waterfall([
+		(callback) => db.getLineByLineId(lineId, callback),
+		(line, callback) => parseDbLine(line, callback)
 	], callback);
 };
 
@@ -1098,6 +1115,7 @@ module.exports = {
 	getDateLineCountForUsername,
 	getDateLinesForChannel,
 	getDateLinesForUsername,
+	getLineByLineId,
 	getUserCache: (username) => userCaches[username],
 	getUserCurrentSymbol,
 	getUserLogDetails,
