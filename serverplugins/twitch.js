@@ -235,6 +235,7 @@ const krakenGetRequest = function(commandName, query, callback) {
 };
 
 const requestEmoticonImages = function(emotesets) {
+	console.log(`Requesting emoticon images for ${emotesets}`);
 	krakenGetRequest(
 		"chat/emoticon_images",
 		{ emotesets },
@@ -243,6 +244,8 @@ const requestEmoticonImages = function(emotesets) {
 				const data = JSON.parse(body);
 				emoticonImages[emotesets] =
 					flattenEmoticonImagesData(data);
+
+				console.log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 			catch(e) {
 				console.warn("Error occurred trying to request emoticon images from the Twitch API.");
@@ -259,6 +262,14 @@ const requestEmoticonImagesIfNeeded = function(emotesets) {
 		// Request
 		requestEmoticonImages(emotesets);
 	}
+};
+
+const reloadEmoticonImages = function() {
+	console.log("Reloading emoticon images...");
+	const queries = Object.keys(emoticonImages);
+	queries.forEach((emotesets) => {
+		requestEmoticonImages(emotesets);
+	});
 };
 
 const parseExternalEmoticon = function(type, data) {
@@ -467,7 +478,7 @@ module.exports = function(main) {
 					const channelUri = util.getChannelUri(
 						channel.name, client.extConfig.name
 					);
-					console.log(`Requesting channel emoticons for ${channelUri}`);
+					console.log(`Requesting external channel emoticons for ${channelUri}`);
 					requestExternalChannelEmoticons(
 						channelUri, channelEnabledTypes
 					);
@@ -590,6 +601,11 @@ module.exports = function(main) {
 	};
 
 	// Reload emotes every hour
+
+	setInterval(
+		reloadEmoticonImages,
+		EMOTE_RELOAD_INTERVAL_MS
+	);
 
 	setInterval(
 		loadExternalEmotesForAllClients,
