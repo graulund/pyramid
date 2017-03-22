@@ -47,6 +47,8 @@ var serverIdCache = {};
 var bunchableLinesToInsert = {};
 var lineIdsToDelete = new Set();
 
+var configValueChangeHandlers = {};
+
 // Delayed singletons
 
 var db, io, irc, plugins, web;
@@ -788,8 +790,34 @@ const addToFriends = function(serverId, username, isBestFriend, callback) {
 };
 
 const storeConfigValue = function(name, value, callback) {
-	// TODO: Handle new value, for example fetch FFZ emotes if it's turned on...
-	db.storeConfigValue(name, value, callback);
+	db.storeConfigValue(
+		name,
+		value,
+		(err) => {
+			if (err) {
+				if (typeof callback === "function") {
+					callback(err);
+				}
+			}
+			else {
+				// Handle new value
+				const handlers = configValueChangeHandlers[name];
+				if (handlers && handlers.length) {
+					loadAppConfig(() => {
+						handlers.forEach((handler) => {
+							handler(value, name);
+						});
+					});
+				}
+
+				if (typeof callback === "function") {
+					callback(null);
+				}
+			}
+		}
+	);
+
+
 };
 
 const addNickname = function(nickname, callback) {
@@ -845,6 +873,25 @@ const removeChannelFromIrcConfig = function(serverName, name, callback) {
 		(callback) => db.getChannelId(serverName, name, callback),
 		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
 	], callback);
+};
+
+const addConfigValueChangeHandler = function(name, handler) {
+	var names;
+
+	if (!(name instanceof Array)) {
+		names = [name];
+	}
+	else {
+		names = name;
+	}
+
+	names.forEach((n) => {
+		if (!configValueChangeHandlers[n]) {
+			configValueChangeHandlers[n] = [];
+		}
+
+		configValueChangeHandlers[n].push(handler);
+	});
 };
 
 // Storing lines
@@ -1025,6 +1072,7 @@ module.exports = {
 	addCategoryRecipient,
 	addChannelRecipient,
 	addChannelToIrcConfig,
+	addConfigValueChangeHandler,
 	addNickname,
 	addServerToIrcConfig,
 	addToFriends,

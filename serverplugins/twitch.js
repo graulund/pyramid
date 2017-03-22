@@ -596,6 +596,21 @@ module.exports = function(main) {
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 
+	// React to external emote settings changes
+
+	main.addConfigValueChangeHandler(
+		[
+			"enableFfzEmoticons",
+			"enableFfzGlobalEmoticons",
+			"enableFfzChannelEmoticons",
+			"enableBttvEmoticons",
+			"enableBttvGlobalEmoticons",
+			"enableBttvAnimatedEmoticons",
+			"enableBttvPersonalEmoticons"
+		],
+		loadExternalEmotesForAllClients
+	);
+
 	// Events API
 
 	return {
