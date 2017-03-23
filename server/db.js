@@ -595,7 +595,7 @@ module.exports = function(main) {
 				"eventData"
 			]),
 			{
-				$lineId: line.id,
+				$lineId: line.lineId,
 				$channelId: channelId,
 				$type: line.type,
 				$time: getTimestamp(line.time),

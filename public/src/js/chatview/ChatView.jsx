@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from "react";
+import { findDOMNode } from "react-dom";
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import remove from "lodash/remove";
@@ -10,12 +11,15 @@ import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
+import { timeStampDate } from "../lib/formatting";
 import * as io from "../lib/io";
 import { parseLineIdHash } from "../lib/routeHelpers";
 import { areWeScrolledToTheBottom, scrollToTheBottom, stickToTheBottom } from "../lib/visualBehavior";
 import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
 import actions from "../actions";
+
+const FLASHING_LINE_CLASS_NAME = "flashing";
 
 class ChatView extends Component {
 	constructor(props) {
@@ -56,7 +60,8 @@ class ChatView extends Component {
 
 		this.state = {
 			logBrowserOpen: false,
-			userListOpen: false
+			userListOpen: false,
+			waitingForInfoForLineId: null
 		};
 	}
 
@@ -110,9 +115,17 @@ class ChatView extends Component {
 
 	shouldComponentUpdate (newProps, newState) {
 		if (newProps) {
-			const { params: currentParams } = this.props;
-			const { params: newParams } = newProps;
+			const { params: currentParams, lineInfo: currentLineInfo } = this.props;
+			const { params: newParams, lineInfo: newLineInfo } = newProps;
 			const newLines = this.getLines(newProps);
+
+			// Redirect
+			const requestedLineId = newState.waitingForInfoForLineId;
+			if (newLineInfo[requestedLineId] && !currentLineInfo[requestedLineId]) {
+				const info = newLineInfo[requestedLineId];
+				this.redirectToLineInLog(info);
+				return true;
+			}
 
 			// Channel change
 			if (this.didChannelChange(currentParams, newParams)) {
@@ -207,7 +220,34 @@ class ChatView extends Component {
 		return currentParams.userName !== newParams.userName ||
 			currentParams.channelName !== newParams.channelName ||
 			currentParams.serverName !== newParams.serverName ||
-			currentParams.categoryName !== newParams.categoryName;
+			currentParams.categoryName !== newParams.categoryName ||
+			currentParams.logDate !== newParams.logDate;
+	}
+
+	flashLine(lineId) {
+		const root = findDOMNode(this);
+		if (root) {
+			const lineEl = root.querySelector(`#line-${lineId}`);
+			if (lineEl) {
+				// Center the line if possible
+				window.scrollTo(0, lineEl.offsetTop - window.innerHeight/2);
+
+				// Flashing
+				lineEl.classList.remove(FLASHING_LINE_CLASS_NAME);
+
+				setTimeout(() => {
+					if (lineEl) {
+						lineEl.classList.add(FLASHING_LINE_CLASS_NAME);
+					}
+				}, 1);
+
+				setTimeout(() => {
+					if (lineEl) {
+						lineEl.classList.remove(FLASHING_LINE_CLASS_NAME);
+					}
+				}, 3000);
+			}
+		}
 	}
 
 	getLines (props = this.props) {
@@ -308,20 +348,44 @@ class ChatView extends Component {
 	}
 
 	onFirstContent() {
-		console.log("Channel was just changed, and lines are being changed, scrolling!");
-		scrollToTheBottom();
-		console.log("Hash:", location.hash);
+		const { params } = this.props;
 
+		// Scroll to the bottom if we are a live channel
+		if (!params.logDate) {
+			console.log(
+				"Channel was just changed, and lines are being changed, scrolling!"
+			);
+			scrollToTheBottom();
+		}
+
+		// Are we querying a specific line id
 		if (location.hash) {
 			const lineId = parseLineIdHash(location.hash);
 			if (lineId) {
-				// TODO: Check if the id in the hash exists in the current log
-				// If it does, scroll to it.
-				// If it does not, send the request for line info:
+				// Check if the id in the hash exists in the current log...
 
-				io.requestLineInfo(lineId);
+				const line = this.lines.filter((line) => line.lineId === lineId)[0];
+
+				// If it does, scroll to it.
+
+				if (line) {
+					this.flashLine(lineId);
+				}
+
+				// If it does not, send the request for line info.
 
 				// Then respond to line info update, and then navigate to the log with the given date.
+
+				else {
+					const { lineInfo } = this.props;
+					if (lineInfo[lineId]) {
+						this.redirectToLineInLog(lineInfo[lineId]);
+					}
+					else {
+						this.setState({ waitingForInfoForLineId: lineId });
+						io.requestLineInfo(lineId);
+					}
+				}
 			}
 		}
 	}
@@ -349,6 +413,19 @@ class ChatView extends Component {
 			}
 			remove(this.observed, (item) => item === el);
 		}
+	}
+
+	redirectToLineInLog(line) {
+		const { router } = this.props;
+		const newPath = this.logUrl(timeStampDate(line.time));
+
+		if (location.pathname === newPath) {
+			console.warn("Tried to redirect to line in log URL, but it was already the current URL.");
+			return;
+		}
+
+		router.replace(newPath + `#line-${line.lineId}`);
+		this.setState({ waitingForInfoForLineId: null });
 	}
 
 	requestLogDetails(props = this.props) {

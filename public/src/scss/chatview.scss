@@ -54,6 +54,23 @@
 
 	.line {
 		padding: 0 20px;
+
+		&.flashing {
+			position: relative;
+
+			&:before {
+				content: "";
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				background-color: rgba(0,0,0,.25);
+				animation: 2s fadeOut;
+				animation-fill-mode: forwards;
+				pointer-events: none;
+			}
+		}
 	}
 
 	.msg > span {
@@ -225,4 +242,9 @@
 		margin: 0;
 		padding: 100px 0;
 	}
+}
+
+@keyframes fadeOut {
+	from { opacity: 1; }
+	to { opacity: 0; }
 }

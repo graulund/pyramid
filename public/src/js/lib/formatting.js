@@ -86,6 +86,15 @@ export function minuteTime(timeStamp) {
 	return timeStamp;
 }
 
+export function timeStampDate(timeStamp) {
+
+	if (typeof timeStamp === "string") {
+		return timeStamp.replace(/T.+/, "");
+	}
+
+	return timeStamp;
+}
+
 export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
 }

@@ -15,7 +15,7 @@ class ChatLine extends PureComponent {
 			displayChannel,
 			displayContextLink = false,
 			highlight,
-			id,
+			lineId,
 			time,
 			type
 		} = this.props;
@@ -68,14 +68,14 @@ class ChatLine extends PureComponent {
 			contextLinkEl = (
 				<Link
 					className="line__context"
-					to={`${channelUrl(channel)}#line-${id}`}>
+					to={`${channelUrl(channel)}#line-${lineId}`}>
 					Context
 				</Link>
 			);
 		}
 
 		return (
-			<li id={`line-${id}`} className={className}>
+			<li id={`line-${lineId}`} className={className}>
 				{ contextLinkEl }
 				{ channelEl }
 				<time dateTime={time} title={datestamp + " " + timestamp}>
@@ -98,8 +98,8 @@ ChatLine.propTypes = {
 	displayUsername: PropTypes.bool,
 	events: PropTypes.array,
 	highlight: PropTypes.array,
-	id: PropTypes.string,
 	isAction: PropTypes.bool,
+	lineId: PropTypes.string,
 	message: PropTypes.string,
 	mode: PropTypes.string,
 	observer: PropTypes.object,

@@ -29,7 +29,7 @@ class ChatLines extends PureComponent {
 					displayContextLink={displayContextLink}
 					displayUsername={displayUsername}
 					observer={observer}
-					key={msg.id || index} />;
+					key={msg.lineId || index} />;
 
 				if (dateString !== lastDateString) {
 					lastDateString = dateString;

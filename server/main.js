@@ -266,8 +266,8 @@ const cacheCategoryMessage = function(categoryName, msg) {
 		io.emitMessageToRecipients(categoryRecipients[categoryName], msg);
 	}
 
-	if (categoryName === "highlights" && msg.id) {
-		unseenHighlightIds.add(msg.id);
+	if (categoryName === "highlights" && msg.lineId) {
+		unseenHighlightIds.add(msg.lineId);
 
 		if (io) {
 			io.emitNewHighlight(null, msg);
@@ -296,8 +296,8 @@ const replaceLastCacheItem = function(channelUri, data) {
 
 const storeBunchableLine = function(channelUri, data) {
 	// Store them in a cache...
-	if (configValue("logLinesDb") && data && data.id) {
-		bunchableLinesToInsert[data.id] = { channelUri, data };
+	if (configValue("logLinesDb") && data && data.lineId) {
+		bunchableLinesToInsert[data.lineId] = { channelUri, data };
 	}
 };
 
@@ -329,8 +329,8 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: [lastItem, data],
-					id: uuid.v4(),
-					prevIds: [lastItem.id],
+					lineId: uuid.v4(),
+					prevIds: [lastItem.lineId],
 					server: lastItem.server,
 					time: data.time,
 					type: "events"
@@ -342,8 +342,8 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: lastItem.events.concat([data]),
-					id: uuid.v4(),
-					prevIds: lastItem.prevIds.concat([lastItem.id]),
+					lineId: uuid.v4(),
+					prevIds: lastItem.prevIds.concat([lastItem.lineId]),
 					server: lastItem.server,
 					time: data.time,
 					type: "events"
@@ -373,7 +373,7 @@ const cacheMessage = function(
 		channelName: channelName,
 		color: getUserColorNumber(username),
 		highlight: highlightStrings,
-		id: uuid.v4(),
+		lineId: uuid.v4(),
 		message,
 		relationship,
 		server: serverName,
@@ -527,7 +527,7 @@ const handleIncomingEvent = function(
 	const metadata = {
 		channel: channelUri,
 		channelName,
-		id: uuid.v4(),
+		lineId: uuid.v4(),
 		relationship: data && data.username && util.getRelationship(data.username, currentFriendsList),
 		server: serverName,
 		time: time || new Date(),

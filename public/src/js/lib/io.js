@@ -96,7 +96,7 @@ export function cacheItem(cache, item) {
 
 export function clearReplacedIdsFromCache(cache, prevIds) {
 	if (cache && cache.length && prevIds && prevIds.length) {
-		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.id) >= 0);
+		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.lineId) >= 0);
 		return pull(cache, ...itemsWithPrevIds);
 
 		// NOTE: We are modifiying in place to prevent too many change handlers from
