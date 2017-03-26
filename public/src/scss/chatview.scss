@@ -27,6 +27,12 @@
 	}
 }
 
+.chatlines {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
 .chatview {
 	margin-bottom: 20px;
 
@@ -46,14 +52,14 @@
 		margin-right: 280px;
 	}
 
-	> ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-	}
-
 	.line {
 		padding: 0 20px;
+
+		transition: .5s margin;
+
+		&--with-context {
+			margin: 10px 0;
+		}
 
 		&.flashing {
 			position: relative;
@@ -69,6 +75,28 @@
 				animation: 2s fadeOut;
 				animation-fill-mode: forwards;
 				pointer-events: none;
+			}
+		}
+
+		&__context {
+			&-before, &-after {
+				background-color: #fff;
+				border: 1px solid #ccc;
+				max-height: 200px;
+				overflow: auto;
+				margin: 0 -11px;
+
+				.line {
+					padding: 0 10px;
+				}
+			}
+
+			&-before--edged {
+				border-bottom-color: #fff;
+			}
+
+			&-after--edged {
+				border-top-color: #fff;
 			}
 		}
 	}

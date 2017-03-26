@@ -15,6 +15,9 @@ import * as routes from "./lib/routeHelpers";
 
 import "../scss/site.scss";
 
+// Temp
+window.store = store;
+
 // Data store
 
 var currentViewState = { sidebarVisible: location.pathname === "/" };

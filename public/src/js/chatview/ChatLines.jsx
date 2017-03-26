@@ -10,6 +10,7 @@ class ChatLines extends PureComponent {
 		const {
 			displayChannel,
 			displayContextLink,
+			displayFirstDate = true,
 			displayUsername,
 			messages,
 			observer
@@ -32,13 +33,18 @@ class ChatLines extends PureComponent {
 					key={msg.lineId || index} />;
 
 				if (dateString !== lastDateString) {
-					lastDateString = dateString;
-					return [
-						(<li className="date-header" key={dateString}>
-							<span>{ dateString }</span>
-						</li>),
-						line
-					];
+					if (displayFirstDate || lastDateString !== "") {
+						lastDateString = dateString;
+						return [
+							(<li className="date-header" key={dateString}>
+								<span>{ dateString }</span>
+							</li>),
+							line
+						];
+					}
+					else {
+						lastDateString = dateString;
+					}
 				}
 
 				return line;
@@ -47,13 +53,14 @@ class ChatLines extends PureComponent {
 			return null;
 		});
 
-		return <ul>{ lines }</ul>;
+		return <ul className="chatlines">{ lines }</ul>;
 	}
 }
 
 ChatLines.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayContextLink: PropTypes.bool,
+	displayFirstDate: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	messages: PropTypes.array,
 	observer: PropTypes.object

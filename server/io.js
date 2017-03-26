@@ -161,6 +161,18 @@ module.exports = function(main) {
 		emitEventToRecipients(list, "msg", msg);
 	};
 
+	const emitCategoryCacheToRecipients = function(list, categoryName) {
+		// Re-emitting the whole list if needed
+		emitEventToRecipients(
+			list,
+			"categoryCache",
+			{
+				categoryName,
+				cache: main.getCategoryCache(categoryName)
+			}
+		);
+	};
+
 	const emitEventToChannel = function(channelUri, eventName, eventData) {
 		emitEventToRecipients(
 			main.getChannelRecipients(channelUri),
@@ -660,6 +672,7 @@ module.exports = function(main) {
 
 	const output = {
 		emit,
+		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
 		emitEventToChannel,
 		emitMessageToRecipients,

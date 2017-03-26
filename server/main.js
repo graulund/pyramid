@@ -28,6 +28,7 @@ var channelUserLists = {};
 var channelCaches = {};
 var userCaches = {};
 var categoryCaches = { highlights: [], allfriends: [] };
+var currentHighlightContexts = {};
 
 var channelRecipients = {};
 var userRecipients = {};
@@ -268,10 +269,45 @@ const cacheCategoryMessage = function(categoryName, msg) {
 
 	if (categoryName === "highlights" && msg.lineId) {
 		unseenHighlightIds.add(msg.lineId);
+		createCurrentHighlightContext(msg.channel, msg);
 
 		if (io) {
 			io.emitNewHighlight(null, msg);
 			io.emitUnseenHighlights();
+		}
+	}
+};
+
+const createCurrentHighlightContext = function(channelUri, highlightMsg) {
+	if (!currentHighlightContexts[channelUri]) {
+		currentHighlightContexts[channelUri] = [];
+	}
+
+	currentHighlightContexts[channelUri].push(highlightMsg);
+};
+
+const addToCurrentHighlightContext = function(channelUri, msg) {
+	const highlights = currentHighlightContexts[channelUri];
+
+	if (highlights) {
+		const survivingHighlights = [];
+		highlights.forEach((highlight) => {
+			const list = highlight.contextMessages;
+			list.push(msg);
+
+			if (list.length < 2 * constants.CONTEXT_CACHE_LINES) {
+				survivingHighlights.push(highlight);
+			}
+
+			// TODO: Should not survive if it's too old...
+		});
+
+		currentHighlightContexts[channelUri] = survivingHighlights;
+
+		if (io) {
+			io.emitCategoryCacheToRecipients(
+				categoryRecipients.highlights, "highlights"
+			);
 		}
 	}
 };
@@ -384,13 +420,34 @@ const cacheMessage = function(
 		username
 	};
 
+	// Record context if highlight
+	const isHighlight = highlightStrings && highlightStrings.length;
+	var contextMessages = [], highlightMsg = null;
+
+	if (isHighlight) {
+		const currentCache = (channelCaches[channelUri] || []);
+		// TODO: Maximum time since
+		contextMessages = currentCache.slice(
+			Math.max(0, currentCache.length - constants.CONTEXT_CACHE_LINES),
+			currentCache.length
+		);
+		highlightMsg = lodash.clone(msg);
+		highlightMsg.contextMessages = contextMessages;
+	}
+
+	// Store into cache
 	cacheChannelEvent(channelUri, msg);
+	addToCurrentHighlightContext(channelUri, msg);
+
+	// Friends
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		cacheUserMessage(username, msg);
 		cacheCategoryMessage("allfriends", msg);
 	}
-	if (highlightStrings && highlightStrings.length) {
-		cacheCategoryMessage("highlights", msg);
+
+	// Highlights
+	if (isHighlight) {
+		cacheCategoryMessage("highlights", highlightMsg);
 	}
 };
 
