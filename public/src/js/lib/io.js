@@ -121,6 +121,7 @@ export function requestLogDetailsForUsername(username) {
 
 export function requestLogFileForChannel(channelUri, time) {
 	if (socket) {
+		console.log("requestChannelLogFile", { channelUri, time });
 		socket.emit("requestChannelLogFile", { channelUri, time });
 	}
 }

@@ -194,8 +194,8 @@ module.exports = function(main) {
 				"friends",
 				[
 					"friends.*",
-					"ircChannels.name AS channelname",
-					"ircServers.name AS servername"
+					"ircChannels.name AS channelName",
+					"ircServers.name AS serverName"
 				]
 			) +
 			" " +
@@ -529,8 +529,8 @@ module.exports = function(main) {
 						output[username] = {
 							time: lastSeenTime,
 							channel: util.getChannelUri(
-								friend.channelname,
-								friend.servername
+								friend.channelName,
+								friend.serverName
 							)
 						};
 					}
@@ -569,8 +569,46 @@ module.exports = function(main) {
 
 	const getDateLinesForChannel = (channelId, date, callback) => {
 		db.all(
-			sq("lines", ["*"], ["channelId", "date"]),
+			sq(
+				"lines",
+				[
+					"lines.*",
+					"ircChannels.name AS channelName",
+					"ircServers.name AS serverName"
+				]
+			) +
+			" " +
+			"INNER JOIN ircChannels ON " +
+				"lines.channelId = ircChannels.channelId " +
+			"INNER JOIN ircServers ON " +
+				"ircChannels.serverId = ircServers.serverId " +
+			"WHERE lines.channelId = $channelId " +
+			"AND lines.date = $date " +
+			oq("time", ASC),
 			dollarize({ channelId, date }),
+			callback
+		);
+	};
+
+	const getDateLinesForUsername = (username, date, callback) => {
+		db.all(
+			sq(
+				"lines",
+				[
+					"lines.*",
+					"ircChannels.name AS channelName",
+					"ircServers.name AS serverName"
+				]
+			) +
+			" " +
+			"INNER JOIN ircChannels ON " +
+				"lines.channelId = ircChannels.channelId " +
+			"INNER JOIN ircServers ON " +
+				"ircChannels.serverId = ircServers.serverId " +
+			"WHERE lines.username = $username " +
+			"AND lines.date = $date " +
+			oq("time", ASC),
+			dollarize({ username, date }),
 			callback
 		);
 	};
@@ -579,14 +617,6 @@ module.exports = function(main) {
 		db.get(
 			sq("lines", ["COUNT(*) AS count"], ["channelId", "date"]),
 			dollarize({ channelId, date }),
-			callback
-		);
-	};
-
-	const getDateLinesForUsername = (username, date, callback) => {
-		db.all(
-			sq("lines", ["*"], ["username", "date"]),
-			dollarize({ username, date }),
 			callback
 		);
 	};

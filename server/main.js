@@ -487,6 +487,27 @@ const getUserColorNumber = (username) => {
 	return hashedValue.mod(30).toNumber();
 };
 
+const getHighlightStringsForMessage = function(message, channelUri, meUsername) {
+	var highlightStrings = [];
+
+	const meRegex = new RegExp("\\b" + meUsername + "\\b", "i");
+	if (meRegex.test(message)) {
+		highlightStrings.push(meUsername);
+	}
+
+	currentNicknames.forEach((nickname) => {
+		const nickRegex = new RegExp("\\b" + nickname.nickname + "\\b", "i");
+		if (
+			nickRegex.test(message) &&
+			util.passesChannelWhiteBlacklist(nickname, channelUri)
+		) {
+			highlightStrings.push(nickname.nickname);
+		}
+	});
+
+	return highlightStrings;
+};
+
 const handleIncomingMessage = function(
 	channelUri, channelName, serverName, username,
 	time, type, message, tags, meUsername
@@ -511,37 +532,14 @@ const handleIncomingMessage = function(
 		log.logCategoryLine(username.toLowerCase(), channelUri, channelName, line, time);
 	}
 
-	var highlightStrings = [];
+	// Highlighted? Add to specific logs
+	var highlightStrings = getHighlightStringsForMessage(message, channelUri, meUsername);
 
-	// Mention? Add to specific logs
-	var meRegex = new RegExp("\\b" + meUsername + "\\b", "i");
-	var loggedMention = false;
-	if (meRegex.test(message)) {
-		highlightStrings.push(meUsername);
-
+	if (highlightStrings.length) {
 		if (configValue("logLinesFile")) {
 			log.logCategoryLine("mentions", channelUri, channelName, line, time);
 		}
-
-		loggedMention = true;
 	}
-
-	currentNicknames.forEach((nickname) => {
-		var nickRegex = new RegExp("\\b" + nickname.nickname + "\\b", "i")
-		if (
-			nickRegex.test(message) &&
-			util.passesChannelWhiteBlacklist(nickname, channelUri)
-		) {
-			highlightStrings.push(nickname.nickname);
-
-			if (!loggedMention) {
-				if (configValue("logLinesFile")) {
-					log.logCategoryLine("mentions", channelUri, channelName, line, time);
-				}
-				loggedMention = true;
-			}
-		}
-	});
 
 	updateLastSeen(
 		channelUri, channelName, username, time, relationship
@@ -888,6 +886,16 @@ const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 	return ircConfigDict;
 };
 
+const getIrcConfigByName = function(name, ircConfig = currentIrcConfig) {
+	for (var i = 0; i < ircConfig.length; i++) {
+		if (ircConfig[i].name === name) {
+			return ircConfig[i];
+		}
+	}
+
+	return null;
+};
+
 const nicknamesDict = function(nicknames = currentNicknames) {
 	const out = {};
 	nicknames.forEach((nickname) => {
@@ -1026,11 +1034,53 @@ const parseDbLine = function(line, callback) {
 	if (line) {
 		l = lodash.clone(line);
 
+		// Channel and server names
+
+		if (l.channelName && l.serverName) {
+			l.channel = util.getChannelUri(l.channelName, l.serverName);
+		}
+
+		if (l.channelName) {
+			l.channelName = "#" + l.channelName;
+		}
+
+		if (l.serverName) {
+			l.server = l.serverName;
+			delete l.serverName;
+		}
+
+		// Color
+
+		if (l.username) {
+			l.color = getUserColorNumber(l.username);
+		}
+
+		// Highlights
+
+		var highlight = [];
+
+		if (l.server) {
+			const config = getIrcConfigByName(l.server);
+
+			if (config && config.username) {
+				highlight = getHighlightStringsForMessage(
+					l.message, l.channel, config.username
+				);
+			}
+		}
+
+		l.highlight = highlight;
+
+		// Tags
+
 		if (typeof l.tags === "string") {
 			try {
 				l.tags = JSON.parse(l.tags);
 			} catch(e) {}
 		}
+
+		// Event data
+
 		if (typeof l.eventData === "string") {
 			try {
 				l.eventData = JSON.parse(l.eventData);
@@ -1041,9 +1091,10 @@ const parseDbLine = function(line, callback) {
 				}
 
 			} catch(e) {}
-
-			delete l.eventData;
 		}
+
+		delete l.channelId;
+		delete l.eventData;
 	}
 
 	if (typeof callback === "function") {

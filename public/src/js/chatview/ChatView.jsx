@@ -69,55 +69,13 @@ class ChatView extends Component {
 		this.requestLogDetails();
 	}
 
-	componentDidUpdate (prevProps, prevState) {
-
-		// Force scroll to the bottom on first content after channel change
-
-		if (this.linesBeingChanged) {
-			this.linesBeingChanged = false;
-			if (this.channelJustChanged) {
-				this.channelJustChanged = false;
-				this.onFirstContent();
-				return;
-			}
-		}
-
-		if (this.channelJustChanged) {
-			this.channelJustChanged = false;
-		}
-
-		if (prevProps) {
-			const { params: prevParams } = prevProps;
-			const { params: currentParams } = this.props;
-
-			if (this.didChannelChange(prevParams, currentParams)) {
-				this.channelJustChanged = true;
-			}
-		}
-
-		// If we just opened stuff that made us not be at the bottom anymore,
-		// do a check and keep the scroll no matter what
-
-		if (this.wasAtBottomBeforeOpeningUserList) {
-			this.wasAtBottomBeforeOpeningUserList = false;
-			if (prevState && !prevState.userListOpen && this.state.userListOpen) {
-				scrollToTheBottom();
-			}
-		}
-
-		// Otherwise just stick if we're already there
-
-		// TODO: Split it up and evaluate whether we're already at the bottom *before* any changes occurred, not after (provided we're on the same page still)
-		// Otherwise, this breaks when a really long message is entered
-
-		stickToTheBottom();
-	}
-
 	shouldComponentUpdate (newProps, newState) {
 		if (newProps) {
 			const { params: currentParams, lineInfo: currentLineInfo } = this.props;
 			const { params: newParams, lineInfo: newLineInfo } = newProps;
 			const newLines = this.getLines(newProps);
+
+			// TODO: Clean up this method
 
 			// Redirect
 			const requestedLineId = newState.waitingForInfoForLineId;
@@ -195,6 +153,58 @@ class ChatView extends Component {
 		}
 
 		return false;
+	}
+
+	componentWillReceiveProps(newProps) {
+		const { params: currentParams } = this.props;
+		const { params: newParams } = newProps;
+		if (currentParams.logDate !== newParams.logDate) {
+			this.requestLogFileIfNeeded(newProps);
+		}
+	}
+
+	componentDidUpdate (prevProps, prevState) {
+
+		// Force scroll to the bottom on first content after channel change
+
+		if (this.linesBeingChanged) {
+			this.linesBeingChanged = false;
+			if (this.channelJustChanged) {
+				this.channelJustChanged = false;
+				this.onFirstContent();
+				return;
+			}
+		}
+
+		if (this.channelJustChanged) {
+			this.channelJustChanged = false;
+		}
+
+		if (prevProps) {
+			const { params: prevParams } = prevProps;
+			const { params: currentParams } = this.props;
+
+			if (this.didChannelChange(prevParams, currentParams)) {
+				this.channelJustChanged = true;
+			}
+		}
+
+		// If we just opened stuff that made us not be at the bottom anymore,
+		// do a check and keep the scroll no matter what
+
+		if (this.wasAtBottomBeforeOpeningUserList) {
+			this.wasAtBottomBeforeOpeningUserList = false;
+			if (prevState && !prevState.userListOpen && this.state.userListOpen) {
+				scrollToTheBottom();
+			}
+		}
+
+		// Otherwise just stick if we're already there
+
+		// TODO: Split it up and evaluate whether we're already at the bottom *before* any changes occurred, not after (provided we're on the same page still)
+		// Otherwise, this breaks when a really long message is entered
+
+		stickToTheBottom();
 	}
 
 	clearObserver(props = this.props, state = this.state) {
