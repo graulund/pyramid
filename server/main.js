@@ -20,8 +20,8 @@ var currentIrcConfig = [];
 var currentNicknames = [];
 var currentFriendsList = [];
 
-var lastSeenChannels = log.loadLastSeenChannels();
-var lastSeenUsers = log.loadLastSeenUsers();
+var lastSeenChannels = {};
+var lastSeenUsers = {};
 
 var channelUserLists = {};
 
@@ -44,6 +44,7 @@ var currentViewState = {};
 
 var channelIdCache = {};
 var serverIdCache = {};
+var friendIdCache = {};
 
 var bunchableLinesToInsert = {};
 var lineIdsToDelete = new Set();
@@ -141,21 +142,29 @@ const onWeb = function(callback) {
 	}
 };
 
-// Chat code
+// Last seen
 
 const setLastSeenChannel = (channel, data) => {
 	if (data) {
 		// Update
 		lastSeenChannels[channel] = data;
 		cachedLastSeens[`channel:${channel}`] = { channel, data };
+
+		if (channelIdCache[channel]) {
+			db.modifyChannelInIrcConfig(
+				channelIdCache[channel],
+				{
+					lastSeenTime: data.time,
+					lastSeenUsername: data.username
+				}
+			);
+		}
 	}
 	else {
 		// Delete
 		delete lastSeenChannels[channel];
 		delete cachedLastSeens[`channel:${channel}`];
 	}
-
-	log.writeLastSeenChannels(lastSeenChannels);
 };
 
 const setLastSeenUser = (username, data) => {
@@ -163,14 +172,22 @@ const setLastSeenUser = (username, data) => {
 		// Update
 		lastSeenUsers[username] = data;
 		cachedLastSeens[`user:${username}`] = { username, data };
+
+		if (friendIdCache[username] && channelIdCache[data.channel]) {
+			db.modifyFriend(
+				friendIdCache[username],
+				{
+					lastSeenTime: data.time,
+					lastSeenChannelId: channelIdCache[data.channel]
+				}
+			);
+		}
 	}
 	else {
 		// Delete
 		delete lastSeenUsers[username];
 		delete cachedLastSeens[`user:${username}`];
 	}
-
-	log.writeLastSeenUsers(lastSeenUsers);
 };
 
 const updateLastSeen = function(
@@ -184,11 +201,7 @@ const updateLastSeen = function(
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		setLastSeenUser(
 			username,
-			{
-				channel: channelUri,
-				channelName,
-				time
-			}
+			{ channel: channelUri, channelName, time }
 		);
 	}
 };
@@ -202,6 +215,8 @@ const flushCachedLastSeens = () => {
 	clearCachedLastSeens();
 	return c;
 };
+
+// Chat code
 
 const cacheItem = function(cache, data) {
 	// Add it
@@ -229,10 +244,7 @@ const cacheChannelEvent = function(channelUri, data) {
 	// Add to db
 
 	if (configValue("logLinesDb")) {
-		const channelId = channelIdCache[channelUri];
-		if (channelId) {
-			storeLine(channelId, data);
-		}
+		storeLine(channelUri, data);
 	}
 
 	// Send to users
@@ -341,10 +353,7 @@ const _scheduledBunchableStore = function() {
 	console.log(`>>> Storing ${Object.keys(bunchableLinesToInsert).length} bunchable lines`);
 	lodash.forOwn(bunchableLinesToInsert, (line, key) => {
 		if (line && line.channelUri && line.data) {
-			const channelId = channelIdCache[line.channelUri];
-			if (channelId) {
-				storeLine(channelId, line.data);
-			}
+			storeLine(line.channelUri, line.data);
 		}
 		delete bunchableLinesToInsert[key];
 	});
@@ -686,12 +695,26 @@ const getNicknames = function(callback) {
 	db.getNicknames(callback);
 };
 
+const getFriends = function(callback) {
+	db.getFriends(callback);
+};
+
 const getFriendsList = function(callback) {
 	db.getFriendsList(callback);
 };
 
-const storeLine = function(channelId, line, callback = function(){}) {
-	db.storeLine(channelId, line, callback);
+const getLastSeenChannels = function(callback) {
+	db.getLastSeenChannels(callback);
+};
+
+const getLastSeenUsers = function(callback) {
+	db.getLastSeenUsers(callback);
+};
+
+const storeLine = function(channelUri, line, callback = function(){}) {
+	if (channelIdCache[channelUri]) {
+		db.storeLine(channelIdCache[channelUri], line, callback);
+	}
 };
 
 const deleteLinesWithLineIds = function(lineIds) {
@@ -773,6 +796,39 @@ const loadFriendsList = function(callback) {
 		}
 		else {
 			currentFriendsList = data;
+			generateFriendIdCache();
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+const loadLastSeenChannels = function(callback) {
+	getLastSeenChannels((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			lastSeenChannels = data;
+			if (typeof callback === "function") {
+				callback(null, data);
+			}
+		}
+	});
+};
+
+const loadLastSeenUsers = function(callback) {
+	getLastSeenUsers((err, data) => {
+		if (err) {
+			if (typeof callback === "function") {
+				callback(err);
+			}
+		}
+		else {
+			lastSeenUsers = data;
 			if (typeof callback === "function") {
 				callback(null, data);
 			}
@@ -801,6 +857,20 @@ const generateIrcConfigCaches = function(config = currentIrcConfig) {
 		serverIdCache = serverIds;
 		channelIdCache = channelIds;
 	}
+};
+
+const generateFriendIdCache = function() {
+	const friendIds = {};
+	getFriends((err, data) => {
+		if (!err && data) {
+			data.forEach((friend) => {
+				if (friend && friend.friendId && friend.username) {
+					friendIds[friend.username] = friend.friendId;
+				}
+			});
+			friendIdCache = friendIds;
+		}
+	});
 };
 
 const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
@@ -1120,6 +1190,8 @@ onDb((err) => {
 				onIrc,
 				onPlugins,
 				onWeb,
+				loadLastSeenUsers,
+				loadLastSeenChannels,
 				loadIrcConfig,
 				loadAppConfig,
 				loadNicknames,

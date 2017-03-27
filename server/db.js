@@ -7,6 +7,7 @@ const async = require("async");
 const lodash = require("lodash");
 
 const constants = require("./constants");
+const util = require("./util");
 
 const ASC = 0, DESC = 1;
 
@@ -84,10 +85,11 @@ module.exports = function(main) {
 		return `ORDER BY ${col} ${dir}`;
 	};
 
-	const sq = (table, selectCols, whereCols = []) => {
+	const sq = (table, selectCols, whereCols = [], joins = "") => {
 		const select = selectCols.join(", ");
 		const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
 		return `SELECT ${select} FROM ${table}` +
+			(joins ? " " + joins : "") +
 			(where ? ` WHERE ${where}` : "");
 	};
 
@@ -186,6 +188,28 @@ module.exports = function(main) {
 		);
 	};
 
+	const getFriendsWithChannelInfo = (callback) => {
+		db.all(
+			sq(
+				"friends",
+				[
+					"friends.*",
+					"ircChannels.name AS channelname",
+					"ircServers.name AS servername"
+				]
+			) +
+			" " +
+			"INNER JOIN ircChannels ON " +
+				"friends.lastSeenChannelId = ircChannels.channelId " +
+			"INNER JOIN ircServers ON " +
+				"ircChannels.serverId = ircServers.serverId " +
+			"WHERE friends.isEnabled = $isEnabled " +
+			oq("username", ASC),
+			{ $isEnabled: 1 },
+			callback
+		);
+	};
+
 	const getFriend = (serverId, username, callback) => {
 		db.get(
 			sq("friends", ["*"], ["isEnabled", "serverId", "username"]),
@@ -196,14 +220,18 @@ module.exports = function(main) {
 
 	const addToFriends = (serverId, username, isBestFriend, callback) => {
 		upsert(
-			uq("friends", ["isBestFriend"], ["serverId", "username"]),
+			uq("friends", ["isBestFriend", "isEnabled"], ["serverId", "username"]),
 			iq("friends", ["serverId", "username", "isBestFriend"]),
-			dollarize({ serverId, username, isBestFriend: +isBestFriend }),
+			dollarize({ serverId, username, isBestFriend: +isBestFriend, isEnabled: 1 }),
 			callback
 		);
 	};
 
 	const modifyFriend = (friendId, data, callback) => {
+		if (data.lastSeenTime) {
+			data.lastSeenTime = getTimestamp(data.lastSeenTime);
+		}
+
 		db.run(
 			uq("friends", Object.keys(data), ["friendId"]),
 			dollarize(lodash.assign({ friendId }, data)),
@@ -267,7 +295,7 @@ module.exports = function(main) {
 	};
 
 	const getChannelUriFromId = (channelId, callback) => {
-		getChannel(channelId, (err, channel) => {
+		getIrcChannel(channelId, (err, channel) => {
 			if (err) {
 				callback(err);
 			}
@@ -395,7 +423,10 @@ module.exports = function(main) {
 		db.run(
 			iq(
 				"ircServers",
-				["name", "hostname", "port", "secure", "username", "password", "nickname"]
+				[
+					"name", "hostname", "port", "secure",
+					"username", "password", "nickname"
+				]
 			),
 			{
 				$name: data.name,
@@ -435,6 +466,10 @@ module.exports = function(main) {
 	};
 
 	const modifyChannelInIrcConfig = (channelId, data, callback) => {
+		if (data.lastSeenTime) {
+			data.lastSeenTime = getTimestamp(data.lastSeenTime);
+		}
+
 		db.run(
 			uq("ircChannels", Object.keys(data), ["channelId"]),
 			dollarize(lodash.assign({ channelId }, data)),
@@ -480,36 +515,26 @@ module.exports = function(main) {
 	// TODO: Add server name to usernames
 
 	const getLastSeenUsers = (callback) => {
-		getFriends((err, friends) => {
+		getFriendsWithChannelInfo((err, friends) => {
 			if (err) {
 				callback(err);
 			}
 			else {
-				const parallelCalls = friends.map((friend) => {
-					return function(callback) {
-						if (friend.lastSeenChannelId) {
-							getChannelUriFromId(friend.lastSeenChannelId, callback);
-						}
-						else {
-							callback(null, null);
-						}
-					};
-				});
-				async.parallel(parallelCalls, (err, channelUris) => {
-					const output = {};
-					friends.forEach((friend, i) => {
-						const { lastSeenTime, lastSeenChannelId, username } = friend;
-						if (lastSeenTime && lastSeenChannelId) {
-							output[username] = {
-								time: lastSeenTime,
-								channel: lastSeenUsername
-							};
-						}
-					});
-
-					callback(null, output);
+				const output = {};
+				friends.forEach((friend, i) => {
+					const { lastSeenTime, lastSeenChannelId, username } = friend;
+					if (lastSeenTime && lastSeenChannelId) {
+						output[username] = {
+							time: lastSeenTime,
+							channel: util.getChannelUri(
+								friend.channelname,
+								friend.servername
+							)
+						};
+					}
 				});
 
+				callback(null, output);
 			}
 		});
 	};
