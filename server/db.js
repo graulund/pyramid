@@ -500,10 +500,12 @@ module.exports = function(main) {
 					const output = {};
 					channels.forEach((channel, i) => {
 						const { lastSeenTime, lastSeenUsername } = channel;
-						output[channelUris[i]] = {
-							time: lastSeenTime,
-							username: lastSeenUsername
-						};
+						if (lastSeenTime && lastSeenUsername) {
+							output[channelUris[i]] = {
+								time: lastSeenTime,
+								username: lastSeenUsername
+							};
+						}
 					});
 
 					callback(null, output);
