@@ -30,16 +30,16 @@ class HighlightObserver extends PureComponent {
 	}
 
 	isUnseen(props = this.props) {
-		const { id, unseenHighlights } = props;
+		const { lineId, unseenHighlights } = props;
 
-		return id &&
+		return lineId &&
 			unseenHighlights &&
 			unseenHighlights.length &&
-			unseenHighlights.indexOf(id) >= 0;
+			unseenHighlights.indexOf(lineId) >= 0;
 	}
 
 	observe() {
-		const { id, observer } = this.props;
+		const { lineId, observer } = this.props;
 
 		if (observer) {
 			const root = findDOMNode(this);
@@ -47,7 +47,7 @@ class HighlightObserver extends PureComponent {
 			if (root) {
 				// Adding extra info to root
 				root.onUnobserve = this.onUnobserved;
-				root.messageId = id;
+				root.lineId = lineId;
 
 				// Setting root
 				this.root = root;
@@ -56,6 +56,9 @@ class HighlightObserver extends PureComponent {
 				observer.observe(root);
 				this.observed = true;
 			}
+		}
+		else {
+			console.warn("Tried to observe in HighlightObserver, but no observer was supplied");
 		}
 	}
 
@@ -71,8 +74,10 @@ class HighlightObserver extends PureComponent {
 	}
 
 	unobserve() {
-		if (this.root && this.props.observer) {
-			this.props.observer.unobserve(this.root);
+		const { observer } = this.props;
+
+		if (this.root && observer) {
+			observer.unobserve(this.root);
 			this.onUnobserved();
 		}
 	}
@@ -88,7 +93,7 @@ class HighlightObserver extends PureComponent {
 
 HighlightObserver.propTypes = {
 	children: PropTypes.node.isRequired,
-	id: PropTypes.string,
+	lineId: PropTypes.string.isRequired,
 	observer: PropTypes.object,
 	unseenHighlights: PropTypes.array
 };

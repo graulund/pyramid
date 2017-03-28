@@ -14,7 +14,7 @@ class ChatMessageLine extends PureComponent {
 	render() {
 		const {
 			color, displayUsername, enableUsernameColors, enableTwitch,
-			highlight, id, ircConfigs, isAction, message, observer, server,
+			highlight, ircConfigs, isAction, lineId, message, observer, server,
 			symbol = "", tags, username
 		} = this.props;
 
@@ -35,10 +35,12 @@ class ChatMessageLine extends PureComponent {
 			messageEl = <Linkify properties={LINKIFY_PROPERTIES}>{ messageEl }</Linkify>;
 		}
 
-		/* if (highlight && highlight.length) {
+		/*
+		if (isHighlight) {
 			// TODO: Find better non-plain text solution for this
 			messageEl = <Highlighter searchWords={highlight} textToHighlight={message} />;
-		} */
+		}
+		*/
 
 		var authorClassName = "msg__author";
 
@@ -63,7 +65,7 @@ class ChatMessageLine extends PureComponent {
 		if (isHighlight) {
 			return (
 				<HighlightObserver
-					id={id}
+					lineId={lineId}
 					observer={observer}
 					key="highlightobserver">
 					{ content }
@@ -84,9 +86,9 @@ ChatMessageLine.propTypes = {
 	enableTwitch: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
-	id: PropTypes.string,
 	ircConfigs: PropTypes.object,
 	isAction: PropTypes.bool,
+	lineId: PropTypes.string,
 	message: PropTypes.string,
 	observer: PropTypes.object,
 	server: PropTypes.string,

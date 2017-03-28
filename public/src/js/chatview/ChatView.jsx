@@ -338,11 +338,11 @@ class ChatView extends Component {
 			if (
 				entry &&
 				entry.target &&
-				entry.target.messageId &&
+				entry.target.lineId &&
 				entry.intersectionRatio >= 1 &&
 				this.observed.indexOf(entry.target) >= 0
 			) {
-				io.reportHighlightAsSeen(entry.target.messageId);
+				io.reportHighlightAsSeen(entry.target.lineId);
 				this.onUnobserve(entry.target);
 
 				if (entry.target.onUnobserve) {
