@@ -40,6 +40,9 @@ class ChatLine extends PureComponent {
 	}
 
 	initializeExpandedView() {
+
+		// TODO: Move expanded view to its own component to keep this simple
+
 		const { after: afterEl, afterEdge, before: beforeEl, beforeEdge } = this.refs;
 		const { afterObserver, beforeObserver } = this.state;
 

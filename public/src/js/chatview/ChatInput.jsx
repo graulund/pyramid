@@ -23,6 +23,7 @@ class ChatInput extends Component {
 	constructor(props) {
 		super(props);
 
+		this.focus = this.focus.bind(this);
 		this.onChange = this.onChange.bind(this);
 		this.onKeyDown = this.onKeyDown.bind(this);
 		this.onKeyUp = this.onKeyUp.bind(this);
@@ -48,6 +49,18 @@ class ChatInput extends Component {
 				this.resetCurrentHistory();
 			}
 		}
+	}
+
+	componentDidMount() {
+		window.addEventListener("focus", this.focus);
+	}
+
+	componentDidUpdate() {
+		this.focus();
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener("focus", this.focus);
 	}
 
 	currentUserNames() {
@@ -81,6 +94,14 @@ class ChatInput extends Component {
 		// TODO: More clever sorting?
 		// * Most recently speaking first?
 		// * The ones you talked to more recently first?
+	}
+
+	focus() {
+		const { input: inputEl } = this.refs;
+
+		if (inputEl) {
+			inputEl.focus();
+		}
 	}
 
 	onChange() {
@@ -283,7 +304,7 @@ class ChatInput extends Component {
 					onChange={this.onChange}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
-					tabIndex={0}
+					tabIndex={1}
 					placeholder="Send a message"
 					/>
 				<input type="submit" />
