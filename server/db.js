@@ -55,6 +55,58 @@ const formatIn = (list) => {
 	return "()";
 };
 
+const dollarize = (data) => {
+	const out = {};
+	lodash.forOwn(data, (value, key) => {
+		out["$" + key] = value;
+	});
+	return out;
+};
+
+const onlyParamsInQuery = (params, query) => {
+	const out = {};
+
+	if (params && query) {
+		lodash.forOwn(params, (value, key) => {
+			if (query.indexOf(key) >= 0) {
+				out[key] = value;
+			}
+		});
+	}
+
+	return out;
+};
+
+const oq = (col, isDesc = false) => {
+	const dir = isDesc ? "DESC" : "ASC";
+	return `ORDER BY ${col} ${dir}`;
+};
+
+const sq = (table, selectCols, whereCols = [], joins = "") => {
+	const select = selectCols.join(", ");
+	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	return `SELECT ${select} FROM ${table}` +
+		(joins ? " " + joins : "") +
+		(where ? ` WHERE ${where}` : "");
+};
+
+const uq = (table, setCols, whereCols) => {
+	const set = setCols.map((s) => `${s} = \$${s}`).join(", ");
+	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	return `UPDATE ${table} SET ${set} WHERE ${where}`;
+};
+
+const iq = (table, colNames) => {
+	const cols = colNames.join(", ");
+	const vals = colNames.map((c) => "$" + c).join(", ");
+	return `INSERT INTO ${table} (${cols}) VALUES (${vals})`;
+};
+
+const dq = (table, whereCols) => {
+	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	return `DELETE FROM ${table} WHERE ${where}`;
+};
+
 module.exports = function(main) {
 
 	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
@@ -62,52 +114,22 @@ module.exports = function(main) {
 	const close = () => { db.close() };
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
-		db.run(updateQuery, params, function(err, data) {
-			if (err || !this.changes) {
-				db.run(insertQuery, params, callback);
+		db.run(
+			updateQuery,
+			onlyParamsInQuery(params, updateQuery),
+			function(err, data) {
+				if (err || !this.changes) {
+					db.run(
+						insertQuery,
+						onlyParamsInQuery(params, insertQuery),
+						callback
+					);
+				}
+				else {
+					callback(err, data);
+				}
 			}
-			else {
-				callback(err, data);
-			}
-		});
-	};
-
-	const dollarize = (data) => {
-		const out = {};
-		lodash.forOwn(data, (value, key) => {
-			out["$" + key] = value;
-		});
-		return out;
-	};
-
-	const oq = (col, isDesc = false) => {
-		const dir = isDesc ? "DESC" : "ASC";
-		return `ORDER BY ${col} ${dir}`;
-	};
-
-	const sq = (table, selectCols, whereCols = [], joins = "") => {
-		const select = selectCols.join(", ");
-		const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
-		return `SELECT ${select} FROM ${table}` +
-			(joins ? " " + joins : "") +
-			(where ? ` WHERE ${where}` : "");
-	};
-
-	const uq = (table, setCols, whereCols) => {
-		const set = setCols.map((s) => `${s} = \$${s}`).join(", ");
-		const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
-		return `UPDATE ${table} SET ${set} WHERE ${where}`;
-	};
-
-	const iq = (table, colNames) => {
-		const cols = colNames.join(", ");
-		const vals = colNames.map((c) => "$" + c).join(", ");
-		return `INSERT INTO ${table} (${cols}) VALUES (${vals})`;
-	};
-
-	const dq = (table, whereCols) => {
-		const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
-		return `DELETE FROM ${table} WHERE ${where}`;
+		);
 	};
 
 	const getIrcServers = (callback) => {

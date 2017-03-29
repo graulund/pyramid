@@ -46,7 +46,7 @@ if (config.bestFriends && config.bestFriends.length) {
 		db.addToFriends(0, username, true, callback);
 	})
 }
-/*
+
 // IRC config
 if (config.irc && config.irc.length) {
 	var serverId = 0;
@@ -68,4 +68,3 @@ if (config.irc && config.irc.length) {
 		}
 	});
 }
-*/
