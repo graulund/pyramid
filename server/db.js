@@ -380,10 +380,6 @@ module.exports = function(main) {
 	};
 
 	const addNickname = (nickname, callback) => {
-		console.log("AddNickname",
-			iq("nicknames", ["nickname"]),
-			dollarize({ nickname })
-		);
 		db.run(
 			iq("nicknames", ["nickname"]),
 			dollarize({ nickname }),

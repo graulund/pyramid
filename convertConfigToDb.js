@@ -29,7 +29,7 @@ lodash.forOwn(keyValues, (value, key) => {
 if (config.nicknames && config.nicknames.length) {
 	config.nicknames.forEach((nickname) => {
 		console.log("Adding nickname " + nickname);
-		db.storeNickname(nickname, null, null, callback);
+		db.addNickname(nickname, callback);
 	});
 }
 
