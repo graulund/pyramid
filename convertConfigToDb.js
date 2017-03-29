@@ -22,7 +22,7 @@ var keyValues = lodash.omit(config, [
 // Key values
 lodash.forOwn(keyValues, (value, key) => {
 	console.log("Adding key " + key);
-	db.storeConfigValue(key, JSON.stringify(value), callback);
+	db.storeConfigValue(key, value, callback);
 });
 
 // Nicknames
