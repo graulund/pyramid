@@ -24,6 +24,7 @@ class ChatInput extends Component {
 		super(props);
 
 		this.focus = this.focus.bind(this);
+		this.onBodyKey = this.onBodyKey.bind(this);
 		this.onChange = this.onChange.bind(this);
 		this.onKeyDown = this.onKeyDown.bind(this);
 		this.onKeyUp = this.onKeyUp.bind(this);
@@ -53,6 +54,7 @@ class ChatInput extends Component {
 
 	componentDidMount() {
 		window.addEventListener("focus", this.focus);
+		document.body.addEventListener("keypress", this.onBodyKey);
 	}
 
 	componentDidUpdate() {
@@ -61,6 +63,7 @@ class ChatInput extends Component {
 
 	componentWillUnmount() {
 		window.removeEventListener("focus", this.focus);
+		document.body.removeEventListener("keypress", this.onBodyKey);
 	}
 
 	currentUserNames() {
@@ -101,6 +104,26 @@ class ChatInput extends Component {
 
 		if (inputEl) {
 			inputEl.focus();
+		}
+	}
+
+	onBodyKey(evt) {
+
+		// Ensure focus if we are typing characters without having focus in the input field
+
+		const { input: inputEl } = this.refs;
+
+		if (
+			inputEl &&
+			evt &&
+			evt.target === document.body &&
+			evt.key &&
+			evt.key.length === 1
+		) {
+			// (Apparently this isn't needed?)
+			//inputEl.value = inputEl.value + evt.key;
+
+			this.focus();
 		}
 	}
 
