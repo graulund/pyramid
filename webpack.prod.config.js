@@ -19,8 +19,8 @@ config.entry = {
 // Setup output
 config.output = {
 	filename: "js/[name].js",
-	path: "./public/dist/",
-	publicPath: "/"
+	path: path.resolve("./public/dist"),
+	publicPath: "/dist/"
 };
 
 // Setup plugins
