@@ -121,7 +121,6 @@
 		margin-left: 10px;
 	}
 
-	.msg__author,
 	.msg__author a,
 	.userevent__target,
 	.userevent__target a,
@@ -246,6 +245,7 @@
 
 .chatusername {
 	&--color {
+		a    { color: inherit; }
 		&-0  { color: #0080ff; }
 		&-1  { color: #059005; }
 		&-2  { color: #a80054; }
