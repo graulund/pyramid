@@ -228,8 +228,24 @@
 			padding: 0 10px;
 		}
 	}
+}
 
-	.msg__author--color {
+.nochatview {
+	h1 {
+		font-size: 48px;
+		text-align: center;
+		margin: 0;
+		padding: 100px 0;
+	}
+}
+
+@keyframes fadeOut {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+
+.chatusername {
+	&--color {
 		&-0  { color: #0080ff; }
 		&-1  { color: #059005; }
 		&-2  { color: #a80054; }
@@ -261,18 +277,4 @@
 		&-28 { color: #0b9578; }
 		&-29 { color: #569c96; }
 	}
-}
-
-.nochatview {
-	h1 {
-		font-size: 48px;
-		text-align: center;
-		margin: 0;
-		padding: 100px 0;
-	}
-}
-
-@keyframes fadeOut {
-	from { opacity: 1; }
-	to { opacity: 0; }
 }

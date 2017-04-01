@@ -3,9 +3,9 @@ import { connect } from "react-redux";
 import Linkify from "react-linkify";
 //import Highlighter from "react-highlight-words";
 
+import ChatUsername from "./ChatUsername.jsx";
 import HighlightObserver from "./HighlightObserver.jsx";
 import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
-import UserLink from "../components/UserLink.jsx";
 import { isTwitch } from "../lib/ircConfigs";
 import { LINKIFY_PROPERTIES } from "../constants";
 
@@ -13,7 +13,7 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableUsernameColors, enableTwitch,
+			color, displayUsername, enableTwitch, enableTwitchColors, enableUsernameColors,
 			highlight, ircConfigs, isAction, lineId, message, observer, server,
 			symbol = "", tags, username
 		} = this.props;
@@ -43,21 +43,29 @@ class ChatMessageLine extends PureComponent {
 		*/
 
 		var authorClassName = "msg__author";
+		var authorColor = null;
 
+		// Number color
 		if (enableUsernameColors && typeof color === "number" && color >= 0) {
-			authorClassName += " msg__author--color-" + color;
+			authorColor = color;
+		}
+
+		// Twitch color
+		if (enableTwitchColors && tags && tags.color) {
+			authorColor = tags.color;
 		}
 
 		const content = (
 			<span className={className}>
 				{ displayUsername
-					? (
-						<strong className={authorClassName}>
-							{ symbol }
-							<UserLink userName={username} key={username} />
-							{" "}
-						</strong>
-					) : null }
+					? [
+						<ChatUsername
+							className={authorClassName}
+							color={authorColor}
+							symbol={symbol}
+							username={username} />,
+						" "
+					] : null }
 				{ messageEl }
 			</span>
 		);
@@ -84,6 +92,7 @@ ChatMessageLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
+	enableTwitchColors: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,
@@ -100,10 +109,11 @@ ChatMessageLine.propTypes = {
 };
 
 export default connect(({
-	appConfig: { enableTwitch, enableUsernameColors },
+	appConfig: { enableTwitch, enableTwitchColors, enableUsernameColors },
 	ircConfigs
 }) => ({
 	enableTwitch,
+	enableTwitchColors,
 	enableUsernameColors,
 	ircConfigs
 }))(ChatMessageLine);
