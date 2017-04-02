@@ -244,6 +244,12 @@
 }
 
 .chatusername {
+
+	em {
+		font-style: normal;
+		font-weight: normal;
+	}
+
 	&--color {
 		a    { color: inherit; }
 		&-0  { color: #0080ff; }

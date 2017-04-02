@@ -13,9 +13,9 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableTwitch, enableTwitchColors, enableUsernameColors,
-			highlight, ircConfigs, isAction, lineId, message, observer, server,
-			symbol = "", tags, username
+			color, displayUsername, enableTwitch, enableTwitchColors, enableTwitchDisplayNames,
+			enableUsernameColors, highlight, ircConfigs, isAction, lineId, message,
+			observer, server, symbol = "", tags, username
 		} = this.props;
 
 		const isHighlight = !!(highlight && highlight.length);
@@ -44,6 +44,7 @@ class ChatMessageLine extends PureComponent {
 
 		var authorClassName = "msg__author";
 		var authorColor = null;
+		var authorDisplayName = null;
 
 		// Number color
 		if (enableUsernameColors && typeof color === "number" && color >= 0) {
@@ -55,6 +56,11 @@ class ChatMessageLine extends PureComponent {
 			authorColor = tags.color;
 		}
 
+		// Twitch display name
+		if (enableTwitchDisplayNames && tags && tags["display-name"]) {
+			authorDisplayName = tags["display-name"];
+		}
+
 		const content = (
 			<span className={className}>
 				{ displayUsername
@@ -62,6 +68,7 @@ class ChatMessageLine extends PureComponent {
 						<ChatUsername
 							className={authorClassName}
 							color={authorColor}
+							displayName={authorDisplayName}
 							symbol={symbol}
 							username={username} />,
 						" "
@@ -93,6 +100,7 @@ ChatMessageLine.propTypes = {
 	displayUsername: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
+	enableTwitchDisplayNames: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,
@@ -109,11 +117,17 @@ ChatMessageLine.propTypes = {
 };
 
 export default connect(({
-	appConfig: { enableTwitch, enableTwitchColors, enableUsernameColors },
+	appConfig: {
+		enableTwitch,
+		enableTwitchColors,
+		enableTwitchDisplayNames,
+		enableUsernameColors
+	},
 	ircConfigs
 }) => ({
 	enableTwitch,
 	enableTwitchColors,
+	enableTwitchDisplayNames,
 	enableUsernameColors,
 	ircConfigs
 }))(ChatMessageLine);

@@ -8,8 +8,8 @@ import UserLink from "../components/UserLink.jsx";
 class ChatUsername extends PureComponent {
 	render() {
 		const {
-			className: givenClassName = "", color, enableDarkMode,
-			symbol = "", username
+			className: givenClassName = "", color, displayName,
+			enableDarkMode, symbol = "", username
 		} = this.props;
 
 		var className = "chatusername " + givenClassName;
@@ -30,7 +30,7 @@ class ChatUsername extends PureComponent {
 		return (
 			<strong className={className} style={styles}>
 				{ symbol }
-				<UserLink userName={username} key={username} />
+				<UserLink userName={username} displayName={displayName} key={username} />
 			</strong>
 		);
 	}
@@ -39,6 +39,7 @@ class ChatUsername extends PureComponent {
 ChatUsername.propTypes = {
 	color: PropTypes.string,
 	className: PropTypes.string,
+	displayName: PropTypes.string,
 	enableDarkMode: PropTypes.bool,
 	symbol: PropTypes.string,
 	username: PropTypes.string.isRequired

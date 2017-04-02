@@ -68,7 +68,7 @@ class SettingsGeneralView extends PureComponent {
 				},
 				{
 					name: "enableTwitchColors",
-					readableName: "Enable Twitch username colors (WIP)",
+					readableName: "Enable Twitch username colors",
 					type: "bool",
 					description: "Show the username colors set by users on Twitch",
 					requires: ["enableTwitch"]

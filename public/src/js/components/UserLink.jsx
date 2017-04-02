@@ -6,10 +6,27 @@ import { userUrl } from "../lib/routeHelpers";
 
 class UserLink extends PureComponent {
 	render() {
-		const { className, friendsList, userName } = this.props;
+		const { className, displayName, friendsList, userName } = this.props;
 
 		if (!userName) {
 			return null;
+		}
+
+		// If displaying display name
+
+		var content = userName;
+		if (displayName && displayName !== userName) {
+			if (displayName.toLowerCase() !== userName.toLowerCase()) {
+				// Totally different altogether
+				content = [
+					displayName + " ",
+					<em>({ userName })</em>
+				];
+			}
+			else {
+				// Merely case changes
+				content = displayName;
+			}
 		}
 
 		// Does this user exist in the friends list?
@@ -28,7 +45,7 @@ class UserLink extends PureComponent {
 		// Link-free output for non-friends
 
 		if (!isFriend) {
-			return <span>{ userName }</span>;
+			return <span className={className}>{ content }</span>;
 		}
 
 		// Link output for friends
@@ -37,7 +54,7 @@ class UserLink extends PureComponent {
 			<Link
 				className={className}
 				to={userUrl(userName)}>
-				{ userName }
+				{ content }
 			</Link>
 		);
 	}
@@ -45,6 +62,7 @@ class UserLink extends PureComponent {
 
 UserLink.propTypes = {
 	className: PropTypes.string,
+	displayName: PropTypes.string,
 	friendsList: PropTypes.object,
 	userName: PropTypes.string.isRequired
 };
