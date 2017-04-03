@@ -58,7 +58,7 @@ class ChatUsername extends PureComponent {
 }
 
 ChatUsername.propTypes = {
-	color: PropTypes.string,
+	color: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 	className: PropTypes.string,
 	displayName: PropTypes.string,
 	enableDarkMode: PropTypes.bool,
