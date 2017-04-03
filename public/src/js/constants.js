@@ -21,3 +21,9 @@ export const INPUT_SELECTOR = "input, select, textarea";
 export const LINKIFY_PROPERTIES = { target: "_blank" };
 
 export const DEFAULT_DARKMODE_COLOR_RGB = "119,187,238";
+
+export const TWITCH_DISPLAY_NAMES = {
+	OFF: 0,
+	CASE_CHANGES_ONLY: 1,
+	ALL: 2
+};

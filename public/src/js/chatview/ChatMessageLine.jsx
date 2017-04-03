@@ -13,7 +13,7 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableTwitch, enableTwitchColors, enableTwitchDisplayNames,
+			color, displayUsername, enableTwitch, enableTwitchColors,
 			enableUsernameColors, highlight, ircConfigs, isAction, lineId, message,
 			observer, server, symbol = "", tags, username
 		} = this.props;
@@ -57,12 +57,12 @@ class ChatMessageLine extends PureComponent {
 		}
 
 		// Twitch display name
-		if (enableTwitchDisplayNames && tags && tags["display-name"]) {
+		if (tags && tags["display-name"]) {
 			authorDisplayName = tags["display-name"];
 		}
 
 		const content = (
-			<span className={className}>
+			<span className={className} key="main">
 				{ displayUsername
 					? [
 						<ChatUsername
@@ -70,7 +70,8 @@ class ChatMessageLine extends PureComponent {
 							color={authorColor}
 							displayName={authorDisplayName}
 							symbol={symbol}
-							username={username} />,
+							username={username}
+							key="username" />,
 						" "
 					] : null }
 				{ messageEl }
@@ -120,14 +121,12 @@ export default connect(({
 	appConfig: {
 		enableTwitch,
 		enableTwitchColors,
-		enableTwitchDisplayNames,
 		enableUsernameColors
 	},
 	ircConfigs
 }) => ({
 	enableTwitch,
 	enableTwitchColors,
-	enableTwitchDisplayNames,
 	enableUsernameColors,
 	ircConfigs
 }))(ChatMessageLine);

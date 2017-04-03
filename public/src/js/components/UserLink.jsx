@@ -20,7 +20,7 @@ class UserLink extends PureComponent {
 				// Totally different altogether
 				content = [
 					displayName + " ",
-					<em>({ userName })</em>
+					<em key="origName">({ userName })</em>
 				];
 			}
 			else {
@@ -45,7 +45,7 @@ class UserLink extends PureComponent {
 		// Link-free output for non-friends
 
 		if (!isFriend) {
-			return <span className={className}>{ content }</span>;
+			return <span className={className} key="main">{ content }</span>;
 		}
 
 		// Link output for friends
@@ -53,7 +53,8 @@ class UserLink extends PureComponent {
 		return (
 			<Link
 				className={className}
-				to={userUrl(userName)}>
+				to={userUrl(userName)}
+				key="main">
 				{ content }
 			</Link>
 		);

@@ -75,10 +75,15 @@ class SettingsGeneralView extends PureComponent {
 				},
 				{
 					name: "enableTwitchDisplayNames",
-					readableName: "Enable Twitch display names (WIP)",
-					type: "bool",
+					readableName: "Enable Twitch display names",
+					type: "enum",
 					description: "Show the display names set by users on Twitch",
-					requires: ["enableTwitch"]
+					requires: ["enableTwitch"],
+					valueNames: [
+						"Off",
+						"Case changes only",
+						"All display names"
+					]
 				},
 				{
 					name: "enableFfzEmoticons",
@@ -189,6 +194,21 @@ class SettingsGeneralView extends PureComponent {
 					onChange={(evt) => myChangeValue(name, evt.target.checked)}
 					disabled={isDisabled}
 					key="input" />;
+				break;
+			case "enum":
+				mainInput = (
+					<select
+						id={name}
+						defaultValue={+appConfig[name] || 0}
+						onChange={(evt) => myChangeValue(name, +evt.target.value)}
+						disabled={isDisabled}
+						key="input">
+						{ setting.valueNames.map(
+							(name, i) =>
+								<option key={i} value={i}>{ name }</option>
+						) }
+					</select>
+				);
 				break;
 			default:
 				mainInput = <input
