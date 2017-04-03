@@ -140,7 +140,7 @@ class SettingsGeneralView extends PureComponent {
 					description: "Enable BTTV emoticons that are animated",
 					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
-				},
+				}/*,
 				{
 					name: "enableBttvPersonalEmoticons",
 					readableName: "Enable BTTV personal emoticons (WIP)",
@@ -148,7 +148,7 @@ class SettingsGeneralView extends PureComponent {
 					description: "Enable BTTV emoticons that apply to specific people only",
 					notice: "Only affects new messages",
 					requires: ["enableTwitch", "enableBttvEmoticons"]
-				}
+				}*/
 			],
 			"Debug": [
 				{
