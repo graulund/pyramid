@@ -45,6 +45,7 @@ class ChatMessageLine extends PureComponent {
 		var authorClassName = "msg__author";
 		var authorColor = null;
 		var authorDisplayName = null;
+		var authorUserId = null;
 
 		// Number color
 		if (enableUsernameColors && typeof color === "number" && color >= 0) {
@@ -61,8 +62,12 @@ class ChatMessageLine extends PureComponent {
 			authorDisplayName = tags["display-name"];
 		}
 
+		if (tags && tags["user-id"]) {
+			authorUserId = tags["user-id"];
+		}
+
 		const content = (
-			<span className={className} key="main">
+			<span className={className} data-user-id={authorUserId} key="main">
 				{ displayUsername
 					? [
 						<ChatUsername
