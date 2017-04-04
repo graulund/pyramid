@@ -31,6 +31,10 @@ class ChannelUserList extends PureComponent {
 			}
 		}
 
+		if (!numUsers) {
+			return null;
+		}
+
 		const usersEl = numUsers + " user" + (numUsers === 1 ? "" : "s");
 
 		var friendsEl = null;
