@@ -9,7 +9,9 @@ import { RELATIONSHIP_BEST_FRIEND } from "../constants";
 class TimedUserItem extends PureComponent {
 
 	render() {
-		const { friendsList, skipOld = true, symbol = "", userData, userName } = this.props;
+		const {
+			friendsList, skipOld = true, symbol = "", userData, userName
+		} = this.props;
 
 		var classNames = [];
 

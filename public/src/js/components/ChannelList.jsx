@@ -7,7 +7,10 @@ import { minuteTime } from "../lib/formatting";
 
 class ChannelList extends PureComponent {
 	render() {
-		const { ircConfigs, lastSeenChannels, sort } = this.props;
+		const {
+			hideOldChannels = false, ircConfigs, lastSeenChannels,
+			sort
+		} = this.props;
 
 		// Load IRC channels from the configuration
 
@@ -80,6 +83,7 @@ class ChannelList extends PureComponent {
 				return <TimedChannelItem
 					channel={data.channel}
 					lastSeenData={data.lastSeen || {}}
+					skipOld={hideOldChannels}
 					key={data.channel} />;
 			}
 			return null;
@@ -90,9 +94,18 @@ class ChannelList extends PureComponent {
 }
 
 ChannelList.propTypes = {
+	hideOldChannels: PropTypes.bool,
 	ircConfigs: PropTypes.object,
 	lastSeenChannels: PropTypes.object,
 	sort: PropTypes.string
 };
 
-export default connect(({ ircConfigs, lastSeenChannels }) => ({ ircConfigs, lastSeenChannels }))(ChannelList);
+export default connect(({
+	appConfig: { hideOldChannels },
+	ircConfigs,
+	lastSeenChannels
+}) => ({
+	hideOldChannels,
+	ircConfigs,
+	lastSeenChannels
+}))(ChannelList);

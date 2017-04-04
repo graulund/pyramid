@@ -5,9 +5,11 @@ import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 
 class TimedChannelItem extends PureComponent {
-
 	render() {
-		const { channel, displayServer = false, lastSeenData = {} } = this.props;
+		const {
+			channel, displayServer = false, lastSeenData = {},
+			skipOld = false
+		} = this.props;
 
 		const prefix = <ChannelLink
 			strong
@@ -28,7 +30,7 @@ class TimedChannelItem extends PureComponent {
 
 		return <TimedItem
 				time={lastSeenData.time}
-				skipOld={false}
+				skipOld={skipOld}
 				prefix={prefix}
 				suffix={suffix}
 				key="main"
@@ -39,7 +41,8 @@ class TimedChannelItem extends PureComponent {
 TimedChannelItem.propTypes = {
 	channel: PropTypes.string,
 	displayServer: PropTypes.bool,
-	lastSeenData: PropTypes.object
+	lastSeenData: PropTypes.object,
+	skipOld: PropTypes.bool
 };
 
 export default TimedChannelItem;

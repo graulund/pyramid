@@ -165,6 +165,11 @@ class TimedItem extends PureComponent {
 			);
 			secondaryTimeEl = <div className="ts" ref="sts">{ secondaryTimestamp }</div>;
 		} else {
+
+			if (skipOld) {
+				return null;
+			}
+
 			const nullMoment = moment("1970-01-01 00:00:00");
 			styles = timeColors(nullMoment, moment().diff(nullMoment));
 			this.stStr = "";

@@ -60,14 +60,14 @@ class SettingsGeneralView extends PureComponent {
 				},
 				{
 					name: "hideOldUsers",
-					readableName: "Hide old users (WIP)",
+					readableName: "Hide silent users",
 					type: "bool",
 					description: "Hide users that haven't spoken for a long time on the users list",
 					notice: "Users we have never heard from are never shown"
 				},
 				{
 					name: "hideOldChannels",
-					readableName: "Hide old channels (WIP)",
+					readableName: "Hide silent channels",
 					type: "bool",
 					description: "Hide channels that haven't been spoken in for a long time on the channels list",
 					notice: "Doesn't affect your joined status"
