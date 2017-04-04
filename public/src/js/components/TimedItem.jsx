@@ -2,8 +2,24 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import { findDOMNode } from "react-dom";
 import moment from "moment";
+import TimeAgo from "react-timeago";
 
 import { formatTime, timeColors } from "../lib/formatting";
+
+// Custom timeago formatter to reduce granularity for really recent events
+
+const lessGranularFormatter = (value, unit, suffix, date, defaultFormatter) => {
+	if (unit === "second") {
+		if (value < 30) {
+			return "a few seconds " + suffix;
+		}
+		else {
+			return "1 minute " + suffix;
+		}
+	}
+
+	return defaultFormatter(value, unit, suffix, date);
+};
 
 class TimedItem extends PureComponent {
 
@@ -21,7 +37,7 @@ class TimedItem extends PureComponent {
 			this.root = root;
 
 			// Piggybacking onto livestamp changes through jQuery
-			window.jQuery("time", root).on("change.livestamp", () => {
+			/*window.jQuery("time", root).on("change.livestamp", () => {
 				if (this.refs && this.refs.time && this.refs.sts) {
 					const dt = this.refs.time.getAttribute("datetime");
 
@@ -43,7 +59,7 @@ class TimedItem extends PureComponent {
 						root.style[property] = styles[property];
 					}
 				}
-			});
+			});*/
 
 			this.handleWideSts();
 		}
@@ -152,17 +168,8 @@ class TimedItem extends PureComponent {
 
 			this.stStr = secondaryTimestamp;
 
-			// Livestamp content; if we pretend like the livestamp script has already taken effect,
-			// it looks more smooth when updating
-			const livestampContent = this.hasRenderedOnce
-				? "a few seconds ago"
-				: m.format("H:mm:ss");
-
-			primaryTimeEl = (
-				<time ref="time" dateTime={time} data-livestamp={m.format("X")}>
-				{ livestampContent }
-				</time>
-			);
+			// Live timestamp
+			primaryTimeEl = <TimeAgo date={time} formatter={lessGranularFormatter} />;
 			secondaryTimeEl = <div className="ts" ref="sts">{ secondaryTimestamp }</div>;
 		} else {
 
