@@ -19,5 +19,7 @@ It works in real time by directly connecting a Node IRC connection to a Socket.i
 5. Run `node pyramid.js` from the project directory to start the server
 6. Open your browser and navigate to the hostname and port you defined in step 3 (usually `localhost:54335`)
 
+First time you open the page, you're gonna have to log in with the default password, which currently is `LUL`. Please change it after logging in, if this is a publically available instance, as anyone with the password can chat on your behalf, or change the password.
+
 ## License
 The whole thing is licensed under the MIT License. In short, use it however you like, as long as you credit me.
