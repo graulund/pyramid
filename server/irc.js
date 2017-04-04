@@ -6,7 +6,6 @@ const irc    = require("irc");
 const fs     = require("fs");
 const path   = require("path");
 
-const config = require("../config");
 const constants = require("./constants");
 const log = require("./log");
 const util = require("./util");

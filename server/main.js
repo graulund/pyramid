@@ -7,7 +7,6 @@ const long   = require("long");
 const moment = require("moment-timezone");
 const uuid   = require("uuid");
 
-//const config = require("../config");
 const constants = require("./constants");
 const configDefaults = require("./defaults");
 const log = require("./log");
