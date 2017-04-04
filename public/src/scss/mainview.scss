@@ -16,6 +16,7 @@
 	&__top h2 {
 		margin: 0;
 		line-height: 20px;
+		overflow: hidden;
 	}
 
 	@media #{$mobile-media} {
