@@ -87,7 +87,15 @@ class HighlightObserver extends PureComponent {
 	}
 
 	render() {
-		return <span key="highlightobserver">{ this.props.children }</span>;
+		const { children } = this.props;
+		const unseen = this.isUnseen(this.props);
+		return (
+			<span
+				className={unseen ? "unseenhighlight" : null}
+				key="highlightobserver">
+				{ children }
+			</span>
+		);
 	}
 }
 
