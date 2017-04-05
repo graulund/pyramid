@@ -4,7 +4,6 @@ import Linkify from "react-linkify";
 //import Highlighter from "react-highlight-words";
 
 import ChatUsername from "./ChatUsername.jsx";
-import HighlightObserver from "./HighlightObserver.jsx";
 import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
 import { isTwitch } from "../lib/ircConfigs";
 import { LINKIFY_PROPERTIES } from "../constants";
@@ -14,14 +13,13 @@ class ChatMessageLine extends PureComponent {
 	render() {
 		const {
 			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, highlight, ircConfigs, isAction, lineId, message,
-			observer, server, symbol = "", tags, username
+			enableUsernameColors, /*highlight,*/ ircConfigs, isAction, message,
+			server, symbol = "", tags, username
 		} = this.props;
 
-		const isHighlight = !!(highlight && highlight.length);
+		//const isHighlight = !!(highlight && highlight.length);
 		const className = "msg" +
-			(isAction ? " msg--action" : "") +
-			(isHighlight ? " msg--highlight" : "");
+			(isAction ? " msg--action" : "");
 
 		var messageEl = message;
 
@@ -82,17 +80,6 @@ class ChatMessageLine extends PureComponent {
 				{ messageEl }
 			</span>
 		);
-
-		if (isHighlight) {
-			return (
-				<HighlightObserver
-					lineId={lineId}
-					observer={observer}
-					key="highlightobserver">
-					{ content }
-				</HighlightObserver>
-			);
-		}
 
 		return content;
 	}

@@ -2,7 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { findDOMNode } from "react-dom";
 import { connect } from "react-redux";
 
-class HighlightObserver extends PureComponent {
+class ChatHighlightedLine extends PureComponent {
 	constructor(props) {
 		super(props);
 
@@ -58,7 +58,10 @@ class HighlightObserver extends PureComponent {
 			}
 		}
 		else {
-			console.warn("Tried to observe in HighlightObserver, but no observer was supplied");
+			console.warn(
+				"Tried to observe in HighlightObserver, " +
+				"but no observer was supplied"
+			);
 		}
 	}
 
@@ -87,23 +90,27 @@ class HighlightObserver extends PureComponent {
 	}
 
 	render() {
-		const { children } = this.props;
+		const { children, className: givenClassName, id } = this.props;
 		const unseen = this.isUnseen(this.props);
-		return (
-			<span
-				className={unseen ? "unseenhighlight" : null}
-				key="highlightobserver">
-				{ children }
-			</span>
-		);
+
+		const itemProps = {
+			className: givenClassName +
+				(unseen ? " line--unseen-highlight" : ""),
+			id
+		};
+		return <li {...itemProps}>{ children }</li>;
 	}
 }
 
-HighlightObserver.propTypes = {
+ChatHighlightedLine.propTypes = {
+	className: PropTypes.string,
 	children: PropTypes.node.isRequired,
+	id: PropTypes.string,
 	lineId: PropTypes.string.isRequired,
 	observer: PropTypes.object,
 	unseenHighlights: PropTypes.array
 };
 
-export default connect(({ unseenHighlights }) => ({ unseenHighlights }))(HighlightObserver);
+export default connect(
+	({ unseenHighlights }) => ({ unseenHighlights })
+)(ChatHighlightedLine);

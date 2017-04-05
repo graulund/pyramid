@@ -4,6 +4,7 @@ import "intersection-observer";
 
 import ChannelLink from "../components/ChannelLink.jsx";
 import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
+import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
@@ -157,7 +158,7 @@ class ChatLine extends PureComponent {
 
 		if (displayChannel) {
 			channelEl = (
-				<span className="line__channel">
+				<span className="line__channel" key="channel">
 					<ChannelLink channel={channel} key={channel} />
 					{" "}
 				</span>
@@ -166,7 +167,10 @@ class ChatLine extends PureComponent {
 
 		if (displayContextLink) {
 			contextLinkEl = (
-				<a className="line__context" href="javascript://" onClick={this.toggleContext}>
+				<a className="line__context"
+					href="javascript://"
+					onClick={this.toggleContext}
+					key="showContext">
 					Context
 				</a>
 			);
@@ -192,10 +196,13 @@ class ChatLine extends PureComponent {
 				<div className="line__header">
 					<strong>Expanded view</strong>
 					<span className="line__context">
-						<Link to={`${channelUrl(channel)}#line-${lineId}`}>
+						<Link to={`${channelUrl(channel)}#line-${lineId}`}
+							key="showFullContext">
 							Full context
 						</Link>{" "}
-						<a href="javascript://" onClick={this.toggleContext}>
+						<a href="javascript://"
+							onClick={this.toggleContext}
+							key="closeContext">
 							Close
 						</a>
 					</span>
@@ -231,19 +238,40 @@ class ChatLine extends PureComponent {
 			}
 		}
 
-		return (
-			<li id={`line-${lineId}`} className={className}>
-				{ header }
-				{ contextBefore }
-				{ contextLinkEl }
-				{ channelEl }
-				<time dateTime={time} title={datestamp + " " + timestamp}>
-					{ timestamp }
-				</time>{" "}
-				{ content }
-				{ contextAfter }
-			</li>
+		const timeStampEl = (
+			<time
+				dateTime={time}
+				title={datestamp + " " + timestamp}
+				key="timestamp">
+				{ timestamp }
+			</time>
 		);
+
+		const outerContent = [
+			header,
+			contextBefore,
+			contextLinkEl,
+			channelEl,
+			timeStampEl,
+			" ",
+			content,
+			contextAfter
+		];
+
+		const itemProps = {
+			className,
+			id: `line-${lineId}`
+		};
+
+		if (isHighlight) {
+			return (
+				<ChatHighlightedLine {...itemProps} {...this.props}>
+					{ outerContent }
+				</ChatHighlightedLine>
+			);
+		}
+
+		return <li {...itemProps}>{ outerContent }</li>;
 	}
 }
 

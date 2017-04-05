@@ -140,10 +140,10 @@
 
 	.line--highlight {
 		background-color: #fff0aa;
-		transition: 2s background-color;
+		transition: 1s background-color;
 	}
 
-	.unseenhighlight .line--highlight {
+	.line--highlight.line--unseen-highlight {
 		background-color: #e8da9b;
 	}
 
