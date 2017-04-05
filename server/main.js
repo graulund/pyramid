@@ -532,11 +532,16 @@ const handleIncomingMessage = function(
 	}
 
 	// Highlighted? Add to specific logs
-	var highlightStrings = getHighlightStringsForMessage(message, channelUri, meUsername);
+	var highlightStrings = [];
+	if (username.toLowerCase() !== meUsername.toLowerCase()) {
+		highlightStrings = getHighlightStringsForMessage(
+			message, channelUri, meUsername
+		);
 
-	if (highlightStrings.length) {
-		if (configValue("logLinesFile")) {
-			log.logCategoryLine("mentions", channelUri, channelName, line, time);
+		if (highlightStrings.length) {
+			if (configValue("logLinesFile")) {
+				log.logCategoryLine("mentions", channelUri, channelName, line, time);
+			}
 		}
 	}
 
@@ -1061,7 +1066,10 @@ const parseDbLine = function(line, callback) {
 		if (l.server) {
 			const config = getIrcConfigByName(l.server);
 
-			if (config && config.username) {
+			if (
+				config && config.username &&
+				config.username.toLowerCase() !== l.username.toLowerCase()
+			) {
 				highlight = getHighlightStringsForMessage(
 					l.message, l.channel, config.username
 				);
