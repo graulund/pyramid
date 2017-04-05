@@ -28,6 +28,11 @@ class TimedItem extends PureComponent {
 
 		this.flash = this.flash.bind(this);
 		this.renderClassName = this.renderClassName.bind(this);
+		this.tick = this.tick.bind(this);
+
+		this.isStillMounted = false;
+		this.date = new Date(props.time);
+		this.m = moment(this.date);
 	}
 
 	componentDidMount() {
@@ -36,32 +41,9 @@ class TimedItem extends PureComponent {
 			// Store the root
 			this.root = root;
 
-			// Piggybacking onto livestamp changes through jQuery
-			/*window.jQuery("time", root).on("change.livestamp", () => {
-				if (this.refs && this.refs.time && this.refs.sts) {
-					const dt = this.refs.time.getAttribute("datetime");
-
-					// Cache the moment object
-					var m;
-					if (this._dt === dt && this._m) {
-						m = this._m;
-					} else {
-						m = this._m = moment(dt);
-						this._dt = dt;
-					}
-
-					const ms = moment().diff(m);
-					const timeInfo = formatTime(ms);
-
-					this.refs.sts.textContent = this.renderSecondaryTimestamp(m, timeInfo);
-					const styles = timeColors(m, ms);
-					for(var property in styles) {
-						root.style[property] = styles[property];
-					}
-				}
-			});*/
-
-			this.handleWideSts();
+			// Start ticking
+			this.isStillMounted = true;
+			this.tick();
 		}
 	}
 
@@ -71,6 +53,9 @@ class TimedItem extends PureComponent {
 			const { time: newTime } = newProps;
 
 			if (oldTime !== newTime) {
+				this.date = new Date(newTime);
+				this.m = moment(this.date);
+
 				// Do a lil' flash!
 				this.flash();
 			}
@@ -79,6 +64,42 @@ class TimedItem extends PureComponent {
 
 	componentDidUpdate() {
 		this.handleWideSts();
+	}
+
+	componentWillUnmount() {
+		this.isStillMounted = false;
+
+		if (this.timeoutId) {
+			clearTimeout(this.timeoutId);
+		}
+	}
+
+	tick() {
+		if (!this.isStillMounted) {
+			return;
+		}
+
+		if (this.root && this.refs && this.refs.sts) {
+			const then = this.date;
+
+			const now = Date.now();
+			const diff = Math.abs(now - then);
+			const timeInfo = formatTime(diff);
+
+			// Secondary time stamp
+			const secondaryTimestamp = this.renderSecondaryTimestamp(this.m, timeInfo);
+			this.refs.sts.textContent = secondaryTimestamp;
+			this.stStr = secondaryTimestamp;
+			this.handleWideSts();
+
+			// Color
+			const styles = timeColors(this.m, diff);
+			for(var property in styles) {
+				this.root.style[property] = styles[property];
+			}
+		}
+
+		this.timeoutId = setTimeout(this.tick, 30000);
 	}
 
 	handleWideSts() {
@@ -94,7 +115,9 @@ class TimedItem extends PureComponent {
 				}
 			}
 
-			this.root.style.paddingRight = "";
+			if (this.root.style.paddingRight) {
+				this.root.style.paddingRight = "";
+			}
 		}
 	}
 
@@ -212,4 +235,8 @@ TimedItem.propTypes = {
 	time: PropTypes.string
 };
 
-export default connect(({ appConfig: { enableDarkMode }}) => ({ enableDarkMode }))(TimedItem);
+export default connect(({
+	appConfig: { enableDarkMode }
+}) => ({
+	enableDarkMode
+}))(TimedItem);
