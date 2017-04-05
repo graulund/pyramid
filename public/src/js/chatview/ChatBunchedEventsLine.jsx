@@ -1,12 +1,11 @@
 import React, { PureComponent, PropTypes } from "react";
-import moment from "moment";
 
 import UserLink from "../components/UserLink.jsx";
+import { humanDateStamp, timeStamp } from "../lib/formatting";
 
 const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;
-const DATE_STRING_FORMAT = "MMMM Do";
 
 class ChatUserEventLine extends PureComponent {
 	constructor(props) {
@@ -37,11 +36,13 @@ class ChatUserEventLine extends PureComponent {
 			if (event) {
 				const eventName = event.type === "join" ? "join" : "part";
 				if (event.type === "join") {
-
 					joins.push(event.username);
 				}
 				else if (PART_EVENT_TYPES.indexOf(event.type) >= 0) {
 					parts.push(event.username);
+				}
+				else {
+					return;
 				}
 
 				if (eventOrder.indexOf(eventName) < 0) {
@@ -108,19 +109,19 @@ class ChatUserEventLine extends PureComponent {
 
 		// Time difference
 
-		earliestTime = earliestTime ? moment(earliestTime) : null;
-		latestTime = latestTime ? moment(latestTime) : null;
+		earliestTime = earliestTime ? new Date(earliestTime) : null;
+		latestTime = latestTime ? new Date(latestTime) : null;
 
 		var title = "";
 
 		// Be more explicit with the time difference if enough time passed
 
 		if (earliestTime) {
-			const earliestTimeStamp = earliestTime.format("H:mm:ss");
+			const earliestTimeStamp = timeStamp(earliestTime);
 
-			if (latestTime && latestTime.diff(earliestTime) >= MAX_TIME_DIFFERENCE_MS) {
-				const earliestTimeStampDate = earliestTime.format(DATE_STRING_FORMAT);
-				const latestTimeStampDate = latestTime.format(DATE_STRING_FORMAT);
+			if (latestTime && latestTime - earliestTime >= MAX_TIME_DIFFERENCE_MS) {
+				const earliestTimeStampDate = humanDateStamp(earliestTime);
+				const latestTimeStampDate = humanDateStamp(latestTime);
 
 				if (earliestTimeStampDate !== latestTimeStampDate) {
 					content.push(

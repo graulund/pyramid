@@ -1,10 +1,10 @@
 import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import { findDOMNode } from "react-dom";
-import moment from "moment";
 import TimeAgo from "react-timeago";
 
-import { formatTime, timeColors } from "../lib/formatting";
+import { formatTime, midnightDate, prevDay, timeColors, timeStamp }
+	from "../lib/formatting";
 
 // Custom timeago formatter to reduce granularity for really recent events
 
@@ -32,7 +32,6 @@ class TimedItem extends PureComponent {
 
 		this.isStillMounted = false;
 		this.date = new Date(props.time);
-		this.m = moment(this.date);
 	}
 
 	componentDidMount() {
@@ -54,7 +53,6 @@ class TimedItem extends PureComponent {
 
 			if (oldTime !== newTime) {
 				this.date = new Date(newTime);
-				this.m = moment(this.date);
 
 				// Do a lil' flash!
 				this.flash();
@@ -81,19 +79,16 @@ class TimedItem extends PureComponent {
 
 		if (this.root && this.refs && this.refs.sts) {
 			const then = this.date;
-
-			const now = Date.now();
-			const diff = Math.abs(now - then);
-			const timeInfo = formatTime(diff);
+			const diff = Math.abs(Date.now() - then);
 
 			// Secondary time stamp
-			const secondaryTimestamp = this.renderSecondaryTimestamp(this.m, timeInfo);
+			const secondaryTimestamp = this.renderSecondaryTimestamp(then);
 			this.refs.sts.textContent = secondaryTimestamp;
 			this.stStr = secondaryTimestamp;
 			this.handleWideSts();
 
 			// Color
-			const styles = timeColors(this.m, diff);
+			const styles = timeColors(diff);
 			for(var property in styles) {
 				this.root.style[property] = styles[property];
 			}
@@ -132,16 +127,23 @@ class TimedItem extends PureComponent {
 		}
 	}
 
-	renderSecondaryTimestamp(m, timeInfo) {
-		var sts = m.format("H:mm");
-		const ym = moment().subtract(1, "days").startOf("day");
+	renderSecondaryTimestamp(date, timeInfo) {
+		var sts = timeStamp(date, false);
+		const yesterdayMidnight = midnightDate(prevDay(date));
 
-		if (timeInfo.day === 1 && ym < m) {
+		if (!timeInfo) {
+			const now = Date.now();
+			const diff = Math.abs(now - date);
+			timeInfo = formatTime(diff);
+		}
+
+		// Add "yesterday" to times that could've been interpreted to be today
+		if (timeInfo.day === 1 && yesterdayMidnight < date) {
 			sts = "yesterday " + sts;
 		}
 
-		// If the date is before yesterday midnight, it's earlier than yesterday.
-		if (ym > m) {
+		// If the date is before yesterday midnight, abort even write anything
+		if (yesterdayMidnight > date) {
 			sts = "";
 		}
 
@@ -171,13 +173,15 @@ class TimedItem extends PureComponent {
 	render() {
 		const { prefix, skipOld = true, suffix, time } = this.props;
 
+		const now = Date.now();
+
 		var primaryTimeEl = null, secondaryTimeEl = null, styles;
 
 		// If time is known at all
 		if (time) {
-			const m = moment(time);
-			const ms = moment().diff(m);
-			const timeInfo = formatTime(ms);
+			const then = this.date;
+			const diff = now - then;
+			const timeInfo = formatTime(diff);
 
 			// Skip people who haven't been here for a certain amount of days :(
 
@@ -186,8 +190,8 @@ class TimedItem extends PureComponent {
 			}
 
 			// Display values
-			const secondaryTimestamp = this.renderSecondaryTimestamp(m, timeInfo);
-			styles = timeColors(m, ms);
+			const secondaryTimestamp = this.renderSecondaryTimestamp(then, timeInfo);
+			styles = timeColors(diff);
 
 			this.stStr = secondaryTimestamp;
 
@@ -200,8 +204,8 @@ class TimedItem extends PureComponent {
 				return null;
 			}
 
-			const nullMoment = moment("1970-01-01 00:00:00");
-			styles = timeColors(nullMoment, moment().diff(nullMoment));
+			const nullDate = new Date("1970-01-01 00:00:00");
+			styles = timeColors(now - nullDate);
 			this.stStr = "";
 		}
 

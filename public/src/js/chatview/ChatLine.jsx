@@ -1,6 +1,5 @@
 import React, { PureComponent, PropTypes } from "react";
 import { Link } from "react-router";
-import moment from "moment";
 import "intersection-observer";
 
 import ChannelLink from "../components/ChannelLink.jsx";
@@ -8,6 +7,7 @@ import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
+import { dateStamp, timeStamp } from "../lib/formatting";
 import { channelUrl } from "../lib/routeHelpers";
 
 class ChatLine extends PureComponent {
@@ -119,9 +119,9 @@ class ChatLine extends PureComponent {
 
 		const { showContext } = this.state;
 
-		const m = moment(time);
-		const timestamp = m.format("H:mm:ss");
-		const datestamp = m.format("YYYY-MM-DD");
+		const d = new Date(time);
+		const timestamp = timeStamp(d);
+		const datestamp = dateStamp(d);
 
 		const isHighlight = !!(highlight && highlight.length);
 		const className = "line" +

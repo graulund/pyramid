@@ -8,6 +8,7 @@
 	background-color: #fff;
 	overflow: auto;
 	z-index: 3;
+	margin: 0;
 
 	&:after {
 		content: "";
@@ -139,10 +140,15 @@
 
 	.line--highlight {
 		background-color: #fff0aa;
+		transition: 2s background-color;
+	}
+
+	.unseenhighlight .line--highlight {
+		background-color: #e8da9b;
 	}
 
 	.msg--highlight mark {
-		background-color: #e8da9b;
+		background-color: rgba(0,0,0,.1);
 	}
 
 	.userevent, .bunchedevents {

@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from "react";
 import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
-import moment from "moment";
 
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem, sendMessage } from "../lib/io";
@@ -78,11 +77,11 @@ class ChatInput extends Component {
 
 		// Add missing users by reading the cache directly
 		if (channelCaches[channel] && channelCaches[channel].length) {
-			const now = moment();
+			const now = Date.now();
 			channelCaches[channel].forEach((evt) => {
 				if (evt && evt.username && evt.time) {
 					if (
-						now.diff(evt.time) <= YOUNG_MESSAGE_MS &&
+						now - new Date(evt.time) <= YOUNG_MESSAGE_MS &&
 						userNames.indexOf(evt.username) < 0
 					) {
 						userNames.push(evt.username);

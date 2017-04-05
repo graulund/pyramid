@@ -1,9 +1,7 @@
 import React, { PureComponent, PropTypes } from "react";
-import moment from "moment";
 
 import ChatLine from "./ChatLine.jsx";
-
-const DATE_STRING_FORMAT = "dddd, MMMM Do YYYY";
+import { humanDateStamp } from "../lib/formatting";
 
 class ChatLines extends PureComponent {
 	render() {
@@ -24,7 +22,7 @@ class ChatLines extends PureComponent {
 
 		const lines = messages.map((msg, index) => {
 			if (msg) {
-				var dateString = moment(msg.time).format(DATE_STRING_FORMAT);
+				var dateString = humanDateStamp(new Date(msg.time), true, true);
 				var line = <ChatLine {...msg}
 					displayChannel={displayChannel}
 					displayContextLink={displayContextLink}

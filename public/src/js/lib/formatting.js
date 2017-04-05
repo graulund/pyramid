@@ -3,6 +3,19 @@ import {
 } from "../constants";
 import store from "../store";
 
+export const MONTHS = [
+	"January", "February", "March", "April", "May", "June",
+	"July", "August", "September", "October", "November", "December"
+];
+
+export const DAYS = [
+	"Sunday", "Monday", "Tuesday", "Wednesday",
+	"Thursday", "Friday", "Saturday"
+];
+
+const DEFAULT_DATE_SUFFIX = "th";
+const DATE_SUFFIXES = { 1: "st", 2: "nd", 3: "rd" };
+
 function darkModeEnabled() {
 	if (store) {
 		const state = store.getState();
@@ -12,30 +25,24 @@ function darkModeEnabled() {
 	return false;
 }
 
-export function ucfirst(str){
-	var f = str.charAt(0)
-		.toUpperCase();
+export function ucfirst(str) {
+	var f = str.charAt(0).toUpperCase();
 	return f + str.substr(1);
 }
 
-export function formatTime(milliseconds){
-	var seconds = Math.floor(milliseconds / 1000);
+export function formatTime(milliseconds) {
+	var sec = Math.floor(milliseconds / 1000);
 
-	var days = Math.floor(seconds / 86400);
-	seconds = seconds % 86400;
+	var day = Math.floor(sec / 86400);
+	sec = sec % 86400;
 
-	var hours = Math.floor(seconds / 3600);
-	seconds = seconds % 3600;
+	var hour = Math.floor(sec / 3600);
+	sec = sec % 3600;
 
-	var minutes = Math.floor(seconds / 60);
-	seconds = seconds % 60;
+	var min = Math.floor(sec / 60);
+	sec = sec % 60;
 
-	return {
-		day: days,
-		hour: hours,
-		min: minutes,
-		sec: seconds
-	};
+	return { day, hour, min, sec };
 }
 
 export function timeOpacity(secondsSince) {
@@ -50,10 +57,7 @@ export function timeTextOpacity(secondsSince) {
 	return Math.max(minOpacity, Math.min(maxOpacity, 29/25 - secondsSince/45000));
 }
 
-export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
-	// m: Moment instance expected
-	// ms: Moment diff instance expected; moment().diff(m)
-
+export function timeColors (milliseconds, color = DEFAULT_COLOR_RGB) {
 	const darkMode = darkModeEnabled();
 
 	if (color === DEFAULT_COLOR_RGB && darkMode) {
@@ -61,9 +65,9 @@ export function timeColors (m, ms, color = DEFAULT_COLOR_RGB) {
 	}
 
 	// Color
-	var backgroundOpacity = timeOpacity(ms/1000),
+	var backgroundOpacity = timeOpacity(milliseconds/1000),
 		textColor = darkMode ? "#ccc" : "#000",
-		opacity = timeTextOpacity(ms/1000);
+		opacity = timeTextOpacity(milliseconds/1000);
 
 	if (backgroundOpacity >= 0.3) {
 		textColor = darkMode ? "#000" : "#fff";
@@ -99,27 +103,90 @@ export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
 }
 
-/*function round2(val){
-	return Math.round(val * 100) / 100;
+function pad(n) {
+	if (n < 10) {
+		return "0" + n;
+	}
+
+	return "" + n;
 }
 
-function pathname(){
-	var pn = location.pathname;
-	// Replace double slashes with just one /
-	pn = pn.replace(/\/+/g, "/");
-	return pn;
+export function dateStamp(date) {
+	const y = date.getFullYear();
+	const m = date.getMonth();
+	const d = date.getDate();
+
+	return y + "-" + pad(m + 1) + "-" + pad(d);
 }
 
-function areWeScrolledToTheBottom(){
-	// Are we scrolled to the bottom?
-	// --> Elements that have heights and offsets that matter
-	var b = $("body"), w = $(window), c = $("#container");
-	// --> Two oft-used heights
-	var ch = c.height(), wh = w.height();
-	// --> The calculation!
-	return (ch - (b.scrollTop() + wh)) <= 100 || wh >= ch;
+export function timeStamp(date, displaySeconds = true) {
+	const h = date.getHours();
+	const m = date.getMinutes();
+
+	const hm = pad(h) + ":" + pad(m);
+
+	if (displaySeconds) {
+		const s = date.getSeconds();
+		return hm + ":" + pad(s);
+	}
+
+	return hm;
 }
 
-function scrollToTheBottom(){
-	$("body").scrollTop($("#content").height());
-} */
+function getDateSuffix(dateNumber) {
+	const lastDigit = ("" + dateNumber).substr(-1);
+
+	if (DATE_SUFFIXES[lastDigit]) {
+		return DATE_SUFFIXES[lastDigit];
+	}
+
+	return DEFAULT_DATE_SUFFIX;
+}
+
+export function humanDateStamp(date, displayYear = false, displayWeekday = false) {
+	const m = date.getMonth();
+	const d = date.getDate();
+	const suffix = getDateSuffix(d);
+
+	var out = MONTHS[m] + " " + d + suffix;
+
+	if (displayYear) {
+		const y = date.getFullYear();
+		out = out + " " + y;
+	}
+
+	if (displayWeekday) {
+		const wd = date.getDay();
+		out = DAYS[wd] + ", " + out;
+	}
+
+	return out;
+}
+
+export function offsetDate(date, offsetDays) {
+	const y  = date.getFullYear();
+	const mo = date.getMonth();
+	const d  = date.getDate();
+	const h  = date.getHours();
+	const mi = date.getMinutes();
+	const s  = date.getSeconds();
+	const ms = date.getMilliseconds();
+
+	return new Date(y, mo, d + offsetDays, h, mi, s, ms);
+}
+
+export function nextDay(date) {
+	return offsetDate(date, 1);
+}
+
+export function prevDay(date) {
+	return offsetDate(date, -1);
+}
+
+export function midnightDate(date) {
+	const y = date.getFullYear();
+	const m = date.getMonth();
+	const d = date.getDate();
+
+	return new Date(y, m, d);
+}
