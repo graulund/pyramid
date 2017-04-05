@@ -2,7 +2,7 @@ import React, { PureComponent, PropTypes } from "react";
 import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
-import { CHANGE_DEBOUNCE_MS } from "../constants";
+import { CHANGE_DEBOUNCE_MS, VERSION } from "../constants";
 import * as io from "../lib/io";
 
 class SettingsGeneralView extends PureComponent {
@@ -266,7 +266,14 @@ class SettingsGeneralView extends PureComponent {
 			}
 		});
 
-		return <div key="main">{ content }</div>;
+		return (
+			<div key="main">
+				{ content }
+				<div className="settings__section" key="info">
+					<p><em>Pyramid { VERSION }</em></p>
+				</div>
+			</div>
+		);
 	}
 }
 

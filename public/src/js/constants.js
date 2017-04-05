@@ -1,5 +1,7 @@
 // Constants
 
+export const VERSION = "1.0-edge";
+
 export const DEFAULT_COLOR_RGB = "0,0,51";
 export const DEFAULT_TIMEZONE = "Europe/Copenhagen";
 export const ROOT_PATHNAME = "";
