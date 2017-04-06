@@ -230,7 +230,8 @@ const krakenGetRequest = function(commandName, query, callback) {
 	return clientIdRequest(
 		KRAKEN_BASE_URI + commandName +
 		(queryString ? "?" + queryString : ""),
-		callback
+		callback,
+		{ headers: { Accept: "application/vnd.twitchtv.v5+json" } }
 	);
 };
 
