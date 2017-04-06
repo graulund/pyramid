@@ -22,6 +22,10 @@
 		z-index: 4;
 	}
 
+	.app-container--with-connection-info & {
+		top: 81px;
+	}
+
 	@media #{$mobile-media} {
 		bottom: 57px;
 		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
@@ -193,12 +197,8 @@
 	}
 
 	&__controls {
-		position: fixed;
-		top: 10px;
-		right: 0;
 		text-align: right;
 		background-color: #fff;
-		padding: 0 20px 0 0;
 	}
 
 	&__logbrowser {

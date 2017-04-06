@@ -11,12 +11,25 @@
 		border-bottom: 1px solid #ccc;
 		white-space: nowrap;
 		z-index: 5;
-	}
 
-	&__top h2 {
-		margin: 0;
-		line-height: 20px;
-		overflow: hidden;
+		.app-container--with-connection-info & {
+			top: 40px;
+		}
+
+		&__main {
+			display: flex;
+
+			h2 {
+				flex: 1 1 auto;
+				margin: 0;
+				line-height: 20px;
+				overflow: hidden;
+			}
+
+			> div, > ul {
+				flex: 0 0 auto;
+			}
+		}
 	}
 
 	> .loader {

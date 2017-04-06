@@ -16,6 +16,10 @@ export const channelUserLists = {
 	"UPDATE": "channelUserLists/UPDATE"
 };
 
+export const connectionStatus = {
+	"UPDATE": "connectionStatus/UPDATE"
+};
+
 export const friendsList = {
 	"SET": "friendsList/SET",
 	"UPDATE": "friendsList/UPDATE"

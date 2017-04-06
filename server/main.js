@@ -921,6 +921,12 @@ const configValue = function(name) {
 // Storing settings
 
 const addServerToIrcConfig = function(data, callback) {
+
+	if (data && data.name && data.name.charAt(0) === "_") {
+		// Not allowed to start a server name with "_"
+		return;
+	}
+
 	db.addServerToIrcConfig(data, callback);
 };
 

@@ -26,6 +26,12 @@ module.exports = function(main) {
 
 	// Direct socket emissions
 
+	const emitTokenStatus = function(socket, isAccepted) {
+		socket.emit("tokenStatus", {
+			isAccepted
+		});
+	};
+
 	const emitChannelCache = function(socket, channelUri) {
 		socket.emit("channelCache", {
 			channelUri,
@@ -240,7 +246,10 @@ module.exports = function(main) {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
 
-					if (util.isAnAcceptedToken(connectionToken)) {
+					const isAccepted = util.isAnAcceptedToken(connectionToken);
+					emitTokenStatus(socket, isAccepted);
+
+					if (isAccepted) {
 						emitUnseenHighlights(socket);
 					}
 				}

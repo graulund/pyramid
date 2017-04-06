@@ -4,6 +4,7 @@ import pull from "lodash/pull";
 import without from "lodash/without";
 
 import { CACHE_LINES } from "../constants";
+import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
 import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
 
@@ -13,7 +14,7 @@ var socket;
 var currentSubscriptions = [];
 
 function emitSubscribe(type, subject) {
-	if (socket) {
+	if (socket && type && subject) {
 		socket.emit("subscribe", { [type]: subject });
 		const subscriptionName = type + ":" + subject;
 		currentSubscriptions = [ ...currentSubscriptions, subscriptionName ];
@@ -21,7 +22,7 @@ function emitSubscribe(type, subject) {
 }
 
 function emitUnsubscribe(type, subject) {
-	if (socket) {
+	if (socket && type && subject) {
 		socket.emit("unsubscribe", { [type]: subject });
 		const subscriptionName = type + ":" + subject;
 		currentSubscriptions = without(currentSubscriptions, subscriptionName);
@@ -30,7 +31,7 @@ function emitUnsubscribe(type, subject) {
 
 function emitCurrentSubscriptions() {
 	currentSubscriptions.forEach((sub) => {
-		const { type, subject } = sub.split(":");
+		const [ type, subject ] = sub.split(":");
 		emitSubscribe(type, subject);
 	});
 }
@@ -60,7 +61,7 @@ export function unsubscribeFromCategory(categoryName) {
 }
 
 export function sendMessage(channelUrl, message) {
-	if (socket) {
+	if (socket && channelUrl && message) {
 		const state = store.getState();
 		const data = {
 			channel: channelUrl,
@@ -249,10 +250,12 @@ export function initializeIo() {
 
 		socket.on("disconnect", () => {
 			console.warn("Socket disconnected");
+			setGlobalConnectionStatus(STATUS.DISCONNECTED);
 		});
 
 		socket.on("reconnect", () => {
 			console.log("Socket reconnected");
+			setGlobalConnectionStatus(STATUS.CONNECTED);
 			emitCurrentSubscriptions();
 		});
 
@@ -272,6 +275,11 @@ export function initializeIo() {
 			// TODO: Set up interval to try to reconnect every now and then
 			// TODO: Set up button for user to force reconnect attempt now
 			console.warn("Socket reconnection failed");
+		});
+
+		socket.on("tokenStatus", (details) => {
+			const status = details.isAccepted ? STATUS.CONNECTED : STATUS.REJECTED;
+			setGlobalConnectionStatus(status);
 		});
 
 		const onChatEvent = (details) => {

@@ -4,6 +4,7 @@ import appConfig from "./appConfig";
 import categoryCaches from "./categoryCaches";
 import channelCaches from "./channelCaches";
 import channelUserLists from "./channelUserLists";
+import connectionStatus from "./connectionStatus";
 import friendsList from "./friendsList";
 import ircConfigs from "./ircConfigs";
 import lastSeenChannels from "./lastSeenChannels";
@@ -23,6 +24,7 @@ export default combineReducers({
 	categoryCaches,
 	channelCaches,
 	channelUserLists,
+	connectionStatus,
 	friendsList,
 	ircConfigs,
 	lastSeenChannels,

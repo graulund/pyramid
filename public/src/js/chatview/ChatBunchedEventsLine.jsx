@@ -145,7 +145,6 @@ class ChatUserEventLine extends PureComponent {
 			<span className={className}
 				title={title}
 				onClick={this.flipState}>
-				{ "** " }
 				{ content }
 			</span>
 		);

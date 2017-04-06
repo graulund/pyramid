@@ -45,6 +45,14 @@ export default {
 			};
 		}
 	},
+	connectionStatus: {
+		update(data) {
+			return {
+				type: actionTypes.connectionStatus.UPDATE,
+				data
+			};
+		}
+	},
 	friendsList: {
 		set(data) {
 			return {

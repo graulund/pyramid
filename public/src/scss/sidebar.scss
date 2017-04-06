@@ -19,6 +19,12 @@
 		background: rgba(0,0,51,.067);
 	}
 
+	.app-container--with-connection-info & {
+		&, &:after {
+			top: 40px;
+		}
+	}
+
 	.itemlist {
 		margin-left: 0;
 		margin-right: 0;
@@ -78,16 +84,22 @@
 	&__close {
 		display: none;
 		position: absolute;
-		top: 12px;
 		right: 10px;
 	}
 
 	&__open {
 		position: fixed;
-		top: 12px;
 		left: 10px;
 		padding: 0 3px;
 		z-index: 9;
+	}
+
+	&__close, &__open {
+		top: 12px;
+
+		.app-container--with-connection-info & {
+			top: 52px;
+		}
 	}
 
 	&__menu {

@@ -43,11 +43,8 @@ class ChatUserEventLine extends PureComponent {
 		const className = "userevent" +
 			(isStrong ? " userevent--strong" : "");
 
-		const prefix = isStrong ? "*** " : "** ";
-
 		return (
 			<span className={className}>
-				{ prefix }
 				{ displayUsername
 					? (
 						<strong className="userevent__target">
