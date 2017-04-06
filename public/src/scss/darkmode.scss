@@ -5,7 +5,9 @@ body.darkmode {
 	.chatview__input,
 	.chatview__input input[type="text"],
 	.chatview__controls,
-	.channeluserlist {
+	.channeluserlist,
+	.chatview .line__context-before,
+	.chatview .line__context-after {
 		background-color: #111;
 		color: #ccc;
 
@@ -39,6 +41,16 @@ body.darkmode {
 		.userevent,
 		.bunchedevents {
 			color: #777;
+		}
+
+		.line__context {
+			&-before--edged {
+				border-bottom-color: #111;
+			}
+
+			&-after--edged {
+				border-top-color: #111;
+			}
 		}
 
 		.msg__author--color {

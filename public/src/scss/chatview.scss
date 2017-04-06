@@ -119,7 +119,10 @@
 
 	.line__context {
 		float: right;
-		margin-left: 10px;
+
+		&, a {
+			margin-left: 10px;
+		}
 	}
 
 	.msg__author a,

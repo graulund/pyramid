@@ -193,7 +193,7 @@ class ChatLine extends PureComponent {
 			});
 
 			header = (
-				<div className="line__header">
+				<div className="line__header" key="header">
 					<strong>Expanded view</strong>
 					<span className="line__context">
 						<Link to={`${channelUrl(channel)}#line-${lineId}`}
@@ -211,31 +211,27 @@ class ChatLine extends PureComponent {
 
 			contextLinkEl = null;
 
-			if (before.length) {
-				contextBefore = (
-					<div className="line__context-before line__context-before--edged" ref="before">
-						<ChatLines
-							messages={before}
-							displayChannel={displayChannel}
-							displayUsername={displayUsername}
-							displayFirstDate={false} />
-						<div key="before-edge" ref="beforeEdge" />
-					</div>
-				);
-			}
+			contextBefore = (
+				<div className="line__context-before line__context-before--edged" ref="before" key="before">
+					<ChatLines
+						messages={before}
+						displayChannel={displayChannel}
+						displayUsername={displayUsername}
+						displayFirstDate={false} />
+					<div key="before-edge" ref="beforeEdge" />
+				</div>
+			);
 
-			if (after.length) {
-				contextAfter = (
-					<div className="line__context-after line__context-after--edged" ref="after">
-						<div key="after-edge" ref="afterEdge" />
-						<ChatLines
-							messages={after}
-							displayChannel={displayChannel}
-							displayUsername={displayUsername}
-							displayFirstDate={false} />
-					</div>
-				);
-			}
+			contextAfter = (
+				<div className="line__context-after line__context-after--edged" ref="after" key="after">
+					<div key="after-edge" ref="afterEdge" />
+					<ChatLines
+						messages={after}
+						displayChannel={displayChannel}
+						displayUsername={displayUsername}
+						displayFirstDate={false} />
+				</div>
+			);
 		}
 
 		const timeStampEl = (
