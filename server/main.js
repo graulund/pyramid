@@ -1067,7 +1067,7 @@ const parseDbLine = function(line, callback) {
 			const config = getIrcConfigByName(l.server);
 
 			if (
-				config && config.username &&
+				config && config.username && l.username &&
 				config.username.toLowerCase() !== l.username.toLowerCase()
 			) {
 				highlight = getHighlightStringsForMessage(
