@@ -10,6 +10,7 @@ import ChannelUserList from "./ChannelUserList.jsx";
 import ChatInput from "./ChatInput.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
+import Loader from "../components/Loader.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import { timeStampDate } from "../lib/formatting";
 import * as io from "../lib/io";
@@ -59,6 +60,7 @@ class ChatView extends Component {
 		// View-related state
 
 		this.state = {
+			loading: true,
 			logBrowserOpen: false,
 			userListOpen: false,
 			waitingForInfoForLineId: null
@@ -92,6 +94,7 @@ class ChatView extends Component {
 				this.channelUrl = newParams.channelName && newParams.serverName
 					? channelUrlFromNames(newParams.serverName, newParams.channelName) : null;
 
+				this.startLoading();
 				this.requestSubscription(newParams);
 				this.requestUnsubscription(currentParams);
 				this.requestLogDetails(newProps);
@@ -105,6 +108,7 @@ class ChatView extends Component {
 
 			// Logs change
 			if (currentParams.logDate !== newParams.logDate) {
+				this.startLoading();
 				this.requestLogFileIfNeeded(newProps);
 				this.clearObserver(newProps, newState);
 			}
@@ -148,6 +152,10 @@ class ChatView extends Component {
 			}
 
 			if (newState.userListOpen !== this.state.userListOpen) {
+				return true;
+			}
+
+			if (newState.loading !== this.state.loading) {
 				return true;
 			}
 		}
@@ -232,6 +240,11 @@ class ChatView extends Component {
 			currentParams.serverName !== newParams.serverName ||
 			currentParams.categoryName !== newParams.categoryName ||
 			currentParams.logDate !== newParams.logDate;
+	}
+
+	endLoading() {
+		this.setState({ loading: false });
+		this.loading = false;
 	}
 
 	flashLine(lineId) {
@@ -359,6 +372,8 @@ class ChatView extends Component {
 
 	onFirstContent() {
 		const { params } = this.props;
+
+		this.endLoading();
 
 		// Scroll to the bottom if we are a live channel
 		if (!params.logDate) {
@@ -514,6 +529,11 @@ class ChatView extends Component {
 		});
 	}
 
+	startLoading() {
+		this.setState({ loading: true });
+		this.loading = true;
+	}
+
 	setObserver (props = this.props, state = this.state) {
 		this.observer = this.getObserver(props, state);
 	}
@@ -658,7 +678,7 @@ class ChatView extends Component {
 	render() {
 		const messages = this.lines;
 		const { params } = this.props;
-		const { userListOpen } = this.state;
+		const { loading, userListOpen } = this.state;
 
 		var heading = null;
 
@@ -701,6 +721,12 @@ class ChatView extends Component {
 				: null;
 		}
 
+		var loader = null;
+
+		if (loading || this.loading) {
+			loader = <Loader key="loader" />;
+		}
+
 		return (
 			<div className={className} onClick={this.onClick}>
 				<div className="mainview__top">
@@ -711,6 +737,7 @@ class ChatView extends Component {
 				{ content }
 				{ input }
 				{ userList }
+				{ loader }
 			</div>
 		);
 	}

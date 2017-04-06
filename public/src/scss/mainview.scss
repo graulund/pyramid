@@ -19,6 +19,16 @@
 		overflow: hidden;
 	}
 
+	> .loader {
+		position: fixed;
+		top: 0;
+		left: 320px;
+		right: 0;
+		bottom: 0;
+		width: calc(100% - 320px);
+		height: 100%;
+	}
+
 	@media #{$mobile-media} {
 		margin: 0;
 
@@ -26,6 +36,11 @@
 			left: 0;
 			padding-left: 40px;
 			padding-right: 10px;
+		}
+
+		> .loader {
+			left: 0;
+			width: 100%;
 		}
 	}
 }

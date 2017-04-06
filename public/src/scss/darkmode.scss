@@ -16,6 +16,10 @@ body.darkmode {
 		color: #eee;
 	}
 
+	.loader:before, .loader:after {
+		border-bottom-color: #fff;
+	}
+
 	.sidebar__head,
 	.sidebar__list,
 	.sidebar__list-head,

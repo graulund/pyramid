@@ -1,0 +1,41 @@
+.loader {
+	position: relative;
+	width: 80px;
+	height: 80px;
+}
+
+.loader:before, .loader:after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: block;
+	width: 0;
+	height: 0;
+	border-left: 40px solid transparent;
+	border-right: 40px solid transparent;
+	border-bottom: 40px solid #006;
+	animation: 1s infinite linear loaderFade;
+}
+
+.loader:after {
+	animation-delay: -.5s;
+}
+
+@keyframes loaderFade {
+	0% {
+		border-left-width: 1px;
+		border-right-width: 1px;
+		border-bottom-width: 1px;
+		transform: translate3d(0, 0, 0);
+		opacity: 1;
+	}
+
+	100% {
+		border-left-width: 40px;
+		border-right-width: 40px;
+		border-bottom-width: 69px;
+		opacity: 0;
+		transform: translate3d(-40px, -34.5px, 0);
+	}
+}
