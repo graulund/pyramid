@@ -89,8 +89,10 @@ class TimedItem extends PureComponent {
 
 			// Color
 			const styles = timeColors(diff);
-			for(var property in styles) {
-				this.root.style[property] = styles[property];
+			for (var property in styles) {
+				if (this.root.style[property] !== styles[property]) {
+					this.root.style[property] = styles[property];
+				}
 			}
 		}
 
@@ -129,10 +131,10 @@ class TimedItem extends PureComponent {
 
 	renderSecondaryTimestamp(date, timeInfo) {
 		var sts = timeStamp(date, false);
-		const yesterdayMidnight = midnightDate(prevDay(date));
+		const now = new Date();
+		const yesterdayMidnight = midnightDate(prevDay(now));
 
 		if (!timeInfo) {
-			const now = Date.now();
 			const diff = Math.abs(now - date);
 			timeInfo = formatTime(diff);
 		}
