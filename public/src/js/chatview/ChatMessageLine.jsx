@@ -13,13 +13,13 @@ class ChatMessageLine extends PureComponent {
 	render() {
 		const {
 			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, /*highlight,*/ ircConfigs, isAction, message,
-			server, symbol = "", tags, username
+			enableUsernameColors, /*highlight,*/ ircConfigs, message,
+			server, symbol = "", tags, type, username
 		} = this.props;
 
 		//const isHighlight = !!(highlight && highlight.length);
 		const className = "msg" +
-			(isAction ? " msg--action" : "");
+			(type === "action" ? " msg--action" : "");
 
 		var messageEl = message;
 
@@ -97,7 +97,6 @@ ChatMessageLine.propTypes = {
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,
-	isAction: PropTypes.bool,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	observer: PropTypes.object,

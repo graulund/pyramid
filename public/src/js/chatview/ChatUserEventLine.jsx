@@ -68,7 +68,6 @@ ChatUserEventLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	highlight: PropTypes.array,
-	isAction: PropTypes.bool,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	mode: PropTypes.string,

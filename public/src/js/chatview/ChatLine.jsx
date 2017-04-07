@@ -283,7 +283,6 @@ ChatLine.propTypes = {
 	displayUsername: PropTypes.bool,
 	events: PropTypes.array,
 	highlight: PropTypes.array,
-	isAction: PropTypes.bool,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	mode: PropTypes.string,

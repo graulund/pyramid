@@ -303,7 +303,7 @@ export function initializeIo() {
 				}));
 			}
 
-			if (!relationship || type !== "msg") {
+			if (!relationship || (type !== "msg" && type !== "action")) {
 				return;
 			}
 
@@ -320,6 +320,7 @@ export function initializeIo() {
 		};
 
 		socket.on("msg", onChatEvent);
+		socket.on("action", onChatEvent);
 		socket.on("join", onChatEvent);
 		socket.on("part", onChatEvent);
 		socket.on("quit", onChatEvent);
