@@ -224,12 +224,14 @@ module.exports = function(main) {
 		});
 
 		client.addListener("message", function (username, channel, message, rawData) {
+			if (!username || !channel) { return; }
 			handleIncomingMessage(
 				client, username, channel, "msg", message, rawData.tags || {}
 			);
 		});
 
 		client.addListener("action", function (username, channel, message, rawData) {
+			if (!username || !channel) { return; }
 			handleIncomingMessage(
 				client, username, channel, "action", message, rawData.tags || {}
 			);
