@@ -160,14 +160,14 @@
 
 	.userevent, .bunchedevents {
 		position: relative;
-		padding: 0 0 0 .6em;
+		padding: 0 0 0 .8em;
 		color: #999;
 
 		&:before {
 			content: "■";
 			color: transparent;
 			position: absolute;
-			left: 0;
+			left: .1em;
 			bottom: .4em;
 			width: .3em;
 			height: .3em;
