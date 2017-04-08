@@ -23,7 +23,7 @@ var lastSeenChannels = {};
 var lastSeenUsers = {};
 
 var channelUserLists = {};
-var currentOnlineFriends = {};
+var currentOnlineFriends = [];
 
 var channelCaches = {};
 var userCaches = {};
