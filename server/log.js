@@ -86,9 +86,9 @@ const lineFormats = {
 			var match = line.match(new RegExp(`^<${USERNAME_SYMBOL_RGXSTR}>\s*`));
 			if (match) {
 				return {
-					isAction: false,
 					message: line.substr(match[0].length),
 					symbol: match[1],
+					type: "msg",
 					username: match[2]
 				};
 			}
@@ -105,8 +105,27 @@ const lineFormats = {
 			var match = line.match(/^\*\s*([^\s\*]+)\s+/);
 			if (match) {
 				return {
-					isAction: true,
 					message: line.substr(match[0].length),
+					type: "action",
+					username: match[1]
+				};
+			}
+
+			return null;
+		}
+	},
+
+	notice: {
+		build: (symbol, username, message) => {
+			username = username || "notice";
+			return `-${symbol}${username}- ${message}`;
+		},
+		parse: (line) => {
+			var match = line.match(new RegExp(`^-${USERNAME_SYMBOL_RGXSTR}-\s*`));
+			if (match) {
+				return {
+					message: line.substr(match[0].length),
+					type: "notice",
 					username: match[1]
 				};
 			}

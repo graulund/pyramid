@@ -273,6 +273,13 @@ module.exports = function(main) {
 			);
 		});
 
+		client.addListener("notice", function (username, channel, message, rawData) {
+			if (!channel) { return; }
+			handleIncomingMessage(
+				client, username, channel, "notice", message, rawData.tags || {}
+			);
+		});
+
 		client.addListener("error", function(message) {
 			main.handleChatNetworkError(message);
 		});

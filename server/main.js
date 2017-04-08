@@ -509,16 +509,20 @@ const reloadOnlineFriends = function() {
 };
 
 const getUserColorNumber = (username) => {
-	username = username.toLowerCase();
+	if (username) {
+		username = username.toLowerCase();
 
-	var hashedValue = new long(0);
+		var hashedValue = new long(0);
 
-	for (var i = 0; i < username.length; i++) {
-		var c = username.charCodeAt(i);
-		hashedValue = hashedValue.shiftLeft(6).add(hashedValue).add(c);
+		for (var i = 0; i < username.length; i++) {
+			var c = username.charCodeAt(i);
+			hashedValue = hashedValue.shiftLeft(6).add(hashedValue).add(c);
+		}
+
+		return hashedValue.mod(30).toNumber();
 	}
 
-	return hashedValue.mod(30).toNumber();
+	return null;
 };
 
 const getHighlightStringsForMessage = function(message, channelUri, meUsername) {
@@ -568,7 +572,7 @@ const handleIncomingMessage = function(
 
 	// Highlighted? Add to specific logs
 	var highlightStrings = [];
-	if (username.toLowerCase() !== meUsername.toLowerCase()) {
+	if (!username || username.toLowerCase() !== meUsername.toLowerCase()) {
 		highlightStrings = getHighlightStringsForMessage(
 			message, channelUri, meUsername
 		);

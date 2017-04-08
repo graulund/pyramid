@@ -19,7 +19,7 @@ class ChatMessageLine extends PureComponent {
 
 		//const isHighlight = !!(highlight && highlight.length);
 		const className = "msg" +
-			(type === "action" ? " msg--action" : "");
+			(type !== "msg" ? ` msg--${type}` : "");
 
 		var messageEl = message;
 
@@ -66,7 +66,7 @@ class ChatMessageLine extends PureComponent {
 
 		const content = (
 			<span className={className} data-user-id={authorUserId} key="main">
-				{ displayUsername
+				{ username && displayUsername
 					? [
 						<ChatUsername
 							className={authorClassName}

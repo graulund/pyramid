@@ -127,13 +127,15 @@ class ChatLine extends PureComponent {
 		const isHighlight = !!(highlight && highlight.length);
 		const className = "line" +
 			(isHighlight ? " line--highlight" : "") +
-			(showContext ? " line--with-context": "");
+			(showContext ? " line--with-context": "") +
+			(type === "notice" ? " line--notice" : "");
 
 		var content = null;
 
 		switch (type) {
 			case "msg":
 			case "action":
+			case "notice":
 				content = <ChatMessageLine {...this.props} key="content" />;
 				break;
 			case "join":

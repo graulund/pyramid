@@ -209,17 +209,20 @@ const generateAcceptedToken = function(length = 60) {
 // Relationship utilities
 
 const getRelationship = function(username, friendsList) {
-	username = username.toLowerCase();
 
-	const bestFriends = friendsList[constants.RELATIONSHIP_BEST_FRIEND] || [];
-	const friends = friendsList[constants.RELATIONSHIP_FRIEND] || [];
+	if (username) {
+		username = username.toLowerCase();
 
-	if (bestFriends.indexOf(username) >= 0) {
-		return constants.RELATIONSHIP_BEST_FRIEND;
-	}
+		const bestFriends = friendsList[constants.RELATIONSHIP_BEST_FRIEND] || [];
+		const friends = friendsList[constants.RELATIONSHIP_FRIEND] || [];
 
-	if (friends.indexOf(username) >= 0) {
-		return constants.RELATIONSHIP_FRIEND;
+		if (bestFriends.indexOf(username) >= 0) {
+			return constants.RELATIONSHIP_BEST_FRIEND;
+		}
+
+		if (friends.indexOf(username) >= 0) {
+			return constants.RELATIONSHIP_FRIEND;
+		}
 	}
 
 	return constants.RELATIONSHIP_NONE;
