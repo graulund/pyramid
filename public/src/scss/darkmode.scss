@@ -43,6 +43,13 @@ body.darkmode {
 			color: #777;
 		}
 
+		.userevent,
+		.bunchedevents {
+			&:before {
+				background-color: #777;
+			}
+		}
+
 		.line__context {
 			&-before--edged {
 				border-bottom-color: #111;

@@ -159,7 +159,21 @@
 	}
 
 	.userevent, .bunchedevents {
+		position: relative;
+		padding: 0 0 0 .6em;
 		color: #999;
+
+		&:before {
+			content: "■";
+			color: transparent;
+			position: absolute;
+			left: 0;
+			bottom: .4em;
+			width: .3em;
+			height: .3em;
+			background-color: #999;
+			opacity: .8;
+		}
 	}
 
 	.userevent--strong {
