@@ -23,6 +23,7 @@ var lastSeenChannels = {};
 var lastSeenUsers = {};
 
 var channelUserLists = {};
+var currentOnlineFriends = {};
 
 var channelCaches = {};
 var userCaches = {};
@@ -463,6 +464,7 @@ const cacheMessage = function(
 const setChannelUserList = function(channelUri, userList) {
 	if (channelUri) {
 		channelUserLists[channelUri] = userList || {};
+		reloadOnlineFriends();
 	}
 };
 
@@ -472,6 +474,38 @@ const getUserCurrentSymbol = function(channelUri, userName) {
 	}
 
 	return "";
+};
+
+const reloadOnlineFriends = function() {
+	const onlines = new Set();
+
+	lodash.forOwn(channelUserLists, (list) => {
+		// TODO: Vary friends by server at some point
+		if (list) {
+			const names = Object.keys(list);
+			names.forEach((name) => {
+				const relationship = util.getRelationship(name, currentFriendsList);
+				if (relationship >= constants.RELATIONSHIP_FRIEND) {
+					onlines.add(name.toLowerCase());
+				}
+			});
+		}
+	});
+
+	const list = Array.from(onlines).sort();
+
+	// Only apply if something changed
+
+	if (
+		list.length !== currentOnlineFriends.length ||
+		!list.every((name, i) => name === currentOnlineFriends[i])
+	) {
+		currentOnlineFriends = list;
+
+		if (io) {
+			io.emitOnlineFriends();
+		}
+	}
 };
 
 const getUserColorNumber = (username) => {
@@ -591,6 +625,8 @@ const handleIncomingEvent = function(
 		if (io) {
 			io.emitChannelUserListToRecipients(channelUri);
 		}
+
+		reloadOnlineFriends();
 	}
 
 	const metadata = {
@@ -1313,6 +1349,7 @@ module.exports = {
 	currentIrcClients,
 	currentIrcConnectionState: () => currentIrcConnectionState,
 	currentNicknames: () => currentNicknames,
+	currentOnlineFriends: () => currentOnlineFriends,
 	currentViewState: () => currentViewState,
 	disconnectIrcServer,
 	flushCachedLastSeens,

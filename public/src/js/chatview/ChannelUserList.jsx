@@ -8,6 +8,8 @@ import TimedUserItem from "../components/TimedUserItem.jsx";
 const USER_SYMBOL_ORDER = ["~", "&", "@", "%", "+"];
 
 class ChannelUserList extends PureComponent {
+	// TODO: Change into a wrapper of <UserList />?
+
 	shouldComponentUpdate(newProps) {
 		if (newProps) {
 			const { channel, channelUserLists, lastSeenUsers } = this.props;

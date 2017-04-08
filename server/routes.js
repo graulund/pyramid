@@ -144,6 +144,7 @@ module.exports = function(app, main) {
 					lastSeenChannels: main.lastSeenChannels(),
 					lastSeenUsers: main.lastSeenUsers(),
 					nicknames: main.nicknamesDict(),
+					onlineFriends: main.currentOnlineFriends(),
 					token: getUsedToken(req),
 					viewState: main.currentViewState(),
 					// Includes

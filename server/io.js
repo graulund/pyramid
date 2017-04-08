@@ -236,6 +236,14 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitOnlineFriends = function() {
+		if (io) {
+			io.emit("onlineFriends", {
+				data: main.currentOnlineFriends()
+			});
+		}
+	};
+
 	// Deferred server availability
 	const setServer = (_server) => {
 		server = _server;
@@ -704,6 +712,7 @@ module.exports = function(main) {
 		emitIrcConnectionStatus,
 		emitMessageToRecipients,
 		emitNewHighlight,
+		emitOnlineFriends,
 		emitUnseenHighlights,
 		setServer
 	};

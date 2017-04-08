@@ -60,6 +60,10 @@ export const nicknames = {
 	"UPDATE": "nicknames/UPDATE"
 };
 
+export const onlineFriends = {
+	"SET": "onlineFriends/SET"
+};
+
 export const token = {
 	"SET": "token/SET"
 };

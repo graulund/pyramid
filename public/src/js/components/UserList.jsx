@@ -35,6 +35,7 @@ class UserList extends PureComponent {
 		const userListNodes = usernames.map((userName) => {
 			const userData = lastSeenUsers[userName];
 			return <TimedUserItem
+				displayOnline
 				userData={userData}
 				userName={userName}
 				skipOld={hideOldUsers}

@@ -21,6 +21,15 @@
 			font-size: 125%;
 			padding-right: 60px;
 		}
+
+		&.online {
+			strong {
+				&:after {
+					content: " ●";
+					color: #1b6;
+				}
+			}
+		}
 	}
 
 	a {

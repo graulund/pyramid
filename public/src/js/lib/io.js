@@ -489,5 +489,13 @@ export function initializeIo() {
 				store.dispatch(actions.nicknames.set(details.data));
 			}
 		});
+
+		socket.on("onlineFriends", (details) => {
+			if (details && details.data) {
+				console.log("Received onlineFriends", details);
+				store.dispatch(actions.onlineFriends.set(details.data));
+			}
+		});
+
 	}
 }

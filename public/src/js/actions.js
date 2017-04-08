@@ -151,6 +151,14 @@ export default {
 			};
 		}
 	},
+	onlineFriends: {
+		set(data) {
+			return {
+				type: actionTypes.onlineFriends.SET,
+				data
+			};
+		}
+	},
 	token: {
 		set(data) {
 			return {

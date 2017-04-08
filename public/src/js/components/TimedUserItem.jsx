@@ -10,16 +10,21 @@ class TimedUserItem extends PureComponent {
 
 	render() {
 		const {
-			friendsList, skipOld = true, symbol = "", userData, userName
+			displayOnline = false, friendsList = {}, onlineFriends = [],
+			skipOld = true, symbol = "", userData, userName
 		} = this.props;
 
 		var classNames = [];
 
 		if (
 			friendsList[RELATIONSHIP_BEST_FRIEND] &&
-			friendsList[RELATIONSHIP_BEST_FRIEND].indexOf(userName) >= 0
+			friendsList[RELATIONSHIP_BEST_FRIEND].indexOf(userName.toLowerCase()) >= 0
 		) {
 			classNames.push("bestfriend");
+		}
+
+		if (displayOnline && onlineFriends.indexOf(userName.toLowerCase()) >= 0) {
+			classNames.push("online");
 		}
 
 		var className = classNames.join(" ");
@@ -54,11 +59,19 @@ class TimedUserItem extends PureComponent {
 }
 
 TimedUserItem.propTypes = {
+	displayOnline: PropTypes.bool,
 	friendsList: PropTypes.object,
+	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
 	userData: PropTypes.object,
 	userName: PropTypes.string
 };
 
-export default connect(({ friendsList }) => ({ friendsList }))(TimedUserItem);
+export default connect(({
+	friendsList,
+	onlineFriends
+}) => ({
+	friendsList,
+	onlineFriends
+}))(TimedUserItem);

@@ -33,6 +33,10 @@ if (window.pyramid_myToken) {
 	window.pyramid_myToken = undefined;
 }
 
+if (window.pyramid_appConfig) {
+	store.dispatch(actions.appConfig.update(window.pyramid_appConfig));
+}
+
 if (window.pyramid_friendsList) {
 	store.dispatch(actions.friendsList.set(window.pyramid_friendsList));
 }
@@ -53,12 +57,12 @@ if (window.pyramid_lastSeenUsers) {
 	store.dispatch(actions.lastSeenUsers.update(window.pyramid_lastSeenUsers));
 }
 
-if (window.pyramid_appConfig) {
-	store.dispatch(actions.appConfig.update(window.pyramid_appConfig));
-}
-
 if (window.pyramid_nicknames) {
 	store.dispatch(actions.nicknames.set(window.pyramid_nicknames));
+}
+
+if (window.pyramid_onlineFriends) {
+	store.dispatch(actions.onlineFriends.set(window.pyramid_onlineFriends));
 }
 
 // Sockets
