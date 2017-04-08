@@ -110,6 +110,7 @@ class ChannelUserList extends PureComponent {
 					}
 
 					return <TimedUserItem
+						contextChannel={channel}
 						userData={userData}
 						userName={userName}
 						symbol={symbol}

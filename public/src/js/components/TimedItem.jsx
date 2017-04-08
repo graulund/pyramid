@@ -6,16 +6,27 @@ import TimeAgo from "react-timeago";
 import { formatTime, midnightDate, prevDay, timeColors, timeStamp }
 	from "../lib/formatting";
 
-// Custom timeago formatter to reduce granularity for really recent events
+// Custom timeago formatter for more succinct outputs
 
-const lessGranularFormatter = (value, unit, suffix, date, defaultFormatter) => {
+const formatter = (value, unit, suffix, date, defaultFormatter) => {
+
+	// Reduce granularity for really recent events
 	if (unit === "second") {
 		if (value < 30) {
-			return "a few seconds " + suffix;
+			return "now";
 		}
 		else {
-			return "1 minute " + suffix;
+			return "1m " + suffix;
 		}
+	}
+
+	if (
+		unit === "second" ||
+		unit === "minute" ||
+		unit === "hour" ||
+		unit === "day"
+	) {
+		return value + unit[0] + " " + suffix;
 	}
 
 	return defaultFormatter(value, unit, suffix, date);
@@ -198,7 +209,7 @@ class TimedItem extends PureComponent {
 			this.stStr = secondaryTimestamp;
 
 			// Live timestamp
-			primaryTimeEl = <TimeAgo date={time} formatter={lessGranularFormatter} />;
+			primaryTimeEl = <TimeAgo date={time} formatter={formatter} />;
 			secondaryTimeEl = <div className="ts" ref="sts">{ secondaryTimestamp }</div>;
 		} else {
 
