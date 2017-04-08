@@ -674,7 +674,7 @@ module.exports = function(main) {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
 					const name = util.formatUriName(details.name);
-					main.reconnectIrcServer(details.name);
+					main.reconnectIrcServer(name);
 				}
 			});
 		});
