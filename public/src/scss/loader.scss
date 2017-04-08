@@ -14,28 +14,20 @@
 	height: 0;
 	border-left: 40px solid transparent;
 	border-right: 40px solid transparent;
-	border-bottom: 40px solid #006;
-	animation: 1s infinite linear loaderFade;
+	border-bottom: 69px solid #006;
+	transform: translate3d(-40px, -34.5px, 0);
+	transform-origin: 50% 64% 0;
+	opacity: 0;
+	animation: 1s infinite linear loader;
 }
 
 .loader:after {
 	animation-delay: -.5s;
 }
 
-@keyframes loaderFade {
+@keyframes loader {
 	0% {
-		border-left-width: 1px;
-		border-right-width: 1px;
-		border-bottom-width: 1px;
-		transform: translate3d(0, 0, 0);
+		transform: translate3d(-40px, -34.5px, 0) scale(0.025);
 		opacity: 1;
-	}
-
-	100% {
-		border-left-width: 40px;
-		border-right-width: 40px;
-		border-bottom-width: 69px;
-		opacity: 0;
-		transform: translate3d(-40px, -45.5px, 0);
 	}
 }
