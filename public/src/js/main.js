@@ -41,6 +41,10 @@ if (window.pyramid_ircConfigs) {
 	store.dispatch(actions.ircConfigs.set(window.pyramid_ircConfigs));
 }
 
+if (window.pyramid_ircConnectionState) {
+	store.dispatch(actions.connectionStatus.update(window.pyramid_ircConnectionState));
+}
+
 if (window.pyramid_lastSeenChannels) {
 	store.dispatch(actions.lastSeenChannels.update(window.pyramid_lastSeenChannels));
 }

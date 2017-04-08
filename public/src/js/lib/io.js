@@ -230,6 +230,12 @@ export function removeNickname(nickname) {
 	}
 }
 
+export function reconnectToIrcServer(name) {
+	if (socket) {
+		socket.emit("reconnectToIrcServer", { name });
+	}
+}
+
 export function initializeIo() {
 	if (window.io) {
 		io = window.io;
@@ -362,6 +368,14 @@ export function initializeIo() {
 				if (usersDirty) {
 					updateLastSeenUsers(userUpdates);
 				}
+			}
+		});
+
+		socket.on("connectionStatus", (details) => {
+			if (details && details.serverName && details.status) {
+				store.dispatch(actions.connectionStatus.update({
+					[details.serverName]: details.status
+				}));
 			}
 		});
 

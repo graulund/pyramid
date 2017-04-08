@@ -19,7 +19,7 @@
 		background: rgba(0,0,51,.067);
 	}
 
-	.app-container--with-connection-info & {
+	.app-container--with-notice & {
 		&, &:after {
 			top: 40px;
 		}
@@ -97,7 +97,7 @@
 	&__close, &__open {
 		top: 12px;
 
-		.app-container--with-connection-info & {
+		.app-container--with-notice & {
 			top: 52px;
 		}
 	}

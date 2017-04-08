@@ -140,6 +140,7 @@ module.exports = function(app, main) {
 					appConfig: lodash.assign({}, configDefaults, results.appConfig),
 					friendsList: main.currentFriendsList(),
 					ircConfig: main.safeIrcConfigDict(results.ircConfig),
+					ircConnectionState: main.currentIrcConnectionState(),
 					lastSeenChannels: main.lastSeenChannels(),
 					lastSeenUsers: main.lastSeenUsers(),
 					nicknames: main.nicknamesDict(),

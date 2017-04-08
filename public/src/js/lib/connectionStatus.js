@@ -6,6 +6,7 @@ export const GLOBAL_CONNECTION = "_global";
 export const STATUS = {
 	CONNECTED: "connected",
 	DISCONNECTED: "disconnected",
+	FAILED: "failed",
 	REJECTED: "rejected"
 };
 

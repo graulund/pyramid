@@ -227,6 +227,15 @@ module.exports = function(main) {
 		});
 	};
 
+	const emitIrcConnectionStatus = function(serverName, status) {
+		if (io) {
+			io.emit("connectionStatus", {
+				serverName,
+				status
+			});
+		}
+	};
+
 	// Deferred server availability
 	const setServer = (_server) => {
 		server = _server;
@@ -660,6 +669,14 @@ module.exports = function(main) {
 					);
 				}
 			});
+
+			socket.on("reconnectToIrcServer", (details) => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && details.name) {
+					const name = util.formatUriName(details.name);
+					main.reconnectIrcServer(details.name);
+				}
+			});
 		});
 	};
 
@@ -684,6 +701,7 @@ module.exports = function(main) {
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
 		emitEventToChannel,
+		emitIrcConnectionStatus,
 		emitMessageToRecipients,
 		emitNewHighlight,
 		emitUnseenHighlights,

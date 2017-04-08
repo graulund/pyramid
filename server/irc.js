@@ -184,7 +184,14 @@ module.exports = function(main) {
 			serverName,
 			username
 		});
-	}
+	};
+
+	const handleConnectionStateChange = function(client, state) {
+		const server = clientServerName(client);
+		if (server) {
+			main.handleIrcConnectionStateChange(server, state);
+		}
+	};
 
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
@@ -192,12 +199,41 @@ module.exports = function(main) {
 	};
 
 	const setUpClient = function(client) {
+
 		client.addListener("connect", function() {
+			client.aborted = false;
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.CONNECTED
+			);
 			main.plugins().handleEvent("connect", { client });
 		});
 
 		client.addListener("registered", function() {
 			main.plugins().handleEvent("registered", { client });
+		});
+
+		client.addListener("close", function() {
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.DISCONNECTED
+			);
+		});
+
+		client.addListener("end", function() {
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.DISCONNECTED
+			);
+		});
+
+		client.addListener("abort", function() {
+			client.aborted = true;
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.FAILED
+			);
+		});
+
+		client.addListener("netError", function(exception) {
+			// TODO: Send net error info to client
+			console.log("IRC NET ERROR", exception);
 		});
 
 		client.addListener("unhandled", function(message) {
@@ -378,9 +414,23 @@ module.exports = function(main) {
 		}
 	};
 
+	const reconnectServer = function(serverName) {
+		const c = findClientByServerName(serverName);
+		if (c && c.aborted) {
+			c.connect();
+		}
+		else {
+			console.log(
+				"Disregarded " + serverName +
+				" IRC reconnect request, because client isn't aborted"
+			);
+		}
+	};
+
 	const disconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
+			c.aborted = true;
 			c.disconnect();
 		}
 	};
@@ -394,6 +444,7 @@ module.exports = function(main) {
 		go,
 		joinChannel,
 		partChannel,
+		reconnectServer,
 		sendOutgoingMessage
 	};
 

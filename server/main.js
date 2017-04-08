@@ -38,6 +38,7 @@ var cachedLastSeens = {};
 var unseenHighlightIds = new Set();
 
 var currentViewState = {};
+var currentIrcConnectionState = {};
 
 // (name/uri => id caches)
 
@@ -611,8 +612,19 @@ const handleIncomingEvent = function(
 	}
 };
 
+const handleIrcConnectionStateChange = function(serverName, status) {
+	const info = { status, time: new Date() };
+	currentIrcConnectionState[serverName] = info;
+
+	if (io) {
+		io.emitIrcConnectionStatus(serverName, info);
+	}
+}
+
 const handleChatNetworkError = function(message) {
 	console.log("WARN: Chat network error occurred:", message);
+
+	// TODO: Add error to a server cache
 };
 
 // Recipients of messages
@@ -1224,9 +1236,13 @@ const connectUnconnectedIrcs = function() {
 	irc.connectUnconnectedClients();
 };
 
+const reconnectIrcServer = function(serverName) {
+	irc.reconnectServer(serverName);
+};
+
 const disconnectIrcServer = function(serverName) {
 	irc.disconnectServer(serverName);
-}
+};
 
 const joinIrcChannel = function(serverName, channelName) {
 	irc.joinChannel(serverName, channelName);
@@ -1295,6 +1311,7 @@ module.exports = {
 	currentFriendsList: () => currentFriendsList,
 	currentIrcConfig: () => currentIrcConfig,
 	currentIrcClients,
+	currentIrcConnectionState: () => currentIrcConnectionState,
 	currentNicknames: () => currentNicknames,
 	currentViewState: () => currentViewState,
 	disconnectIrcServer,
@@ -1316,6 +1333,7 @@ module.exports = {
 	handleChatNetworkError,
 	handleIncomingEvent,
 	handleIncomingMessage,
+	handleIrcConnectionStateChange,
 	joinIrcChannel,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
@@ -1329,6 +1347,7 @@ module.exports = {
 	nicknamesDict,
 	partIrcChannel,
 	plugins: () => plugins,
+	reconnectIrcServer,
 	removeCategoryRecipient,
 	removeChannelFromIrcConfig,
 	removeChannelRecipient,
