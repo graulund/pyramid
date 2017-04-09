@@ -4,6 +4,7 @@ node_modules/
 .idea/
 
 # Run-time data
+config.js
 data/
 public/data/
 public/dist/
