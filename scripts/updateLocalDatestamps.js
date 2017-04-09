@@ -22,37 +22,38 @@ const getLocalDatestampFromTime = (time) => {
 };
 
 // Load db
-dbSource({ localMoment, setDb: (_) => { db = _; } });
+dbSource({ localMoment, setDb: (_) => { db = _; } }, () => {
 
-// Load time zone settings
-db.getConfigValue("timeZone", (err, val) => {
-	if (val && typeof val === "string") {
-		timeZone = val;
+	// Load time zone settings
+	db.getConfigValue("timeZone", (err, val) => {
+		if (val && typeof val === "string") {
+			timeZone = val;
 
-		console.log("Got time zone: " + timeZone);
-		console.log();
+			console.log("Got time zone: " + timeZone);
+			console.log();
 
-		// Main action
-		db._db.each("SELECT lineId, time, date FROM lines", (err, row) => {
-			if (err) {
-				console.error("Read error:", err);
-			}
-			else if (row && row.lineId && row.time) {
-				const localDate = getLocalDatestampFromTime(row.time);
-				if (localDate !== row.date) {
-					console.log(`Updating ${row.lineId}`);
-					console.log(`\tLocal date for ${row.time} is ${localDate}`);
-
-					db._db.run("UPDATE lines SET date = $date WHERE lineId = $lineId", {
-						$date: localDate,
-						$lineId: row.lineId
-					}, (err) => {
-						if (err) {
-							console.error("Write error:", err);
-						}
-					});
+			// Main action
+			db._db.each("SELECT lineId, time, date FROM lines", (err, row) => {
+				if (err) {
+					console.error("Read error:", err);
 				}
-			}
-		});
-	}
+				else if (row && row.lineId && row.time) {
+					const localDate = getLocalDatestampFromTime(row.time);
+					if (localDate !== row.date) {
+						console.log(`Updating ${row.lineId}`);
+						console.log(`\tLocal date for ${row.time} is ${localDate}`);
+
+						db._db.run("UPDATE lines SET date = $date WHERE lineId = $lineId", {
+							$date: localDate,
+							$lineId: row.lineId
+						}, (err) => {
+							if (err) {
+								console.error("Write error:", err);
+							}
+						});
+					}
+				}
+			});
+		}
+	});
 });

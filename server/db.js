@@ -807,7 +807,7 @@ const mainMethods = function(main, db) {
 	main.setDb(output);
 };
 
-module.exports = function(main) {
+module.exports = function(main, callback) {
 	// Create database if needed
 	createDatabaseFromEmpty((err) => {
 		if (err) {
@@ -817,6 +817,10 @@ module.exports = function(main) {
 			// Open database
 			var db = new sqlite.Database(DB_FILENAME);
 			mainMethods(main, db);
+
+			if (typeof callback === "function") {
+				callback();
+			}
 		}
 	});
 };
