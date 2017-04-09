@@ -1,6 +1,6 @@
 // Constants
 
-export const VERSION = "1.0-edge";
+export const VERSION = "1.0-beta1";
 
 export const DEFAULT_COLOR_RGB = "0,0,51";
 export const DEFAULT_TIMEZONE = "UTC";

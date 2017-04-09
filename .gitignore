@@ -7,7 +7,6 @@ node_modules/
 config.js
 data/
 public/data/
-public/dist/
 *.pid
 *.seed
 npm-debug.log
