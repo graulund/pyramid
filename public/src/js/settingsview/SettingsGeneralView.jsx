@@ -4,6 +4,7 @@ import debounce from "lodash/debounce";
 
 import { CHANGE_DEBOUNCE_MS, VERSION } from "../constants";
 import * as io from "../lib/io";
+import { timeZoneFormattedList } from "../lib/timeZones";
 
 class SettingsGeneralView extends PureComponent {
 	constructor(props) {
@@ -23,6 +24,14 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Web password",
 					type: "password",
 					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
+				}
+			],
+			"Time zone": [
+				{
+					name: "timeZone",
+					readableName: "Your time zone",
+					type: "enum",
+					valuePairs: timeZoneFormattedList()
 				}
 			],
 			"Storage": [
@@ -210,17 +219,33 @@ class SettingsGeneralView extends PureComponent {
 					key="input" />;
 				break;
 			case "enum":
+				var options = null, defaultValue = appConfig[name];
+				var valueTransform = (v) => v;
+
+				if (setting.valuePairs) {
+					options = setting.valuePairs.map((pair, i) => {
+						let key = pair[0], name = pair[1];
+						return <option key={i} value={key}>{ name }</option>;
+					});
+				}
+				else if (setting.valueNames) {
+					// Assume numeric values
+					defaultValue = +appConfig[name] || 0;
+					valueTransform = (v) => +v;
+					options = setting.valueNames.map(
+						(name, i) => <option key={i} value={i}>{ name }</option>
+					);
+				}
+
 				mainInput = (
 					<select
 						id={name}
-						defaultValue={+appConfig[name] || 0}
-						onChange={(evt) => myChangeValue(name, +evt.target.value)}
+						defaultValue={defaultValue}
+						onChange={(evt) =>
+							myChangeValue(name, valueTransform(evt.target.value))}
 						disabled={isDisabled}
 						key="input">
-						{ setting.valueNames.map(
-							(name, i) =>
-								<option key={i} value={i}>{ name }</option>
-						) }
+						{ options }
 					</select>
 				);
 				break;
@@ -239,11 +264,19 @@ class SettingsGeneralView extends PureComponent {
 			(isDisabled ? " settings__setting--disabled" : "");
 
 		// Output
+
+		if (prefixInput) {
+			prefixInput = [prefixInput, " "];
+		}
+
 		return (
 			<div className={className} key={name}>
-				<h3>{ prefixInput } <label htmlFor={name}>{ readableName }</label></h3>
+				<h3>
+					{ prefixInput }
+					<label htmlFor={name}>{ readableName }</label>
+				</h3>
 				{ mainInput }
-				<p>{ description }</p>
+				{ description ? <p>{ description }</p> : null }
 				{ notice ? <p><em>{ notice }</em></p> : null }
 			</div>
 		);

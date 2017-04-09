@@ -3,7 +3,7 @@
 export const VERSION = "1.0-edge";
 
 export const DEFAULT_COLOR_RGB = "0,0,51";
-export const DEFAULT_TIMEZONE = "Europe/Copenhagen";
+export const DEFAULT_TIMEZONE = "UTC";
 export const ROOT_PATHNAME = "";
 
 export const CACHE_LINES = 150;
