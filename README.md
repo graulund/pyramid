@@ -3,6 +3,8 @@ Pyramid
 
 **Pyramid 1.0 beta 1 is out! Yay!**
 
+![pyramid-screenshot-resized](https://cloud.githubusercontent.com/assets/80858/24841349/cd66d46e-1d82-11e7-9108-b7e4295413e0.png)
+
 ## About
 
 Get real time status of your friends on any IRC network, and talk to them too! Stay online even when you're not viewing chat, and see what happened when you were gone. Browse logs. 
