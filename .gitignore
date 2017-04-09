@@ -4,11 +4,6 @@ node_modules/
 .idea/
 
 # Run-time data
-config.js
-config-prod.js
-key.js
-lastSeenChannels.json
-lastSeenUsers.json
 data/
 public/data/
 public/dist/
