@@ -1,13 +1,18 @@
 <%
-	var bodyClasses = [];
+	var bodyClasses = [], _enableScripts = true;
 
-	if (appConfig && appConfig.enableDarkMode) {
-		bodyClasses.push("darkmode");
-	}
+	try {
+		if (appConfig && appConfig.enableDarkMode) {
+			bodyClasses.push("darkmode");
+		}
+	} catch(e) {}
+
+	try {
+		_enableScripts = enableScripts;
+	} catch(e) {}
 
 	var bodyClassName = bodyClasses.join(" ");
-%>
-<!DOCTYPE html>
+%><!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -16,14 +21,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<link rel="icon" sizes="129x129" href="/img/touchicon.png" type="image/png">
 	<link rel="apple-touch-icon" href="/img/touchicon.png" type="image/png">
-	<script src="/socket.io/socket.io.js"></script>
 </head>
 <body class="<%= bodyClassName %>">
 <div id="container">
 	<section id="content">
 		<%- body %>
 	</section>
+<% if (_enableScripts) { %>
+	<script src="/socket.io/socket.io.js"></script>
 	<script src="/dist/js/main.js"></script>
+<% } %>
 </div>
 </body>
 </html>

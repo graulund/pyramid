@@ -980,6 +980,7 @@ const addServerToIrcConfig = function(data, callback) {
 
 	if (data && data.name && data.name.charAt(0) === "_") {
 		// Not allowed to start a server name with "_"
+		callback(new Error("Not allowed to start a server name with an underscore"));
 		return;
 	}
 
@@ -1061,6 +1062,7 @@ const removeServerFromIrcConfig = function(serverName, callback) {
 };
 
 const addChannelToIrcConfig = function(serverName, name, callback) {
+	name = name.replace(/^#/, "");
 	async.waterfall([
 		(callback) => db.getServerId(serverName, callback),
 		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, callback)
@@ -1068,6 +1070,7 @@ const addChannelToIrcConfig = function(serverName, name, callback) {
 };
 
 const removeChannelFromIrcConfig = function(serverName, name, callback) {
+	name = name.replace(/^#/, "");
 	async.waterfall([
 		(callback) => db.getChannelId(serverName, name, callback),
 		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
@@ -1273,11 +1276,68 @@ const getUserLogDetails = function(username, callback) {
 	});
 };
 
+// Composite store functions
+
+const addIrcServerFromDetails = function(details, callback) {
+	if (details && details.name && details.data) {
+		const name = util.formatUriName(details.name);
+		const data = lodash.assign({}, details.data, { name });
+
+		addServerToIrcConfig(
+			data,
+			(err, result) => {
+				if (err) {
+					callback(err);
+				}
+				else {
+					// Add all channels
+					if (data.channels && data.channels.length) {
+						const channelNames = [];
+						data.channels.forEach((channel) => {
+							const channelName = channel.name || channel;
+
+							if (typeof channelName === "string" && channelName) {
+								channelNames.push(util.formatUriName(channelName));
+							}
+						});
+						if (channelNames.length) {
+							async.parallel(
+								channelNames.map((channelName) =>
+									((callback) => addChannelToIrcConfig(name, channelName, callback))
+								),
+								callback
+							);
+						}
+						else {
+							callback();
+						}
+					}
+					else {
+						callback();
+					}
+				}
+			}
+		)
+	}
+	else {
+		callback(new Error("Insufficient data"));
+	}
+};
 
 // Remote control IRC
 
 const connectUnconnectedIrcs = function() {
 	irc.connectUnconnectedClients();
+};
+
+const loadAndConnectUnconnectedIrcs = function(callback) {
+	loadIrcConfig(() => {
+		connectUnconnectedIrcs();
+
+		if (typeof callback === "function") {
+			callback();
+		}
+	});
 };
 
 const reconnectIrcServer = function(serverName) {
@@ -1343,6 +1403,7 @@ module.exports = {
 	addChannelRecipient,
 	addChannelToIrcConfig,
 	addConfigValueChangeHandler,
+	addIrcServerFromDetails,
 	addNickname,
 	addServerToIrcConfig,
 	addToFriends,
@@ -1382,6 +1443,7 @@ module.exports = {
 	joinIrcChannel,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
+	loadAndConnectUnconnectedIrcs,
 	loadAppConfig,
 	loadFriendsList,
 	loadIrcConfig,

@@ -56,8 +56,10 @@ module.exports = function(main, io) {
 			app.use(function(err, req, res, next) {
 				res.status(err.status || 500);
 				res.render("error", {
-					message: err.message,
-					error: err
+					appConfig: null,
+					enableScripts: false,
+					error: err,
+					message: err.message
 				});
 			});
 		}
@@ -67,8 +69,10 @@ module.exports = function(main, io) {
 		app.use(function(err, req, res, next) {
 			res.status(err.status || 500);
 			res.render("error", {
-				message: err.message,
-				error: {}
+				appConfig: null,
+				enableScripts: false,
+				error: {},
+				message: err.message
 			});
 		});
 

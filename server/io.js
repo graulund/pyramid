@@ -251,13 +251,7 @@ module.exports = function(main) {
 		io = socketIo(server);
 
 		io.on("connection", (socket) => {
-			console.log("Someone connected!");
-
 			var connectionToken = null;
-
-			socket.on("disconnect", () => {
-				console.log("Someone disconnected!");
-			});
 
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
@@ -497,52 +491,20 @@ module.exports = function(main) {
 
 			socket.on("addIrcServer", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				if (details && details.name && details.data) {
-					const name = util.formatUriName(details.name);
 
-					main.addServerToIrcConfig(
-					lodash.assign({}, details.data, { name }),
-					(err, result) => {
+				if (details && details.name && details.data) {
+					main.addIrcServerFromDetails(details, (err) => {
 						if (err) {
+							// TODO: Proper error handler
 							console.warn("Error occurred adding irc server", err);
 						}
 						else {
-
-							const done = () => {
-								emitIrcConfig(
-									socket,
-									() => main.connectUnconnectedIrcs()
-								);
-							};
-
-							// Add all channels
-							if (details.channel && details.channel.length) {
-								const channelNames = [];
-								details.channel.forEach((channel) => {
-									const channelName = channel.name || channel;
-
-									if (typeof channelName === "string" && channelName) {
-										channelNames.push(util.formatUriName(channelName));
-									}
-								});
-								if (channelNames.length) {
-									async.parallel(
-										channelNames.map((channelName) =>
-											((callback) => main.addChannelToIrcConfig(name, channelName, callback))
-										), () => {
-											done();
-										}
-									);
-								}
-								else {
-									done();
-								}
-							}
-							else {
-								done();
-							}
+							emitIrcConfig(
+								socket,
+								() => main.connectUnconnectedIrcs()
+							);
 						}
-					})
+					});
 				}
 			});
 

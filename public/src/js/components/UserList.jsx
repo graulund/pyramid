@@ -32,16 +32,24 @@ class UserList extends PureComponent {
 			usernames.sort();
 		}
 
-		const userListNodes = usernames.map((userName) => {
-			const userData = lastSeenUsers[userName];
-			return <TimedUserItem
-				displayOnline
-				userData={userData}
-				userName={userName}
-				skipOld={hideOldUsers}
-				key={userName}
-				/>;
-		});
+		var userListNodes;
+		if (usernames.length) {
+			userListNodes = usernames.map((userName) => {
+				const userData = lastSeenUsers[userName];
+				return <TimedUserItem
+					displayOnline
+					userData={userData}
+					userName={userName}
+					skipOld={hideOldUsers}
+					key={userName}
+					/>;
+			});
+		}
+		else {
+			userListNodes = [
+				<li className="nothing">No friends :(</li>
+			];
+		}
 
 		return <ul id="userlist" className="itemlist">{ userListNodes }</ul>;
 	}

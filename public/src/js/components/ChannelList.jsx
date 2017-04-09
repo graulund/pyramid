@@ -78,16 +78,24 @@ class ChannelList extends PureComponent {
 
 		// Rendering
 
-		const channelListNodes = ircChannels.map((data) => {
-			if (data && data.channel) {
-				return <TimedChannelItem
-					channel={data.channel}
-					lastSeenData={data.lastSeen || {}}
-					skipOld={hideOldChannels}
-					key={data.channel} />;
-			}
-			return null;
-		});
+		var channelListNodes;
+		if (ircChannels.length) {
+			channelListNodes = ircChannels.map((data) => {
+				if (data && data.channel) {
+					return <TimedChannelItem
+						channel={data.channel}
+						lastSeenData={data.lastSeen || {}}
+						skipOld={hideOldChannels}
+						key={data.channel} />;
+				}
+				return null;
+			});
+		}
+		else {
+			channelListNodes = [
+				<li className="nothing">No channels :(</li>
+			];
+		}
 
 		return <ul id="channellist" className="itemlist">{ channelListNodes }</ul>;
 	}

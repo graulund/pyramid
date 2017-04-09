@@ -572,6 +572,11 @@ class ChatView extends Component {
 		const { params } = this.props;
 		const { logBrowserOpen } = this.state;
 
+		if (!this.channelUrl && !params.userName) {
+			// Not loggable
+			return null;
+		}
+
 		const isLiveChannel = this.channelUrl && !params.logDate;
 
 		var logBrowserToggler = null;
