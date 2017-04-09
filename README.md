@@ -14,7 +14,7 @@ It works in real time by directly connecting a Node IRC connection to a Socket.i
 
 ## Installation instructions
 
-1. Install [Node.js](http://nodejs.org/)
+1. Install [Node.js](http://nodejs.org/) (version 7+ required)
 2. Run `npm install` from the project directory to set up the prerequisites
 3. Run `node pyramid.js` from the project directory to start the server
 4. Open your browser and navigate to the hostname and port you defined in step 3 (usually `localhost:8887`)
