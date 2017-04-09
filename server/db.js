@@ -20,17 +20,6 @@ const getTimestamp = (t) => {
 	return t;
 };
 
-const getDateFromTimestamp = (t) => {
-
-	const timestamp = getTimestamp(t);
-
-	if (timestamp) {
-		return timestamp.split("T")[0];
-	}
-
-	return null;
-};
-
 const nameValueRowsToObject = (rows) => {
 	var output = {};
 	if (rows && rows.length) {
@@ -674,7 +663,7 @@ module.exports = function(main) {
 				$channelId: channelId,
 				$type: line.type,
 				$time: getTimestamp(line.time),
-				$date: getDateFromTimestamp(line.time),
+				$date: util.ymd(main.localMoment(line.time)),
 				$username: line.username,
 				$message: line.message,
 				$symbol: line.symbol,

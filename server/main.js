@@ -143,6 +143,12 @@ const onWeb = function(callback) {
 	}
 };
 
+// Utility that requires state
+
+const localMoment = function(arg) {
+	return moment(arg).tz(configValue("timeZone"));
+};
+
 // Last seen
 
 const setLastSeenChannel = (channel, data) => {
@@ -1226,8 +1232,8 @@ const getLineByLineId = function(lineId, callback) {
 };
 
 const getChannelLogDetails = function(channelUri, callback) {
-	const today = util.ymd(moment());
-	const yesterday = util.ymd(moment().subtract(1, "day"));
+	const today = util.ymd(localMoment());
+	const yesterday = util.ymd(localMoment().subtract(1, "day"));
 
 	// TODO: Time zone issue, database dates are UTC
 
@@ -1249,8 +1255,8 @@ const getChannelLogDetails = function(channelUri, callback) {
 };
 
 const getUserLogDetails = function(username, callback) {
-	const today = util.ymd(moment());
-	const yesterday = util.ymd(moment().subtract(1, "day"));
+	const today = util.ymd(localMoment());
+	const yesterday = util.ymd(localMoment().subtract(1, "day"));
 
 	async.parallel([
 		(callback) => getDateLineCountForUsername(username, today, callback),
@@ -1382,6 +1388,7 @@ module.exports = {
 	loadFriendsList,
 	loadIrcConfig,
 	loadNicknames,
+	localMoment,
 	modifyFriend,
 	modifyNickname,
 	modifyServerInIrcConfig,
