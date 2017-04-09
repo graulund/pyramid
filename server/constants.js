@@ -7,6 +7,8 @@ module.exports = {
 	DEBUG: false,
 	FILE_ENCODING: "utf8",
 
+	PROJECT_ROOT: path.join(__dirname, ".."),
+	DATA_ROOT: path.join(__dirname, "..", "data"),
 	LOG_ROOT: path.join(__dirname, "..", "public", "data", "logs"),
 
 	RELATIONSHIP_NONE: 0,

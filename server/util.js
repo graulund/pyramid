@@ -1,6 +1,7 @@
 // PYRAMID
 // Utilities module
 
+const fs = require("fs");
 const path = require("path");
 const moment = require("moment-timezone");
 
@@ -82,6 +83,32 @@ const hmsPrefix = function(str, d){
 
 const ymdhmsPrefix = function(str, d){
 	return "[" + ymd(d) + " " + hms(d) + "] " + str;
+};
+
+// File utilities
+
+const copyFile = function(source, target, cb) {
+	var cbCalled = false;
+
+	var rd = fs.createReadStream(source);
+	rd.on("error", function(err) {
+		done(err);
+	});
+	var wr = fs.createWriteStream(target);
+	wr.on("error", function(err) {
+		done(err);
+	});
+	wr.on("close", function(ex) {
+		done();
+	});
+	rd.pipe(wr);
+
+	function done(err) {
+		if (!cbCalled) {
+			cb(err);
+			cbCalled = true;
+		}
+	}
 };
 
 // Channel URI utilities
@@ -245,6 +272,9 @@ module.exports = {
 	ym,
 	hmsPrefix,
 	ymdhmsPrefix,
+
+	// File
+	copyFile,
 
 	// Channel URL
 	getChannelUri,

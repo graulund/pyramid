@@ -1,15 +1,45 @@
 // PYRAMID
 // Database logic
 
+const fs = require("fs");
 const path = require("path");
 const sqlite = require("sqlite3");
 const async = require("async");
 const lodash = require("lodash");
+const mkdirp = require("mkdirp");
 
 const constants = require("./constants");
 const util = require("./util");
 
 const ASC = 0, DESC = 1;
+
+const DB_FILENAME = path.join(constants.DATA_ROOT, "pyramid.db");
+
+// Create db
+
+const createDatabaseFromEmpty = function(callback) {
+	const source = path.join(constants.PROJECT_ROOT, "pyramid-empty.db");
+	const target = DB_FILENAME;
+
+	fs.access(target, (err) => {
+		if (err) {
+			// If the file did not exist, let's copy
+			mkdirp(path.dirname(target), (err) => {
+				if (err) {
+					callback(err);
+				}
+				else {
+					util.copyFile(source, target, callback);
+				}
+			});
+		} else {
+			// If the file already exists, abort silently
+			return callback();
+		}
+	});
+};
+
+// Query utility
 
 const getTimestamp = (t) => {
 
@@ -96,9 +126,7 @@ const dq = (table, whereCols) => {
 	return `DELETE FROM ${table} WHERE ${where}`;
 };
 
-module.exports = function(main) {
-
-	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
+const mainMethods = function(main, db) {
 
 	const getLocalDatestampFromTime = (time) => {
 		return util.ymd(main.localMoment(time));
@@ -419,10 +447,6 @@ module.exports = function(main) {
 	};
 
 	const removeNickname = (nickname, callback) => {
-		console.log("removeNickname",
-			dq("nicknames", ["nickname"]),
-			dollarize({ nickname })
-		);
 		db.run(
 			dq("nicknames", ["nickname"]),
 			dollarize({ nickname }),
@@ -781,5 +805,18 @@ module.exports = function(main) {
 	};
 
 	main.setDb(output);
-	return output;
+};
+
+module.exports = function(main) {
+	// Create database if needed
+	createDatabaseFromEmpty((err) => {
+		if (err) {
+			throw err;
+		}
+		else {
+			// Open database
+			var db = new sqlite.Database(DB_FILENAME);
+			mainMethods(main, db);
+		}
+	});
 };
