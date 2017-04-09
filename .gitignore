@@ -5,9 +5,9 @@ node_modules/
 
 # Run-time data
 config.js
-config-prod.js
-lastseen.json
+data/
 public/data/
+public/dist/
 *.pid
 *.seed
 npm-debug.log

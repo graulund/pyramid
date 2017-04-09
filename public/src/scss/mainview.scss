@@ -1,0 +1,59 @@
+.mainview {
+	margin: 60px 0 60px 320px;
+
+	&__top {
+		position: fixed;
+		top: 0;
+		left: 320px;
+		right: 0;
+		padding: 10px 20px;
+		background-color: #fff;
+		border-bottom: 1px solid #ccc;
+		white-space: nowrap;
+		z-index: 5;
+
+		.app-container--with-notice & {
+			top: 40px;
+		}
+
+		&__main {
+			display: flex;
+
+			h2 {
+				flex: 1 1 auto;
+				margin: 0;
+				line-height: 20px;
+				overflow: hidden;
+			}
+
+			> div, > ul {
+				flex: 0 0 auto;
+			}
+		}
+	}
+
+	> .loader {
+		position: fixed;
+		top: 0;
+		left: 320px;
+		right: 0;
+		bottom: 0;
+		width: calc(100% - 320px);
+		height: 100%;
+	}
+
+	@media #{$mobile-media} {
+		margin: 0;
+
+		&__top {
+			left: 0;
+			padding-left: 40px;
+			padding-right: 10px;
+		}
+
+		> .loader {
+			left: 0;
+			width: 100%;
+		}
+	}
+}

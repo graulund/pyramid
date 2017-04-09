@@ -1,0 +1,27 @@
+.connection-warning {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 20;
+
+	background-color: #900;
+	color: #fff;
+	font-weight: bold;
+	text-align: center;
+	margin: 0;
+	padding: 10px 0;
+	line-height: 20px;
+	list-style-type: none;
+	white-space: nowrap;
+
+	a {
+		color: inherit !important;
+		text-decoration: underline;
+	}
+
+	li {
+		display: inline;
+		margin: 0 .5em;
+	}
+}

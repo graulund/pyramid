@@ -1,0 +1,49 @@
+.switcher, .switcher > ul, .controls {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	line-height: 20px;
+}
+
+.controls {
+	user-select: none;
+
+	li {
+		display: inline-block;
+		margin-left: 12px;
+	}
+
+	a em {
+		font-style: normal;
+		font-weight: normal;
+	}
+}
+
+.switcher {
+	user-select: none;
+
+	li {
+		display: inline-block;
+	}
+
+	button, a {
+		color: inherit;
+		font-family: inherit;
+		font-weight: inherit;
+		font-size: 100%;
+		line-height: 20px;
+		background-color: transparent;
+		border: none;
+		outline: none;
+		margin: 0;
+		padding: 0 6px;
+		cursor: pointer;
+		-webkit-appearance: none;
+	}
+
+	button:hover, a:hover {
+		background-color: rgba(0, 0, 51, 0.067);
+		text-decoration: none;
+	}
+}

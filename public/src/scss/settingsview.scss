@@ -1,0 +1,189 @@
+.settingsview {
+	padding: 20px;
+	margin-top: 40px;
+	margin-bottom: 0;
+
+	> div > *:first-child {
+		margin-top: 0;
+	}
+
+	&__top {
+		h2 {
+			float: left;
+			margin-right: 10px;
+		}
+	}
+
+	&--general &__tabs a.general,
+	&--friends &__tabs a.friends,
+	&--irc &__tabs a.irc,
+	&--nicknames &__tabs a.nicknames {
+		font-weight: bold;
+	}
+}
+
+.settings {
+	&__section {
+		& + & {
+			margin-top: 20px;
+			padding-top: 20px;
+			border-top: 1px solid #ccc;
+		}
+
+		h2 {
+			color: #999;
+			font-size: 1em;
+			text-transform: uppercase;
+			margin-top: 0;
+		}
+	}
+
+	&__setting {
+		margin-bottom: 20px;
+
+		h3 {
+			margin: 0 0 .25em;
+			font-size: 1em;
+		}
+
+		p {
+			margin: .25em 0;
+		}
+	}
+
+	&__list {
+		ul {
+			border: 1px solid #ccc;
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		&-item {
+			display: flex;
+			border-bottom: 1px solid #ccc;
+			padding: 3px 0;
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			&--selected {
+				background-color: #225;
+				border-color: #225;
+				color: #fff;
+			}
+
+			> * {
+				margin: 0 10px;
+			}
+
+			strong {
+				flex: 1 1 auto;
+			}
+
+			em {
+				flex: 0 0 auto;
+				font-style: normal;
+			}
+
+			button {
+				flex: 0 0 auto;
+			}
+		}
+
+		&--selectable &-item {
+			cursor: pointer;
+		}
+
+		&-buttons {
+			text-align: right;
+			padding: 0 0 3px;
+		}
+	}
+
+	&__container {
+		border: 1px solid #ccc;
+		padding: 20px;
+		margin: 0 0 20px;
+
+		h1 {
+			margin-top: 0;
+		}
+	}
+
+	&__add {
+		border: 2px solid #ccc;
+		border-radius: 6px;
+		padding: 20px;
+		margin: 0 0 20px;
+
+		h3 {
+			margin-top: 0;
+		}
+	}
+
+	&__rightcontrol {
+		float: right;
+		margin: 0 0 10px 10px;
+	}
+
+	&__detail-view {
+		display: flex;
+		border: 1px solid #ccc;
+		background-color: #eee;
+	}
+
+	&__detail-view &__list {
+		flex: 0 0 auto;
+		width: 30%;
+		background-color: #fff;
+		overflow: hidden;
+
+		ul {
+			border-left: none;
+			border-right: none;
+			margin-bottom: 10px;
+		}
+	}
+
+	&__detail-view &__list-buttons {
+		padding: 10px;
+	}
+
+	&__detail {
+		&-view &-item,
+		&-view &-noitem {
+			flex: 1 1 auto;
+			padding: 20px;
+			min-height: 400px;
+		}
+
+		&-view &-noitem {
+			text-align: center;
+			font-size: 125%;
+			color: #999;
+		}
+
+		&-view &-item h3 {
+			margin-top: 0;
+		}
+	}
+
+	&__detail-view &__add {
+		margin: 10px;
+		padding: 10px 15px;
+
+		h3 {
+			margin: 0;
+		}
+
+		p {
+			margin: .5em 0;
+		}
+
+		p.l label {
+			width: 5em;
+		}
+	}
+}

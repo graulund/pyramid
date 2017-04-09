@@ -1,16 +1,19 @@
-// IRC WATCHER
+// PYRAMID
 
-// Configuration
-var config = require("./config")
+// Main app service
+const main = require("./server/main");
 
-// Utilities
-var util = require("./util")(config)
+// Feed app into DB service
+require("./server/db")(main);
 
-// Logging service
-var log = require("./log")(config, util)
+// Feed app into plugin service
+require("./server/plugins")(main);
 
-// IRC service
-var irc = require("./irc")(config, util, log)
+// Feed app into IRC service
+require("./server/irc")(main);
 
-// Web service
-var web = require("./web")(config, util, log, irc)
+// IO service
+const io = require("./server/io")(main);
+
+// Start web service
+require("./server/web")(main, io);

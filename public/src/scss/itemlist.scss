@@ -1,0 +1,82 @@
+
+.itemlist {
+	list-style-type: none;
+	padding: 0;
+	margin: 10px -10px;
+
+	li {
+		padding: 3px 50px 3px 10px;
+		position: relative;
+
+		&.notime {
+			padding-right: 10px;
+		}
+
+		&:not(.bestfriend) {
+			/*font-size: 85%;*/
+			line-height: 1.6em;
+		}
+
+		&.bestfriend {
+			font-size: 125%;
+			padding-right: 60px;
+		}
+
+		&.online {
+			strong {
+				&:after {
+					content: " ●";
+					color: #1b6;
+				}
+			}
+		}
+
+		&.nothing {
+			opacity: .5;
+			text-align: center;
+			padding: 20px 10px;
+		}
+	}
+
+	a {
+		color: inherit;
+	}
+
+	.anew {
+		margin-top: 20px;
+	}
+
+	.subhead {
+		margin: 20px 0 5px;
+		/*font-size: 85%;*/
+		text-transform: uppercase;
+		color: #999;
+
+		h2 {
+			font-size: 100%;
+			margin: 0;
+			line-height: 1em;
+		}
+	}
+
+	.ts {
+		position: absolute;
+		top: 3px;
+		right: 10px;
+		text-align: right;
+	}
+
+	.l {
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	time, .ts, .channel, .msg {
+		opacity: .5;
+	}
+
+	.flash, .flash[style] {
+		background-color: #c00 !important;
+		color: #fff !important;
+	}
+}

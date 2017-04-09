@@ -1,0 +1,315 @@
+.channeluserlist {
+	/* TODO: Get rid of magic numbers... */
+	position: fixed;
+	top: 41px;
+	right: 0;
+	bottom: 72px;
+	width: 280px;
+	background-color: #fff;
+	overflow: auto;
+	z-index: 3;
+	margin: 0;
+
+	&:after {
+		content: "";
+		position: fixed;
+		top: 41px;
+		right: 279px;
+		bottom: 72px;
+		z-index: 11;
+		width: 1px;
+		background: rgba(0,0,51,.067);
+		z-index: 4;
+	}
+
+	.app-container--with-notice & {
+		top: 81px;
+	}
+
+	@media #{$mobile-media} {
+		bottom: 57px;
+		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
+	}
+}
+
+.chatlines {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.chatview {
+	margin-bottom: 20px;
+
+	&--live-channel {
+		margin-bottom: 80px;
+	}
+
+	&--logbrowsing {
+		margin-top: 80px;
+
+		.channeluserlist {
+			top: 68px;
+		}
+	}
+
+	&--userlisting {
+		margin-right: 280px;
+	}
+
+	.line {
+		padding: 0 20px;
+
+		transition: .5s margin;
+
+		&--with-context {
+			margin: 10px 0;
+		}
+
+		&.flashing {
+			position: relative;
+
+			&:before {
+				content: "";
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				background-color: rgba(0,0,0,.25);
+				animation: 2s fadeOut;
+				animation-fill-mode: forwards;
+				pointer-events: none;
+			}
+		}
+
+		&__context {
+			&-before, &-after {
+				background-color: #fff;
+				border: 1px solid #ccc;
+				max-height: 200px;
+				overflow: auto;
+				margin: 0 -11px;
+
+				.line {
+					padding: 0 10px;
+				}
+			}
+
+			&-before--edged {
+				border-bottom-color: #fff;
+			}
+
+			&-after--edged {
+				border-top-color: #fff;
+			}
+		}
+	}
+
+	.msg > span {
+		word-break: break-word;
+	}
+
+	.msg img {
+		vertical-align: middle;
+	}
+
+	.line__channel,
+	.line__channel a,
+	.line time {
+		color: #999;
+		white-space: nowrap;
+	}
+
+	.line__context {
+		float: right;
+
+		&, a {
+			margin-left: 10px;
+		}
+	}
+
+	.msg__author a,
+	.userevent__target,
+	.userevent__target a,
+	.bunchedevents a {
+		color: inherit;
+		white-space: nowrap;
+	}
+
+	.msg--action {
+		font-style: italic;
+	}
+
+	.msg--action time {
+		font-style: normal;
+	}
+
+	.line--highlight {
+		background-color: #fff0aa;
+		transition: 1s background-color;
+	}
+
+	.line--highlight.line--unseen-highlight {
+		background-color: #e8da9b;
+	}
+
+	.msg--highlight mark {
+		background-color: rgba(0,0,0,.1);
+	}
+
+	.line--notice {
+		background-color: rgba(0,0,0,.05);
+	}
+
+	.userevent, .bunchedevents {
+		position: relative;
+		padding: 0 0 0 .8em;
+		color: #999;
+
+		&:before {
+			content: "■";
+			color: transparent;
+			position: absolute;
+			left: .1em;
+			top: .5em;
+			width: .3em;
+			height: .3em;
+			background-color: #999;
+			opacity: .8;
+		}
+	}
+
+	.userevent--strong {
+		color: #000;
+		font-weight: bold;
+	}
+
+	.bunchedevents--expandable {
+		cursor: pointer;
+	}
+
+	&__input {
+		position: fixed;
+		bottom: 0;
+		left: 320px;
+		right: 0;
+		padding: 15px 20px 30px;
+		margin: 0;
+		border-top: 1px solid #ccc;
+		background-color: #fff;
+		z-index: 4;
+	}
+
+	&__input input[type="text"] {
+		font-family: inherit;
+		font-size: 100%;
+		width: 100%;
+		box-sizing: border-box;
+		border: 1px solid #ccc;
+		padding: 3px 5px;
+	}
+
+	&__input input[type="submit"] {
+		display: none;
+	}
+
+	&__controls {
+		text-align: right;
+		background-color: #fff;
+	}
+
+	&__logbrowser {
+		margin: 5px 0 -5px;
+		user-select: none;
+	}
+
+	.date-header {
+		text-align: center;
+		margin: 1em 0;
+		color: #666;
+	}
+
+	@media #{$mobile-media} {
+		margin: 50px 0 10px;
+
+		&--live-channel {
+			margin-bottom: 65px;
+		}
+
+		&--logbrowsing {
+			margin-top: 110px;
+		}
+
+		&--userlisting {
+			margin-right: 0;
+		}
+
+		&__input {
+			left: 0;
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-bottom: 15px;
+		}
+
+		.line {
+			padding: 0 10px;
+		}
+	}
+}
+
+.nochatview {
+	h1 {
+		font-size: 48px;
+		text-align: center;
+		margin: 0;
+		padding: 100px 0;
+	}
+}
+
+@keyframes fadeOut {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+
+.chatusername {
+
+	em {
+		font-style: normal;
+		font-weight: normal;
+	}
+
+	&--color {
+		a    { color: inherit; }
+		&-0  { color: #0080ff; }
+		&-1  { color: #059005; }
+		&-2  { color: #a80054; }
+		&-3  { color: #9b0db1; }
+		&-4  { color: #108860; }
+		&-5  { color: #7f4fff; }
+		&-6  { color: #58701a; }
+		&-7  { color: #620a8e; }
+		&-8  { color: #bb0008; }
+		&-9  { color: #44345f; }
+		&-10 { color: #2f5353; }
+		&-11 { color: #904000; }
+		&-12 { color: #808000; }
+		&-13 { color: #57797e; }
+		&-14 { color: #33d; }
+		&-15 { color: #5f4d22; }
+		&-16 { color: #706616; }
+		&-17 { color: #46799c; }
+		&-18 { color: #80372e; }
+		&-19 { color: #8f478e; }
+		&-20 { color: #5b9e4c; }
+		&-21 { color: #13826c; }
+		&-22 { color: #b13637; }
+		&-23 { color: #e45d59; }
+		&-24 { color: #1b51ae; }
+		&-25 { color: #4855ac; }
+		&-26 { color: #7f1d86; }
+		&-27 { color: #73643f; }
+		&-28 { color: #0b9578; }
+		&-29 { color: #569c96; }
+	}
+}
