@@ -357,7 +357,6 @@ const storeBunchableLine = function(channelUri, data) {
 };
 
 const _scheduledBunchableStore = function() {
-	console.log(`>>> Storing ${Object.keys(bunchableLinesToInsert).length} bunchable lines`);
 	lodash.forOwn(bunchableLinesToInsert, (line, key) => {
 		if (line && line.channelUri && line.data) {
 			storeLine(line.channelUri, line.data);
@@ -789,7 +788,6 @@ const deleteLinesWithLineIds = function(lineIds) {
 // ...And combine and delete all at an interval
 const _scheduledLineDelete = function() {
 	if (lineIdsToDelete && lineIdsToDelete.size) {
-		console.log(`>>> Deleting ${lineIdsToDelete.size} old lines from db`);
 		const a = Array.from(lineIdsToDelete);
 		lineIdsToDelete.clear();
 		db.deleteLinesWithLineIds(a, function(){});
