@@ -22,7 +22,19 @@ module.exports = function(main, io) {
 		app.set("view engine", "ejs");
 		//app.use(favicon());
 		app.use(bodyParser.urlencoded({ extended: "qs" }));
-		app.use(express.static(path.join(__dirname, "..", "public")));
+		app.use(express.static(
+			path.join(__dirname, "..", "public"),
+			{
+				setHeaders: function(res, reqPath) {
+					if (path.extname(reqPath) === ".js") {
+						res.setHeader(
+							"Content-Type",
+							"application/javascript; charset=utf-8"
+						);
+					}
+				}
+			}
+		));
 		app.use(partials());
 
 		// Routes
