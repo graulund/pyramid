@@ -33,6 +33,7 @@
 	&__head {
 		padding: 0 10px;
 		border-bottom: 1px solid #ccc;
+		user-select: none;
 	}
 
 	&__head h1 {
@@ -106,6 +107,7 @@
 		list-style-type: none;
 		margin: 10px 0;
 		padding: 0;
+		user-select: none;
 	}
 
 	&__menu-link {
