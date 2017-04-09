@@ -100,6 +100,10 @@ module.exports = function(main) {
 
 	var db = new sqlite.Database(path.join(__dirname, "..", "data", "pyramid.db"));
 
+	const getLocalDatestampFromTime = (time) => {
+		return util.ymd(main.localMoment(time));
+	};
+
 	const close = () => { db.close() };
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
@@ -663,7 +667,7 @@ module.exports = function(main) {
 				$channelId: channelId,
 				$type: line.type,
 				$time: getTimestamp(line.time),
-				$date: util.ymd(main.localMoment(line.time)),
+				$date: getLocalDatestampFromTime(line.time),
 				$username: line.username,
 				$message: line.message,
 				$symbol: line.symbol,
@@ -735,6 +739,7 @@ module.exports = function(main) {
 	*/
 
 	const output = {
+		_db: db,
 		addChannelToIrcConfig,
 		addNickname,
 		addServerToIrcConfig,
