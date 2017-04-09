@@ -23,9 +23,23 @@ module.exports = function(main) {
 
 	const showWelcomePage = function (res, error = null, reqBody = {}) {
 		main.loadAppConfig((err, appConfig) => {
-			res.render("welcome", {
-				appConfig, enableScripts: false, error, reqBody
-			});
+
+			if (appConfig && appConfig.webPassword) {
+				// It's already set up; no longer showing welcome page
+				if (error) {
+					// If we have an error to show, show it
+					res.end(error);
+				}
+				else {
+					res.redirect("/");
+					res.end();
+				}
+			}
+			else {
+				res.render("welcome", {
+					appConfig, enableScripts: false, error, reqBody
+				});
+			}
 		});
 	};
 
@@ -35,6 +49,14 @@ module.exports = function(main) {
 
 	const post = function(req, res) {
 		var error = null;
+
+		const config = main.currentAppConfig();
+		if (config && config.webPassword) {
+			// It's already set up; no longer showing welcome page
+			res.redirect("/");
+			res.end();
+			return;
+		}
 
 		const reqBody = req.body;
 
