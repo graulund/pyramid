@@ -23,6 +23,10 @@ const lastSeenUsersFileName = path.join(
 	__dirname, "..", "data", "lastSeenUsers.json"
 );
 
+const pathChannelUri = function(channelUri) {
+	return channelUri.replace(/\//g, path.sep);
+};
+
 const standardWritingCallback = function(err){
 	if (err) {
 		throw err;
@@ -545,7 +549,9 @@ const logChannelLine = function(channelUri, channelName, line, d) {
 		console.log(channelPrefix(line, channelName));
 	}
 
-	const dirName = path.join(constants.LOG_ROOT, channelUri, util.ym(d));
+	const dirName = path.join(
+		constants.LOG_ROOT, pathChannelUri(channelUri), util.ym(d)
+	);
 
 	logLine(line, dirName, util.ymd(d));
 };

@@ -2,7 +2,6 @@
 // Utilities module
 
 const fs = require("fs");
-const path = require("path");
 const moment = require("moment-timezone");
 
 const constants = require("./constants");
@@ -126,7 +125,7 @@ const getChannelUri = function(channelName, serverName) {
 	var c = safeString(channelName);
 
 	if (serverName) {
-		return path.join(safeString(serverName), c);
+		return safeString(serverName) + "/" + c;
 	}
 
 	return c;
