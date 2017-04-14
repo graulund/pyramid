@@ -47,8 +47,9 @@ export function formatTime(milliseconds) {
 
 export function timeOpacity(secondsSince) {
 	// Exponential fall
-	var maxSeconds = 2*3600;
-	return 1/Math.pow(Math.pow(10, 1/(maxSeconds/2)), secondsSince);
+	const maxSeconds = 2*3600;
+	const formula = 1/Math.pow(Math.pow(10, 1/(maxSeconds/2)), secondsSince);
+	return Math.min(1, formula);
 }
 
 export function timeTextOpacity(secondsSince) {
