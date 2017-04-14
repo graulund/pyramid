@@ -45,6 +45,7 @@
     "extract-text-webpack-plugin": "^2.1.0",
     "intersection-observer": "^0.2.1",
     "node-sass": "^4.5.0",
+    "prop-types": "^15.5.8",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-highlight-words": "^0.6.0",
