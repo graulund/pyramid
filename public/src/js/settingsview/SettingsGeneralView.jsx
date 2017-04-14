@@ -109,6 +109,13 @@ class SettingsGeneralView extends PureComponent {
 					]
 				},
 				{
+					name: "enable3xEmotes",
+					readableName: "Enable 3x emoticons",
+					type: "bool",
+					description: "Enable emotes three or four times the pixel density of normal size (may appear too large on some systems)",
+					requires: ["enableTwitch"]
+				},
+				{
 					name: "enableFfzEmoticons",
 					readableName: "Enable FrankerFaceZ emoticons",
 					type: "bool",

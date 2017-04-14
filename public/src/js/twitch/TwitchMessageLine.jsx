@@ -26,16 +26,24 @@ const EMOTE_REPLACEMENTS = {
 	36: EMOTE_FFZ_REPLACEMENT_ROOT + "36-PJSalt.png"
 };
 
-const getEmoticonUrlsets = (emote) => {
+const srcSet = function(list, enable3xEmotes) {
+	if (!enable3xEmotes) {
+		return list.filter((item) => !/(3|4)x$/.test(item));
+	}
+
+	return list;
+};
+
+const getEmoticonUrlsets = function(emote, enable3xEmotes) {
 	const output = {};
 	switch (emote.type) {
 		case "ffz":
 			output.src = EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/1";
 			if (emote.sizes && emote.sizes.length) {
-				output.srcSet = emote.sizes.map((size) => {
-					return EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/" + size +
-						" " + size + "x";
-				});
+				output.srcSet = srcSet(emote.sizes.map((size) => {
+					return EMOTE_FFZ_IMG_URL_ROOT +
+						emote.id + "/" + size + " " + size + "x";
+				}), enable3xEmotes);
 			}
 			else {
 				output.srcSet = [output.src + " 1x"];
@@ -43,11 +51,11 @@ const getEmoticonUrlsets = (emote) => {
 			break;
 		case "bttv":
 			output.src = EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x";
-			output.srcSet = [
+			output.srcSet = srcSet([
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x 1x",
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/2x 2x",
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/3x 3x"
-			];
+			], enable3xEmotes);
 			break;
 		default:
 			// Assume normal
@@ -57,11 +65,11 @@ const getEmoticonUrlsets = (emote) => {
 			}
 			else {
 				output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
-				output.srcSet = [
+				output.srcSet = srcSet([
 					EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
 					EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x",
 					EMOTE_IMG_URL_ROOT + emote.id + "/3.0 3x"
-				];
+				], enable3xEmotes);
 			}
 	}
 
@@ -71,7 +79,8 @@ const getEmoticonUrlsets = (emote) => {
 class TwitchMessageLine extends PureComponent {
 
 	renderEmoticon(emote, emoteText, emoteKey) {
-		const url = getEmoticonUrlsets(emote);
+		const { enable3xEmotes = false } = this.props;
+		const url = getEmoticonUrlsets(emote, enable3xEmotes);
 		return <img
 			src={url.src}
 			srcSet={url.srcSet.join(", ")}
@@ -160,6 +169,7 @@ class TwitchMessageLine extends PureComponent {
 
 TwitchMessageLine.propTypes = {
 	children: PropTypes.node,
+	enable3xEmotes: PropTypes.node,
 	linkify: PropTypes.bool,
 	message: PropTypes.string,
 	tags: PropTypes.object

@@ -12,9 +12,9 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, /*highlight,*/ ircConfigs, message,
-			server, symbol = "", tags, type, username
+			color, displayUsername, enable3xEmotes, enableTwitch,
+			enableTwitchColors, enableUsernameColors, /*highlight,*/
+			ircConfigs, message, server, symbol = "", tags, type, username
 		} = this.props;
 
 		//const isHighlight = !!(highlight && highlight.length);
@@ -27,7 +27,13 @@ class ChatMessageLine extends PureComponent {
 			ircConfigs && isTwitch(ircConfigs[server]);
 
 		if (useTwitch) {
-			messageEl = <TwitchMessageLine tags={tags}>{ message }</TwitchMessageLine>;
+			messageEl = (
+				<TwitchMessageLine
+					enable3xEmotes={enable3xEmotes}
+					tags={tags}>
+					{ message }
+				</TwitchMessageLine>
+			);
 		}
 		else {
 			messageEl = <Linkify properties={LINKIFY_PROPERTIES}>{ messageEl }</Linkify>;
@@ -91,6 +97,7 @@ ChatMessageLine.propTypes = {
 	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	enable3xEmotes: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
 	enableTwitchDisplayNames: PropTypes.bool,
@@ -110,12 +117,14 @@ ChatMessageLine.propTypes = {
 
 export default connect(({
 	appConfig: {
+		enable3xEmotes,
 		enableTwitch,
 		enableTwitchColors,
 		enableUsernameColors
 	},
 	ircConfigs
 }) => ({
+	enable3xEmotes,
 	enableTwitch,
 	enableTwitchColors,
 	enableUsernameColors,
