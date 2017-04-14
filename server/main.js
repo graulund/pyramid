@@ -992,6 +992,13 @@ const addToFriends = function(serverId, username, isBestFriend, callback) {
 };
 
 const storeConfigValue = function(name, value, callback) {
+
+	if (name === "webPassword" && !value) {
+		// Do not allow the setting of an empty web password
+		callback(new Error("Empty web password"));
+		return;
+	}
+
 	db.storeConfigValue(
 		name,
 		value,

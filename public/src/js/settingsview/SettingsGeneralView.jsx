@@ -24,7 +24,8 @@ class SettingsGeneralView extends PureComponent {
 					name: "webPassword",
 					readableName: "Web password",
 					type: "password",
-					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
+					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)",
+					notice: "Must not be empty"
 				}
 			],
 			"Time zone": [
@@ -194,6 +195,12 @@ class SettingsGeneralView extends PureComponent {
 
 	handleValueChange(name, value) {
 		console.log("Tried to set value", name, value);
+
+		if (name === "webPassword" && !value) {
+			console.warn("Denied setting web password to empty");
+			return;
+		}
+
 		io.setAppConfigValue(name, value);
 	}
 
