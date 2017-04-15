@@ -205,6 +205,7 @@ class ChatView extends Component {
 			this.wasAtBottomBeforeOpeningUserList = false;
 			if (prevState && !prevState.userListOpen && this.state.userListOpen) {
 				scrollToTheBottom();
+				return;
 			}
 		}
 
