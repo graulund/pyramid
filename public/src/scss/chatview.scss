@@ -154,8 +154,9 @@
 		background-color: #e8da9b;
 	}
 
-	.msg--highlight mark {
+	.line--highlight mark {
 		background-color: rgba(0,0,0,.1);
+		color: inherit;
 	}
 
 	.line--notice {
@@ -312,4 +313,11 @@
 		&-28 { color: #0b9578; }
 		&-29 { color: #569c96; }
 	}
+}
+
+img.emoji {
+	height: 1em;
+	width: 1em;
+	margin: 0 .05em 0 .1em;
+	vertical-align: -0.1em;
 }

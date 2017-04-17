@@ -20,8 +20,6 @@ export const CATEGORY_NAMES = {
 export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
 
-export const LINKIFY_PROPERTIES = { target: "_blank" };
-
 export const DEFAULT_DARKMODE_COLOR_RGB = "119,187,238";
 
 export const TWITCH_DISPLAY_NAMES = {

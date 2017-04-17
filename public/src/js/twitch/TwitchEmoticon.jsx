@@ -1,9 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import Linkify from "react-linkify";
 
 import { stickToTheBottom } from "../lib/visualBehavior";
-import { LINKIFY_PROPERTIES } from "../constants";
 
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
 const EMOTE_FFZ_IMG_URL_ROOT = "//cdn.frankerfacez.com/emoticon/";
@@ -77,103 +75,25 @@ const getEmoticonUrlsets = function(emote, enable3xEmotes) {
 	return output;
 };
 
-class TwitchMessageLine extends PureComponent {
-
-	renderEmoticon(emote, emoteText, emoteKey) {
-		const { enable3xEmotes = false } = this.props;
-		const url = getEmoticonUrlsets(emote, enable3xEmotes);
+class TwitchEmoticon extends PureComponent {
+	render() {
+		const { enable3xEmotes = false, text } = this.props;
+		const url = getEmoticonUrlsets(this.props, enable3xEmotes);
 		return <img
 			src={url.src}
 			srcSet={url.srcSet.join(", ")}
-			alt={emoteText}
-			title={emoteText}
-			key={`emote-${emoteKey}`}
-			onLoad={() => stickToTheBottom()}
+			alt={text}
+			title={text}
+			onLoad={stickToTheBottom}
 			/>;
-	}
-
-	renderText(text, key) {
-		const { linkify = true } = this.props;
-
-		if (linkify && text) {
-			return (
-				<Linkify properties={LINKIFY_PROPERTIES} key={`text-${key}`}>
-					{ text }
-				</Linkify>
-			);
-		}
-
-		return text;
-	}
-
-	render() {
-		const { children, message, tags } = this.props;
-		const input = message || children;
-		var output = input;
-
-		if (tags && tags.emotes && tags.emotes instanceof Array) {
-			// Find all indices and sort, return array
-			var allEmotes = [];
-			tags.emotes.forEach((e) => {
-				if (e && e.indices) {
-					e.indices.forEach((i) => {
-						if (i) {
-							const first = parseInt(i.first, 10);
-							const last = parseInt(i.last, 10);
-
-							if (!isNaN(first) && !isNaN(last)) {
-								allEmotes.push({ ...e, first, last });
-							}
-						}
-					});
-				}
-			});
-
-			allEmotes.sort((a, b) => {
-				if (a && b) {
-					if (a.first < b.first) { return -1; }
-					if (a.first > b.first) { return 1; }
-					return 0;
-				}
-			});
-
-			if (typeof input === "string") {
-				var lastEnd = 0, msgArray = [...input];
-
-				output = [];
-
-				allEmotes.forEach((e, index) => {
-					output.push(
-						this.renderText(
-							msgArray.slice(lastEnd, e.first).join(""), index
-						)
-					);
-					output.push(
-						this.renderEmoticon(
-							e, msgArray.slice(e.first, e.last + 1).join(""), index
-						)
-					);
-					lastEnd = e.last + 1;
-				});
-
-				output.push(
-					this.renderText(
-						msgArray.slice(lastEnd).join(""), "final"
-					)
-				);
-			}
-		}
-
-		return <span>{ output }</span>;
 	}
 }
 
-TwitchMessageLine.propTypes = {
-	children: PropTypes.node,
-	enable3xEmotes: PropTypes.node,
-	linkify: PropTypes.bool,
-	message: PropTypes.string,
-	tags: PropTypes.object
+TwitchEmoticon.propTypes = {
+	enable3xEmotes: PropTypes.bool,
+	id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+	text: PropTypes.string,
+	type: PropTypes.string
 };
 
-export default TwitchMessageLine;
+export default TwitchEmoticon;

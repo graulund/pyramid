@@ -1,51 +1,92 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import Linkify from "react-linkify";
-//import Highlighter from "react-highlight-words";
 
 import ChatUsername from "./ChatUsername.jsx";
-import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
+import TwitchEmoticon from "../twitch/TwitchEmoticon.jsx";
 import { isTwitch } from "../lib/ircConfigs";
-import { LINKIFY_PROPERTIES } from "../constants";
+import { TOKEN_TYPES, tokenizeChatLine } from "../lib/tokenizer";
 
 class ChatMessageLine extends PureComponent {
 
+	renderText(token) {
+		return token.text;
+	}
+
+	renderLink(token, index) {
+		return (
+			<a
+			target="_blank"
+			href={token.url}
+			key={index}>
+				{ token.text }
+			</a>
+		);
+	}
+
+	renderMention(token, index) {
+		return <mark key={index}>{ token.text }</mark>;
+	}
+
+	renderEmoji(token, index) {
+		// TODO: Render emoji as image if needed
+		return (
+			<span
+				className="emoji"
+				data-codepoints={token.codepoints}
+				key={index}>
+				{ token.text }
+			</span>
+		);
+	}
+
+	renderTwitchEmoticon(token, index) {
+		const { enable3xEmotes } = this.props;
+		return <TwitchEmoticon
+			{...token.emote}
+			text={token.text}
+			enable3xEmotes={enable3xEmotes}
+			key={index} />;
+	}
+
+	renderToken(token, index) {
+		switch(token.type) {
+			case TOKEN_TYPES.TEXT:
+				return this.renderText(token, index);
+			case TOKEN_TYPES.LINK:
+				return this.renderLink(token, index);
+			case TOKEN_TYPES.MENTION:
+				return this.renderMention(token, index);
+			case TOKEN_TYPES.EMOJI:
+				return this.renderEmoji(token, index);
+			case TOKEN_TYPES.TWITCH_EMOTICON:
+				return this.renderTwitchEmoticon(token, index);
+		}
+
+		console.warn(
+			`Encountered unsupported line token type \`${token.type}\``
+		);
+		return null;
+	}
+
 	render() {
 		const {
-			color, displayUsername, enable3xEmotes, enableTwitch,
-			enableTwitchColors, enableUsernameColors, /*highlight,*/
-			ircConfigs, message, server, symbol = "", tags, type, username
+			color, displayUsername, enableTwitch, enableTwitchColors,
+			enableUsernameColors, ircConfigs, server, symbol = "",
+			tags, type, username
 		} = this.props;
 
-		//const isHighlight = !!(highlight && highlight.length);
 		const className = "msg" +
 			(type !== "msg" ? ` msg--${type}` : "");
-
-		var messageEl = message;
 
 		const useTwitch = enableTwitch && server &&
 			ircConfigs && isTwitch(ircConfigs[server]);
 
-		if (useTwitch) {
-			messageEl = (
-				<TwitchMessageLine
-					enable3xEmotes={enable3xEmotes}
-					tags={tags}>
-					{ message }
-				</TwitchMessageLine>
-			);
-		}
-		else {
-			messageEl = <Linkify properties={LINKIFY_PROPERTIES}>{ messageEl }</Linkify>;
-		}
+		const tokens = tokenizeChatLine(this.props, useTwitch);
 
-		/*
-		if (isHighlight) {
-			// TODO: Find better non-plain text solution for this
-			messageEl = <Highlighter searchWords={highlight} textToHighlight={message} />;
-		}
-		*/
+		const messageContent = tokens.map(
+			(token, index) => this.renderToken(token, index)
+		);
 
 		var authorClassName = "msg__author";
 		var authorColor = null;
@@ -84,7 +125,7 @@ class ChatMessageLine extends PureComponent {
 							key="username" />,
 						" "
 					] : null }
-				{ messageEl }
+				{ messageContent }
 			</span>
 		);
 

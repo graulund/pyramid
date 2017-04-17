@@ -129,6 +129,7 @@ class SettingsNicknamesView extends PureComponent {
 		return (
 			<div key="main">
 				<p>Nicknames are alternative words that highlight you when mentioned by another user.</p>
+				<p>Nicknames can only contain letters, numbers, spaces, and simple punctuation.</p>
 				<div className="settings__detail-view">
 					<SettingsList
 						itemKindName="nickname"

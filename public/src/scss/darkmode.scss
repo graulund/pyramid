@@ -105,6 +105,10 @@ body.darkmode {
 		background-color: #258;
 	}
 
+	.chatview .line--highlight mark {
+		background-color: rgba(255,255,255,.2);
+	}
+
 	.chatview .line--notice {
 		background-color: rgba(255,255,255,.1);
 	}
