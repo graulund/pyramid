@@ -7,6 +7,10 @@ import TwitchEmoticon from "../twitch/TwitchEmoticon.jsx";
 import { isTwitch } from "../lib/ircConfigs";
 import { TOKEN_TYPES, tokenizeChatLine } from "../lib/tokenizer";
 
+const emojiImageUrl = function(codepoints) {
+	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
+};
+
 class ChatMessageLine extends PureComponent {
 
 	renderText(token) {
@@ -29,15 +33,18 @@ class ChatMessageLine extends PureComponent {
 	}
 
 	renderEmoji(token, index) {
-		// TODO: Render emoji as image if needed
-		return (
-			<span
+		const { enableEmojiImages } = this.props;
+
+		if (enableEmojiImages) {
+			return <img
 				className="emoji"
-				data-codepoints={token.codepoints}
-				key={index}>
-				{ token.text }
-			</span>
-		);
+				src={emojiImageUrl(token.codepoints)}
+				alt={token.text}
+				key={index}
+				/>;
+		}
+
+		return token.text;
 	}
 
 	renderTwitchEmoticon(token, index) {
@@ -140,6 +147,7 @@ ChatMessageLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	enable3xEmotes: PropTypes.bool,
+	enableEmojiImages: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
 	enableTwitchDisplayNames: PropTypes.bool,
@@ -160,6 +168,7 @@ ChatMessageLine.propTypes = {
 export default connect(({
 	appConfig: {
 		enable3xEmotes,
+		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
 		enableUsernameColors
@@ -167,6 +176,7 @@ export default connect(({
 	ircConfigs
 }) => ({
 	enable3xEmotes,
+	enableEmojiImages,
 	enableTwitch,
 	enableTwitchColors,
 	enableUsernameColors,

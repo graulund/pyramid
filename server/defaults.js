@@ -18,6 +18,7 @@ module.exports = {
 	enableUsernameColors: true,
 	enableDarkMode: false,
 	enableEmojiCodes: true,
+	enableEmojiImages: true,
 	enableTwitch: true,
 	enableTwitchColors: true,
 	enableTwitchDisplayNames: 1,

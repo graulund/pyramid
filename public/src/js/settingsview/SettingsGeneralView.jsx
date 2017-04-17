@@ -70,6 +70,12 @@ class SettingsGeneralView extends PureComponent {
 					description: "Converts type codes like :thinking: to emoji like 🤔"
 				},
 				{
+					name: "enableEmojiImages",
+					readableName: "Emoji images",
+					type: "bool",
+					description: "Shows emojis as images, so systems without unicode support can still display them"
+				},
+				{
 					name: "hideOldUsers",
 					readableName: "Hide silent users in sidebar",
 					type: "bool",
