@@ -13,7 +13,7 @@ var config = {};
 
 // Setup entry points
 config.entry = {
-	"main": ["whatwg-fetch", "babel-polyfill", "./public/src/js/main.js"]
+	"main": ["babel-polyfill", "./public/src/js/main.js"]
 };
 
 // Setup output
