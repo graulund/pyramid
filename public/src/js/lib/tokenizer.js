@@ -202,7 +202,7 @@ function tokenizeMentions(tokens, highlights) {
 
 				// TODO: Non-alphanumeric nicknames
 
-				const rgx = new RegExp("\\b" + highlight + "\\b", "g");
+				const rgx = new RegExp("\\b" + highlight + "\\b", "gi");
 				var result;
 
 				while ((result = rgx.exec(text)) !== null) {
