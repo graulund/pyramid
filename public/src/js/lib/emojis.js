@@ -54,15 +54,29 @@ export function emojiToCodepoint(surrogates) {
 	return retval;
 }
 
-export function convertCodesToEmojis (text) {
+export function convertCodesToEmojis (text, extraInfo = false) {
+	var matchIndex = -1, replacementLength = 0;
 	if (emojiData) {
-		return text.replace(colonCodeRegex, (code, name) => {
+		text = text.replace(colonCodeRegex, (code, name) => {
 			if (emojiData[name]) {
-				return emojiData[name].split("-").map(codepointToEmoji).join("");
+				let emoji = emojiData[name].split("-").map(codepointToEmoji).join("");
+
+				matchIndex = text.indexOf(code);
+				replacementLength = emoji.length;
+
+				return emoji;
 			}
 
 			return code;
 		});
+	}
+
+	if (extraInfo) {
+		return {
+			matchIndex,
+			replacementLength,
+			result: text
+		};
 	}
 
 	return text;

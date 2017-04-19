@@ -134,9 +134,14 @@ class ChatInput extends Component {
 		const { input: inputEl } = this.refs;
 		if (inputEl && inputEl.value && enableEmojiCodes) {
 			const val = inputEl.value;
-			const convertedValue = convertCodesToEmojis(val);
-			if (convertedValue !== val) {
-				inputEl.value = convertedValue;
+			const convertedValue = convertCodesToEmojis(val, true);
+			const { matchIndex, replacementLength, result } = convertedValue;
+			if (result !== val) {
+				// Set the cursor to the end of the added emoji
+				const position = matchIndex + replacementLength;
+
+				inputEl.value = result;
+				inputEl.setSelectionRange(position, position);
 			}
 		}
 	}
