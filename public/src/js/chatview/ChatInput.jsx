@@ -100,9 +100,10 @@ class ChatInput extends Component {
 	}
 
 	focus() {
+		const { isTouchDevice } = this.props;
 		const { input: inputEl } = this.refs;
 
-		if (inputEl) {
+		if (inputEl && !isTouchDevice) {
 			inputEl.focus();
 		}
 	}
@@ -345,15 +346,18 @@ ChatInput.propTypes = {
 	channelCaches: PropTypes.object,
 	channelUserLists: PropTypes.object,
 	channel: PropTypes.string,
-	enableEmojiCodes: PropTypes.bool
+	enableEmojiCodes: PropTypes.bool,
+	isTouchDevice: PropTypes.bool
 };
 
 export default connect(({
 	appConfig: { enableEmojiCodes },
 	channelCaches,
-	channelUserLists
+	channelUserLists,
+	viewState: { isTouchDevice }
 }) => ({
 	channelCaches,
 	channelUserLists,
-	enableEmojiCodes
+	enableEmojiCodes,
+	isTouchDevice
 }))(ChatInput);

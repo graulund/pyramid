@@ -1,3 +1,6 @@
+import actions from "../actions";
+import store from "../store";
+
 export function areWeScrolledToTheBottom() {
 	// Are we scrolled to the bottom?
 	// --> Elements that have heights and offsets that matter
@@ -23,4 +26,15 @@ export function stickToTheBottom() {
 
 		// Plus, add a notice that there's new content?
 	}
+}
+
+function initTouchDeviceTest() {
+	window.addEventListener("touchstart", function onFirstTouch() {
+		store.dispatch(actions.viewState.update({ isTouchDevice: true }));
+		window.removeEventListener("touchstart", onFirstTouch, false);
+	}, false);
+}
+
+export function initVisualBehavior() {
+	initTouchDeviceTest();
 }

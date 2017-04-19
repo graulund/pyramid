@@ -8,10 +8,11 @@ import ChatView from "./chatview/ChatView.jsx";
 import NoChatView from "./components/NoChatView.jsx";
 import SettingsView from "./settingsview/SettingsView.jsx";
 
-import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import * as routes from "./lib/routeHelpers";
+import store from "./store";
+import { initVisualBehavior } from "./lib/visualBehavior";
 
 import "../scss/site.scss";
 
@@ -67,6 +68,8 @@ if (window.pyramid_onlineFriends) {
 initializeIo();
 
 // View
+
+initVisualBehavior();
 
 const main = document.querySelector("main");
 
