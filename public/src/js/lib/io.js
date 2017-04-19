@@ -372,7 +372,7 @@ export function initializeIo() {
 		});
 
 		socket.on("connectionStatus", (details) => {
-			if (details && details.serverName && details.status) {
+			if (details && details.serverName) {
 				store.dispatch(actions.connectionStatus.update({
 					[details.serverName]: details.status
 				}));

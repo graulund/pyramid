@@ -658,8 +658,18 @@ const handleIncomingEvent = function(
 };
 
 const handleIrcConnectionStateChange = function(serverName, status) {
-	const info = { status, time: new Date() };
-	currentIrcConnectionState[serverName] = info;
+
+	var info = null;
+
+	if (currentIrcConfig.find((config) => config.name === serverName)) {
+		// Update status
+		info = { status, time: new Date() };
+		currentIrcConnectionState[serverName] = info;
+	}
+	else {
+		// No longer in config
+		delete currentIrcConnectionState[serverName];
+	}
 
 	if (io) {
 		io.emitIrcConnectionStatus(serverName, info);
@@ -1355,6 +1365,10 @@ const disconnectIrcServer = function(serverName) {
 	irc.disconnectServer(serverName);
 };
 
+const disconnectAndRemoveIrcServer = function(serverName) {
+	irc.removeServer(serverName);
+};
+
 const joinIrcChannel = function(serverName, channelName) {
 	irc.joinChannel(serverName, channelName);
 };
@@ -1427,6 +1441,7 @@ module.exports = {
 	currentNicknames: () => currentNicknames,
 	currentOnlineFriends: () => currentOnlineFriends,
 	currentViewState: () => currentViewState,
+	disconnectAndRemoveIrcServer,
 	disconnectIrcServer,
 	flushCachedLastSeens,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],

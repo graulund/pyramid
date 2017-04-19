@@ -45,7 +45,7 @@ class ConnectionInfo extends PureComponent {
 			// IRC connections
 			const connectionWarnings = [];
 			forOwn(connectionStatus, (state, key) => {
-				if (key !== GLOBAL_CONNECTION) {
+				if (state && key !== GLOBAL_CONNECTION) {
 					switch (state.status) {
 						case STATUS.DISCONNECTED:
 							connectionWarnings.push(

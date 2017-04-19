@@ -5,6 +5,7 @@
 const irc    = require("irc");
 const fs     = require("fs");
 const path   = require("path");
+const lodash = require("lodash");
 
 const constants = require("./constants");
 const log = require("./log");
@@ -442,6 +443,14 @@ module.exports = function(main) {
 		}
 	};
 
+	const removeServer = function(serverName) {
+		const c = findClientByServerName(serverName);
+		if (c) {
+			disconnectServer(serverName);
+			clients = lodash.without(clients, c);
+		}
+	};
+
 	// Exported objects and methods
 	const output = {
 		calibrateMultiServerChannels,
@@ -452,6 +461,7 @@ module.exports = function(main) {
 		joinChannel,
 		partChannel,
 		reconnectServer,
+		removeServer,
 		sendOutgoingMessage
 	};
 

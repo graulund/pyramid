@@ -539,8 +539,10 @@ module.exports = function(main) {
 								console.warn("Error occurred removing irc server", err);
 							}
 							else {
-								main.disconnectIrcServer(details.name);
-								emitIrcConfig(socket);
+								emitIrcConfig(
+									socket,
+									() => main.disconnectAndRemoveIrcServer(details.name)
+								);
 							}
 						}
 					);
