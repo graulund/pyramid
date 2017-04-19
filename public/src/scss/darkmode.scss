@@ -59,39 +59,41 @@ body.darkmode {
 				border-top-color: #111;
 			}
 		}
+	}
 
-		.msg__author--color {
-			// Inverted name colors
-			&-0 { color: #ff7f00; }
-			&-1 { color: #fa6ffa; }
-			&-2 { color: #57ffab; }
-			&-3 { color: #64f24e; }
-			&-4 { color: #ef779f; }
-			&-5 { color: #80b000; }
-			&-6 { color: #a78fe5; }
-			&-7 { color: #9df571; }
-			&-8 { color: #44fff7; }
-			&-9 { color: #bbcba0; }
-			&-10 { color: #d0acac; }
-			&-11 { color: #6fbfff; }
-			&-12 { color: #7f7fff; }
-			&-13 { color: #a88681; }
-			&-14 { color: #cc2; }
-			&-15 { color: #a0b2dd; }
-			&-16 { color: #8f99e9; }
-			&-17 { color: #b98663; }
-			&-18 { color: #7fc8d1; }
-			&-19 { color: #70b871; }
-			&-20 { color: #a461b3; }
-			&-21 { color: #ec7d93; }
-			&-22 { color: #4ec9c8; }
-			&-23 { color: #1ba2a6; }
-			&-24 { color: #e4ae51; }
-			&-25 { color: #b7aa53; }
-			&-26 { color: #80e279; }
-			&-27 { color: #8c9bc0; }
-			&-28 { color: #f46a87; }
-			&-29 { color: #a96369; }
+	.chatusername {
+		// Increased contrast for colors
+		&--color {
+			&-0  { color: #0080ff; }
+			&-1  { color: #0c8f0c; }
+			&-2  { color: #f0087c; }
+			&-3  { color: #ce1dea; }
+			&-4  { color: #178d65; }
+			&-5  { color: #885dfb; }
+			&-6  { color: #6b8526; }
+			&-7  { color: #b347ea; }
+			&-8  { color: #f70510; }
+			&-9  { color: #8871ad; }
+			&-10 { color: #518585; }
+			&-11 { color: #c65e0a; }
+			&-12 { color: #808000; }
+			&-13 { color: #5e8187; }
+			&-14 { color: #6e6ee6; }
+			&-15 { color: #92793d; }
+			&-16 { color: #887c23; }
+			&-17 { color: #4c81a6; }
+			&-18 { color: #be6055; }
+			&-19 { color: #ae5ead; }
+			&-20 { color: #5b9e4c; }
+			&-21 { color: #1b8b75; }
+			&-22 { color: #ca5757; }
+			&-23 { color: #e45d59; }
+			&-24 { color: #3f7ade; }
+			&-25 { color: #6b77c1; }
+			&-26 { color: #c63fcf; }
+			&-27 { color: #8c7a4f; }
+			&-28 { color: #0b9578; }
+			&-29 { color: #569c96; }
 		}
 	}
 
