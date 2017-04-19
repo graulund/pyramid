@@ -455,12 +455,20 @@ const mainMethods = function(main, db) {
 	};
 
 	const addServerToIrcConfig = (data, callback) => {
-		db.run(
+		upsert(
+			uq(
+				"ircServers",
+				[
+					"hostname", "port", "secure", "username",
+					"password", "nickname", "isEnabled"
+				],
+				["name"]
+			),
 			iq(
 				"ircServers",
 				[
 					"name", "hostname", "port", "secure",
-					"username", "password", "nickname"
+					"username", "password", "nickname", "isEnabled"
 				]
 			),
 			{
@@ -470,7 +478,8 @@ const mainMethods = function(main, db) {
 				$secure: +(data.secure || false),
 				$username: data.username,
 				$password: data.password,
-				$nickname: data.nickname
+				$nickname: data.nickname,
+				$isEnabled: 1
 			},
 			callback
 		);
@@ -493,9 +502,10 @@ const mainMethods = function(main, db) {
 	};
 
 	const addChannelToIrcConfig = (serverId, name, callback) => {
-		db.run(
-			iq("ircChannels", ["serverId", "name"]),
-			dollarize({ serverId, name }),
+		upsert(
+			uq("ircChannels", ["isEnabled"], ["serverId", "name"]),
+			iq("ircChannels", ["serverId", "name", "isEnabled"]),
+			dollarize({ serverId, name, isEnabled: 1 }),
 			callback
 		);
 	};
