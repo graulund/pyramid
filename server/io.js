@@ -541,7 +541,7 @@ module.exports = function(main) {
 							else {
 								emitIrcConfig(
 									socket,
-									() => main.disconnectAndRemoveIrcServer(details.name)
+									() => main.disconnectAndRemoveIrcServer(name)
 								);
 							}
 						}
