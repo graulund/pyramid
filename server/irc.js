@@ -189,7 +189,7 @@ module.exports = function(main) {
 
 	const handleConnectionStateChange = function(client, state) {
 		const server = clientServerName(client);
-		if (server) {
+		if (server && !client.aborted) {
 			main.handleIrcConnectionStateChange(server, state);
 		}
 	};
