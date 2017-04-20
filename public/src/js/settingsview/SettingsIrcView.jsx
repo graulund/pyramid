@@ -5,6 +5,7 @@ import debounce from "lodash/debounce";
 import without from "lodash/without";
 
 import SettingsList from "./SettingsList.jsx";
+import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
 import { CHANGE_DEBOUNCE_MS, INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
 import * as io from "../lib/io";
@@ -124,6 +125,10 @@ class SettingsIrcView extends PureComponent {
 			myChangeValue(serverName, id, evt.target.value);
 		};
 
+		const label = (
+			<label htmlFor={id}>{ (readableName || ucfirst(id)) + " " }</label>
+		);
+
 		if (type === "checkbox") {
 
 			const onCheckboxChange = (evt) => {
@@ -136,18 +141,30 @@ class SettingsIrcView extends PureComponent {
 						type={type} id={id} name={id} defaultChecked={!!value}
 						onChange={onCheckboxChange}
 						/>
-					<label htmlFor={id}>{ (readableName || ucfirst(id)) + " " }</label>
+					{ label }
 				</p>
 			);
 		}
 
+		var input;
+
+		if (type === "password") {
+			input = <SettingsPasswordInput emptiable
+				type={type} id={id} name={id} defaultValue={value || ""}
+				onChange={onChange}
+				/>;
+		}
+		else {
+			input = <input
+				type={type} id={id} name={id} defaultValue={value || ""}
+				onChange={onChange}
+				/>;
+		}
+
 		return (
 			<p className="l">
-				<label htmlFor={id}>{ (readableName || ucfirst(id)) + " " }</label>
-				<input
-					type={type} id={id} name={id} defaultValue={value || ""}
-					onChange={onChange}
-					/>
+				{ label }
+				{ input }
 			</p>
 		);
 	}

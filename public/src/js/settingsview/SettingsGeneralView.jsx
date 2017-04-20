@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
+import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
 import { CHANGE_DEBOUNCE_MS, VERSION } from "../constants";
 import * as io from "../lib/io";
 import { timeZoneFormattedList } from "../lib/timeZones";
@@ -25,7 +26,8 @@ class SettingsGeneralView extends PureComponent {
 					readableName: "Web password",
 					type: "password",
 					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)",
-					notice: "Must not be empty"
+					notice: "Must not be empty",
+					emptiable: false
 				}
 			],
 			"Time zone": [
@@ -269,6 +271,18 @@ class SettingsGeneralView extends PureComponent {
 						{ options }
 					</select>
 				);
+				break;
+			case "password":
+				var { emptiable = true } = setting;
+				mainInput = <SettingsPasswordInput
+					type={type}
+					id={name}
+					defaultValue={appConfig[name] || ""}
+					onChange={(evt) => myChangeValue(name, evt.target.value)}
+					disabled={isDisabled}
+					emptiable={emptiable}
+					key="input"
+					/>;
 				break;
 			default:
 				mainInput = <input

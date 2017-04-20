@@ -941,15 +941,33 @@ const generateFriendIdCache = function() {
 	});
 };
 
+const safeAppConfig = function(appConfig = currentAppConfig) {
+	var outConfig = lodash.omit(appConfig, ["webPassword"]);
+
+	if (appConfig.webPassword) {
+		// Signal that a password has been set
+		outConfig.webPassword = true;
+	}
+
+	return outConfig;
+};
+
 const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 	var ircConfigDict = {};
 	ircConfig.forEach((config) => {
 		var outConfig = lodash.omit(config, ["password"]);
+
+		if (config.password) {
+			// Signal that a password has been set
+			outConfig.password = true;
+		}
+
 		if (outConfig.channels) {
 			outConfig.channels = outConfig.channels.map(
 				(val) => val.name
 			);
 		}
+
 		ircConfigDict[config.name] = outConfig;
 	});
 
@@ -1486,6 +1504,7 @@ module.exports = {
 	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,
+	safeAppConfig,
 	safeIrcConfigDict,
 	sendOutgoingMessage,
 	setChannelUserList,

@@ -18,9 +18,13 @@ module.exports = function(main) {
 					throw err;
 				}
 
+				const appConfig = main.safeAppConfig(
+					lodash.assign({}, configDefaults, results.appConfig)
+				);
+
 				res.render("index", {
 					// Variables
-					appConfig: lodash.assign({}, configDefaults, results.appConfig),
+					appConfig,
 					friendsList: main.currentFriendsList(),
 					ircConfig: main.safeIrcConfigDict(results.ircConfig),
 					ircConnectionState: main.currentIrcConnectionState(),

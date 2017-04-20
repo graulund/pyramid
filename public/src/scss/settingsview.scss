@@ -187,3 +187,13 @@
 		}
 	}
 }
+
+.password-input {
+	&__empty {
+		display: none;
+	}
+
+	&--focus &__empty {
+		display: inline-block;
+	}
+}
