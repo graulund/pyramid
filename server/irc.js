@@ -122,7 +122,7 @@ module.exports = function(main) {
 
 				// Handle our own message as if it's incoming
 				handleIncomingMessage(
-					client, client.extConfig.nickname,
+					client, client.nick,
 					channelName, type, message, {},
 					true
 				);
@@ -144,7 +144,7 @@ module.exports = function(main) {
 		const channelUri = getChannelUri(chobj);
 		const channelName = getChannelFullName(chobj);
 		const serverName = chobj.server;
-		const meUsername = client.extConfig.nickname;
+		const meUsername = client.nick;
 
 		// Time
 		const time = new Date();
