@@ -520,7 +520,13 @@ module.exports = function(main) {
 								console.warn("Error occurred changing irc server", err);
 							}
 							else {
-								emitIrcConfig(socket);
+								emitIrcConfig(
+									socket,
+									() => {
+										main.disconnectAndRemoveIrcServer(name);
+										main.connectUnconnectedIrcs();
+									}
+								);
 							}
 						}
 					);
