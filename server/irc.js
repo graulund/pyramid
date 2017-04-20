@@ -189,7 +189,12 @@ module.exports = function(main) {
 
 	const handleConnectionStateChange = function(client, state) {
 		const server = clientServerName(client);
-		if (server && !client.aborted) {
+
+		if (client.aborted) {
+			state = constants.CONNECTION_STATUS.ABORTED;
+		}
+
+		if (server) {
 			main.handleIrcConnectionStateChange(server, state);
 		}
 	};
@@ -197,6 +202,11 @@ module.exports = function(main) {
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
 		main.setChannelUserList(getChannelUri(chobj), userList);
+	};
+
+	const abortClient = function(client, status = constants.CONNECTION_STATUS.ABORTED) {
+		client.aborted = true;
+		handleConnectionStateChange(client, status);
 	};
 
 	const setUpClient = function(client) {
@@ -226,10 +236,7 @@ module.exports = function(main) {
 		});
 
 		client.addListener("abort", function() {
-			client.aborted = true;
-			handleConnectionStateChange(
-				client, constants.CONNECTION_STATUS.FAILED
-			);
+			abortClient(client, constants.CONNECTION_STATUS.FAILED);
 		});
 
 		client.addListener("netError", function(exception) {
@@ -438,7 +445,7 @@ module.exports = function(main) {
 	const disconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.aborted = true;
+			abortClient(c);
 			c.disconnect();
 		}
 	};

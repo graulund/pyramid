@@ -16,7 +16,11 @@ class App extends PureComponent {
 
 		return Object.keys(connectionStatus).filter((key) => {
 			return connectionStatus[key] &&
-				connectionStatus[key].status !== STATUS.CONNECTED;
+				(
+					connectionStatus[key].status === STATUS.DISCONNECTED ||
+					connectionStatus[key].status === STATUS.FAILED ||
+					connectionStatus[key].status === STATUS.REJECTED
+				);
 		}).length;
 	}
 

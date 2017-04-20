@@ -32,6 +32,7 @@ module.exports = {
 	TOKEN_COOKIE_SECONDS: 86400 * 365,
 
 	CONNECTION_STATUS: {
+		ABORTED: "aborted",
 		CONNECTED: "connected",
 		DISCONNECTED: "disconnected",
 		FAILED: "failed",
