@@ -190,7 +190,7 @@ module.exports = function(main) {
 	const handleConnectionStateChange = function(client, state) {
 		const server = clientServerName(client);
 
-		if (client.aborted) {
+		if (client._pyramidAborted) {
 			state = constants.CONNECTION_STATUS.ABORTED;
 		}
 
@@ -205,14 +205,14 @@ module.exports = function(main) {
 	};
 
 	const abortClient = function(client, status = constants.CONNECTION_STATUS.ABORTED) {
-		client.aborted = true;
+		client._pyramidAborted = true;
 		handleConnectionStateChange(client, status);
 	};
 
 	const setUpClient = function(client) {
 
 		client.addListener("connect", function() {
-			client.aborted = false;
+			client._pyramidAborted = false;
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.CONNECTED
 			);
@@ -236,7 +236,10 @@ module.exports = function(main) {
 		});
 
 		client.addListener("abort", function() {
-			abortClient(client, constants.CONNECTION_STATUS.FAILED);
+			// IRC library gave up reconnecting
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.FAILED
+			);
 		});
 
 		client.addListener("netError", function(exception) {
@@ -431,7 +434,7 @@ module.exports = function(main) {
 
 	const reconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
-		if (c && c.aborted) {
+		if (c && c._pyramidAborted) {
 			c.connect();
 		}
 		else {
