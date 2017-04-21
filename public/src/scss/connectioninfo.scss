@@ -24,4 +24,22 @@
 		display: inline;
 		margin: 0 .5em;
 	}
+
+	&__full {
+		display: inline;
+	}
+
+	&__short {
+		display: none;
+	}
+
+	@media #{$mobile-media} {
+		&__full {
+			display: none;
+		}
+
+		&__short {
+			display: inline;
+		}
+	}
 }

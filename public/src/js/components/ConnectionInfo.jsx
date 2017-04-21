@@ -6,59 +6,123 @@ import forOwn from "lodash/forOwn";
 import { reconnectToIrcServer } from "../lib/io";
 import { GLOBAL_CONNECTION, STATUS } from "../lib/connectionStatus";
 
+const block = "connection-warning", fullClassName = `${block}__full`,
+	shortClassName = `${block}__short`;
+
 class ConnectionInfo extends PureComponent {
+	renderWarning(warning) {
+		return [
+			(
+				<div className={fullClassName} key="full">
+					{ warning.content }
+				</div>
+			),
+			(
+				<div className={shortClassName} key="short">
+					{ warning.shortContent }
+				</div>
+			)
+		];
+	}
+
 	render() {
 		const { connectionStatus } = this.props;
 
 		if (connectionStatus) {
 			// Global connection
 			const globalConnectionStatus = connectionStatus[GLOBAL_CONNECTION];
+			var globalWarning;
+
 			if (globalConnectionStatus && globalConnectionStatus.status) {
-				switch (globalConnectionStatus.status) {
+				const status = globalConnectionStatus.status;
+				switch (status) {
 					case STATUS.DISCONNECTED:
-						return (
-							<div className="connection-warning" key="connection-warning">
-								Currently disconnected from Pyramid.
-								Trying to reconnect&#8230;
-							</div>
-						);
+						globalWarning = {
+							status,
+							content:
+								"Currently disconnected from Pyramid. " +
+								"Trying to reconnect…",
+							shortContent:
+								"Disconnected from Pyramid"
+						};
+						globalWarning.textContent = globalWarning.content;
+						break;
 					case STATUS.FAILED:
 						// TODO: Manual retry
-						return (
-							<div className="connection-warning" key="connection-warning">
-								Currently disconnected from Pyramid.
-							</div>
-						);
+						globalWarning = {
+							status,
+							content:
+								"Currently disconnected from Pyramid. Reload to reconnect.",
+							shortContent:
+								"Disconnected from Pyramid"
+						};
+						globalWarning.textContent = globalWarning.content;
+						break;
 					case STATUS.REJECTED: {
 						let encodedUrl = encodeURIComponent(location.pathname);
 						let loginUrl = `/login?redirect=${encodedUrl}`;
-						return (
-							<div className="connection-warning" key="connection-warning">
-								Oops, Pyramid could not authorize you.
-								Please <a href={loginUrl}>log in</a> again.
-							</div>
-						);
+						globalWarning = {
+							status,
+							content:
+								[
+									"Oops, Pyramid could not authorize you. Please ",
+									<a href={loginUrl}>log in</a>,
+									" again."
+								],
+							shortContent:
+							[
+								"Please ",
+								<a href={loginUrl}>log in</a>,
+								" again"
+							],
+							textContent:
+								"Oops, Pyramid could not authorize you. Please log in again."
+						};
+						break;
 					}
 				}
 			}
 
+			if (globalWarning) {
+				return (
+					<div className={block} key={block} data-status={globalWarning.status}>
+						{ this.renderWarning(globalWarning) }
+					</div>
+				);
+			}
+
 			// IRC connections
-			const connectionWarnings = [];
+			var warnings = [], warning;
 			forOwn(connectionStatus, (state, key) => {
 				if (state && key !== GLOBAL_CONNECTION) {
-					switch (state.status) {
+					const status = state.status;
+					switch (status) {
 						case STATUS.DISCONNECTED:
-							connectionWarnings.push(
-								`Pyramid is currently disconnected from the IRC network “${key}”. Trying to reconnect…`
-							);
+							warning = {
+								status,
+								content:
+									"Pyramid is currently disconnected from the IRC " +
+									`network “${key}”. Trying to reconnect…`,
+								shortContent:
+									`Disconnected from IRC “${key}”`
+							};
+							warning.textContent = warning.content;
+							warnings.push(warning);
 							break;
 						case STATUS.REJECTED:
-							connectionWarnings.push(
-								`Pyramid was prevented from connecting to the IRC network “${key}”. Please check the configuration.`
-							);
+							warnings.push({
+								status,
+								content:
+									"Pyramid was prevented from connecting to the IRC " +
+									`network “${key}”. Please check the configuration.`,
+								shortContent:
+									`Prevented from joining IRC “${key}”`
+							});
+							warning.textContent = warning.content;
+							warnings.push(warning);
 							break;
 						case STATUS.FAILED:
-							connectionWarnings.push((
+							var content = (
 								<span>
 									Pyramid was disconnected from the IRC network “{ key }”.
 									{" "}
@@ -67,16 +131,74 @@ class ConnectionInfo extends PureComponent {
 										Reconnect
 									</a>
 								</span>
-							));
+							);
+							var shortContent = (
+								<span>
+									Disconnected from IRC “{ key }”.
+									{" "}
+									<a href="javascript://"
+										onClick={() => reconnectToIrcServer(key)}>
+										Reconnect
+									</a>
+								</span>
+							);
+							var textContent =
+								`Pyramid was disconnected from the IRC network “${key}”.`;
+							warnings.push({ status, content, shortContent, textContent });
 							break;
 					}
 				}
 			});
-			if (connectionWarnings.length) {
+
+			if (warnings.length) {
+
+				// Special multiple cases
+				if (warnings.length > 1) {
+					const disconnected = warnings.filter((w) => w.status === STATUS.DISCONNECTED);
+					const rejected = warnings.filter((w) => w.status === STATUS.REJECTED);
+					var groupWarning;
+
+					if (disconnected.length > 1) {
+						// Group disconnected
+						const nonDisconnected = warnings.filter((w) => w.status !== STATUS.DISCONNECTED);
+						groupWarning = {
+							status: STATUS.DISCONNECTED,
+							content:
+								`Pyramid was disconnected from ${warnings.length} ` +
+								"IRC networks. Trying to reconnect…",
+							shortContent:
+								`Disconnected from ${warnings.length} IRCs`
+						};
+						groupWarning.textContent = groupWarning.content;
+						warnings = [groupWarning].concat(nonDisconnected);
+					}
+
+					if (rejected.length > 1) {
+						// Group rejected
+						const nonRejected = warnings.filter((w) => w.status !== STATUS.REJECTED);
+						groupWarning = {
+							status: STATUS.REJECTED,
+							content:
+								`Pyramid was prevented from connecting to ${warnings.length} ` +
+								"IRC networks. Please check the configuration.",
+							shortContent:
+								`Prevented from joining ${warnings.length} IRCs`
+						};
+						groupWarning.textContent = groupWarning.content;
+						warnings = [groupWarning].concat(nonRejected);
+					}
+				}
+
+				const title = warnings.map(({ textContent }) => textContent || "").join(" ");
+
 				return (
-					<ul className="connection-warning" key="connection-warning">
-						{ connectionWarnings.map(
-							(content, i) => <li key={i}>{ content }</li>
+					<ul className={block} key={block} title={title}>
+						{ warnings.map(
+							(warning, i) => (
+								<li key={i} data-status={warning.status}>
+									{ this.renderWarning(warning) }
+								</li>
+							)
 						)}
 					</ul>
 				);
