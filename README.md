@@ -32,7 +32,7 @@ If you want an installation that's always up to date with the newest development
 3. Run `git checkout development` to move to the development branch
 4. Follow above installation instructions
 
-Then, when you want to update your version, simply run `git pull` in a terminal from the Pyramid folder. If it tells you that there are changes in the `package.json` file, simply run `npm install --production` again, to make sure the prerequisites are up to date.
+Then, when you want to update your version, simply run `git pull` in a terminal from the Pyramid folder. If it tells you that there are changes in the `package.json` file, then run `npm install --production` again, to make sure the prerequisites are up to date.
 
 Warning: Development builds can obviously fail more often than the master build.
 
