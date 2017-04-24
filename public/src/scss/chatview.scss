@@ -147,7 +147,7 @@
 
 	.line--highlight {
 		background-color: #fff0aa;
-		transition: 1s background-color;
+		transition: .5s margin, 1s background-color;
 	}
 
 	.line--highlight.line--unseen-highlight {
