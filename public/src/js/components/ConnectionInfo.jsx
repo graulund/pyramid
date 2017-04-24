@@ -10,6 +10,27 @@ const block = "connection-warning", fullClassName = `${block}__full`,
 	shortClassName = `${block}__short`;
 
 class ConnectionInfo extends PureComponent {
+	constructor(props) {
+		super(props);
+		this.eventHandlers = {};
+	}
+
+	createEventHandler(key) {
+		return {
+			reconnect: () => reconnectToIrcServer(key)
+		};
+	}
+
+	getEventHandler(key) {
+		// Cache the value change handlers so they don't change
+
+		if (!this.eventHandlers[key]) {
+			this.eventHandlers[key] = this.createEventHandler(key);
+		}
+
+		return this.eventHandlers[key];
+	}
+
 	renderWarning(warning) {
 		return [
 			(
@@ -95,6 +116,7 @@ class ConnectionInfo extends PureComponent {
 			var warnings = [], warning;
 			forOwn(connectionStatus, (state, key) => {
 				if (state && key !== GLOBAL_CONNECTION) {
+					const eventHandler = this.getEventHandler(key);
 					const status = state.status;
 					switch (status) {
 						case STATUS.DISCONNECTED:
@@ -127,7 +149,7 @@ class ConnectionInfo extends PureComponent {
 									Pyramid was disconnected from the IRC network “{ key }”.
 									{" "}
 									<a href="javascript://"
-										onClick={() => reconnectToIrcServer(key)}>
+										onClick={eventHandler.reconnect}>
 										Reconnect
 									</a>
 								</span>
@@ -137,7 +159,7 @@ class ConnectionInfo extends PureComponent {
 									Disconnected from IRC “{ key }”.
 									{" "}
 									<a href="javascript://"
-										onClick={() => reconnectToIrcServer(key)}>
+										onClick={eventHandler.reconnect}>
 										Reconnect
 									</a>
 								</span>

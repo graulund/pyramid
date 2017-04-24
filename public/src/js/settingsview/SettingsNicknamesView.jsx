@@ -13,9 +13,31 @@ class SettingsNicknamesView extends PureComponent {
 
 		this.handleSelect = this.handleSelect.bind(this);
 
+		this.valueChangeHandlers = {};
+
 		this.state = {
 			selectedItem: null
 		};
+	}
+
+	// Cache the bound handler methods so they don't change on every render
+
+	createValueChangeHandler(nickname, key) {
+		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+		return (evt) => myChangeValue(nickname, key, evt.target.value);
+	}
+
+	getValueChangeHandler(nickname, key) {
+		if (!this.valueChangeHandlers[nickname]) {
+			this.valueChangeHandlers[nickname] = {};
+		}
+
+		if (!this.valueChangeHandlers[nickname][key]) {
+			this.valueChangeHandlers[nickname][key] =
+				this.createValueChangeHandler(nickname, key);
+		}
+
+		return this.valueChangeHandlers[nickname][key];
 	}
 
 	handleSelect(nickname) {
@@ -53,7 +75,7 @@ class SettingsNicknamesView extends PureComponent {
 	}
 
 	renderItemTextarea(item, key, value) {
-		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+		const changeHandler = this.getValueChangeHandler(item.nickname, key);
 
 		if (value && value instanceof Array) {
 			value = value.join("\n");
@@ -63,7 +85,7 @@ class SettingsNicknamesView extends PureComponent {
 			<textarea
 				id={"item-" + key}
 				defaultValue={value}
-				onChange={(evt) => myChangeValue(item.nickname, key, evt.target.value)} />
+				onChange={changeHandler} />
 		);
 	}
 

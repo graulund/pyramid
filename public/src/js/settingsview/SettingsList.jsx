@@ -11,10 +11,19 @@ class SettingsList extends PureComponent {
 		this.onSubmit = this.onSubmit.bind(this);
 		this.showAddForm = this.showAddForm.bind(this);
 
+		this.eventHandlers = new Map();
+
 		this.state = {
 			selectedItem: null,
 			showingAddForm: false
 		};
+	}
+
+	componentWillReceiveProps(newProps) {
+		if (newProps.list !== this.props.list) {
+			// Reset event handlers map if we have a new list
+			this.eventHandlers.clear();
+		}
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -31,6 +40,23 @@ class SettingsList extends PureComponent {
 				input.focus();
 			}
 		}
+	}
+
+	createEventHandler(item) {
+		return {
+			click: () => this.handleClick(item),
+			remove: (evt) => this.props.onRemove(item, evt)
+		};
+	}
+
+	getEventHandler(item) {
+		// Cache the bound event handlers
+
+		if (!this.eventHandlers.has(item)) {
+			this.eventHandlers.set(item, this.createEventHandler(item));
+		}
+
+		return this.eventHandlers.get(item);
 	}
 
 	handleClick(item) {
@@ -101,53 +127,60 @@ class SettingsList extends PureComponent {
 		);
 	}
 
+	renderListItem(item, i) {
+		const { extraColumn, itemKindName } = this.props;
+		const { selectedItem } = this.state;
+
+		const eventHandler = this.getEventHandler(item);
+
+		const className = "settings__list-item" + (
+			item === selectedItem
+				? " settings__list-item--selected"
+				: ""
+		);
+
+		const extra = (typeof extraColumn === "function")
+			? extraColumn(item)
+			: null;
+
+		const removeButton = (typeof onRemove === "function")
+			? (
+				<button onClick={eventHandler.remove}>
+					Remove { itemKindName }
+				</button>
+			)
+			: null;
+
+		return (
+			<li
+				className={className}
+				key={i}
+				onClick={eventHandler.click}>
+				<strong>{ item.name || item }</strong>
+				{ extra }
+				{ removeButton }
+			</li>
+		);
+	}
+
 	render() {
-		const { extraColumn, itemKindName, list, onAdd, onRemove, onSelect } = this.props;
-		const { selectedItem, showingAddForm } = this.state;
+		const { list, onAdd, onSelect } = this.props;
+		const { showingAddForm } = this.state;
 
 		const adder = showingAddForm
 					? this.renderAddForm()
 					: this.renderAddButton();
 
-		const itemClassName = (item) => {
-			return "settings__list-item" + (
-				item === selectedItem
-					? " settings__list-item--selected"
-					: ""
-			);
-		};
-
 		const className = "settings__list" + (
 			onSelect ? " settings__list--selectable" : ""
 		);
 
+		const listEls = list.map((item, i) => this.renderListItem(item, i));
+
 		return (
 			<div className={className} key="main">
 				{ typeof onAdd === "function" ? adder : null }
-				<ul>
-					{
-						list.map((item, i) => (
-							<li className={itemClassName(item)} key={i}
-								onClick={() => this.handleClick(item)}>
-								<strong>{ item.name || item }</strong>
-								{
-									(typeof extraColumn === "function")
-									? extraColumn(item)
-									: null
-								}
-								{
-									(typeof onRemove === "function")
-									? (
-										<button onClick={(evt) => onRemove(item, evt)}>
-											Remove { itemKindName }
-										</button>
-									)
-									: null
-								}
-							</li>
-						))
-					}
-				</ul>
+				<ul>{ listEls }</ul>
 			</div>
 		);
 	}

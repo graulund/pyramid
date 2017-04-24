@@ -17,9 +17,14 @@ class Sidebar extends PureComponent {
 		super(props);
 
 		this.onClick = this.onClick.bind(this);
-		this.setSort = this.setSort.bind(this);
-		this.setTab = this.setTab.bind(this);
+		this.hide = this.hide.bind(this);
+		this.showUsers = this.showUsers.bind(this);
+		this.showChannels = this.showChannels.bind(this);
+		this.sortByAlpha = this.sortByAlpha.bind(this);
+		this.sortByActivity = this.sortByActivity.bind(this);
 	}
+
+	// Event handler
 
 	onClick(evt) {
 		if (evt && evt.nativeEvent) {
@@ -37,10 +42,12 @@ class Sidebar extends PureComponent {
 					)
 				)
 			) {
-				this.setVisible(false);
+				this.hide();
 			}
 		}
 	}
+
+	// Generic state methods
 
 	setSort(sort) {
 		const change = { sidebarSort: sort };
@@ -59,6 +66,28 @@ class Sidebar extends PureComponent {
 
 		// This is not stored remotely, as it follows special behavior once loaded,
 		// depending on which page you're on, and your viewport
+	}
+
+	// Bound state methods
+
+	hide() {
+		this.setVisible(false);
+	}
+
+	showUsers() {
+		this.setTab("user");
+	}
+
+	showChannels() {
+		this.setTab("channel");
+	}
+
+	sortByAlpha() {
+		this.setSort("alpha");
+	}
+
+	sortByActivity() {
+		this.setSort("activity");
 	}
 
 	render() {
@@ -88,7 +117,7 @@ class Sidebar extends PureComponent {
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
 					<h1>Pyramid</h1>
-					<a className="sidebar__close" href="javascript://" onClick={() => this.setVisible(false)}>
+					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
 					<ul className="controls sidebar__controls">
@@ -111,13 +140,13 @@ class Sidebar extends PureComponent {
 						<ul className="sidebar__tabs switcher" key="tabs">
 							<li key="user">
 								<button className="user"
-									onClick={() => this.setTab("user")}>
+									onClick={this.showUsers}>
 									Friends
 								</button>
 							</li>
 							<li key="channel">
 								<button className="channel"
-									onClick={() => this.setTab("channel")}>
+									onClick={this.showChannels}>
 									Channels
 								</button>
 							</li>
@@ -126,12 +155,14 @@ class Sidebar extends PureComponent {
 							<ul className="switcher" key="sortswitcher">
 								<li key="alpha">
 									<button className="alpha"
-										onClick={() => this.setSort("alpha")}>Alphabetical
+										onClick={this.sortByAlpha}>
+										Alphabetical
 									</button>
 								</li>
 								<li key="activity">
 									<button className="activity"
-										onClick={() => this.setSort("activity")}>Activity
+										onClick={this.sortByActivity}>
+										Activity
 									</button>
 								</li>
 							</ul>

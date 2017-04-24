@@ -18,6 +18,9 @@ class SettingsIrcView extends PureComponent {
 		this.onAddSubmit = this.onAddSubmit.bind(this);
 		this.onChangeValue = this.onChangeValue.bind(this);
 
+		this.eventHandlers = {};
+		this.valueChangeHandlers = {};
+
 		this.state = {
 			newServer: { channels: [] },
 			newServerName: null,
@@ -39,6 +42,46 @@ class SettingsIrcView extends PureComponent {
 				input.focus();
 			}
 		}
+	}
+
+	// Cache the bound handler methods so they don't change on every render
+
+	createEventHandler(name) {
+		return {
+			addChannel: (c) => this.onAddChannel(name, c),
+			removeChannel: (c) => this.onRemoveChannel(name, c),
+			removeServer: () => this.onRemoveServer(name)
+		};
+	}
+
+	createValueChangeHandler(serverName, id) {
+		const myChangeValue = debounce(this.onChangeValue, CHANGE_DEBOUNCE_MS);
+
+		return {
+			bool: (evt) => myChangeValue(serverName, id, evt.target.checked),
+			string: (evt) => myChangeValue(serverName, id, evt.target.value)
+		};
+	}
+
+	getEventHandler(name) {
+		if (!this.eventHandlers[name]) {
+			this.eventHandlers[name] = this.createEventHandler(name);
+		}
+
+		return this.eventHandlers[name];
+	}
+
+	getValueChangeHandler(serverName, id) {
+		if (!this.valueChangeHandlers[serverName]) {
+			this.valueChangeHandlers[serverName] = {};
+		}
+
+		if (!this.valueChangeHandlers[serverName][id]) {
+			this.valueChangeHandlers[serverName][id] =
+				this.createValueChangeHandler(serverName, id);
+		}
+
+		return this.valueChangeHandlers[serverName][id];
 	}
 
 	showAddForm() {
@@ -119,11 +162,7 @@ class SettingsIrcView extends PureComponent {
 
 	renderLine(serverName, id, value, type = "text", readableName = "") {
 
-		const myChangeValue = debounce(this.onChangeValue, CHANGE_DEBOUNCE_MS);
-
-		const onChange = (evt) => {
-			myChangeValue(serverName, id, evt.target.value);
-		};
+		const changeHandler = this.getValueChangeHandler(serverName, id);
 
 		const label = (
 			<label htmlFor={id}>{ (readableName || ucfirst(id)) + " " }</label>
@@ -131,15 +170,11 @@ class SettingsIrcView extends PureComponent {
 
 		if (type === "checkbox") {
 
-			const onCheckboxChange = (evt) => {
-				myChangeValue(serverName, id, evt.target.checked);
-			};
-
 			return (
 				<p>
 					<input
 						type={type} id={id} name={id} defaultChecked={!!value}
-						onChange={onCheckboxChange}
+						onChange={changeHandler.bool}
 						/>
 					{ label }
 				</p>
@@ -151,13 +186,13 @@ class SettingsIrcView extends PureComponent {
 		if (type === "password") {
 			input = <SettingsPasswordInput emptiable
 				type={type} id={id} name={id} defaultValue={value || ""}
-				onChange={onChange}
+				onChange={changeHandler.string}
 				/>;
 		}
 		else {
 			input = <input
 				type={type} id={id} name={id} defaultValue={value || ""}
-				onChange={onChange}
+				onChange={changeHandler.string}
 				/>;
 		}
 
@@ -181,6 +216,8 @@ class SettingsIrcView extends PureComponent {
 	}
 
 	renderIrcConfigForm(data) {
+		const eventHandler = this.getEventHandler(data.name);
+
 		return (
 			<div>
 				<div className="settings__section" key="metadata">
@@ -224,8 +261,8 @@ class SettingsIrcView extends PureComponent {
 					<SettingsList
 						itemKindName="channel"
 						list={data.channels}
-						onAdd={(c) => this.onAddChannel(data.name, c)}
-						onRemove={(c) => this.onRemoveChannel(data.name, c)}
+						onAdd={eventHandler.addChannel}
+						onRemove={eventHandler.removeChannel}
 					/>
 				</div>
 			</div>
@@ -233,10 +270,12 @@ class SettingsIrcView extends PureComponent {
 	}
 
 	renderIrcConfig(data) {
+		const eventHandler = this.getEventHandler(data.name);
+
 		return (
 			<div className="settings__container" key={data.name}>
 				<div className="settings__rightcontrol">
-					<button onClick={() => this.onRemoveServer(data.name)}>
+					<button onClick={eventHandler.removeServer}>
 						Remove server
 					</button>
 				</div>

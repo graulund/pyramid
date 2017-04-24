@@ -199,6 +199,28 @@ class SettingsGeneralView extends PureComponent {
 				}
 			]
 		};
+
+		this.valueChangeHandlers = {};
+	}
+
+	createValueChangeHandler(name) {
+		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+
+		return {
+			bool: (evt) => myChangeValue(name, evt.target.checked),
+			number: (evt) => myChangeValue(name, +evt.target.value),
+			string: (evt) => myChangeValue(name, evt.target.value)
+		};
+	}
+
+	getValueChangeHandler(name) {
+		// Cache the value change handlers so they don't change
+
+		if (!this.valueChangeHandlers[name]) {
+			this.valueChangeHandlers[name] = this.createValueChangeHandler(name);
+		}
+
+		return this.valueChangeHandlers[name];
 	}
 
 	handleValueChange(name, value) {
@@ -228,22 +250,24 @@ class SettingsGeneralView extends PureComponent {
 		}
 
 		// Change handler
-		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+		const changeHandler = this.getValueChangeHandler(name);
 
 		// Input field
 		switch (type) {
+
 			case "bool":
 				prefixInput = <input
 					type="checkbox"
 					id={name}
 					defaultChecked={appConfig[name]}
-					onChange={(evt) => myChangeValue(name, evt.target.checked)}
+					onChange={changeHandler.bool}
 					disabled={isDisabled}
 					key="input" />;
 				break;
+
 			case "enum":
 				var options = null, defaultValue = appConfig[name];
-				var valueTransform = (v) => v;
+				var ch = changeHandler.string;
 
 				if (setting.valuePairs) {
 					options = setting.valuePairs.map((pair, i) => {
@@ -254,7 +278,7 @@ class SettingsGeneralView extends PureComponent {
 				else if (setting.valueNames) {
 					// Assume numeric values
 					defaultValue = +appConfig[name] || 0;
-					valueTransform = (v) => +v;
+					ch = changeHandler.number;
 					options = setting.valueNames.map(
 						(name, i) => <option key={i} value={i}>{ name }</option>
 					);
@@ -264,32 +288,33 @@ class SettingsGeneralView extends PureComponent {
 					<select
 						id={name}
 						defaultValue={defaultValue}
-						onChange={(evt) =>
-							myChangeValue(name, valueTransform(evt.target.value))}
+						onChange={ch}
 						disabled={isDisabled}
 						key="input">
 						{ options }
 					</select>
 				);
 				break;
+
 			case "password":
 				var { emptiable = true } = setting;
 				mainInput = <SettingsPasswordInput
 					type={type}
 					id={name}
 					defaultValue={appConfig[name] || ""}
-					onChange={(evt) => myChangeValue(name, evt.target.value)}
+					onChange={changeHandler.string}
 					disabled={isDisabled}
 					emptiable={emptiable}
 					key="input"
 					/>;
 				break;
+
 			default:
 				mainInput = <input
 					type={type}
 					id={name}
 					defaultValue={appConfig[name] || ""}
-					onChange={(evt) => myChangeValue(name, evt.target.value)}
+					onChange={changeHandler.string}
 					disabled={isDisabled}
 					key="input" />;
 		}
