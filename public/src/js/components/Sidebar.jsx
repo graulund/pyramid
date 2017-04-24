@@ -91,13 +91,11 @@ class Sidebar extends PureComponent {
 	}
 
 	render() {
-		const { viewState = {} } = this.props;
-
 		const {
 			sidebarSort: sort = "alpha",
 			sidebarTab: tab = "user",
 			sidebarVisible: visible = true
-		} = viewState;
+		} = this.props;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
@@ -176,8 +174,19 @@ class Sidebar extends PureComponent {
 }
 
 Sidebar.propTypes = {
-	viewState: PropTypes.object
+	sidebarSort: PropTypes.string,
+	sidebarTab: PropTypes.string,
+	sidebarVisible: PropTypes.bool
 };
 
-// TODO: Only connect the relevant subproperties of viewState
-export default connect(({ viewState }) => ({ viewState }))(Sidebar);
+export default connect(({
+	viewState: {
+		sidebarSort,
+		sidebarTab,
+		sidebarVisible
+	}
+}) => ({
+	sidebarSort,
+	sidebarTab,
+	sidebarVisible
+}))(Sidebar);
