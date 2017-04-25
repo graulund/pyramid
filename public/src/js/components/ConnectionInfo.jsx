@@ -87,13 +87,13 @@ class ConnectionInfo extends PureComponent {
 							content:
 								[
 									"Oops, Pyramid could not authorize you. Please ",
-									<a href={loginUrl}>log in</a>,
+									<a href={loginUrl} key="login">log in</a>,
 									" again."
 								],
 							shortContent:
 							[
 								"Please ",
-								<a href={loginUrl}>log in</a>,
+								<a href={loginUrl} key="login">log in</a>,
 								" again"
 							],
 							textContent:
@@ -149,7 +149,8 @@ class ConnectionInfo extends PureComponent {
 									Pyramid was disconnected from the IRC network “{ key }”.
 									{" "}
 									<a href="javascript://"
-										onClick={eventHandler.reconnect}>
+										onClick={eventHandler.reconnect}
+										key="reconnect">
 										Reconnect
 									</a>
 								</span>
@@ -159,7 +160,8 @@ class ConnectionInfo extends PureComponent {
 									Disconnected from IRC “{ key }”.
 									{" "}
 									<a href="javascript://"
-										onClick={eventHandler.reconnect}>
+										onClick={eventHandler.reconnect}
+										key="reconnect">
 										Reconnect
 									</a>
 								</span>
