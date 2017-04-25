@@ -6,6 +6,8 @@ import TimedChannelItem from "./TimedChannelItem.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import { minuteTime } from "../lib/formatting";
 
+const defaultLastSeenData = { time: "" };
+
 class ChannelList extends PureComponent {
 	render() {
 		const {
@@ -38,7 +40,7 @@ class ChannelList extends PureComponent {
 
 		ircChannels = ircChannels.map((data) => {
 			if (data) {
-				var lastSeenData = { time: "" };
+				var lastSeenData = defaultLastSeenData;
 				if (data.channel && lastSeenChannels && data.channel in lastSeenChannels) {
 					lastSeenData = lastSeenChannels[data.channel];
 				}
@@ -83,9 +85,11 @@ class ChannelList extends PureComponent {
 		if (ircChannels.length) {
 			channelListNodes = ircChannels.map((data) => {
 				if (data && data.channel) {
+					let lastSeenData =
+						data.lastSeen || defaultLastSeenData;
 					return <TimedChannelItem
 						channel={data.channel}
-						lastSeenData={data.lastSeen || {}}
+						lastSeenData={lastSeenData}
 						skipOld={hideOldChannels}
 						key={data.channel} />;
 				}
