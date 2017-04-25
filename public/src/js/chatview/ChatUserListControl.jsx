@@ -3,12 +3,27 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import { RELATIONSHIP_FRIEND, RELATIONSHIP_BEST_FRIEND } from "../constants";
+import { storeViewState } from "../lib/io";
+import store from "../store";
+import actions from "../actions";
 
 class ChannelUserList extends PureComponent {
-	render() {
-		const { channel, channelUserLists, friendsList, onClick } = this.props;
+	constructor(props) {
+		super(props);
+		this.toggleUserList = this.toggleUserList.bind(this);
+	}
 
-		var userList = channelUserLists[channel], numUsers = 0, numFriends = 0;
+	toggleUserList() {
+		const { userListOpen } = this.props;
+		const update = { userListOpen: !userListOpen };
+		store.dispatch(actions.viewState.update(update));
+		storeViewState(update);
+	}
+
+	render() {
+		const { friendsList, userList } = this.props;
+
+		var numUsers = 0, numFriends = 0;
 
 		if (userList) {
 			const userNames = Object.keys(userList);
@@ -51,7 +66,7 @@ class ChannelUserList extends PureComponent {
 		}
 
 		return (
-			<a onClick={onClick} href="javascript://">
+			<a onClick={this.toggleUserList} href="javascript://">
 				{ usersEl }
 				{ friendsEl }
 			</a>
@@ -60,16 +75,18 @@ class ChannelUserList extends PureComponent {
 }
 
 ChannelUserList.propTypes = {
-	channelUserLists: PropTypes.object,
 	channel: PropTypes.string,
 	friendsList: PropTypes.object,
-	onClick: PropTypes.func
+	userList: PropTypes.object,
+	userListOpen: PropTypes.bool
 };
 
 export default connect(({
 	channelUserLists,
-	friendsList
-}) => ({
-	channelUserLists,
-	friendsList
+	friendsList,
+	viewState: { userListOpen }
+}, ownProps) => ({
+	friendsList,
+	userList: channelUserLists[ownProps.channel],
+	userListOpen
 }))(ChannelUserList);

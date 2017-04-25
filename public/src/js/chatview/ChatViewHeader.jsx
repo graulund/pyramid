@@ -97,7 +97,6 @@ class ChatViewHeader extends PureComponent {
 				<li key="userlist">
 					<ChatUserListControl
 						channel={pageQuery}
-						onClick={this.toggleUserList}
 						key="user-list-control" />
 				</li>
 			);
