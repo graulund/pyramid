@@ -12,6 +12,12 @@ export const RELATIONSHIP_NONE = 0;
 export const RELATIONSHIP_FRIEND = 1;
 export const RELATIONSHIP_BEST_FRIEND = 2;
 
+export const PAGE_TYPES = {
+	CATEGORY: "category",
+	CHANNEL: "channel",
+	USER: "user"
+};
+
 export const CATEGORY_NAMES = {
 	allfriends: "All friends",
 	highlights: "Highlights"

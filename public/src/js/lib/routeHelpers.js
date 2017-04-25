@@ -26,6 +26,17 @@ export function categoryUrl(categoryName) {
 	);
 }
 
+export function subjectUrl(type, query, logDate) {
+	const subjectUrlName = type === "category"
+		? query
+		: subjectName(type, query, "/");
+
+	return internalUrl(
+		"/" + subjectUrlName +
+		(logDate ? "/log/" + logDate : "")
+	);
+}
+
 export function settingsUrl(settingsPageName) {
 	return internalUrl(
 		"/settings" +
@@ -42,4 +53,17 @@ export function parseLineIdHash(hash) {
 	}
 
 	return null;
+}
+
+export function createLineIdHash(lineId) {
+	return `#line-${lineId}`;
+}
+
+export function subjectName(type, query, delimiter = ":") {
+	return type + delimiter + query;
+}
+
+export function parseSubjectName(subject, delimiter = ":") {
+	const [ type, query ] = subject.split(delimiter);
+	return { type, query };
 }

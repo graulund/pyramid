@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 import { Router, Route, IndexRoute, browserHistory } from "react-router";
 
 import App from "./components/App.jsx";
-import ChatView from "./chatview/ChatView.jsx";
+import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
 import NoChatView from "./components/NoChatView.jsx";
 import SettingsView from "./settingsview/SettingsView.jsx";
 
@@ -19,8 +19,10 @@ import "../scss/site.scss";
 
 if (__DEV__) {
 	window.Perf = require("react-addons-perf");
+	/** /
 	const { whyDidYouUpdate } = require("why-did-you-update");
 	whyDidYouUpdate(React);
+	/**/
 }
 
 // Data store
@@ -88,23 +90,23 @@ if (main) {
 					<IndexRoute component={NoChatView} />
 					<Route
 						path={routes.userUrl(":userName")}
-						component={ChatView} />
+						component={ChatViewWrapper} />
 					<Route
 						path={routes.channelUrl(":serverName/:channelName")}
-						component={ChatView} />
+						component={ChatViewWrapper} />
 					<Route
 						path={routes.userUrl(":userName", ":logDate")}
-						component={ChatView} />
+						component={ChatViewWrapper} />
 					<Route
 						path={routes.channelUrl(":serverName/:channelName", ":logDate")}
-						component={ChatView} />
+						component={ChatViewWrapper} />
 					<Route
 						path={routes.settingsPattern}
 						component={SettingsView}
 						/>
 					<Route
 						path={routes.categoryUrl(":categoryName")}
-						component={ChatView} />
+						component={ChatViewWrapper} />
 					<Route
 						path="*"
 						component={NoChatView} />

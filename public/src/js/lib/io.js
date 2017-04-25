@@ -3,10 +3,12 @@ import store from "../store";
 import pull from "lodash/pull";
 import without from "lodash/without";
 
-import { CACHE_LINES } from "../constants";
+import { CACHE_LINES, PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
-import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
+import {
+	categoryUrl, channelUrl, parseSubjectName, subjectName, userUrl
+} from "./routeHelpers";
 
 var io;
 var socket;
@@ -16,32 +18,36 @@ var currentSubscriptions = [];
 function emitSubscribe(type, subject) {
 	if (socket && type && subject) {
 		socket.emit("subscribe", { [type]: subject });
-		const subscriptionName = type + ":" + subject;
-		currentSubscriptions = [ ...currentSubscriptions, subscriptionName ];
+		const subscriptionName = subjectName(type, subject);
+		currentSubscriptions = [
+			...currentSubscriptions, subscriptionName
+		];
 	}
 }
 
 function emitUnsubscribe(type, subject) {
 	if (socket && type && subject) {
 		socket.emit("unsubscribe", { [type]: subject });
-		const subscriptionName = type + ":" + subject;
-		currentSubscriptions = without(currentSubscriptions, subscriptionName);
+		const subscriptionName = subjectName(type, subject);
+		currentSubscriptions = without(
+			currentSubscriptions, subscriptionName
+		);
 	}
 }
 
 function emitCurrentSubscriptions() {
 	currentSubscriptions.forEach((sub) => {
-		const [ type, subject ] = sub.split(":");
-		emitSubscribe(type, subject);
+		const { type, query } = parseSubjectName(sub);
+		emitSubscribe(type, query);
 	});
 }
 
-export function subscribeToChannel(channelUrl) {
-	emitSubscribe("channel", channelUrl);
+export function subscribeToChannel(channelUri) {
+	emitSubscribe("channel", channelUri);
 }
 
-export function unsubscribeFromChannel(channelUrl) {
-	emitUnsubscribe("channel", channelUrl);
+export function unsubscribeFromChannel(channelUri) {
+	emitUnsubscribe("channel", channelUri);
 }
 
 export function subscribeToUser(username) {
@@ -60,11 +66,31 @@ export function unsubscribeFromCategory(categoryName) {
 	emitUnsubscribe("category", categoryName);
 }
 
-export function sendMessage(channelUrl, message) {
-	if (socket && channelUrl && message) {
+function _handleSubscription(subject, unsubscribe = false) {
+	const { type, query } = parseSubjectName(subject);
+	const typeName = type === "user" ? "username" : type;
+
+	if (unsubscribe) {
+		emitUnsubscribe(typeName, query);
+	}
+	else {
+		emitSubscribe(typeName, query);
+	}
+}
+
+export function subscribeToSubject(subject) {
+	_handleSubscription(subject, false);
+}
+
+export function unsubscribeFromSubject(subject) {
+	_handleSubscription(subject, true);
+}
+
+export function sendMessage(channelUri, message) {
+	if (socket && channelUri && message) {
 		const state = store.getState();
 		const data = {
-			channel: channelUrl,
+			channel: channelUri,
 			message,
 			token: state && state.token
 		};
@@ -120,6 +146,16 @@ export function requestLogDetailsForUsername(username) {
 	}
 }
 
+export function requestLogDetails(subject) {
+	const { type, query } = parseSubjectName(subject);
+	switch(type) {
+		case PAGE_TYPES.CHANNEL:
+			return requestLogDetailsForChannel(query);
+		case PAGE_TYPES.USER:
+			return requestLogDetailsForUsername(query);
+	}
+}
+
 export function requestLogFileForChannel(channelUri, time) {
 	if (socket) {
 		socket.emit("requestChannelLogFile", { channelUri, time });
@@ -129,6 +165,16 @@ export function requestLogFileForChannel(channelUri, time) {
 export function requestLogFileForUsername(username, time) {
 	if (socket) {
 		socket.emit("requestUserLogFile", { time, username });
+	}
+}
+
+export function requestLogFile(subject, time) {
+	const { type, query } = parseSubjectName(subject);
+	switch(type) {
+		case PAGE_TYPES.CHANNEL:
+			return requestLogFileForChannel(query, time);
+		case PAGE_TYPES.USER:
+			return requestLogFileForUsername(query, time);
 	}
 }
 
