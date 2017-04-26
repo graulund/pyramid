@@ -93,17 +93,13 @@ class ChatView extends PureComponent {
 		}
 
 		else if (
+			loading &&
 			lines !== oldLines &&
-			!oldLines &&
 			pageQuery === oldQuery &&
 			pageType === oldType &&
 			logDate === oldLogDate
 		) {
 			// Finished loading
-			this.setState({ loading: false });
-		}
-
-		else if (loading) {
 			this.setState({ loading: false });
 		}
 	}
