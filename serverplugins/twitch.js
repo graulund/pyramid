@@ -528,11 +528,16 @@ module.exports = function(main) {
 	};
 
 	const onMessageTags = function(data) {
-		const {
+		var {
 			client, channel, message, meUsername, postedLocally,
 			serverName, tags, username
 		} = data;
-		if (isTwitch(client) && tags) {
+
+		if (isTwitch(client)) {
+			if (!tags) {
+				tags = data.tags = {};
+			}
+
 			if (tags.emotes) {
 				if (typeof tags.emotes === "string") {
 					tags.emotes = parseEmoticonIndices(tags.emotes);
@@ -552,13 +557,11 @@ module.exports = function(main) {
 			}
 
 			// Add external emotes
-			if (externalChannelEmotes[channel]) {
-				tags.emotes = generateEmoticonIndices(
-					message,
-					getExternalEmotesForChannel(channel),
-					tags.emotes
-				);
-			}
+			tags.emotes = generateEmoticonIndices(
+				message,
+				getExternalEmotesForChannel(channel),
+				tags.emotes || []
+			);
 		}
 	};
 
