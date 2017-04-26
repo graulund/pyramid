@@ -77,13 +77,12 @@ class ChatView extends PureComponent {
 			pageQuery: oldQuery,
 			pageType: oldType
 		} = oldProps;
+		const { loading } = this.state;
 
 		if (
-			!lines && (
-				pageQuery !== oldQuery ||
-				pageType !== oldType ||
-				logDate !== oldLogDate
-			)
+			pageQuery !== oldQuery ||
+			pageType !== oldType ||
+			logDate !== oldLogDate
 		) {
 			// Time to request data
 			this.requestData(
@@ -101,6 +100,10 @@ class ChatView extends PureComponent {
 			logDate === oldLogDate
 		) {
 			// Finished loading
+			this.setState({ loading: false });
+		}
+
+		else if (loading) {
 			this.setState({ loading: false });
 		}
 	}
