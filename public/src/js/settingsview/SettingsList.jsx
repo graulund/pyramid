@@ -128,7 +128,7 @@ class SettingsList extends PureComponent {
 	}
 
 	renderListItem(item, i) {
-		const { extraColumn, itemKindName } = this.props;
+		const { extraColumn, itemKindName, onRemove } = this.props;
 		const { selectedItem } = this.state;
 
 		const eventHandler = this.getEventHandler(item);
