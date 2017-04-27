@@ -301,10 +301,16 @@ module.exports = function(main) {
 
 		client.addListener("join", (channel, username) => {
 			handleIncomingEvent(client, channel, "join", { username });
+
+			const channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent("join", { client, channel: channelUri, username });
 		});
 
 		client.addListener("part", (channel, username, reason) => {
 			handleIncomingEvent(client, channel, "part", { username, reason });
+
+			const channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent("part", { client, channel: channelUri, username });
 		});
 
 		client.addListener("quit", (username, reason, channels) => {

@@ -406,7 +406,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								);
 							});
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 						else if (data.emotes) {
 							// BTTV
@@ -414,12 +414,12 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								type, externalChannelEmotes[channel], data.emotes
 							);
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 					}
 					catch(e) {
 						console.warn(
-							`Error occurred trying to get external emoticons for channel ${channelName} aka ${channel} (${type})`,
+							`Error occurred trying to get external emoticons for ${channel} (${type})`,
 							e
 						);
 					}
@@ -471,21 +471,20 @@ module.exports = function(main) {
 		if (isTwitch(client)) {
 			const globalEnabledTypes = enabledGlobalEmoteTypes();
 			requestExternalGlobalEmoticons(globalEnabledTypes);
-
-			if (client.extConfig && client.extConfig.channels) {
-				const channelEnabledTypes = enabledChannelEmoteTypes();
-
-				client.extConfig.channels.forEach((channel) => {
-					const channelUri = util.getChannelUri(
-						channel.name, client.extConfig.name
-					);
-					console.log(`Requesting external channel emoticons for ${channelUri}`);
-					requestExternalChannelEmoticons(
-						channelUri, channelEnabledTypes
-					);
-				});
-			}
 		}
+	};
+
+	const loadExternalEmotesForChannel = (channel) => {
+		const channelEnabledTypes = enabledChannelEmoteTypes();
+		console.log(`Requesting external channel emoticons for ${channel}`);
+		requestExternalChannelEmoticons(
+			channel, channelEnabledTypes
+		);
+	};
+
+	const clearExternalEmotesForChannel = (channel) => {
+		console.log(`Clearing external channel emoticons for ${channel}`);
+		delete externalChannelEmotes[channel];
 	};
 
 	const getExternalEmotesForChannel = (channel) => {
@@ -524,6 +523,24 @@ module.exports = function(main) {
 			);
 
 			loadExternalEmotesForClient(client);
+		}
+	};
+
+	const onJoin = function(data) {
+		const { client, channel, username } = data;
+		if (isTwitch(client) && username === client.nick) {
+			loadExternalEmotesForChannel(channel);
+		}
+	};
+
+	const onPart = function(data) {
+		const { client, channel, username } = data;
+		if (
+			isTwitch(client) &&
+			username === client.nick &&
+			externalChannelEmotes[channel]
+		) {
+			clearExternalEmotesForChannel(channel);
 		}
 	};
 
@@ -636,6 +653,8 @@ module.exports = function(main) {
 	return {
 		onConnect,
 		onCustomMessage,
-		onMessageTags
+		onJoin,
+		onMessageTags,
+		onPart
 	};
 };
