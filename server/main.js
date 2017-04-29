@@ -316,7 +316,7 @@ const createCurrentHighlightContext = function(channelUri, highlightMsg) {
 const addToCurrentHighlightContext = function(channelUri, msg) {
 	const highlights = currentHighlightContexts[channelUri];
 
-	if (highlights) {
+	if (highlights && highlights.length) {
 		const survivingHighlights = [];
 		highlights.forEach((highlight) => {
 			const list = highlight.contextMessages;
