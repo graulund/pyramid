@@ -154,12 +154,12 @@ class ChatLine extends PureComponent {
 		}
 
 		if (!content) {
-			content = <em>{ `no template for \`${type}\` event` }</em>;
+			content = <em key="placeholder">{ `no template for \`${type}\` event` }</em>;
 		}
 
 		var channelEl = null, contextLinkEl = null;
 
-		if (displayChannel) {
+		if (displayChannel && channel) {
 			channelEl = (
 				<span className="line__channel" key="channel">
 					<ChannelLink channel={channel} key={channel} />
