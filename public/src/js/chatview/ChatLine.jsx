@@ -9,6 +9,7 @@ import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatLines from "./ChatLines.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
+import LogLine from "./LogLine.jsx";
 import { dateStamp, timeStamp } from "../lib/formatting";
 import { channelUrl } from "../lib/routeHelpers";
 
@@ -150,6 +151,9 @@ class ChatLine extends PureComponent {
 				break;
 			case "events":
 				content = <ChatBunchedEventsLine {...this.props} key="content" />;
+				break;
+			case "log":
+				content = <LogLine {...this.props} key="content" />;
 				break;
 		}
 

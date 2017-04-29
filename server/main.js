@@ -27,12 +27,12 @@ var currentOnlineFriends = [];
 
 var channelCaches = {};
 var userCaches = {};
-var categoryCaches = { highlights: [], allfriends: [] };
+var categoryCaches = { highlights: [], allfriends: [], system: [] };
 var currentHighlightContexts = {};
 
 var channelRecipients = {};
 var userRecipients = {};
-var categoryRecipients = { highlights: [], allfriends: [] };
+var categoryRecipients = { highlights: [], allfriends: [], system: [] };
 
 var cachedLastSeens = {};
 
@@ -147,6 +147,14 @@ const onWeb = function(callback) {
 
 const localMoment = function(arg) {
 	return moment(arg).tz(configValue("timeZone"));
+};
+
+const _log = function(message, level = "info", time = null) {
+	handleSystemLog(null, message, level, time);
+};
+
+const _warn = function(message, time = null) {
+	_log(message, "warning", time);
 };
 
 // Last seen
@@ -657,6 +665,39 @@ const handleIncomingEvent = function(
 	}
 };
 
+const handleSystemLog = function(serverName, message, level = "info", time = null) {
+	if (level === "warn") {
+		level = "warning";
+	}
+
+	if (configValue("debug") || level === "warning" || level === "error") {
+		let loggedMessage = serverName
+			? `[${serverName}] ${message}`
+			: message;
+
+		if (level === "error") {
+			console.error(loggedMessage);
+		}
+		else if (level === "warning") {
+			console.warn(loggedMessage);
+		}
+		else {
+			console.log(loggedMessage);
+		}
+	}
+
+	const data = {
+		level,
+		lineId: uuid.v4(),
+		message,
+		server: serverName,
+		time: time || new Date(),
+		type: "log"
+	};
+
+	cacheCategoryMessage("system", data);
+};
+
 const handleIrcConnectionStateChange = function(serverName, status) {
 
 	var info = null;
@@ -675,12 +716,6 @@ const handleIrcConnectionStateChange = function(serverName, status) {
 		io.emitIrcConnectionStatus(serverName, info);
 	}
 }
-
-const handleChatNetworkError = function(message) {
-	console.log("WARN: Chat network error occurred:", message);
-
-	// TODO: Add error to a server cache
-};
 
 // Recipients of messages
 
@@ -1476,10 +1511,10 @@ module.exports = {
 	getUserCurrentSymbol,
 	getUserLogDetails,
 	getUserRecipients: (username) => userRecipients[username],
-	handleChatNetworkError,
 	handleIncomingEvent,
 	handleIncomingMessage,
 	handleIrcConnectionStateChange,
+	handleSystemLog,
 	joinIrcChannel,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
@@ -1489,6 +1524,7 @@ module.exports = {
 	loadIrcConfig,
 	loadNicknames,
 	localMoment,
+	log: _log,
 	modifyFriend,
 	modifyNickname,
 	modifyServerInIrcConfig,
@@ -1515,5 +1551,6 @@ module.exports = {
 	setWeb,
 	storeConfigValue,
 	storeViewState,
-	unseenHighlightIds: () => unseenHighlightIds
+	unseenHighlightIds: () => unseenHighlightIds,
+	warn: _warn
 };

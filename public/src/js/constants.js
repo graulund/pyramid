@@ -20,7 +20,8 @@ export const PAGE_TYPES = {
 
 export const CATEGORY_NAMES = {
 	allfriends: "All friends",
-	highlights: "Highlights"
+	highlights: "Highlights",
+	system: "System log"
 };
 
 export const CHANGE_DEBOUNCE_MS = 1300;

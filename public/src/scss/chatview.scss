@@ -190,6 +190,10 @@
 		cursor: pointer;
 	}
 
+	.logline--error {
+		color: #f00;
+	}
+
 	&__input {
 		position: fixed;
 		bottom: 0;

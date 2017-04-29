@@ -39,6 +39,9 @@ var globalUserStates = {};
 var externalGlobalEmotes = [];
 var externalChannelEmotes = {};
 
+var log = console.log;
+var warn = console.warn;
+
 // Utility methods ----------------------------------------------------------------------
 
 const isTwitch = function(client) {
@@ -236,7 +239,7 @@ const krakenGetRequest = function(commandName, query, callback) {
 };
 
 const requestEmoticonImages = function(emotesets) {
-	console.log(`Requesting emoticon images for ${emotesets}`);
+	log(`Requesting emoticon images for ${emotesets}`);
 	krakenGetRequest(
 		"chat/emoticon_images",
 		{ emotesets },
@@ -246,7 +249,7 @@ const requestEmoticonImages = function(emotesets) {
 				emoticonImages[emotesets] =
 					flattenEmoticonImagesData(data);
 
-				console.log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
+				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 			catch(e) {
 				console.warn("Error occurred trying to request emoticon images from the Twitch API.");
@@ -266,7 +269,7 @@ const requestEmoticonImagesIfNeeded = function(emotesets) {
 };
 
 const reloadEmoticonImages = function() {
-	console.log("Reloading emoticon images...");
+	log("Reloading emoticon images...");
 	const queries = Object.keys(emoticonImages);
 	queries.forEach((emotesets) => {
 		requestEmoticonImages(emotesets);
@@ -341,7 +344,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 								externalGlobalEmotes = storeExternalEmotes(
 									type, externalGlobalEmotes, data.sets[setId].emoticons
 								);
-								console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+								log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 							}
 						})
 					}
@@ -350,7 +353,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 						externalGlobalEmotes = storeExternalEmotes(
 							type, externalGlobalEmotes, data.emotes
 						);
-						console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+						log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 					}
 				}
 				catch(e) {
@@ -406,7 +409,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								);
 							});
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
+							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 						else if (data.emotes) {
 							// BTTV
@@ -414,7 +417,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								type, externalChannelEmotes[channel], data.emotes
 							);
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
+							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 					}
 					catch(e) {
@@ -447,6 +450,9 @@ const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
 
 module.exports = function(main) {
 
+	log = main.log;
+	warn = main.warn;
+
 	// Utility
 
 	const enabledGlobalEmoteTypes = () => {
@@ -476,14 +482,14 @@ module.exports = function(main) {
 
 	const loadExternalEmotesForChannel = (channel) => {
 		const channelEnabledTypes = enabledChannelEmoteTypes();
-		console.log(`Requesting external channel emoticons for ${channel}`);
+		log(`Requesting external channel emoticons for ${channel}`);
 		requestExternalChannelEmoticons(
 			channel, channelEnabledTypes
 		);
 	};
 
 	const clearExternalEmotesForChannel = (channel) => {
-		console.log(`Clearing external channel emoticons for ${channel}`);
+		log(`Clearing external channel emoticons for ${channel}`);
 		delete externalChannelEmotes[channel];
 	};
 
@@ -612,7 +618,7 @@ module.exports = function(main) {
 	};
 
 	const loadExternalEmotesForAllClients = () => {
-		console.log("Reloading emotes for all clients...");
+		log("Reloading emotes for all clients...");
 
 		const clients = main.currentIrcClients();
 

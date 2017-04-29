@@ -199,6 +199,11 @@ module.exports = function(main) {
 		}
 	};
 
+	const handleSystemLog = function(client, text, level) {
+		const serverName = clientServerName(client);
+		main.handleSystemLog(serverName, text, level);
+	};
+
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
 		main.setChannelUserList(getChannelUri(chobj), userList);
@@ -242,9 +247,8 @@ module.exports = function(main) {
 			);
 		});
 
-		client.addListener("netError", function(exception) {
-			// TODO: Send net error info to client
-			console.log("IRC NET ERROR", exception);
+		client.addListener("netError", function(error) {
+			handleSystemLog(client, `Net error: ${error.message}`, "error");
 		});
 
 		client.addListener("unhandled", function(message) {
@@ -292,7 +296,10 @@ module.exports = function(main) {
 		});
 
 		client.addListener("error", function(message) {
-			main.handleChatNetworkError(message);
+			const errString = message.commandType + ": " +
+				message.args.join(" ") +
+				` (${message.command})`;
+			handleSystemLog(client, errString, message.commandType);
 		});
 
 		client.addListener("names", (channel, nicks) => {
@@ -356,7 +363,7 @@ module.exports = function(main) {
 
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
-			console.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
 			cf.username = cf.username || cf.nickname;
 
 			var c = new irc.Client(
@@ -444,7 +451,7 @@ module.exports = function(main) {
 			c.connect();
 		}
 		else {
-			console.log(
+			main.warn(
 				"Disregarded " + serverName +
 				" IRC reconnect request, because client isn't aborted"
 			);
