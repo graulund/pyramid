@@ -157,7 +157,6 @@ const passesChannelWhiteBlacklist = function(target, channelUri) {
 
 	const segs = channelUri.toLowerCase().split("/");
 	const server = segs[0], channel = segs[1];
-	console.log(server, channel);
 
 	if (target) {
 
