@@ -6,7 +6,7 @@ import { Router, Route, IndexRoute, browserHistory } from "react-router";
 
 import App from "./components/App.jsx";
 import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
-import NoChatView from "./components/NoChatView.jsx";
+import NoChatView from "./chatview/NoChatView.jsx";
 import SettingsView from "./settingsview/SettingsView.jsx";
 
 import actions from "./actions";
