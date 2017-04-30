@@ -1,6 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 
 import ConnectionInfo from "./ConnectionInfo.jsx";
 import Header from "./Header.jsx";
@@ -48,6 +49,6 @@ App.propTypes = {
 	connectionStatus: PropTypes.object
 };
 
-export default connect(
+export default withRouter(connect(
 	({ connectionStatus }) => ({ connectionStatus })
-)(App);
+)(App));

@@ -11,7 +11,7 @@ const VALID_CATEGORIES = Object.keys(CATEGORY_NAMES);
 
 class ChatViewWrapper extends PureComponent {
 	render() {
-		const { location, params } = this.props;
+		const { location, match: { params } } = this.props;
 
 		var pageType = "", pageQuery = "";
 
@@ -50,7 +50,7 @@ class ChatViewWrapper extends PureComponent {
 
 ChatViewWrapper.propTypes = {
 	location: PropTypes.object,
-	params: PropTypes.object
+	match: PropTypes.object
 };
 
 export default ChatViewWrapper;

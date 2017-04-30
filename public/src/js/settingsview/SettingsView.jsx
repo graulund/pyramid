@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 import SettingsFriendsView from "./SettingsFriendsView.jsx";
 import SettingsGeneralView from "./SettingsGeneralView.jsx";
@@ -16,7 +16,7 @@ class SettingsView extends PureComponent {
 	}
 
 	render() {
-		const { params } = this.props;
+		const { match: { params } } = this.props;
 		var { pageName } = params;
 
 		if (!pageName) {
@@ -76,7 +76,7 @@ class SettingsView extends PureComponent {
 }
 
 SettingsView.propTypes = {
-	params: PropTypes.object
+	match: PropTypes.object
 };
 
 export default SettingsView;

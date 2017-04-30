@@ -44,7 +44,7 @@ export function settingsUrl(settingsPageName) {
 	);
 }
 
-export const settingsPattern = "/settings(/:pageName)";
+export const settingsPattern = "/settings/:pageName?";
 
 export function parseLineIdHash(hash) {
 	const m = hash.match(/^#line-([a-z0-9-]+)$/i);

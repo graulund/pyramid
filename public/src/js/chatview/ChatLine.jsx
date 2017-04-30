@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import "intersection-observer";
 
 import ChannelLink from "../components/ChannelLink.jsx";

@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import values from "lodash/values";
 
 import ChannelName from "../components/ChannelName.jsx";

@@ -2,7 +2,7 @@
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { Router, Route, IndexRoute, browserHistory } from "react-router";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import App from "./components/App.jsx";
 import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
@@ -85,32 +85,34 @@ const main = document.querySelector("main");
 if (main) {
 	render(
 		<Provider store={store}>
-			<Router history={browserHistory}>
-				<Route path={routes.homeUrl} component={App}>
-					<IndexRoute component={NoChatView} />
-					<Route
-						path={routes.userUrl(":userName")}
-						component={ChatViewWrapper} />
-					<Route
-						path={routes.channelUrl(":serverName/:channelName")}
-						component={ChatViewWrapper} />
-					<Route
-						path={routes.userUrl(":userName", ":logDate")}
-						component={ChatViewWrapper} />
-					<Route
-						path={routes.channelUrl(":serverName/:channelName", ":logDate")}
-						component={ChatViewWrapper} />
-					<Route
-						path={routes.settingsPattern}
-						component={SettingsView}
-						/>
-					<Route
-						path={routes.categoryUrl(":categoryName")}
-						component={ChatViewWrapper} />
-					<Route
-						path="*"
-						component={NoChatView} />
-				</Route>
+			<Router>
+				<App>
+					<Switch>
+						<Route exact path={routes.homeUrl} component={NoChatView} />
+						<Route
+							path={routes.userUrl(":userName")}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.channelUrl(":serverName/:channelName")}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(":userName", ":logDate")}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.channelUrl(":serverName/:channelName", ":logDate")}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.settingsPattern}
+							component={SettingsView}
+							/>
+						<Route
+							path={routes.categoryUrl(":categoryName")}
+							component={ChatViewWrapper} />
+						<Route
+							path="*"
+							component={NoChatView} />
+					</Switch>
+				</App>
 			</Router>
 		</Provider>,
 		main
