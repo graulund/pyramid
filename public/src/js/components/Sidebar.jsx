@@ -22,20 +22,50 @@ class Sidebar extends PureComponent {
 		this.showChannels = this.showChannels.bind(this);
 		this.sortByAlpha = this.sortByAlpha.bind(this);
 		this.sortByActivity = this.sortByActivity.bind(this);
+		this.toggleSystemMenu = this.toggleSystemMenu.bind(this);
+
+		this.state = {
+			systemMenuOpen: false
+		};
+	}
+
+	componentDidMount() {
+		const { cog } = this.refs;
+
+		// Close the menu on outside and inside click
+		this.closeClickHandler = (evt) => {
+			if (evt.target === cog || evt.target.parentNode === cog) {
+				return;
+			}
+
+			this.closeSystemMenu();
+		};
+		document.addEventListener("click", this.closeClickHandler);
+	}
+
+	componentWillUnmount() {
+		// Remove external close handler
+		if (this.closeClickHandler) {
+			document.removeEventListener("click", this.closeClickHandler);
+		}
 	}
 
 	// Event handler
 
 	onClick(evt) {
+		const { cog } = this.refs;
+
 		if (evt && evt.nativeEvent) {
 			var target = evt.nativeEvent.target;
 
 			if (
-				target && (
+				target &&
+				target !== cog && (
 					target.tagName === "A" ||
 					target.className === "channelname" ||
 					(
-						target.parentNode && (
+						target.parentNode &&
+						target.parentNode !== cog && (
 							target.parentNode.tagName === "A" ||
 							target.parentNode.className === "channelname"
 						)
@@ -68,6 +98,10 @@ class Sidebar extends PureComponent {
 		// depending on which page you're on, and your viewport
 	}
 
+	closeSystemMenu() {
+		this.setState({ systemMenuOpen: false });
+	}
+
 	// Bound state methods
 
 	hide() {
@@ -90,12 +124,18 @@ class Sidebar extends PureComponent {
 		this.setSort("activity");
 	}
 
+	toggleSystemMenu() {
+		const { systemMenuOpen } = this.state;
+		this.setState({ systemMenuOpen: !systemMenuOpen });
+	}
+
 	render() {
 		const {
 			sidebarSort: sort = "alpha",
 			sidebarTab: tab = "user",
 			sidebarVisible: visible = true
 		} = this.props;
+		const { systemMenuOpen } = this.state;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
@@ -111,6 +151,8 @@ class Sidebar extends PureComponent {
 			content = <ChannelList sort={sort} key="channellist" />;
 		}
 
+		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;
+
 		return (
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
@@ -118,9 +160,28 @@ class Sidebar extends PureComponent {
 					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
-					<ul className="controls sidebar__controls">
-						<li><Link to={settingsUrl()}>Settings</Link></li>
-						<li><a href={internalUrl("/logout")}>Log out</a></li>
+					<a className="sidebar__cog"
+						href="javascript://"
+						ref="cog"
+						onClick={this.toggleSystemMenu}>
+						<img src="/img/cog.svg" width="16" height="16" alt="System" />
+					</a>
+					<ul className="sidebar__system-menu" style={systemMenuStyles}>
+						<li key="settings">
+							<Link to={settingsUrl()} className="sidebar__menu-link">
+								Settings
+							</Link>
+						</li>
+						<li key="log">
+							<Link to={categoryUrl("system")} className="sidebar__menu-link">
+								System log
+							</Link>
+						</li>
+						<li key="logout" className="sep">
+							<a href={internalUrl("/logout")} className="sidebar__menu-link">
+								Log out
+							</a>
+						</li>
 					</ul>
 				</div>
 				<ul className="sidebar__menu" key="menu">

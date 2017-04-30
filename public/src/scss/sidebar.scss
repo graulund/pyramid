@@ -85,25 +85,30 @@
 	&__close {
 		display: none;
 		position: absolute;
-		right: 10px;
 	}
 
 	&__open {
 		position: fixed;
-		left: 10px;
-		padding: 0 3px;
 		z-index: 9;
 	}
 
 	&__close, &__open {
-		top: 12px;
+		top: 0;
+		left: 0;
+		padding: 12px 10px 6px 13px;
 
 		.app-container--with-notice & {
 			top: 52px;
 		}
 	}
 
-	&__menu {
+	&__cog {
+		position: absolute;
+		top: 12px;
+		right: 10px;
+	}
+
+	&__menu, &__system-menu {
 		list-style-type: none;
 		margin: 10px 0;
 		padding: 0;
@@ -130,10 +135,20 @@
 		line-height: 1em;
 	}
 
-	&__controls {
+	&__system-menu {
+		display: none;
 		position: absolute;
-		top: 10px;
+		top: 22px;
 		right: 10px;
+		min-width: 10em;
+		text-align: right;
+		border: 1px solid #ccc;
+		background-color: #fff;
+		box-shadow: 0 5px 12px 0 rgba(0,0,0,0.3);
+	}
+
+	&__system-menu .sep {
+		border-top: 1px solid #ccc;
 	}
 
 	@media #{$mobile-media} {
@@ -150,8 +165,8 @@
 			display: block;
 		}
 
-		&__controls {
-			right: 40px;
+		&__head h1 {
+			margin-left: 30px;
 		}
 
 		&--hidden {

@@ -10,6 +10,11 @@ import { settingsUrl } from "../lib/routeHelpers";
 
 class SettingsView extends PureComponent {
 
+	componentDidMount() {
+		// Unlike all other main views, this view starts at the top
+		window.scrollTo(0, 0);
+	}
+
 	render() {
 		const { params } = this.props;
 		var { pageName } = params;
@@ -38,7 +43,7 @@ class SettingsView extends PureComponent {
 		return (
 			<div className={className}>
 				<div className="mainview__top settingsview__top">
-					<div className="mainview__top__main">
+					<div className="mainview__top__main settingsview__top__main">
 						<h2>Settings</h2>
 						<ul className="settingsview__tabs switcher" key="tabs">
 							<li key="general">
