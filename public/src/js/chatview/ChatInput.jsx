@@ -16,6 +16,9 @@ const TAB_COMPLETE_CLEAN_REGEX = new RegExp(
 	escapeRegExp(TAB_COMPLETE_DEFAULT_SUFFIX) + ")$"
 );
 
+const isModifiedEvent = (evt) =>
+	!!(evt.metaKey || evt.altKey || evt.ctrlKey || evt.shiftKey);
+
 var inputHistory = {}, currentInput = "", currentHistoryIndex = -1;
 
 class ChatInput extends Component {
@@ -119,7 +122,8 @@ class ChatInput extends Component {
 			evt &&
 			evt.target === document.body &&
 			evt.key &&
-			evt.key.length === 1
+			evt.key.length === 1 &&
+			!isModifiedEvent(evt)
 		) {
 			// (Apparently this isn't needed?)
 			//inputEl.value = inputEl.value + evt.key;
@@ -163,12 +167,7 @@ class ChatInput extends Component {
 			const val = inputEl.value;
 			const nevt = evt.nativeEvent;
 
-			if (
-				!nevt.altKey &&
-				!nevt.ctrlKey &&
-				!nevt.metaKey &&
-				!nevt.shiftKey
-			) {
+			if (!isModifiedEvent(nevt)) {
 
 				// Tab complete handling
 
@@ -279,10 +278,7 @@ class ChatInput extends Component {
 			const nevt = evt.nativeEvent;
 			if (nevt.keyCode === 13) {
 				if (
-					!nevt.altKey &&
-					!nevt.ctrlKey &&
-					!nevt.metaKey &&
-					!nevt.shiftKey &&
+					!isModifiedEvent(nevt) &&
 					inputEl.value
 				) {
 					this.submit();
