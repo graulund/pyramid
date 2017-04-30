@@ -37,4 +37,4 @@ Then, when you want to update your version, simply run `git pull` in a terminal 
 Warning: Development builds can obviously fail more often than the master build.
 
 ## License
-The whole thing is licensed under the MIT License. In short, use it however you like, as long as you credit me.
+[MIT License](LICENSE)
