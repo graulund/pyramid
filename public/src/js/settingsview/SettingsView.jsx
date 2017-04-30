@@ -6,6 +6,7 @@ import SettingsFriendsView from "./SettingsFriendsView.jsx";
 import SettingsGeneralView from "./SettingsGeneralView.jsx";
 import SettingsIrcView from "./SettingsIrcView.jsx";
 import SettingsNicknamesView from "./SettingsNicknamesView.jsx";
+import { SETTINGS_PAGE_NAMES } from "../constants";
 import { settingsUrl } from "../lib/routeHelpers";
 
 class SettingsView extends PureComponent {
@@ -40,32 +41,21 @@ class SettingsView extends PureComponent {
 
 		const className = "mainview settingsview settingsview--" + pageName;
 
+		const items = Object.keys(SETTINGS_PAGE_NAMES);
+
 		return (
 			<div className={className}>
 				<div className="mainview__top settingsview__top">
 					<div className="mainview__top__main settingsview__top__main">
 						<h2>Settings</h2>
 						<ul className="settingsview__tabs switcher" key="tabs">
-							<li key="general">
-								<Link className="general" to={settingsUrl()}>
-									General
-								</Link>
-							</li>
-							<li key="friends">
-								<Link className="friends" to={settingsUrl("friends")}>
-									Friends
-								</Link>
-							</li>
-							<li key="irc">
-								<Link className="irc" to={settingsUrl("irc")}>
-									IRC
-								</Link>
-							</li>
-							<li key="nicknames">
-								<Link className="nicknames" to={settingsUrl("nicknames")}>
-									Nicknames
-								</Link>
-							</li>
+							{ items.map((item) => (
+								<li key={item}>
+									<Link className={item} to={settingsUrl(item)}>
+										{ SETTINGS_PAGE_NAMES[item] }
+									</Link>
+								</li>
+							)) }
 						</ul>
 					</div>
 				</div>

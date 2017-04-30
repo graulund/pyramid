@@ -2,7 +2,8 @@
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch } from "react-router-dom";
+import { createBrowserHistory } from "history";
 
 import App from "./components/App.jsx";
 import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
@@ -11,6 +12,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
+import setUpPageTitles from "./lib/pageTitles";
 import * as routes from "./lib/routeHelpers";
 import store from "./store";
 import { initVisualBehavior } from "./lib/visualBehavior";
@@ -24,6 +26,9 @@ if (__DEV__) {
 	whyDidYouUpdate(React);
 	/**/
 }
+
+const history = createBrowserHistory();
+setUpPageTitles(history);
 
 // Data store
 
@@ -85,7 +90,7 @@ const main = document.querySelector("main");
 if (main) {
 	render(
 		<Provider store={store}>
-			<Router>
+			<Router history={history}>
 				<App>
 					<Switch>
 						<Route exact path={routes.homeUrl} component={NoChatView} />

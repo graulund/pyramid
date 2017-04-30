@@ -24,6 +24,13 @@ export const CATEGORY_NAMES = {
 	system: "System log"
 };
 
+export const SETTINGS_PAGE_NAMES = {
+	general: "General",
+	friends: "Friends",
+	irc: "IRC",
+	nicknames: "Nicknames"
+};
+
 export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
 

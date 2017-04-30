@@ -1,4 +1,4 @@
-import { ROOT_PATHNAME } from "../constants";
+import { CATEGORY_NAMES, ROOT_PATHNAME } from "../constants";
 
 export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
@@ -38,10 +38,46 @@ export function subjectUrl(type, query, logDate) {
 }
 
 export function settingsUrl(settingsPageName) {
+
+	if (settingsPageName === "general") {
+		settingsPageName = "";
+	}
+
 	return internalUrl(
 		"/settings" +
 		(settingsPageName ? "/" + settingsPageName : "")
 	);
+}
+
+export function parseUserUrl(pathname) {
+	return pathname.match(/^\/user\/([^\/]+)\/?$/);
+}
+
+export function parseUserLogUrl(pathname) {
+	return pathname.match(/^\/user\/([^\/]+)\/log\/([^\/]+)\/?$/);
+}
+
+export function parseChannelUrl(pathname) {
+	return pathname.match(/^\/channel\/(.+?)\/?$/);
+}
+
+export function parseChannelLogUrl(pathname) {
+	return pathname.match(/^\/channel\/(.+?)\/log\/([^\/]+)\/?$/);
+}
+
+export function parseCategoryUrl(pathname) {
+	var out = null;
+	Object.keys(CATEGORY_NAMES).forEach((name) => {
+		if (pathname === "/" + name) {
+			out = ["/" + name, name];
+		}
+	});
+
+	return out;
+}
+
+export function parseSettingsUrl(pathname) {
+	return pathname.match(/^\/settings(\/([^\/]+))?\/?$/);
 }
 
 export const settingsPattern = "/settings/:pageName?";
