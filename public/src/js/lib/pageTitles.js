@@ -1,6 +1,10 @@
 import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
 import { channelNameFromUrl } from "./channelNames";
 import * as route from "./routeHelpers";
+import store from "../store";
+
+var currentTitle = "";
+var currentUnseenNumber = 0;
 
 function siteTitle(pageTitle = "") {
 	if (pageTitle) {
@@ -42,7 +46,18 @@ function settingsPageTitle(pageName) {
 }
 
 function setTitle(title) {
-	document.title = title;
+	currentTitle = title;
+	commitTitle();
+}
+
+function setUnseenNumber(unseenNumber) {
+	currentUnseenNumber = unseenNumber;
+	commitTitle();
+}
+
+function commitTitle() {
+	const prefix = currentUnseenNumber > 0 ? `(${currentUnseenNumber}) ` : "";
+	document.title = prefix + currentTitle;
 }
 
 function handleLocationChange(location) {
@@ -93,6 +108,15 @@ function handleLocationChange(location) {
 	// Fallback
 	setTitle(siteTitle());
 }
+
+store.subscribe(function() {
+	const state = store.getState();
+	const unseenNumber =
+		state.unseenHighlights && state.unseenHighlights.length || 0;
+	if (unseenNumber !== currentUnseenNumber) {
+		setUnseenNumber(unseenNumber);
+	}
+});
 
 export default function setUpPageTitles(history) {
 	history.listen(handleLocationChange);
