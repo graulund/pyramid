@@ -19,6 +19,9 @@ const TAB_COMPLETE_CLEAN_REGEX = new RegExp(
 const isModifiedEvent = (evt) =>
 	!!(evt.metaKey || evt.altKey || evt.ctrlKey || evt.shiftKey);
 
+const isBlockingModifiedEvent = (evt) =>
+	!!(evt.metaKey || evt.altKey || evt.ctrlKey);
+
 var inputHistory = {}, currentInput = "", currentHistoryIndex = -1;
 
 class ChatInput extends Component {
@@ -123,7 +126,7 @@ class ChatInput extends Component {
 			evt.target === document.body &&
 			evt.key &&
 			evt.key.length === 1 &&
-			!isModifiedEvent(evt)
+			!isBlockingModifiedEvent(evt)
 		) {
 			// (Apparently this isn't needed?)
 			//inputEl.value = inputEl.value + evt.key;
