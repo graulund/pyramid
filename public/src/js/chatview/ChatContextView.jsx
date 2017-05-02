@@ -60,7 +60,7 @@ class ChatContextView extends PureComponent {
 
 				main.scrollTop = (lineTop - mainTop)
 					- (mainHeight - BORDER_PIXELS) / 2
-					- lineHeight / 2;
+					+ lineHeight / 2;
 			}
 		}
 	}
@@ -124,19 +124,12 @@ class ChatContextView extends PureComponent {
 						before.push(msg);
 					}
 					else {
-						if (!after.length) {
-							after.push(this.props);
-						}
 						after.push(msg);
 					}
 				}
 			});
 
-			if (!after.length) {
-				after.push(this.props);
-			}
-
-			const allMessages = before.concat(after);
+			const allMessages = before.concat([this.props]).concat(after);
 
 			const fullUrl = channelUrl(channel) + createLineIdHash(lineId);
 
