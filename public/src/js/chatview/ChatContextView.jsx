@@ -31,9 +31,6 @@ class ChatContextView extends PureComponent {
 		if (!prevShowContext && showContext) {
 			this.initializeExpandedView();
 		}
-		else if (prevShowContext && !showContext) {
-			//this.destroyExpandedView();
-		}
 	}
 
 	handleScroll() {
