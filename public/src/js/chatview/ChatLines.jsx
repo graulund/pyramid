@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import ChatLine from "./ChatLine.jsx";
 import { humanDateStamp } from "../lib/formatting";
 
+const block = "chatlines";
+
 class ChatLines extends PureComponent {
 	render() {
 		const {
@@ -12,7 +14,8 @@ class ChatLines extends PureComponent {
 			displayFirstDate = true,
 			displayUsername,
 			messages,
-			observer
+			observer,
+			onEmoteLoad
 		} = this.props;
 
 		if (!messages || !messages.length) {
@@ -29,6 +32,7 @@ class ChatLines extends PureComponent {
 					displayContextLink={displayContextLink}
 					displayUsername={displayUsername}
 					observer={observer}
+					onEmoteLoad={onEmoteLoad}
 					key={msg.lineId || index} />;
 
 				if (dateString !== lastDateString) {
@@ -52,7 +56,10 @@ class ChatLines extends PureComponent {
 			return null;
 		});
 
-		return <ul className="chatlines">{ lines }</ul>;
+		const className = block +
+			(displayContextLink ? ` ${block}--with-context` : "");
+
+		return <ul className={className}>{ lines }</ul>;
 	}
 }
 
@@ -62,7 +69,8 @@ ChatLines.propTypes = {
 	displayFirstDate: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	messages: PropTypes.array,
-	observer: PropTypes.object
+	observer: PropTypes.object,
+	onEmoteLoad: PropTypes.func
 };
 
 export default ChatLines;

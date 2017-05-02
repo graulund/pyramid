@@ -76,6 +76,18 @@ const getEmoticonUrlsets = function(emote, enable3xEmotes) {
 };
 
 class TwitchEmoticon extends PureComponent {
+	constructor(props) {
+		super(props);
+		this.onLoad = this.onLoad.bind(this);
+	}
+
+	onLoad() {
+		const { onLoad = stickToTheBottom } = this.props;
+		if (typeof onLoad === "function") {
+			onLoad();
+		}
+	}
+
 	render() {
 		const { enable3xEmotes = false, text } = this.props;
 		const url = getEmoticonUrlsets(this.props, enable3xEmotes);
@@ -84,7 +96,7 @@ class TwitchEmoticon extends PureComponent {
 			srcSet={url.srcSet.join(", ")}
 			alt={text}
 			title={text}
-			onLoad={stickToTheBottom}
+			onLoad={this.onLoad}
 			/>;
 	}
 }
@@ -92,6 +104,7 @@ class TwitchEmoticon extends PureComponent {
 TwitchEmoticon.propTypes = {
 	enable3xEmotes: PropTypes.bool,
 	id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+	onLoad: PropTypes.func,
 	text: PropTypes.string,
 	type: PropTypes.string
 };

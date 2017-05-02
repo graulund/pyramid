@@ -48,11 +48,12 @@ class ChatMessageLine extends PureComponent {
 	}
 
 	renderTwitchEmoticon(token, index) {
-		const { enable3xEmotes } = this.props;
+		const { enable3xEmotes, onEmoteLoad } = this.props;
 		return <TwitchEmoticon
 			{...token.emote}
 			text={token.text}
 			enable3xEmotes={enable3xEmotes}
+			onLoad={onEmoteLoad}
 			key={index} />;
 	}
 
@@ -157,6 +158,7 @@ ChatMessageLine.propTypes = {
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	observer: PropTypes.object,
+	onEmoteLoad: PropTypes.func,
 	server: PropTypes.string,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,

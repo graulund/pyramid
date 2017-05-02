@@ -60,12 +60,6 @@
 	.line {
 		padding: 0 20px;
 
-		transition: .5s margin;
-
-		&--with-context {
-			margin: 10px 0;
-		}
-
 		&.flashing {
 			position: relative;
 
@@ -80,28 +74,6 @@
 				animation: 2s fadeOut;
 				animation-fill-mode: forwards;
 				pointer-events: none;
-			}
-		}
-
-		&__context {
-			&-before, &-after {
-				background-color: #fff;
-				border: 1px solid #ccc;
-				max-height: 200px;
-				overflow: auto;
-				margin: 0 -11px;
-
-				.line {
-					padding: 0 10px;
-				}
-			}
-
-			&-before--edged {
-				border-bottom-color: #fff;
-			}
-
-			&-after--edged {
-				border-top-color: #fff;
 			}
 		}
 	}
@@ -119,14 +91,6 @@
 	.line time {
 		color: #999;
 		white-space: nowrap;
-	}
-
-	.line__context {
-		float: right;
-
-		&, a {
-			margin-left: 10px;
-		}
 	}
 
 	.msg__author a,
@@ -147,7 +111,7 @@
 
 	.line--highlight {
 		background-color: #fff0aa;
-		transition: .5s margin, 1s background-color;
+		transition: 1s background-color;
 	}
 
 	.line--highlight.line--unseen-highlight {
@@ -192,6 +156,48 @@
 
 	.logline--error {
 		color: #f00;
+	}
+
+	.contextview {
+		transition: .5s margin;
+
+		&__options {
+			float: right;
+			margin-right: 20px;
+
+			&, a {
+				margin-left: 10px;
+			}
+		}
+
+		&--with-context {
+			margin: 10px 0;
+			padding: 0 20px 10px;
+
+			.contextview__options {
+				margin-right: 0;
+			}
+		}
+
+		&__main {
+			background-color: #fff;
+			border: 1px solid #ccc;
+			max-height: 500px;
+			overflow: auto;
+			margin: 0 -11px;
+
+			.line {
+				padding: 0 10px;
+			}
+
+			@media only screen and (max-height: 700px) {
+				max-height: 300px;
+			}
+		}
+
+		&--highlight {
+			background-color: #fff0aa;
+		}
 	}
 
 	&__input {
