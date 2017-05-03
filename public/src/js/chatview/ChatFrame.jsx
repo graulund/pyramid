@@ -90,7 +90,10 @@ class ChatFrame extends PureComponent {
 		// Lines changed
 
 		if (lines !== oldLines) {
-			if (this.atBottom && !logDate) {
+			if (
+				(this.atBottom && !logDate) ||
+				(oldLogDate && !logDate)
+			) {
 				scrollToTheBottom();
 			}
 			else if (logDate) {
