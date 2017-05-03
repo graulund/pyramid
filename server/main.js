@@ -729,7 +729,7 @@ const addRecipient = function(list, targetName, socket) {
 };
 
 const removeRecipient = function(list, targetName, socket) {
-	if (list[targetName]){
+	if (list[targetName] && list[targetName].indexOf(socket) >= 0){
 		lodash.remove(list[targetName], (r) => r === socket);
 	}
 };
@@ -760,6 +760,18 @@ const removeCategoryRecipient = function(categoryName, socket) {
 	if (constants.SUPPORTED_CATEGORY_NAMES.indexOf(categoryName) >= 0) {
 		removeRecipient(categoryRecipients, categoryName, socket);
 	}
+};
+
+const removeRecipientEverywhere = function(socket) {
+	lodash.forOwn(channelRecipients, (list, channelUri) => {
+		removeChannelRecipient(channelUri, socket);
+	});
+	lodash.forOwn(userRecipients, (list, username) => {
+		removeUserRecipient(username, socket);
+	});
+	lodash.forOwn(categoryRecipients, (list, categoryName) => {
+		removeCategoryRecipient(categoryName, socket);
+	});
 };
 
 // See an unseen highlight
@@ -1537,6 +1549,7 @@ module.exports = {
 	removeChannelRecipient,
 	removeFromFriends,
 	removeNickname,
+	removeRecipientEverywhere,
 	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,

@@ -26,7 +26,7 @@ module.exports = {
 	BUNCHABLE_EVENT_TYPES:
 		["join", "part", "quit", "kill", "+mode", "-mode"],
 
-	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends"],
+	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends", "system"],
 
 	TOKEN_COOKIE_NAME: "token",
 	TOKEN_COOKIE_SECONDS: 86400 * 365,

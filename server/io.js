@@ -253,6 +253,10 @@ module.exports = function(main) {
 		io.on("connection", (socket) => {
 			var connectionToken = null;
 
+			socket.on("disconnect", () => {
+				main.removeRecipientEverywhere(socket);
+			});
+
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
