@@ -6,17 +6,19 @@ export function internalUrl(url) {
 
 export const homeUrl = ROOT_PATHNAME + "/";
 
-export function userUrl(userName, logDate) {
+export function userUrl(userName, logDate, pageNumber) {
 	return internalUrl(
 		"/user/" + userName +
-		(logDate ? "/log/" + logDate : "")
+		(logDate ? "/log/" + logDate : "") +
+		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
 }
 
-export function channelUrl(channelUri, logDate) {
+export function channelUrl(channelUri, logDate, pageNumber) {
 	return internalUrl(
 		"/channel/" + channelUri +
-		(logDate ? "/log/" + logDate : "")
+		(logDate ? "/log/" + logDate : "") +
+		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
 }
 
@@ -26,14 +28,15 @@ export function categoryUrl(categoryName) {
 	);
 }
 
-export function subjectUrl(type, query, logDate) {
+export function subjectUrl(type, query, logDate, pageNumber) {
 	const subjectUrlName = type === "category"
 		? query
 		: subjectName(type, query, "/");
 
 	return internalUrl(
 		"/" + subjectUrlName +
-		(logDate ? "/log/" + logDate : "")
+		(logDate ? "/log/" + logDate : "") +
+		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
 }
 

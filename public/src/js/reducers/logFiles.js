@@ -1,5 +1,4 @@
 import * as actionTypes from "../actionTypes";
-import merge from "lodash/merge";
 import omit from "lodash/omit";
 
 const logFilesInitialState = {};
@@ -7,8 +6,16 @@ const logFilesInitialState = {};
 export default function (state = logFilesInitialState, action) {
 
 	switch (action.type) {
-		case actionTypes.logFiles.UPDATE:
-			return merge({}, state, action.data);
+		case actionTypes.logFiles.UPDATE: {
+			let currentSubjectValue = state[action.subjectName] || {};
+			return {
+				...state,
+				[action.subjectName]: {
+					...currentSubjectValue,
+					[action.date]: action.lines
+				}
+			};
+		}
 		case actionTypes.logFiles.CLEAR:
 			if (action.channel && action.date) {
 				// Clear specific file: Channel and date

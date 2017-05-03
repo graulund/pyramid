@@ -122,10 +122,12 @@ export default {
 				date
 			};
 		},
-		update(data) {
+		update(subjectName, date, lines) {
 			return {
 				type: actionTypes.logFiles.UPDATE,
-				data
+				subjectName,
+				date,
+				lines
 			};
 		}
 	},
@@ -144,10 +146,12 @@ export default {
 				data
 			};
 		},
-		update(data) {
+		update(subjectName, date, lines) {
 			return {
 				type: actionTypes.nicknames.UPDATE,
-				data
+				subjectName,
+				date,
+				lines
 			};
 		}
 	},

@@ -111,11 +111,7 @@ export function cacheItem(cache, item) {
 
 	// And make sure we only have the maximum amount
 	if (cache.length > CACHE_LINES) {
-		if (cache.length === CACHE_LINES + 1) {
-			cache = cache.slice(1);
-		} else {
-			cache = cache.slice(cache.length - CACHE_LINES);
-		}
+		cache = cache.slice(cache.length - CACHE_LINES);
 	}
 
 	return cache;
@@ -123,7 +119,9 @@ export function cacheItem(cache, item) {
 
 export function clearReplacedIdsFromCache(cache, prevIds) {
 	if (cache && cache.length && prevIds && prevIds.length) {
-		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.lineId) >= 0);
+		const itemsWithPrevIds = cache.filter(
+			(item) => prevIds.indexOf(item.lineId) >= 0
+		);
 		return pull(cache, ...itemsWithPrevIds);
 
 		// NOTE: We are modifiying in place to prevent too many change handlers from
@@ -134,47 +132,47 @@ export function clearReplacedIdsFromCache(cache, prevIds) {
 	return cache;
 }
 
-export function requestLogDetailsForChannel(channelUri) {
+export function requestLogDetailsForChannel(channelUri, time) {
 	if (socket) {
-		socket.emit("requestChannelLogDetails", { channelUri });
+		socket.emit("requestChannelLogDetails", { channelUri, time });
 	}
 }
 
-export function requestLogDetailsForUsername(username) {
+export function requestLogDetailsForUsername(username, time) {
 	if (socket) {
-		socket.emit("requestUserLogDetails", { username });
+		socket.emit("requestUserLogDetails", { username, time });
 	}
 }
 
-export function requestLogDetails(subject) {
+export function requestLogDetails(subject, time) {
 	const { type, query } = parseSubjectName(subject);
 	switch(type) {
 		case PAGE_TYPES.CHANNEL:
-			return requestLogDetailsForChannel(query);
+			return requestLogDetailsForChannel(query, time);
 		case PAGE_TYPES.USER:
-			return requestLogDetailsForUsername(query);
+			return requestLogDetailsForUsername(query, time);
 	}
 }
 
-export function requestLogFileForChannel(channelUri, time) {
+export function requestLogFileForChannel(channelUri, time, pageNumber) {
 	if (socket) {
-		socket.emit("requestChannelLogFile", { channelUri, time });
+		socket.emit("requestChannelLogFile", { channelUri, pageNumber, time });
 	}
 }
 
-export function requestLogFileForUsername(username, time) {
+export function requestLogFileForUsername(username, time, pageNumber) {
 	if (socket) {
-		socket.emit("requestUserLogFile", { time, username });
+		socket.emit("requestUserLogFile", { pageNumber, time, username });
 	}
 }
 
-export function requestLogFile(subject, time) {
+export function requestLogFile(subject, time, pageNumber) {
 	const { type, query } = parseSubjectName(subject);
 	switch(type) {
 		case PAGE_TYPES.CHANNEL:
-			return requestLogFileForChannel(query, time);
+			return requestLogFileForChannel(query, time, pageNumber);
 		case PAGE_TYPES.USER:
-			return requestLogFileForUsername(query, time);
+			return requestLogFileForUsername(query, time, pageNumber);
 	}
 }
 
@@ -451,37 +449,41 @@ export function initializeIo() {
 
 		socket.on("channelLogDetails", (details) => {
 			if (details && details.channelUri && details.details) {
+				let subject = subjectName("channel", details.channelUri);
 				store.dispatch(actions.logDetails.update({
-					["channel:" + details.channelUri]: details.details
+					[subject]: details.details
 				}));
 			}
 		});
 
 		socket.on("userLogDetails", (details) => {
 			if (details && details.username && details.details) {
+				let subject = subjectName("user", details.username);
 				store.dispatch(actions.logDetails.update({
-					["user:" + details.username]: details.details
+					[subject]: details.details
 				}));
 			}
 		});
 
 		socket.on("channelLogFile", (details) => {
 			if (details && details.channelUri && details.file && details.time) {
-				store.dispatch(actions.logFiles.update({
-					["channel:" + details.channelUri]: {
-						[details.time]: details.file
-					}
-				}));
+				let subject = subjectName("channel", details.channelUri);
+				store.dispatch(actions.logFiles.update(
+					subject,
+					details.time,
+					details.file
+				));
 			}
 		});
 
 		socket.on("userLogFile", (details) => {
 			if (details && details.username && details.file && details.time) {
-				store.dispatch(actions.logFiles.update({
-					["user:" + details.username]: {
-						[details.time]: details.file
-					}
-				}));
+				let subject = subjectName("user", details.username);
+				store.dispatch(actions.logFiles.update(
+					subject,
+					details.time,
+					details.file
+				));
 			}
 		});
 

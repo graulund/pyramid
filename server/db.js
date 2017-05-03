@@ -625,7 +625,20 @@ const mainMethods = function(main, db) {
 		});
 	};
 
-	const getDateLinesForChannel = (channelId, date, callback) => {
+	const getDateLines = (where, args, options, callback) => {
+		options = options || {};
+		const limit = options.pageNumber
+			? "LIMIT " + ((options.pageNumber-1) * constants.LOG_PAGE_SIZE) +
+				", " + constants.LOG_PAGE_SIZE
+			: "LIMIT " + constants.LOG_PAGE_SIZE;
+
+		var whereSince = "";
+
+		if (options.sinceTime instanceof Date) {
+			whereSince = "AND lines.time >= $sinceTime ";
+			args.$sinceTime = options.sinceTime.toISOString();
+		}
+
 		db.all(
 			sq(
 				"lines",
@@ -640,34 +653,32 @@ const mainMethods = function(main, db) {
 				"lines.channelId = ircChannels.channelId " +
 			"INNER JOIN ircServers ON " +
 				"ircChannels.serverId = ircServers.serverId " +
-			"WHERE lines.channelId = $channelId " +
-			"AND lines.date = $date " +
-			oq("time", ASC),
-			dollarize({ channelId, date }),
+			where + " " +
+			whereSince +
+			oq("time", ASC) + " " +
+			limit,
+			args,
 			dbCallback(callback)
 		);
 	};
 
-	const getDateLinesForUsername = (username, date, callback) => {
-		db.all(
-			sq(
-				"lines",
-				[
-					"lines.*",
-					"ircChannels.name AS channelName",
-					"ircServers.name AS serverName"
-				]
-			) +
-			" " +
-			"INNER JOIN ircChannels ON " +
-				"lines.channelId = ircChannels.channelId " +
-			"INNER JOIN ircServers ON " +
-				"ircChannels.serverId = ircServers.serverId " +
+	const getDateLinesForChannel = (channelId, date, options, callback) => {
+		getDateLines(
+			"WHERE lines.channelId = $channelId " +
+			"AND lines.date = $date",
+			dollarize({ channelId, date }),
+			options,
+			callback
+		);
+	};
+
+	const getDateLinesForUsername = (username, date, options, callback) => {
+		getDateLines(
 			"WHERE lines.username = $username " +
-			"AND lines.date = $date " +
-			oq("time", ASC),
+			"AND lines.date = $date",
 			dollarize({ username, date }),
-			dbCallback(callback)
+			options,
+			callback
 		);
 	};
 
@@ -756,8 +767,8 @@ const mainMethods = function(main, db) {
 	getConfigValue(name, callback)
 	getDateLineCountForChannel(channelId, date, callback)
 	getDateLineCountForUsername(username, date, callback)
-	getDateLinesForChannel(channelId, date, callback)
-	getDateLinesForUsername(username, date, callback)
+	getDateLinesForChannel(channelId, date, options, callback)
+	getDateLinesForUsername(username, date, options, callback)
 	getFriend(serverId, username, callback)
 	getFriends(callback)
 	getFriendsList(callback)

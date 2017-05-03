@@ -1,3 +1,5 @@
+import values from "lodash/values";
+
 // Constants
 
 export const VERSION = "1.0-edge";
@@ -7,6 +9,7 @@ export const DEFAULT_TIMEZONE = "UTC";
 export const ROOT_PATHNAME = "";
 
 export const CACHE_LINES = 150;
+export const LOG_PAGE_SIZE = 300;
 
 export const RELATIONSHIP_NONE = 0;
 export const RELATIONSHIP_FRIEND = 1;
@@ -17,6 +20,8 @@ export const PAGE_TYPES = {
 	CHANNEL: "channel",
 	USER: "user"
 };
+
+export const PAGE_TYPE_NAMES = values(PAGE_TYPES);
 
 export const CATEGORY_NAMES = {
 	allfriends: "All friends",

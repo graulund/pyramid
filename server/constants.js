@@ -18,6 +18,7 @@ module.exports = {
 	CACHE_LINES: 150,
 	CONTEXT_CACHE_LINES: 40,
 	LAST_SEEN_UPDATE_RATE: 500,
+	LOG_PAGE_SIZE: 300,
 
 	USER_MODIFYING_EVENT_TYPES:
 		["join", "part", "quit", "kick", "kill", "+mode", "-mode"],

@@ -42,8 +42,9 @@ class ChatViewWrapper extends PureComponent {
 		return <ChatView
 			lineId={lineId}
 			logDate={params.logDate}
-			pageType={pageType}
+			pageNumber={+params.pageNumber || 1}
 			pageQuery={pageQuery}
+			pageType={pageType}
 			key="main" />;
 	}
 }

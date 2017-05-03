@@ -1,41 +1,21 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import values from "lodash/values";
 
 import ChannelName from "../components/ChannelName.jsx";
 import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
-import { CATEGORY_NAMES, PAGE_TYPES } from "../constants";
+import { CATEGORY_NAMES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
-import { subjectUrl } from "../lib/routeHelpers";
 import store from "../store";
 import actions from "../actions";
-
-const PAGE_TYPE_NAMES = values(PAGE_TYPES);
 
 class ChatViewHeader extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.contentLogUrl = this.contentLogUrl.bind(this);
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
-	}
-
-	contentLiveUrl() {
-		const { pageType, pageQuery } = this.props;
-		return subjectUrl(pageType, pageQuery);
-	}
-
-	contentLogUrl(date) {
-		const { pageType, pageQuery } = this.props;
-		return subjectUrl(pageType, pageQuery, date);
-	}
-
-	isLiveChannel() {
-		const { logDate, pageType } = this.props;
-		return pageType === PAGE_TYPES.CHANNEL && !logDate;
 	}
 
 	setViewState(update) {
@@ -52,7 +32,14 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	renderControls() {
-		const { logBrowserOpen, logDate, pageQuery, pageType } = this.props;
+		const {
+			isLiveChannel,
+			liveUrl,
+			logBrowserOpen,
+			logDate,
+			pageQuery,
+			pageType
+		} = this.props;
 
 		if (
 			pageType !== PAGE_TYPES.CHANNEL &&
@@ -66,7 +53,7 @@ class ChatViewHeader extends PureComponent {
 
 		if (logDate) {
 			logBrowserToggler = (
-				<Link to={this.contentLiveUrl()}>
+				<Link to={liveUrl}>
 					Live
 				</Link>
 			);
@@ -92,7 +79,7 @@ class ChatViewHeader extends PureComponent {
 
 		var userListToggler = null;
 
-		if (this.isLiveChannel()) {
+		if (isLiveChannel) {
 			userListToggler = (
 				<li key="userlist">
 					<ChatUserListControl
@@ -113,13 +100,13 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	renderLogBrowser() {
-		const { logBrowserOpen, logDate, logDetails } = this.props;
+		const { logBrowserOpen, logDate, logDetails, logUrl } = this.props;
 
 		if (logBrowserOpen || logDate) {
 			return <ChatViewLogBrowser
 				logDate={logDate}
 				logDetails={logDetails}
-				logUrl={this.contentLogUrl}
+				logUrl={logUrl}
 				key="logbrowser" />;
 		}
 
@@ -160,9 +147,12 @@ class ChatViewHeader extends PureComponent {
 }
 
 ChatViewHeader.propTypes = {
+	isLiveChannel: PropTypes.bool,
+	liveUrl: PropTypes.string,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
+	logUrl: PropTypes.func,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired
 };

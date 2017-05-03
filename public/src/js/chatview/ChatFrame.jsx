@@ -2,15 +2,13 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { findDOMNode } from "react-dom";
 import remove from "lodash/remove";
-import values from "lodash/values";
 import "intersection-observer";
 
 import ChatLines from "./ChatLines.jsx";
-import { PAGE_TYPES } from "../constants";
+import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { reportHighlightAsSeen } from "../lib/io";
 import { areWeScrolledToTheBottom, scrollToTheBottom } from "../lib/visualBehavior";
 
-const PAGE_TYPE_NAMES = values(PAGE_TYPES);
 const FLASHING_LINE_CLASS_NAME = "flashing";
 
 class ChatFrame extends PureComponent {
@@ -38,6 +36,7 @@ class ChatFrame extends PureComponent {
 			pageQuery,
 			pageType
 		} = newProps;
+
 		const {
 			lines: oldLines,
 			logDate: oldLogDate,
@@ -45,9 +44,8 @@ class ChatFrame extends PureComponent {
 			pageType: oldType
 		} = this.props;
 
-
-
 		// Lines change
+
 		if (
 			lines !== oldLines &&
 			pageQuery === oldQuery &&
@@ -68,6 +66,7 @@ class ChatFrame extends PureComponent {
 			selectedLine,
 			userListOpen
 		} = this.props;
+
 		const {
 			lines: oldLines,
 			logDate: oldLogDate,
@@ -89,14 +88,18 @@ class ChatFrame extends PureComponent {
 		}
 
 		// Lines changed
-		if (
-			lines !== oldLines &&
-			this.atBottom
-		) {
-			scrollToTheBottom();
+
+		if (lines !== oldLines) {
+			if (this.atBottom && !logDate) {
+				scrollToTheBottom();
+			}
+			else if (logDate) {
+				window.scrollTo(0, 0);
+			}
 		}
 
 		// User list opened
+
 		if (
 			userListOpen &&
 			!oldUserListOpen &&
@@ -114,6 +117,7 @@ class ChatFrame extends PureComponent {
 		}
 
 		// Are we querying a specific line id
+
 		if (selectedLine && selectedLine !== oldSelectedLine) {
 			this.flashLine(selectedLine.lineId);
 		}

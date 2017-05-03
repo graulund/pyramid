@@ -63,21 +63,7 @@ function commitTitle() {
 function handleLocationChange(location) {
 	const { pathname } = location;
 
-	var m = route.parseChannelUrl(pathname);
-
-	if (m) {
-		setTitle(channelPageTitle(m[1]));
-		return;
-	}
-
-	m = route.parseUserUrl(pathname);
-
-	if (m) {
-		setTitle(userPageTitle(m[1]));
-		return;
-	}
-
-	m = route.parseChannelLogUrl(pathname);
+	var m = route.parseChannelLogUrl(pathname);
 
 	if (m) {
 		setTitle(channelPageLogTitle(m[1], m[2]));
@@ -88,6 +74,20 @@ function handleLocationChange(location) {
 
 	if (m) {
 		setTitle(userPageLogTitle(m[1], m[2]));
+		return;
+	}
+
+	m = route.parseChannelUrl(pathname);
+
+	if (m) {
+		setTitle(channelPageTitle(m[1]));
+		return;
+	}
+
+	m = route.parseUserUrl(pathname);
+
+	if (m) {
+		setTitle(userPageTitle(m[1]));
 		return;
 	}
 

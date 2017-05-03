@@ -95,13 +95,29 @@ if (main) {
 					<Switch>
 						<Route exact path={routes.homeUrl} component={NoChatView} />
 						<Route
-							path={routes.channelUrl(":serverName/:channelName", ":logDate")}
+							path={routes.channelUrl(
+								":serverName/:channelName", ":logDate"
+							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
-							path={routes.channelUrl(":serverName/:channelName")}
+							path={routes.channelUrl(
+								":serverName/:channelName", ":logDate"
+							)}
 							component={ChatViewWrapper} />
 						<Route
-							path={routes.userUrl(":userName", ":logDate")}
+							path={routes.channelUrl(
+								":serverName/:channelName"
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(
+								":userName", ":logDate"
+							) + "/page/:pageNumber"}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(
+								":userName", ":logDate"
+							)}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(":userName")}

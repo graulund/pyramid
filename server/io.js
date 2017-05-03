@@ -53,8 +53,8 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelLogDetails = function(socket, channelUri) {
-		main.getChannelLogDetails(channelUri, (err, details) => {
+	const emitChannelLogDetails = function(socket, channelUri, time) {
+		main.getChannelLogDetails(channelUri, time, (err, details) => {
 			if (!err) {
 				socket.emit("channelLogDetails", {
 					channelUri,
@@ -64,8 +64,8 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitUserLogDetails = function(socket, username) {
-		main.getUserLogDetails(username, (err, details) => {
+	const emitUserLogDetails = function(socket, username, time) {
+		main.getUserLogDetails(username, time, (err, details) => {
 			if (!err) {
 				socket.emit("userLogDetails", {
 					username,
@@ -82,10 +82,12 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelLogFile = function(socket, channelUri, time) {
+	const emitChannelLogFile = function(socket, channelUri, time, pageNumber) {
 		const ymd = util.ymd(time);
+		pageNumber = +pageNumber || 1;
 		if (ymd) {
-			main.getDateLinesForChannel(channelUri, ymd, (err, file) => {
+			const options = { pageNumber };
+			main.getDateLinesForChannel(channelUri, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("channelLogFile", {
 						channelUri,
@@ -97,10 +99,12 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitUserLogFile = function(socket, username, time) {
+	const emitUserLogFile = function(socket, username, time, pageNumber) {
 		const ymd = util.ymd(time);
+		pageNumber = +pageNumber || 1;
 		if (ymd) {
-			main.getDateLinesForUsername(username, ymd, (err, file) => {
+			const options = { pageNumber };
+			main.getDateLinesForUsername(username, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("userLogFile", {
 						file,
@@ -330,14 +334,14 @@ module.exports = function(main) {
 			socket.on("requestUserLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
-					emitUserLogDetails(socket, details.username);
+					emitUserLogDetails(socket, details.username, details.time);
 				}
 			});
 
 			socket.on("requestChannelLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.channelUri === "string") {
-					emitChannelLogDetails(socket, details.channelUri);
+					emitChannelLogDetails(socket, details.channelUri, details.time);
 				}
 			});
 
@@ -348,7 +352,9 @@ module.exports = function(main) {
 					typeof details.username === "string" &&
 					typeof details.time === "string"
 				) {
-					emitUserLogFile(socket, details.username, details.time);
+					emitUserLogFile(
+						socket, details.username, details.time, details.pageNumber
+					);
 				}
 			});
 
@@ -359,7 +365,9 @@ module.exports = function(main) {
 					typeof details.channelUri === "string" &&
 					typeof details.time === "string"
 				) {
-					emitChannelLogFile(socket, details.channelUri, details.time);
+					emitChannelLogFile(
+						socket, details.channelUri, details.time, details.pageNumber
+					);
 				}
 			});
 

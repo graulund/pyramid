@@ -18,8 +18,8 @@ class ChatViewLogBrowser extends PureComponent {
 			evt.preventDefault();
 		}
 
-		if (logRequestInput && logRequestInput.value && router) {
-			router.push(logUrl(logRequestInput.value));
+		if (logRequestInput && logRequestInput.value && router && router.history) {
+			router.history.push(logUrl(logRequestInput.value));
 		}
 	}
 
@@ -40,9 +40,12 @@ class ChatViewLogBrowser extends PureComponent {
 			const url = logUrl(timeStamp);
 			const className = timeStamp === logDate
 				? "current" : "";
+			const lines = logDetails[timeStamp];
+			const title = `${lines} line` + (lines === 1 ? "" : "s");
+
 			return (
 				<li key={timeStamp}>
-					<Link to={url} className={className}>
+					<Link to={url} className={className} title={title}>
 						{ timeStamp }
 					</Link>
 				</li>
@@ -72,6 +75,10 @@ ChatViewLogBrowser.propTypes = {
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
 	logUrl: PropTypes.func
+};
+
+ChatViewLogBrowser.contextTypes = {
+	router: PropTypes.object
 };
 
 export default ChatViewLogBrowser;

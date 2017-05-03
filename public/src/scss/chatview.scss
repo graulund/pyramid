@@ -41,7 +41,7 @@
 .chatview {
 	margin-bottom: 20px;
 
-	&--live-channel {
+	&--live-channel, &--logbrowsing {
 		margin-bottom: 80px;
 	}
 
@@ -202,7 +202,7 @@
 		}
 	}
 
-	&__input {
+	&__input, &__pagination {
 		position: fixed;
 		bottom: 0;
 		left: 320px;
@@ -227,6 +227,36 @@
 		display: none;
 	}
 
+	&__pagination {
+		text-align: center;
+
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style-type: none;
+
+			li {
+				display: inline;
+				margin: 0 0 0 -1px;
+
+				a, strong, &.sep {
+					border: 1px solid #ccc;
+					padding: 3px 8px;
+				}
+
+				&.sep {
+					border-color: transparent;
+					margin: 0;
+					color: #999;
+				}
+
+				&.prev a, &.next a {
+					border-color: transparent;
+				}
+			}
+		}
+	}
+
 	&__controls {
 		text-align: right;
 		background-color: #fff;
@@ -246,7 +276,7 @@
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 
-		&--live-channel {
+		&--live-channel, &--logbrowsing {
 			margin-bottom: 65px;
 		}
 
@@ -258,11 +288,24 @@
 			margin-right: 0;
 		}
 
-		&__input {
+		&__input, &__pagination {
 			left: 0;
 			padding-left: 10px;
 			padding-right: 10px;
 			padding-bottom: 15px;
+		}
+
+		&__pagination {
+			padding-top: 10px;
+			padding-bottom: 10px;
+
+			ul li {
+				&.prev a, &.next a {
+					span {
+						display: none;
+					}
+				}
+			}
 		}
 
 		.line {

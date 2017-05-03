@@ -1,18 +1,15 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import values from "lodash/values";
 
 import ChannelUserList from "./ChannelUserList.jsx";
 import ChatFrame from "./ChatFrame.jsx";
-import ChatInput from "./ChatInput.jsx";
+import ChatViewFooter from "./ChatViewFooter.jsx";
 import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
-import { PAGE_TYPES } from "../constants";
+import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import * as io from "../lib/io";
-import { subjectName } from "../lib/routeHelpers";
-
-const PAGE_TYPE_NAMES = values(PAGE_TYPES);
+import { subjectName, subjectUrl } from "../lib/routeHelpers";
 
 const PAGE_TYPE_CACHE_MAP = {
 	[PAGE_TYPES.CATEGORY]: "categoryCaches",
@@ -25,6 +22,8 @@ const HIDDEN_STYLES = { display: "none" };
 class ChatView extends PureComponent {
 	constructor(props) {
 		super(props);
+
+		this.contentLogUrl = this.contentLogUrl.bind(this);
 
 		this.state = {
 			loading: true
@@ -39,24 +38,35 @@ class ChatView extends PureComponent {
 		this.requestDataIfNeeded(newProps, this.props);
 	}
 
+	contentLiveUrl() {
+		const { pageType, pageQuery } = this.props;
+		return subjectUrl(pageType, pageQuery);
+	}
+
+	contentLogUrl(date, pageNumber) {
+		const { pageType, pageQuery } = this.props;
+		return subjectUrl(pageType, pageQuery, date, pageNumber);
+	}
+
 	isLiveChannel() {
 		const { logDate, pageType } = this.props;
 		return pageType === PAGE_TYPES.CHANNEL && !logDate;
 	}
 
 	requestData(
-		pageType, pageQuery, logDate,
+		pageType, pageQuery, logDate, pageNumber,
 		oldType, oldQuery, oldLogDate
 	) {
 		const subject = subjectName(pageType, pageQuery);
 
 		if (logDate) {
-			io.requestLogFile(subject, logDate);
+			io.requestLogFile(subject, logDate, pageNumber);
 		}
 		else {
 			io.subscribeToSubject(subject);
-			io.requestLogDetails(subject);
 		}
+
+		io.requestLogDetails(subject, logDate);
 
 		if (oldType && oldQuery && !oldLogDate) {
 			const oldSubject = subjectName(oldType, oldQuery);
@@ -68,25 +78,30 @@ class ChatView extends PureComponent {
 		const {
 			lines,
 			logDate,
+			pageNumber,
 			pageQuery,
 			pageType
 		} = props;
+
 		const {
 			lines: oldLines,
 			logDate: oldLogDate,
+			pageNumber: oldPageNumber,
 			pageQuery: oldQuery,
 			pageType: oldType
 		} = oldProps;
+
 		const { loading } = this.state;
 
 		if (
 			pageQuery !== oldQuery ||
 			pageType !== oldType ||
-			logDate !== oldLogDate
+			logDate !== oldLogDate ||
+			pageNumber !== oldPageNumber
 		) {
 			// Time to request data
 			this.requestData(
-				pageType, pageQuery, logDate,
+				pageType, pageQuery, logDate, pageNumber,
 				oldType, oldQuery, oldLogDate
 			);
 			this.setState({ loading: true });
@@ -97,7 +112,8 @@ class ChatView extends PureComponent {
 			lines !== oldLines &&
 			pageQuery === oldQuery &&
 			pageType === oldType &&
-			logDate === oldLogDate
+			logDate === oldLogDate &&
+			pageNumber === oldPageNumber
 		) {
 			// Finished loading
 			this.setState({ loading: false });
@@ -110,6 +126,7 @@ class ChatView extends PureComponent {
 			logBrowserOpen,
 			logDate,
 			logDetails,
+			pageNumber,
 			pageQuery,
 			pageType,
 			selectedLine,
@@ -120,20 +137,15 @@ class ChatView extends PureComponent {
 
 		const loadingStyles = loading ? null : HIDDEN_STYLES;
 
+		const liveUrl = this.contentLiveUrl();
 		const isLiveChannel = this.isLiveChannel();
 
-		var input = null, userList = null;
+		var userList = null;
 
-		if (isLiveChannel) {
-			input = <ChatInput
+		if (isLiveChannel && userListOpen) {
+			userList = <ChannelUserList
 				channel={pageQuery}
-				key="input" />;
-
-			if (userListOpen) {
-				userList = <ChannelUserList
-					channel={pageQuery}
-					key="userList" />;
-			}
+				key="userList" />;
 		}
 
 		const loader = (
@@ -144,18 +156,23 @@ class ChatView extends PureComponent {
 
 		const className = "mainview chatview" +
 			(isLiveChannel ? " chatview--live-channel" : "") +
-			(logBrowserOpen ? " chatview--logbrowsing" : "") +
+			(logBrowserOpen || logDate ? " chatview--logbrowsing" : "") +
 			(userListOpen && isLiveChannel ? " chatview--userlisting" : "");
 
 		return (
 			<div className={className}>
+
 				<ChatViewHeader
+					isLiveChannel={isLiveChannel}
+					liveUrl={liveUrl}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
 					logDetails={logDetails}
+					logUrl={this.contentLogUrl}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					key="header" />
+
 				<ChatFrame
 					lines={lines}
 					logBrowserOpen={logBrowserOpen}
@@ -165,9 +182,19 @@ class ChatView extends PureComponent {
 					selectedLine={selectedLine}
 					userListOpen={userListOpen}
 					key="chat" />
-				{ input }
+
+				<ChatViewFooter
+					isLiveChannel={isLiveChannel}
+					logDate={logDate}
+					logDetails={logDetails}
+					logUrl={this.contentLogUrl}
+					pageNumber={pageNumber}
+					pageQuery={pageQuery}
+					key="footer" />
+
 				{ userList }
 				{ loader }
+
 			</div>
 		);
 	}
@@ -179,6 +206,7 @@ ChatView.propTypes = {
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
+	pageNumber: PropTypes.number,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	selectedLine: PropTypes.object,
