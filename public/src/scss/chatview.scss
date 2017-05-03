@@ -59,7 +59,8 @@
 
 	.line {
 		padding: 0 20px;
-		overflow-x: auto;
+		max-height: 200px;
+		overflow-y: auto;
 
 		&.flashing {
 			position: relative;
@@ -79,7 +80,7 @@
 		}
 	}
 
-	.msg > span {
+	.msg {
 		word-break: break-word;
 	}
 
