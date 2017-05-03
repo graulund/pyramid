@@ -1,10 +1,9 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 import throttle from "lodash/throttle";
 
 import ChatLines from "./ChatLines.jsx";
-import { channelUrl, createLineIdHash } from "../lib/routeHelpers";
+import { createLineIdHash } from "../lib/routeHelpers";
 
 const block = "contextview";
 
@@ -76,7 +75,6 @@ class ChatContextView extends PureComponent {
 
 	render() {
 		const {
-			channel,
 			contextMessages,
 			displayChannel,
 			displayUsername,
@@ -128,16 +126,19 @@ class ChatContextView extends PureComponent {
 
 			const allMessages = before.concat([this.props]).concat(after);
 
+			/*
 			const fullUrl = channelUrl(channel) + createLineIdHash(lineId);
+
+			<Link to={fullUrl}
+				key="showFullContext">
+				Full context
+			</Link>{" "}
+			*/
 
 			const header = (
 				<div className={`${block}__header`} key="header">
 					<strong>Expanded view</strong>
 					<span className={`${block}__options`}>
-						<Link to={fullUrl}
-							key="showFullContext">
-							Full context
-						</Link>{" "}
 						<a href="javascript://"
 							onClick={this.toggleContext}
 							key="closeContext">
