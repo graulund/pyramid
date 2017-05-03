@@ -59,6 +59,7 @@
 
 	.line {
 		padding: 0 20px;
+		overflow-x: auto;
 
 		&.flashing {
 			position: relative;
