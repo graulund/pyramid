@@ -154,6 +154,10 @@ export function requestLineInfo(lineId) {
 	emit("requestLineInfo", { lineId });
 }
 
+export function requestSystemInfo() {
+	emit("requestSystemInfo");
+}
+
 export function requestBaseDataReload() {
 	emit("reloadBaseData");
 }
@@ -450,6 +454,14 @@ export function initializeIo() {
 			if (details && details.line && details.line.lineId) {
 				store.dispatch(actions.lineInfo.update({
 					[details.line.lineId]: details.line
+				}));
+			}
+		});
+
+		socket.on("systemInfo", (details) => {
+			if (details && details.key) {
+				store.dispatch(actions.systemInfo.update({
+					[details.key]: details.value
 				}));
 			}
 		});

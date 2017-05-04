@@ -299,6 +299,12 @@ module.exports = function(main) {
 		emitViewState(socket);
 	};
 
+	const emitSystemInfo = function(socket, key, value) {
+		if (socket) {
+			socket.emit("systemInfo", { key, value });
+		}
+	};
+
 	// Deferred server availability
 	const setServer = (_server) => {
 		server = _server;
@@ -725,6 +731,20 @@ module.exports = function(main) {
 					const name = util.formatUriName(details.name);
 					main.reconnectIrcServer(name);
 				}
+			});
+
+			socket.on("requestSystemInfo", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				log.getDatabaseSize((err, size) => {
+					if (!err) {
+						emitSystemInfo(socket, "databaseSize", size);
+					}
+				});
+				log.getLogFolderSize((err, size) => {
+					if (!err) {
+						emitSystemInfo(socket, "logFolderSize", size);
+					}
+				});
 			});
 		});
 	};

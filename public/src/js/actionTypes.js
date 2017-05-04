@@ -64,6 +64,10 @@ export const onlineFriends = {
 	"SET": "onlineFriends/SET"
 };
 
+export const systemInfo = {
+	"UPDATE": "systemInfo/UPDATE"
+};
+
 export const token = {
 	"SET": "token/SET"
 };

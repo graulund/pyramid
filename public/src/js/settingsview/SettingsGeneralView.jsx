@@ -12,6 +12,8 @@ class SettingsGeneralView extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		io.requestSystemInfo();
+
 		this.settings = {
 			"Web": [
 				{
@@ -235,7 +237,7 @@ class SettingsGeneralView extends PureComponent {
 	}
 
 	renderSetting(setting) {
-		const { appConfig } = this.props;
+		const { appConfig, systemInfo } = this.props;
 		const { description, name, notice, readableName, requires, type } = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
@@ -329,6 +331,18 @@ class SettingsGeneralView extends PureComponent {
 			prefixInput = [prefixInput, " "];
 		}
 
+		var suffix = null;
+
+		if (name === "logLinesDb" && systemInfo.databaseSize) {
+			const dbSizeMb = (systemInfo.databaseSize / 1024 / 1024).toFixed(2);
+			suffix = <p>Current database size: { dbSizeMb } MB</p>;
+		}
+
+		if (name === "logLinesFile" && systemInfo.logFolderSize) {
+			const lfSizeMb = (systemInfo.logFolderSize / 1024 / 1024).toFixed(2);
+			suffix = <p>Current log folder size: { lfSizeMb } MB</p>;
+		}
+
 		return (
 			<div className={className} key={name}>
 				<h3>
@@ -338,6 +352,7 @@ class SettingsGeneralView extends PureComponent {
 				{ mainInput }
 				{ description ? <p>{ description }</p> : null }
 				{ notice ? <p><em>{ notice }</em></p> : null }
+				{ suffix }
 			</div>
 		);
 	}
@@ -371,7 +386,14 @@ class SettingsGeneralView extends PureComponent {
 }
 
 SettingsGeneralView.propTypes = {
-	appConfig: PropTypes.object
+	appConfig: PropTypes.object,
+	systemInfo: PropTypes.object
 };
 
-export default connect(({ appConfig }) => ({ appConfig }))(SettingsGeneralView);
+export default connect(({
+	appConfig,
+	systemInfo
+}) => ({
+	appConfig,
+	systemInfo
+}))(SettingsGeneralView);

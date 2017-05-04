@@ -8,6 +8,7 @@ const path   = require("path");
 const lazy   = require("lazy");
 const async  = require("async");
 const lodash = require("lodash");
+const getFolderSize = require("get-folder-size");
 
 const constants = require("./constants");
 const util = require("./util");
@@ -596,24 +597,36 @@ const writeLastSeenUsers = function(data, callback) {
 	writeLastSeen(lastSeenUsersFileName, data, callback);
 };
 
+// System info
+
+const getDatabaseSize = function(callback) {
+	return getFolderSize(constants.DATA_ROOT, callback);
+};
+
+const getLogFolderSize = function(callback) {
+	return getFolderSize(constants.LOG_ROOT, callback);
+};
+
 module.exports = {
-	getLastLinesFromUser,
+	getChannelLogDetails,
 	getChatroomLinesForDay,
+	getDatabaseSize,
+	getLastLinesFromUser,
+	getLogFolderSize,
+	getLogLineFromData,
 	getUserLinesForMonth,
+	getUserLogDetails,
+	lineFormats,
+	loadLastSeenChannels,
+	loadLastSeenInfo,
+	loadLastSeenUsers,
+	logCategoryLine,
+	logChannelLine,
 	parseLogLine,
 	pathHasAnyLogs,
 	pathHasLogsForDay,
 	pathHasLogsForToday,
 	pathHasLogsForYesterday,
-	getChannelLogDetails,
-	getUserLogDetails,
-	getLogLineFromData,
-	lineFormats,
-	loadLastSeenInfo,
-	loadLastSeenChannels,
-	loadLastSeenUsers,
-	logChannelLine,
-	logCategoryLine,
 	writeLastSeen,
 	writeLastSeenChannels,
 	writeLastSeenUsers

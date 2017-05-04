@@ -161,6 +161,14 @@ export default {
 			};
 		}
 	},
+	systemInfo: {
+		update(data) {
+			return {
+				type: actionTypes.systemInfo.UPDATE,
+				data
+			};
+		}
+	},
 	token: {
 		set(data) {
 			return {

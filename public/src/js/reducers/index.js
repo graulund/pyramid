@@ -15,6 +15,7 @@ import logFiles from "./logFiles";
 import multiServerChannels from "./multiServerChannels";
 import nicknames from "./nicknames";
 import onlineFriends from "./onlineFriends";
+import systemInfo from "./systemInfo";
 import token from "./token";
 import unseenHighlights from "./unseenHighlights";
 import userCaches from "./userCaches";
@@ -36,6 +37,7 @@ export default combineReducers({
 	multiServerChannels,
 	nicknames,
 	onlineFriends,
+	systemInfo,
 	token,
 	unseenHighlights,
 	userCaches,
