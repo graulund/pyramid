@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 import ChannelName from "../components/ChannelName.jsx";
+import ChatHighlightsControls from "./ChatHighlightsControls.jsx";
 import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import { CATEGORY_NAMES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
@@ -40,6 +41,13 @@ class ChatViewHeader extends PureComponent {
 			pageQuery,
 			pageType
 		} = this.props;
+
+		if (
+			pageType === PAGE_TYPES.CATEGORY &&
+			pageQuery === "highlights"
+		) {
+			return <ChatHighlightsControls key="highlightsControls" />;
+		}
 
 		if (
 			pageType !== PAGE_TYPES.CHANNEL &&

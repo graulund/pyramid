@@ -785,6 +785,15 @@ const reportHighlightAsSeen = function(messageId) {
 		}
 	}
 };
+
+const clearUnseenHighlights = function() {
+	unseenHighlightIds.clear();
+
+	if (io) {
+		io.emitUnseenHighlights();
+	}
+};
+
 const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
@@ -1524,6 +1533,7 @@ module.exports = {
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
+	clearUnseenHighlights,
 	configValue,
 	connectUnconnectedIrcs,
 	currentAppConfig: () => currentAppConfig,

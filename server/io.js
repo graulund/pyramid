@@ -427,6 +427,11 @@ module.exports = function(main) {
 				}
 			});
 
+			socket.on("clearUnseenHighlights", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				main.clearUnseenHighlights();
+			});
+
 			// Storing view state
 
 			socket.on("storeViewState", (details) => {

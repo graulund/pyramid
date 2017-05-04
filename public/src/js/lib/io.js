@@ -220,6 +220,10 @@ export function reconnectToIrcServer(name) {
 	emit("reconnectToIrcServer", { name });
 }
 
+export function clearUnseenHighlights() {
+	emit("clearUnseenHighlights");
+}
+
 export function initializeIo() {
 	if (window.io) {
 		io = window.io;
