@@ -146,12 +146,10 @@ export default {
 				data
 			};
 		},
-		update(subjectName, date, lines) {
+		update(data) {
 			return {
 				type: actionTypes.nicknames.UPDATE,
-				subjectName,
-				date,
-				lines
+				data
 			};
 		}
 	},
