@@ -159,7 +159,7 @@ const _warn = function(message, time = null) {
 
 // Last seen
 
-const setLastSeenChannel = (channel, data) => {
+const setLastSeenChannel = function(channel, data) {
 	if (data) {
 		// Update
 		lastSeenChannels[channel] = data;
@@ -182,7 +182,7 @@ const setLastSeenChannel = (channel, data) => {
 	}
 };
 
-const setLastSeenUser = (username, data) => {
+const setLastSeenUser = function(username, data) {
 	if (data) {
 		// Update
 		lastSeenUsers[username] = data;
@@ -216,16 +216,16 @@ const updateLastSeen = function(
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		setLastSeenUser(
 			username,
-			{ channel: channelUri, channelName, time }
+			{ channel: channelUri, time }
 		);
 	}
 };
 
-const clearCachedLastSeens = () => {
+const clearCachedLastSeens = function() {
 	cachedLastSeens = {};
 };
 
-const flushCachedLastSeens = () => {
+const flushCachedLastSeens = function() {
 	const c = cachedLastSeens;
 	clearCachedLastSeens();
 	return c;
@@ -521,7 +521,7 @@ const reloadOnlineFriends = function() {
 	}
 };
 
-const getUserColorNumber = (username) => {
+const getUserColorNumber = function(username) {
 	if (username) {
 		username = username.toLowerCase();
 
@@ -1488,12 +1488,12 @@ onDb((err) => {
 				onIrc,
 				onPlugins,
 				onWeb,
-				loadLastSeenUsers,
-				loadLastSeenChannels,
-				loadIrcConfig,
 				loadAppConfig,
-				loadNicknames,
-				loadFriendsList
+				loadFriendsList,
+				loadIrcConfig,
+				loadLastSeenChannels,
+				loadLastSeenUsers,
+				loadNicknames
 			],
 			(err, results) => {
 				console.log("Everything's ready!");
@@ -1562,6 +1562,8 @@ module.exports = {
 	loadAppConfig,
 	loadFriendsList,
 	loadIrcConfig,
+	loadLastSeenChannels,
+	loadLastSeenUsers,
 	loadNicknames,
 	localMoment,
 	log: _log,

@@ -33,6 +33,7 @@ module.exports = function(main) {
 					nicknames: main.nicknamesDict(),
 					onlineFriends: main.currentOnlineFriends(),
 					token: routeUtils.getUsedToken(req),
+					unseenHighlights: Array.from(main.unseenHighlightIds()),
 					viewState: main.currentViewState(),
 					// Template-related
 					enableScripts: true,

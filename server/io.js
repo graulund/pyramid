@@ -3,6 +3,7 @@
 
 // Prerequisites
 
+const async = require("async");
 const lodash = require("lodash");
 const socketIo = require("socket.io");
 
@@ -116,19 +117,19 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitFriendsList = function(socket) {
-		main.loadFriendsList((err, data) => {
-			if (!err) {
-				socket.emit("friendsList", { data });
-			}
-		});
-	};
-
 	const emitAppConfig = function(socket) {
 		main.loadAppConfig((err, data) => {
 			if (!err) {
 				data = lodash.assign({}, configDefaults, data);
 				socket.emit("appConfig", { data });
+			}
+		});
+	};
+
+	const emitFriendsList = function(socket) {
+		main.loadFriendsList((err, data) => {
+			if (!err) {
+				socket.emit("friendsList", { data });
 			}
 		});
 	};
@@ -144,6 +145,37 @@ module.exports = function(main) {
 				callback(err, data);
 			}
 		});
+	};
+
+	const emitIrcConnectionStatusAll = function(socket) {
+		const state = main.currentIrcConnectionState();
+		lodash.forOwn(state, (status, serverName) => {
+			emitIrcConnectionStatus(serverName, status, socket);
+		});
+	};
+
+	const emitLastSeen = function(socket) {
+		async.parallel(
+			[
+				main.loadLastSeenUsers,
+				main.loadLastSeenChannels
+			],
+			(err, results) => {
+				if (!err) {
+					const [ users = {}, channels = {} ] = results;
+					const instances = [];
+
+					lodash.forOwn(users, (data, username) => {
+						instances.push({ username, data });
+					});
+					lodash.forOwn(channels, (data, channel) => {
+						instances.push({ channel, data });
+					});
+
+					socket.emit("lastSeen", instances);
+				}
+			}
+		);
 	};
 
 	const emitNicknames = function(socket) {
@@ -192,9 +224,7 @@ module.exports = function(main) {
 	};
 
 	const emitUnseenHighlights = function(socket) {
-		if (!socket) {
-			socket = io;
-		}
+		socket = socket || io;
 		if (socket) {
 			socket.emit(
 				"unseenHighlights",
@@ -204,9 +234,7 @@ module.exports = function(main) {
 	};
 
 	const emitNewHighlight = function(socket, message) {
-		if (!socket) {
-			socket = io;
-		}
+		socket = socket || io;
 		if (socket) {
 			socket.emit(
 				"newHighlight",
@@ -231,21 +259,44 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitIrcConnectionStatus = function(serverName, status) {
-		if (io) {
-			io.emit("connectionStatus", {
+	const emitIrcConnectionStatus = function(serverName, status, socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("connectionStatus", {
 				serverName,
 				status
 			});
 		}
 	};
 
-	const emitOnlineFriends = function() {
-		if (io) {
-			io.emit("onlineFriends", {
+	const emitOnlineFriends = function(socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("onlineFriends", {
 				data: main.currentOnlineFriends()
 			});
 		}
+	};
+
+	const emitViewState = function(socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("viewState", {
+				data: main.currentViewState()
+			});
+		}
+	};
+
+	const emitBaseData = function(socket) {
+		emitAppConfig(socket);
+		emitFriendsList(socket);
+		emitIrcConfig(socket);
+		emitIrcConnectionStatusAll(socket);
+		emitLastSeen(socket);
+		emitNicknames(socket);
+		emitOnlineFriends(socket);
+		emitUnseenHighlights(socket);
+		emitViewState(socket);
 	};
 
 	// Deferred server availability
@@ -267,12 +318,8 @@ module.exports = function(main) {
 
 					const isAccepted = util.isAnAcceptedToken(connectionToken);
 					emitTokenStatus(socket, isAccepted);
-
-					if (isAccepted) {
-						emitUnseenHighlights(socket);
-					}
 				}
-			})
+			});
 
 			// Respond to requests for cache
 
@@ -415,6 +462,13 @@ module.exports = function(main) {
 				) {
 					emitLineInfo(socket, details.lineId);
 				}
+			});
+
+			// Requesting base data
+
+			socket.on("reloadBaseData", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				emitBaseData(socket);
 			});
 
 			// Storing settings

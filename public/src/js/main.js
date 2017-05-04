@@ -77,6 +77,10 @@ if (window.pyramid_onlineFriends) {
 	store.dispatch(actions.onlineFriends.set(window.pyramid_onlineFriends));
 }
 
+if (window.pyramid_unseenHighlights) {
+	store.dispatch(actions.unseenHighlights.set(window.pyramid_unseenHighlights));
+}
+
 // Sockets
 
 initializeIo();
@@ -124,8 +128,7 @@ if (main) {
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.settingsPattern}
-							component={SettingsView}
-							/>
+							component={SettingsView} />
 						<Route
 							path={routes.categoryUrl(":categoryName")}
 							component={ChatViewWrapper} />
