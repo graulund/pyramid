@@ -335,12 +335,12 @@ class SettingsGeneralView extends PureComponent {
 
 		if (name === "logLinesDb" && systemInfo.databaseSize) {
 			const dbSizeMb = (systemInfo.databaseSize / 1024 / 1024).toFixed(2);
-			suffix = <p>Current database size: { dbSizeMb } MB</p>;
+			suffix = <p><em>Current database size: { dbSizeMb } MB. Clear your database by running the <tt>clearDatabaseLogs.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
 		}
 
 		if (name === "logLinesFile" && systemInfo.logFolderSize) {
 			const lfSizeMb = (systemInfo.logFolderSize / 1024 / 1024).toFixed(2);
-			suffix = <p>Current log folder size: { lfSizeMb } MB</p>;
+			suffix = <p><em>Current log folder size: { lfSizeMb } MB. Clear the log folder by running the <tt>clearLogFolder.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
 		}
 
 		return (
