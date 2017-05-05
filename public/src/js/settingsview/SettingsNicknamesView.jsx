@@ -11,12 +11,13 @@ class SettingsNicknamesView extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.handleRemove = this.handleRemove.bind(this);
 		this.handleSelect = this.handleSelect.bind(this);
 
 		this.valueChangeHandlers = {};
 
 		this.state = {
-			selectedItem: null
+			selectedNickname: null
 		};
 	}
 
@@ -41,8 +42,7 @@ class SettingsNicknamesView extends PureComponent {
 	}
 
 	handleSelect(nickname) {
-		const { nicknames } = this.props;
-		this.setState({ selectedItem: nicknames[nickname] });
+		this.setState({ selectedNickname: nickname });
 	}
 
 	handleAdd(nickname) {
@@ -51,7 +51,7 @@ class SettingsNicknamesView extends PureComponent {
 	}
 
 	handleRemove(nickname, evt) {
-		const { selectedItem } = this.state;
+		const { selectedNickname } = this.state;
 
 		evt.stopPropagation();
 
@@ -63,8 +63,8 @@ class SettingsNicknamesView extends PureComponent {
 			console.log("Tried to remove nickname", nickname);
 			io.removeNickname(nickname);
 
-			if (selectedItem && selectedItem.nickname === nickname) {
-				this.setState({ selectedItem: null });
+			if (selectedNickname && selectedNickname === nickname) {
+				this.setState({ selectedNickname: null });
 			}
 		}
 	}
@@ -90,12 +90,12 @@ class SettingsNicknamesView extends PureComponent {
 	}
 
 	renderItemPanel(item) {
-		const { selectedItem } = this.state;
+		const { selectedNickname } = this.state;
 
 		var style;
 
 		if (item) {
-			style = item === selectedItem ? {} : { display: "none" };
+			style = item.nickname === selectedNickname ? {} : { display: "none" };
 			return (
 				<div className="settings__detail-item" key={item.nickname} style={style}>
 					<h3>{ item.nickname }</h3>
@@ -133,7 +133,7 @@ class SettingsNicknamesView extends PureComponent {
 			);
 		}
 
-		style = !selectedItem ? {} : { display: "none" };
+		style = !selectedNickname ? {} : { display: "none" };
 
 		return (
 			<div className="settings__detail-noitem" key="noitem" style={style}>
