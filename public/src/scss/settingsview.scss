@@ -109,6 +109,10 @@
 			button {
 				flex: 0 0 auto;
 			}
+
+			@media #{$mobile-media} {
+				overflow-x: auto;
+			}
 		}
 
 		&--selectable &-item {
