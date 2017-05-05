@@ -1,6 +1,3 @@
-const lodash = require("lodash");
-
-const config = require("../config");
 const dbSource = require("../server/db");
 
 var db;
