@@ -205,6 +205,21 @@
 			width: 5em;
 		}
 	}
+
+	@media #{$mobile-media} {
+		&__detail-view {
+			display: block;
+		}
+
+		&__detail-view &__list {
+			flex: none;
+			width: 100%;
+
+			ul {
+				margin-bottom: 0;
+			}
+		}
+	}
 }
 
 .password-input {
