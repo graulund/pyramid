@@ -10,6 +10,8 @@ import Loader from "../components/Loader.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import * as io from "../lib/io";
 import { subjectName, subjectUrl } from "../lib/routeHelpers";
+import store from "../store";
+import actions from "../actions";
 
 const PAGE_TYPE_CACHE_MAP = {
 	[PAGE_TYPES.CATEGORY]: "categoryCaches",
@@ -36,6 +38,7 @@ class ChatView extends PureComponent {
 
 	componentWillReceiveProps(newProps) {
 		this.requestDataIfNeeded(newProps, this.props);
+		this.cleanUpIfNeeded(newProps);
 	}
 
 	contentLiveUrl() {
@@ -117,6 +120,19 @@ class ChatView extends PureComponent {
 		) {
 			// Finished loading
 			this.setState({ loading: false });
+		}
+	}
+
+	cleanUpIfNeeded(props = this.props) {
+		const { pageType, logBrowserOpen, userListOpen } = props;
+
+		if (
+			pageType === PAGE_TYPES.CATEGORY &&
+			(logBrowserOpen || userListOpen)
+		) {
+			store.dispatch(actions.viewState.update(
+				{ logBrowserOpen: false, userListOpen: false }
+			));
 		}
 	}
 
