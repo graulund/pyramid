@@ -15,6 +15,7 @@ module.exports = {
 	timeZone: "UTC",
 	webPort: 54335,
 
+	collapseJoinParts: true,
 	enableUsernameColors: true,
 	enableDarkMode: false,
 	enableEmojiCodes: true,

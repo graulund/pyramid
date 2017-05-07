@@ -92,6 +92,12 @@ class SettingsGeneralView extends PureComponent {
 					type: "bool",
 					description: "Hide channels that haven't been spoken in for a long time on the channels list",
 					notice: "Doesn't affect your joined status"
+				},
+				{
+					name: "collapseJoinParts",
+					readableName: "Collapse join/part events",
+					type: "bool",
+					description: "If someone joins and immediately leaves, don't display anything"
 				}
 			],
 			"Twitch": [

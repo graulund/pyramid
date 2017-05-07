@@ -7,7 +7,7 @@ import { storeViewState } from "../lib/io";
 import store from "../store";
 import actions from "../actions";
 
-class ChannelUserList extends PureComponent {
+class ChatUserListControl extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.toggleUserList = this.toggleUserList.bind(this);
@@ -74,7 +74,7 @@ class ChannelUserList extends PureComponent {
 	}
 }
 
-ChannelUserList.propTypes = {
+ChatUserListControl.propTypes = {
 	channel: PropTypes.string,
 	friendsList: PropTypes.object,
 	userList: PropTypes.object,
@@ -89,4 +89,4 @@ export default connect(({
 	friendsList,
 	userList: channelUserLists[ownProps.channel],
 	userListOpen
-}))(ChannelUserList);
+}))(ChatUserListControl);

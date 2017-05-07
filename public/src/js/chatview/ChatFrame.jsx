@@ -260,7 +260,7 @@ class ChatFrame extends PureComponent {
 	// Render
 
 	render() {
-		const { lines, pageQuery, pageType } = this.props;
+		const { collapseJoinParts, lines, pageQuery, pageType } = this.props;
 
 		const displayChannel = pageType !== PAGE_TYPES.CHANNEL;
 		const displayContextLink =
@@ -269,6 +269,7 @@ class ChatFrame extends PureComponent {
 		const displayUsername = pageType !== PAGE_TYPES.USER;
 
 		const content = <ChatLines
+			collapseJoinParts={collapseJoinParts}
 			displayChannel={displayChannel}
 			displayContextLink={displayContextLink}
 			displayUsername={displayUsername}
@@ -281,6 +282,7 @@ class ChatFrame extends PureComponent {
 }
 
 ChatFrame.propTypes = {
+	collapseJoinParts: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	logBrowserOpen: PropTypes.bool,

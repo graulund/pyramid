@@ -8,6 +8,7 @@ import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
 import LogLine from "./LogLine.jsx";
+import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
 
 const block = "line";
@@ -60,15 +61,32 @@ class ChatLine extends PureComponent {
 				content = <ChatUserEventLine {...this.props} key="content" />;
 				break;
 			case "events":
-				content = <ChatBunchedEventsLine {...this.props} key="content" />;
+				var { collapseJoinParts, ...bunchedProps } = this.props;
+				var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
+				if (
+					calculated &&
+					(calculated.joins.length || calculated.parts.length)
+				) {
+					content = <ChatBunchedEventsLine
+						{...this.props}
+						{...calculated}
+						key="content" />;
+				}
 				break;
 			case "log":
 				content = <LogLine {...this.props} key="content" />;
 				break;
+			default:
+				content = (
+					<em key="placeholder">
+						no template for `{ type }` event
+					</em>
+				);
+				break;
 		}
 
 		if (!content) {
-			content = <em key="placeholder">{ `no template for \`${type}\` event` }</em>;
+			return null;
 		}
 
 		var channelEl = null;
@@ -120,6 +138,7 @@ ChatLine.propTypes = {
 	by: PropTypes.string,
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
+	collapseJoinParts: PropTypes.bool,
 	color: PropTypes.number,
 	contextMessages: PropTypes.array,
 	displayChannel: PropTypes.bool,

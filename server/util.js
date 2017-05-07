@@ -253,6 +253,16 @@ const getRelationship = function(username, friendsList) {
 	return constants.RELATIONSHIP_NONE;
 };
 
+// Event utilities
+
+const isJoinEvent = function(event) {
+	return event && event.type === "join";
+};
+
+const isPartEvent = function(event) {
+	return event && constants.PART_EVENT_TYPES.indexOf(event.type) >= 0;
+};
+
 // API
 
 module.exports = {
@@ -289,5 +299,9 @@ module.exports = {
 	clearAcceptedTokens,
 
 	// Relationship
-	getRelationship
+	getRelationship,
+
+	// Event
+	isJoinEvent,
+	isPartEvent
 };

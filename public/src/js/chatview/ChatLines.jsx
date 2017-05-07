@@ -9,6 +9,7 @@ const block = "chatlines";
 class ChatLines extends PureComponent {
 	render() {
 		const {
+			collapseJoinParts,
 			displayChannel,
 			displayContextLink,
 			displayFirstDate = true,
@@ -28,6 +29,7 @@ class ChatLines extends PureComponent {
 			if (msg) {
 				var dateString = humanDateStamp(new Date(msg.time), true, true);
 				var line = <ChatLine {...msg}
+					collapseJoinParts={collapseJoinParts}
 					displayChannel={displayChannel}
 					displayContextLink={displayContextLink}
 					displayUsername={displayUsername}
@@ -64,6 +66,7 @@ class ChatLines extends PureComponent {
 }
 
 ChatLines.propTypes = {
+	collapseJoinParts: PropTypes.bool,
 	displayChannel: PropTypes.bool,
 	displayContextLink: PropTypes.bool,
 	displayFirstDate: PropTypes.bool,

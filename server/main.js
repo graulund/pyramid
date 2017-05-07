@@ -381,14 +381,25 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 	if (cache && cache.length) {
 		const lastItem = cache[cache.length-1];
 		if (lastItem) {
+
+			const isJoin = util.isJoinEvent(data);
+			const isPart = util.isPartEvent(data);
+
 			var bunch;
 			if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
 				// Create bunch and insert in place
+
+				const lastIsJoin = util.isJoinEvent(lastItem);
+				const lastIsPart = util.isPartEvent(lastItem);
+
 				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: [lastItem, data],
+					firstTime: lastItem.time,
+					joinCount: isJoin + lastIsJoin,
 					lineId: uuid.v4(),
+					partCount: isPart + lastIsPart,
 					prevIds: [lastItem.lineId],
 					server: lastItem.server,
 					time: data.time,
@@ -397,12 +408,27 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 			}
 			else if (lastItem.type === "events") {
 				// Add to bunch, resulting in a new, inserted in place
+				let maxLines = constants.BUNCHED_EVENT_SIZE;
+
+				var prevIds = lastItem.prevIds.concat([lastItem.lineId]);
+				if (prevIds.length > maxLines) {
+					prevIds = prevIds.slice(prevIds.length - maxLines);
+				}
+
+				var events = lastItem.events.concat([data]);
+				if (events.length > maxLines) {
+					events = events.slice(events.length - maxLines);
+				}
+
 				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
-					events: lastItem.events.concat([data]),
+					events,
+					firstTime: lastItem.firstTime,
+					joinCount: lastItem.joinCount + isJoin,
 					lineId: uuid.v4(),
-					prevIds: lastItem.prevIds.concat([lastItem.lineId]),
+					partCount: lastItem.partCount + isPart,
+					prevIds,
 					server: lastItem.server,
 					time: data.time,
 					type: "events"
