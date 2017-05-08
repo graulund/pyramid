@@ -130,20 +130,19 @@
 	}
 
 	.userevent, .bunchedevents {
-		position: relative;
-		padding: 0 0 0 .8em;
 		color: #999;
 
 		&:before {
 			content: "■";
+			display: inline-block;
 			color: transparent;
-			position: absolute;
-			left: .1em;
-			top: .5em;
+			margin: 0 .3em 0 .1em;
 			width: .3em;
 			height: .3em;
 			background-color: #999;
 			opacity: .8;
+			vertical-align: middle;
+			overflow: hidden;
 		}
 	}
 
