@@ -25,24 +25,16 @@ const EMOTE_REPLACEMENTS = {
 	36: EMOTE_FFZ_REPLACEMENT_ROOT + "36-PJSalt.png"
 };
 
-const srcSet = function(list, enable3xEmotes) {
-	if (!enable3xEmotes) {
-		return list.filter((item) => !/(3|4)x$/.test(item));
-	}
-
-	return list;
-};
-
-const getEmoticonUrlsets = function(emote, enable3xEmotes) {
+const getEmoticonUrlsets = function(emote) {
 	const output = {};
 	switch (emote.type) {
 		case "ffz":
 			output.src = EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/1";
 			if (emote.sizes && emote.sizes.length) {
-				output.srcSet = srcSet(emote.sizes.map((size) => {
+				output.srcSet = emote.sizes.map((size) => {
 					return EMOTE_FFZ_IMG_URL_ROOT +
 						emote.id + "/" + size + " " + size + "x";
-				}), enable3xEmotes);
+				});
 			}
 			else {
 				output.srcSet = [output.src + " 1x"];
@@ -50,11 +42,11 @@ const getEmoticonUrlsets = function(emote, enable3xEmotes) {
 			break;
 		case "bttv":
 			output.src = EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x";
-			output.srcSet = srcSet([
+			output.srcSet = [
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x 1x",
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/2x 2x",
-				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/3x 3x"
-			], enable3xEmotes);
+				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/4x 4x"
+			];
 			break;
 		default:
 			// Assume normal
@@ -64,11 +56,11 @@ const getEmoticonUrlsets = function(emote, enable3xEmotes) {
 			}
 			else {
 				output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
-				output.srcSet = srcSet([
+				output.srcSet = [
 					EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
 					EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x",
-					EMOTE_IMG_URL_ROOT + emote.id + "/3.0 3x"
-				], enable3xEmotes);
+					EMOTE_IMG_URL_ROOT + emote.id + "/4.0 4x"
+				];
 			}
 	}
 
@@ -89,8 +81,8 @@ class TwitchEmoticon extends PureComponent {
 	}
 
 	render() {
-		const { enable3xEmotes = false, text } = this.props;
-		const url = getEmoticonUrlsets(this.props, enable3xEmotes);
+		const { text } = this.props;
+		const url = getEmoticonUrlsets(this.props);
 		return <img
 			src={url.src}
 			srcSet={url.srcSet.join(", ")}
@@ -102,7 +94,6 @@ class TwitchEmoticon extends PureComponent {
 }
 
 TwitchEmoticon.propTypes = {
-	enable3xEmotes: PropTypes.bool,
 	id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 	onLoad: PropTypes.func,
 	text: PropTypes.string,

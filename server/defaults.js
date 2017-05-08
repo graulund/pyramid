@@ -23,7 +23,6 @@ module.exports = {
 	enableTwitch: true,
 	enableTwitchColors: true,
 	enableTwitchDisplayNames: 1,
-	enable3xEmotes: false,
 	enableFfzEmoticons: true,
 	enableFfzGlobalEmoticons: true,
 	enableFfzChannelEmoticons: true,

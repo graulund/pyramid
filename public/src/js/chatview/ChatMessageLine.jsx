@@ -48,11 +48,10 @@ class ChatMessageLine extends PureComponent {
 	}
 
 	renderTwitchEmoticon(token, index) {
-		const { enable3xEmotes, onEmoteLoad } = this.props;
+		const { onEmoteLoad } = this.props;
 		return <TwitchEmoticon
 			{...token.emote}
 			text={token.text}
-			enable3xEmotes={enable3xEmotes}
 			onLoad={onEmoteLoad}
 			key={index} />;
 	}
@@ -147,7 +146,6 @@ ChatMessageLine.propTypes = {
 	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
-	enable3xEmotes: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
@@ -169,7 +167,6 @@ ChatMessageLine.propTypes = {
 
 export default connect(({
 	appConfig: {
-		enable3xEmotes,
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
@@ -177,7 +174,6 @@ export default connect(({
 	},
 	ircConfigs
 }) => ({
-	enable3xEmotes,
 	enableEmojiImages,
 	enableTwitch,
 	enableTwitchColors,
