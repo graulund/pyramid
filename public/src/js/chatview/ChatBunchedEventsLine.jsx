@@ -28,11 +28,12 @@ class ChatBunchedEventsLine extends PureComponent {
 	render() {
 
 		const {
-			joins = [],
-			parts = [],
 			eventOrder = [],
 			joinCount,
-			partCount
+			joins = [],
+			overloaded,
+			partCount,
+			parts = []
 		} = this.props;
 
 		var {
@@ -51,12 +52,12 @@ class ChatBunchedEventsLine extends PureComponent {
 			if (category === "join") {
 				eventname = "joined";
 				usernames = joins;
-				count = joinCount;
+				count = overloaded ? joinCount : joins.length;
 			}
 			else if (category === "part") {
 				eventname = "left";
 				usernames = parts;
-				count = partCount;
+				count = overloaded ? partCount : parts.length;
 			}
 			if (eventname && usernames && usernames.length) {
 
@@ -158,6 +159,7 @@ ChatBunchedEventsLine.propTypes = {
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	mode: PropTypes.string,
+	overloaded: PropTypes.bool,
 	partCount: PropTypes.number,
 	parts: PropTypes.array,
 	reason: PropTypes.string,

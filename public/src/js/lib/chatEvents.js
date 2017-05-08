@@ -69,6 +69,7 @@ export function prepareBunchedEvents(event, collapseJoinParts) {
 		eventOrder,
 		joins,
 		latestTime,
+		overloaded,
 		parts
 	};
 }
