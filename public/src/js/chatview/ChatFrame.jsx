@@ -58,6 +58,7 @@ class ChatFrame extends PureComponent {
 
 	componentDidUpdate(oldProps) {
 		const {
+			inFocus,
 			lines,
 			logBrowserOpen,
 			logDate,
@@ -68,6 +69,7 @@ class ChatFrame extends PureComponent {
 		} = this.props;
 
 		const {
+			inFocus: oldInFocus,
 			lines: oldLines,
 			logDate: oldLogDate,
 			logBrowserOpen: oldLogBrowserOpen,
@@ -124,6 +126,11 @@ class ChatFrame extends PureComponent {
 		if (selectedLine && selectedLine !== oldSelectedLine) {
 			this.flashLine(selectedLine.lineId);
 		}
+
+		// Focus changed
+		if (inFocus && !oldInFocus) {
+			this.handleBackInFocus();
+		}
 	}
 
 	isLiveChannel(props = this.props) {
@@ -177,6 +184,7 @@ class ChatFrame extends PureComponent {
 
 		// Do NOT carry old ones over
 		this.observed = [];
+		this.currentlyVisible = [];
 	}
 
 	resetObserver (props = this.props) {
@@ -190,6 +198,7 @@ class ChatFrame extends PureComponent {
 		this.observed.forEach((el) => {
 			this.observer.observe(el);
 		});
+		this.currentlyVisible = [];
 	}
 
 	onObserve(el) {
@@ -208,23 +217,49 @@ class ChatFrame extends PureComponent {
 		}
 	}
 
+	reportElementAsSeen(el) {
+		reportHighlightAsSeen(el.lineId);
+		this.onUnobserve(el);
+
+		if (el.onUnobserve) {
+			el.onUnobserve();
+		}
+	}
+
 	lineObserverCallback(entries) {
+		const { inFocus } = this.props;
 		entries.forEach((entry) => {
 			if (
 				entry &&
 				entry.target &&
 				entry.target.lineId &&
-				entry.intersectionRatio >= 1 &&
 				this.observed.indexOf(entry.target) >= 0
 			) {
-				reportHighlightAsSeen(entry.target.lineId);
-				this.onUnobserve(entry.target);
-
-				if (entry.target.onUnobserve) {
-					entry.target.onUnobserve();
+				const el = entry.target;
+				if (entry.intersectionRatio >= 1) {
+					// Currently visible
+					if (inFocus) {
+						this.reportElementAsSeen(el);
+					}
+					else if (this.currentlyVisible.indexOf(el) < 0) {
+						this.currentlyVisible.push(el);
+					}
+				}
+				else {
+					// No longer visible
+					if (this.currentlyVisible.indexOf(el) >= 0) {
+						remove(this.currentlyVisible, (item) => item === el);
+					}
 				}
 			}
 		});
+	}
+
+	handleBackInFocus() {
+		this.currentlyVisible.forEach((el) => {
+			this.reportElementAsSeen(el);
+		});
+		this.currentlyVisible = [];
 	}
 
 	// DOM
@@ -283,6 +318,7 @@ class ChatFrame extends PureComponent {
 
 ChatFrame.propTypes = {
 	collapseJoinParts: PropTypes.bool,
+	inFocus: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	logBrowserOpen: PropTypes.bool,

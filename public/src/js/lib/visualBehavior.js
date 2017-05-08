@@ -30,11 +30,52 @@ export function stickToTheBottom() {
 
 function initTouchDeviceTest() {
 	window.addEventListener("touchstart", function onFirstTouch() {
-		store.dispatch(actions.viewState.update({ isTouchDevice: true }));
+		store.dispatch(actions.deviceState.update({ isTouchDevice: true }));
 		window.removeEventListener("touchstart", onFirstTouch, false);
 	}, false);
 }
 
 export function initVisualBehavior() {
 	initTouchDeviceTest();
+	initFocusHandler();
+}
+
+function getFocus () {
+	var inFocus;
+
+	try {
+		inFocus = document.hasFocus() && !window.hidden;
+	} catch(e){} // eslint-disable-line no-empty
+
+	if (typeof inFocus !== "boolean") {
+		// Assume we are
+		return true;
+	}
+
+	return inFocus;
+}
+
+function setFocus(inFocus) {
+	const state = store.getState();
+	if (state && state.deviceState.inFocus !== inFocus) {
+		store.dispatch(actions.deviceState.update({ inFocus }));
+	}
+}
+
+function focusChangeHandler() {
+	setFocus(getFocus());
+}
+
+function focusHandler() {
+	setFocus(true);
+}
+
+function blurHandler() {
+	setFocus(false);
+}
+
+function initFocusHandler() {
+	window.addEventListener("visibilitychange", focusChangeHandler);
+	window.addEventListener("focus", focusHandler);
+	window.addEventListener("blur", blurHandler);
 }

@@ -139,6 +139,7 @@ class ChatView extends PureComponent {
 	render() {
 		const {
 			collapseJoinParts,
+			inFocus,
 			lines,
 			logBrowserOpen,
 			logDate,
@@ -192,6 +193,7 @@ class ChatView extends PureComponent {
 
 				<ChatFrame
 					collapseJoinParts={collapseJoinParts}
+					inFocus={inFocus}
 					lines={lines}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
@@ -220,6 +222,7 @@ class ChatView extends PureComponent {
 
 ChatView.propTypes = {
 	collapseJoinParts: PropTypes.bool,
+	inFocus: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	logBrowserOpen: PropTypes.bool,
@@ -252,6 +255,7 @@ const mapStateToProps = function(state, ownProps) {
 
 	return {
 		collapseJoinParts: state.appConfig.collapseJoinParts,
+		inFocus: state.deviceState.inFocus,
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,
 		logDetails,

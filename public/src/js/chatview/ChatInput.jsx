@@ -352,9 +352,9 @@ ChatInput.propTypes = {
 
 export default connect(({
 	appConfig: { enableEmojiCodes },
+	deviceState: { isTouchDevice },
 	channelCaches,
-	channelUserLists,
-	viewState: { isTouchDevice }
+	channelUserLists
 }) => ({
 	channelCaches,
 	channelUserLists,

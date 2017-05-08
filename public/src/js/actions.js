@@ -53,6 +53,14 @@ export default {
 			};
 		}
 	},
+	deviceState: {
+		update(data) {
+			return {
+				type: actionTypes.deviceState.UPDATE,
+				data
+			};
+		}
+	},
 	friendsList: {
 		set(data) {
 			return {
