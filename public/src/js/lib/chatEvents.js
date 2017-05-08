@@ -1,4 +1,3 @@
-
 import pickBy from "lodash/pickBy";
 
 const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
@@ -11,7 +10,6 @@ export function prepareBunchedEvents(event, collapseJoinParts) {
 	const overloaded = event.events.length < event.joinCount + event.partCount;
 
 	event.events.sort((a, b) => a.time - b.time);
-	console.log(event.events);
 
 	const userStatus = {};
 
@@ -56,12 +54,9 @@ export function prepareBunchedEvents(event, collapseJoinParts) {
 		}
 	});
 
-	console.log("before collapse", userStatus, joins, parts);
-
 	if (collapseJoinParts && !overloaded) {
 		joins = Object.keys(pickBy(userStatus, (value) => value > 0));
 		parts = Object.keys(pickBy(userStatus, (value) => value < 0));
-		console.log("collapsed", joins, parts);
 	}
 
 	return {
