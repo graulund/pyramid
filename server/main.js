@@ -726,11 +726,21 @@ const handleSystemLog = function(serverName, message, level = "info", time = nul
 
 const handleIrcConnectionStateChange = function(serverName, status) {
 
+	const time = new Date();
+
+	if (
+		currentIrcConnectionState[serverName] &&
+		currentIrcConnectionState[serverName].status === status
+	) {
+		// Ignore if status is already the given one
+		return;
+	}
+
 	var info = null;
 
 	if (currentIrcConfig.find((config) => config.name === serverName)) {
 		// Update status
-		info = { status, time: new Date() };
+		info = { status, time };
 		currentIrcConnectionState[serverName] = info;
 	}
 	else {
@@ -741,7 +751,20 @@ const handleIrcConnectionStateChange = function(serverName, status) {
 	if (io) {
 		io.emitIrcConnectionStatus(serverName, info);
 	}
-}
+
+	// Propagate message to all channels in this server
+	const channelList = getConfigChannelsInServer(serverName);
+	if (channelList && channelList.length) {
+		channelList.forEach((channel) => {
+			let channelName = util.channelNameFromUrl(channel, "#");
+			let type = "connectionEvent";
+			let data = { server: serverName, status };
+			handleIncomingEvent(
+				channel, channelName, serverName, type, data, time
+			);
+		});
+	}
+};
 
 // Recipients of messages
 
@@ -1064,6 +1087,15 @@ const getIrcConfigByName = function(name, ircConfig = currentIrcConfig) {
 	}
 
 	return null;
+};
+
+const getConfigChannelsInServer = function(serverName, ircConfig = currentIrcConfig) {
+	const s = getIrcConfigByName(serverName);
+	if (s) {
+		return s.channels.map((val) => util.getChannelUri(val.name, serverName));
+	}
+
+	return [];
 };
 
 const nicknamesDict = function(nicknames = currentNicknames) {

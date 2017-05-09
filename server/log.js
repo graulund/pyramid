@@ -223,7 +223,28 @@ const lineFormats = {
 				(reason ? " (" + reason + ")" : "");
 		},
 		parse: eventWithReasonLogParser("was killed")
-	}
+	},
+
+	connectionEvent: {
+		build: (status, server) => {
+			var by = "by";
+			if (status === "connected") { by = "to"; }
+			if (status === "disconnected") { by = "from"; }
+
+			return `*** ${status} ${by} ${server}`;
+		},
+		parse: (line) => {
+			var match = line.match(/^\*\*\*\s*([^\s\*]+)\s+(by|to|from)\s+([^\s\*]+)$/);
+			if (match) {
+				return {
+					status: match[1],
+					server: match[3]
+				};
+			}
+
+			return null;
+		}
+	},
 };
 
 const lineTypes = Object.keys(lineFormats);
@@ -259,6 +280,11 @@ const getLogLineFromData = function(type, data) {
 				const t = type === "+mode" ? "addMode" : "removeMode";
 				return lineFormats[t].build(
 					data.symbol, data.username, data.mode, data.argument
+				);
+
+			case "connectionEvent":
+				return lineFormats.connectionEvent.build(
+					data.status, data.server
 				);
 		}
 	}

@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 
 import UserLink from "../components/UserLink.jsx";
 
+const block = "userevent";
+
 class ChatUserEventLine extends PureComponent {
 	render() {
 		const {
@@ -41,14 +43,14 @@ class ChatUserEventLine extends PureComponent {
 				break;
 		}
 
-		const className = "userevent" +
-			(isStrong ? " userevent--strong" : "");
+		const className = block +
+			(isStrong ? ` ${block}--strong` : "");
 
 		return (
 			<span className={className}>
 				{ displayUsername
 					? (
-						<strong className="userevent__target">
+						<strong className={`${block}__target`}>
 							<UserLink userName={username} key={username} />
 							{" "}
 						</strong>

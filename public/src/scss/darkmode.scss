@@ -7,7 +7,8 @@ body.darkmode {
 	.chatview__controls,
 	.channeluserlist,
 	.chatview .line__context-before,
-	.chatview .line__context-after {
+	.chatview .line__context-after,
+	.sidebar__system-menu {
 		background-color: #111;
 		color: #ccc;
 
@@ -57,6 +58,32 @@ body.darkmode {
 
 			&-after--edged {
 				border-top-color: #111;
+			}
+		}
+
+		.line--connection {
+			&:after {
+				background-color: #444;
+			}
+
+			> span {
+				background-color: #111;
+			}
+		}
+
+		.connectionevent {
+			color: #64bcf3;
+
+			&:before {
+				background-color: #64bcf3;
+			}
+
+			&--bad {
+				color: #c00;
+
+				&:before {
+					background-color: #c00;
+				}
 			}
 		}
 	}
@@ -172,5 +199,11 @@ body.darkmode {
 		background-color: #7be;
 		border-color: #7be;
 		color: #000;
+	}
+
+	.sidebar__system-menu {
+		&, .sep {
+			border-color: #666;
+		}
 	}
 }

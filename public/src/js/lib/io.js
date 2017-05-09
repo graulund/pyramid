@@ -326,6 +326,10 @@ export function initializeIo() {
 		socket.on("kick", onChatEvent);
 		socket.on("kill", onChatEvent);
 		socket.on("events", onChatEvent);
+		socket.on("+mode", onChatEvent);
+		socket.on("-mode", onChatEvent);
+		socket.on("log", onChatEvent);
+		socket.on("connectionEvent", onChatEvent);
 
 		socket.on("channelUserList", (details) => {
 			if (details && details.channel && details.list) {

@@ -129,7 +129,29 @@
 		background-color: rgba(0,0,0,.05);
 	}
 
-	.userevent, .bunchedevents {
+	.line--connection {
+		position: relative;
+
+		> span {
+			position: relative;
+			background-color: #fff;
+			z-index: 2;
+			padding-right: .5em;
+		}
+
+		&:after {
+			content: "";
+			position: absolute;
+			top: 50%;
+			right: 0;
+			left: 10em;
+			height: 1px;
+			background-color: #ccc;
+			z-index: 1;
+		}
+	}
+
+	.userevent, .bunchedevents, .connectionevent {
 		color: #999;
 
 		&:before {
@@ -149,6 +171,23 @@
 	.userevent--strong {
 		color: #000;
 		font-weight: bold;
+	}
+
+	.connectionevent {
+		position: relative;
+		color: #006;
+
+		&:before {
+			background-color: #006;
+		}
+
+		&--bad {
+			color: #900;
+
+			&:before {
+				background-color: #900;
+			}
+		}
 	}
 
 	.bunchedevents--expandable {

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import ChannelLink from "../components/ChannelLink.jsx";
 import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
+import ChatConnectionEventLine from "./ChatConnectionEventLine.jsx";
 import ChatContextView from "./ChatContextView.jsx";
 import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
@@ -41,7 +42,8 @@ class ChatLine extends PureComponent {
 		const isHighlight = !!(highlight && highlight.length);
 		const className = block +
 			(isHighlight ? ` ${block}--highlight` : "") +
-			(type === "notice" ? ` ${block}--notice` : "");
+			(type === "notice" ? ` ${block}--notice` : "") +
+			(type === "connectionEvent" ? ` ${block}--connection` : "");
 
 		var content = null;
 
@@ -75,6 +77,9 @@ class ChatLine extends PureComponent {
 				break;
 			case "log":
 				content = <LogLine {...this.props} key="content" />;
+				break;
+			case "connectionEvent":
+				content = <ChatConnectionEventLine {...this.props} key="content" />;
 				break;
 			default:
 				content = (
