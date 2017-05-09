@@ -1,2 +1,2 @@
 #!/bin/sh
-sqlite3 ../pyramid-empty.db < updateDbIndexes.sql
+sqlite3 ../data/pyramid.db < updateDbIndexes.sql
