@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import Tipsy from "react-tipsy";
 
 import { stickToTheBottom } from "../lib/visualBehavior";
 
@@ -45,7 +46,7 @@ const getEmoticonUrlsets = function(emote) {
 			output.srcSet = [
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x 1x",
 				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/2x 2x",
-				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/4x 4x"
+				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/3x 4x"
 			];
 			break;
 		default:
@@ -58,9 +59,9 @@ const getEmoticonUrlsets = function(emote) {
 				output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
 				output.srcSet = [
 					EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
-					EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x",
-					EMOTE_IMG_URL_ROOT + emote.id + "/4.0 4x"
+					EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x"
 				];
+				output.largeSrc = EMOTE_IMG_URL_ROOT + emote.id + "/4.0 4x";
 			}
 	}
 
@@ -71,6 +72,7 @@ class TwitchEmoticon extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.onLoad = this.onLoad.bind(this);
+		this.onTooltipLoad = this.onTooltipLoad.bind(this);
 	}
 
 	onLoad() {
@@ -80,16 +82,41 @@ class TwitchEmoticon extends PureComponent {
 		}
 	}
 
+	onTooltipLoad() {
+		const { tooltip } = this.refs;
+
+		if (tooltip) {
+			tooltip.updatePosition();
+		}
+	}
+
 	render() {
 		const { text } = this.props;
 		const url = getEmoticonUrlsets(this.props);
-		return <img
-			src={url.src}
-			srcSet={url.srcSet.join(", ")}
-			alt={text}
-			title={text}
-			onLoad={this.onLoad}
-			/>;
+
+		var largeImg = null;
+
+		if (url.largeSrc || url.srcSet.length > 1) {
+			let largestSrc = url.largeSrc || url.srcSet[url.srcSet.length-1];
+			largeImg = <img
+				src={largestSrc.replace(/\s.+$/, "")}
+				alt=""
+				onLoadStart={this.onTooltipLoad}
+				onLoadedMetaData={this.onTooltipLoad}
+				onLoad={this.onTooltipLoad}
+				/>;
+		}
+
+		return (
+			<Tipsy ref="tooltip" content={[largeImg, <div>{ text }</div>]}>
+				<img
+					src={url.src}
+					srcSet={url.srcSet.join(", ")}
+					alt={text}
+					onLoad={this.onLoad}
+					/>
+			</Tipsy>
+		);
 	}
 }
 
