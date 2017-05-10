@@ -11,9 +11,17 @@ class TimedUserItem extends PureComponent {
 
 	render() {
 		const {
-			contextChannel, displayOnline = false, friendsList = {},
-			onlineFriends = [], skipOld = true, symbol = "",
-			userData, userName
+			channel,
+			channelName,
+			contextChannel,
+			displayName,
+			displayOnline = false,
+			friendsList = {},
+			onlineFriends = [],
+			skipOld = true,
+			symbol = "",
+			time,
+			userName
 		} = this.props;
 
 		var classNames = [];
@@ -32,20 +40,26 @@ class TimedUserItem extends PureComponent {
 		var className = classNames.join(" ");
 
 		const prefix = (
-			<strong>{ symbol }<UserLink userName={userName} key={userName} /></strong>
+			<strong>
+				{ symbol }
+				<UserLink
+					userName={userName}
+					displayName={displayName}
+					key={userName} />
+			</strong>
 		);
 
 		var suffix = null;
 
-		if (userData) {
-			const channelEl = contextChannel === userData.channel
+		if (channel) {
+			const channelEl = contextChannel === channel
 				? "here"
 				: [
 					"in ",
 					<ChannelLink
-						channel={userData.channel}
-						channelName={userData.channelName}
-						key={userData.channel}
+						channel={channel}
+						channelName={channelName}
+						key={channel}
 						/>
 				];
 
@@ -54,7 +68,7 @@ class TimedUserItem extends PureComponent {
 
 		return <TimedItem
 				className={className}
-				time={userData && userData.time}
+				time={time}
 				prefix={prefix}
 				suffix={suffix}
 				skipOld={skipOld}
@@ -64,13 +78,16 @@ class TimedUserItem extends PureComponent {
 }
 
 TimedUserItem.propTypes = {
+	channel: PropTypes.string,
+	channelName: PropTypes.string,
 	contextChannel: PropTypes.string,
+	displayName: PropTypes.string,
 	displayOnline: PropTypes.bool,
 	friendsList: PropTypes.object,
 	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
-	userData: PropTypes.object,
+	time: PropTypes.string,
 	userName: PropTypes.string
 };
 

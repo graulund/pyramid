@@ -23,6 +23,7 @@ class TimedChannelItem extends PureComponent {
 			<span className="msg">
 				by <UserLink
 					userName={lastSeenData.username}
+					displayName={lastSeenData.displayName}
 					className="invisible"
 					key={lastSeenData.username}
 					/>

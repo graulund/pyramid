@@ -19,6 +19,11 @@ const PAGE_TYPE_CACHE_MAP = {
 	[PAGE_TYPES.USER]: "userCaches"
 };
 
+const PAGE_TYPE_LASTSEEN_MAP = {
+	[PAGE_TYPES.CHANNEL]: "lastSeenChannels",
+	[PAGE_TYPES.USER]: "lastSeenUsers"
+};
+
 const HIDDEN_STYLES = { display: "none" };
 
 class ChatView extends PureComponent {
@@ -139,6 +144,7 @@ class ChatView extends PureComponent {
 	render() {
 		const {
 			collapseJoinParts,
+			displayName,
 			inFocus,
 			lines,
 			logBrowserOpen,
@@ -181,6 +187,7 @@ class ChatView extends PureComponent {
 			<div className={className}>
 
 				<ChatViewHeader
+					displayName={displayName}
 					isLiveChannel={isLiveChannel}
 					liveUrl={liveUrl}
 					logBrowserOpen={logBrowserOpen}
@@ -222,6 +229,7 @@ class ChatView extends PureComponent {
 
 ChatView.propTypes = {
 	collapseJoinParts: PropTypes.bool,
+	displayName: PropTypes.string,
 	inFocus: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
@@ -239,15 +247,30 @@ const mapStateToProps = function(state, ownProps) {
 	const { lineId, logDate, pageQuery, pageType } = ownProps;
 	const subject = subjectName(pageType, pageQuery);
 
-	var lines;
+	var lines, displayName;
+
+	// Log lines
 
 	if (logDate) {
 		const logCache = state.logFiles[subject];
 		lines = logCache && logCache[logDate];
 	}
+
+	// Live lines
+
 	else {
 		const cacheName = PAGE_TYPE_CACHE_MAP[pageType];
 		lines = state[cacheName][pageQuery];
+	}
+
+	// Display name
+
+	if (pageType in PAGE_TYPE_LASTSEEN_MAP) {
+		const lsDataName = PAGE_TYPE_LASTSEEN_MAP[pageType];
+
+		if (state[lsDataName][pageQuery]) {
+			displayName = state[lsDataName][pageQuery].displayName;
+		}
 	}
 
 	const selectedLine = lineId && state.lineInfo[lineId];
@@ -255,6 +278,7 @@ const mapStateToProps = function(state, ownProps) {
 
 	return {
 		collapseJoinParts: state.appConfig.collapseJoinParts,
+		displayName,
 		inFocus: state.deviceState.inFocus,
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,

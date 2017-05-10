@@ -582,9 +582,16 @@ const mainMethods = function(main, db) {
 			else {
 				const output = {};
 				friends.forEach((friend, i) => {
-					const { lastSeenTime, lastSeenChannelId, username } = friend;
+					const {
+						displayName,
+						lastSeenTime,
+						lastSeenChannelId,
+						username
+					} = friend;
+
 					if (lastSeenTime && lastSeenChannelId) {
 						output[username] = {
+							displayName,
 							time: lastSeenTime,
 							channel: util.getChannelUri(
 								friend.channelName,

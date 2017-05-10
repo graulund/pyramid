@@ -1,10 +1,11 @@
-import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
+import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES, TWITCH_DISPLAY_NAMES } from "../constants";
 import { channelNameFromUrl } from "./channelNames";
 import * as route from "./routeHelpers";
 import store from "../store";
 
 var currentTitle = "";
 var currentUnseenNumber = 0;
+var displayNameSetting = 0;
 
 function siteTitle(pageTitle = "") {
 	if (pageTitle) {
@@ -18,20 +19,43 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-function channelPageTitle(channel) {
-	return siteTitle(channelNameFromUrl(channel));
+function displayName(name, displayName, displayBoth = true) {
+	if (displayNameSetting && displayName && displayName !== name) {
+		if (displayBoth && displayName.toLowerCase() !== name.toLowerCase()) {
+			// Totally different altogether
+			if (displayNameSetting === TWITCH_DISPLAY_NAMES.ALL) {
+				return `${displayName} (${name})`;
+			}
+		}
+		else {
+			// Merely case changes
+			return displayName;
+		}
+	}
+
+	return name;
 }
 
-function userPageTitle(username) {
-	return siteTitle(username);
+function channelPageTitle(channelInfo) {
+	return siteTitle(channelNameFromUrl(
+		channelInfo.channel
+	));
 }
 
-function channelPageLogTitle(channel, date) {
-	return siteTitle(logTitle(date, channelNameFromUrl(channel)));
+function userPageTitle(user) {
+	return siteTitle(displayName(user.username, user.displayName));
 }
 
-function userPageLogTitle(username, date) {
-	return siteTitle(logTitle(date, username));
+function channelPageLogTitle(channelInfo, date) {
+	return siteTitle(logTitle(
+		date, channelNameFromUrl(channelInfo.channel)
+	));
+}
+
+function userPageLogTitle(user, date) {
+	return siteTitle(logTitle(
+		date, displayName(user.username, user.displayName)
+	));
 }
 
 function categoryPageTitle(categoryName) {
@@ -60,34 +84,44 @@ function commitTitle() {
 	document.title = prefix + currentTitle;
 }
 
+function getUserInfo(username) {
+	const state = store.getState();
+	return { username, ...state.lastSeenUsers[username] };
+}
+
+function getChannelInfo(channel) {
+	const state = store.getState();
+	return { channel, ...state.lastSeenChannels[channel] };
+}
+
 function handleLocationChange(location) {
 	const { pathname } = location;
 
 	var m = route.parseChannelLogUrl(pathname);
 
 	if (m) {
-		setTitle(channelPageLogTitle(m[1], m[2]));
+		setTitle(channelPageLogTitle(getChannelInfo(m[1]), m[2]));
 		return;
 	}
 
 	m = route.parseUserLogUrl(pathname);
 
 	if (m) {
-		setTitle(userPageLogTitle(m[1], m[2]));
+		setTitle(userPageLogTitle(getUserInfo(m[1]), m[2]));
 		return;
 	}
 
 	m = route.parseChannelUrl(pathname);
 
 	if (m) {
-		setTitle(channelPageTitle(m[1]));
+		setTitle(channelPageTitle(getChannelInfo(m[1])));
 		return;
 	}
 
 	m = route.parseUserUrl(pathname);
 
 	if (m) {
-		setTitle(userPageTitle(m[1]));
+		setTitle(userPageTitle(getUserInfo(m[1])));
 		return;
 	}
 
@@ -116,6 +150,8 @@ store.subscribe(function() {
 	if (unseenNumber !== currentUnseenNumber) {
 		setUnseenNumber(unseenNumber);
 	}
+
+	displayNameSetting = state.appConfig.enableTwitchDisplayNames;
 });
 
 export default function setUpPageTitles(history) {

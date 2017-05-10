@@ -39,9 +39,9 @@ class UserList extends PureComponent {
 				const userData = lastSeenUsers[userName];
 				return <TimedUserItem
 					displayOnline
-					userData={userData}
 					userName={userName}
 					skipOld={hideOldUsers}
+					{...userData}
 					key={userName}
 					/>;
 			});

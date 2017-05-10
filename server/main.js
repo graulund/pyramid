@@ -52,6 +52,8 @@ var lineIdsToDelete = new Set();
 
 var configValueChangeHandlers = {};
 
+var displayNameCache = {};
+
 // Delayed singletons
 
 var db, io, irc, plugins, web;
@@ -170,7 +172,8 @@ const setLastSeenChannel = function(channel, data) {
 				channelIdCache[channel],
 				{
 					lastSeenTime: data.time,
-					lastSeenUsername: data.username
+					lastSeenUsername: data.username,
+					lastSeenDisplayName: data.displayName
 				}
 			);
 		}
@@ -193,7 +196,8 @@ const setLastSeenUser = function(username, data) {
 				friendIdCache[username],
 				{
 					lastSeenTime: data.time,
-					lastSeenChannelId: channelIdCache[data.channel]
+					lastSeenChannelId: channelIdCache[data.channel],
+					displayName: data.displayName
 				}
 			);
 		}
@@ -206,17 +210,17 @@ const setLastSeenUser = function(username, data) {
 };
 
 const updateLastSeen = function(
-	channelUri, channelName, username, time, relationship
+	channel, username, time, relationship, displayName
 ) {
 	setLastSeenChannel(
-		channelUri,
-		{ username, time }
+		channel,
+		{ username, time, displayName }
 	);
 
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		setLastSeenUser(
 			username,
-			{ channel: channelUri, time }
+			{ channel, time, displayName }
 		);
 	}
 };
@@ -592,7 +596,8 @@ const handleIncomingMessage = function(
 	const symbol = getUserCurrentSymbol(channelUri, username);
 	const line = log.lineFormats[type].build(symbol, username, message);
 
-	// Log the line!
+	// Log
+
 	if (configValue("logLinesFile")) {
 		log.logChannelLine(channelUri, channelName, line, time);
 	}
@@ -610,6 +615,7 @@ const handleIncomingMessage = function(
 	}
 
 	// Highlighted? Add to specific logs
+
 	var highlightStrings = [];
 	if (!username || username.toLowerCase() !== meUsername.toLowerCase()) {
 		highlightStrings = getHighlightStringsForMessage(
@@ -623,8 +629,21 @@ const handleIncomingMessage = function(
 		}
 	}
 
+	// Display name
+
+	const displayName = tags && tags["display-name"];
+
+	if (serverName && username && displayName) {
+		if (!(serverName in displayNameCache)) {
+			displayNameCache[serverName] = {};
+		}
+		displayNameCache[serverName][username] = displayName;
+	}
+
+	// Store!
+
 	updateLastSeen(
-		channelUri, channelName, username, time, relationship
+		channelUri, username, time, relationship, displayName
 	);
 	cacheMessage(
 		channelUri, channelName, serverName, username, symbol,
@@ -641,6 +660,8 @@ const handleIncomingEvent = function(
 		data.symbol = getUserCurrentSymbol(channelUri, data.username);
 	}
 
+	// Log
+
 	const line = log.getLogLineFromData(type, data);
 
 	if (line && configValue("logLinesFile")) {
@@ -648,6 +669,7 @@ const handleIncomingEvent = function(
 	}
 
 	// Channel user lists
+
 	if (
 		constants.USER_MODIFYING_EVENT_TYPES.indexOf(type) >= 0 &&
 		data &&
@@ -672,6 +694,22 @@ const handleIncomingEvent = function(
 		reloadOnlineFriends();
 	}
 
+	// Display name
+
+	const extraData = {};
+
+	if (
+		serverName &&
+		data &&
+		data.username &&
+		displayNameCache[serverName] &&
+		displayNameCache[serverName][data.username]
+	) {
+		extraData.displayName = displayNameCache[serverName][data.username];
+	}
+
+	// Meta data
+
 	const metadata = {
 		channel: channelUri,
 		channelName,
@@ -682,7 +720,7 @@ const handleIncomingEvent = function(
 		type
 	};
 
-	const event = lodash.assign(metadata, data);
+	const event = lodash.assign(metadata, data, extraData);
 
 	if (constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0) {
 		cacheBunchableChannelEvent(channelUri, event);

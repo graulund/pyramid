@@ -6,6 +6,7 @@ import ChannelName from "../components/ChannelName.jsx";
 import ChatHighlightsControls from "./ChatHighlightsControls.jsx";
 import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
+import UserLink from "../components/UserLink.jsx";
 import { CATEGORY_NAMES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
 import store from "../store";
@@ -122,7 +123,7 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	render() {
-		const { pageQuery, pageType } = this.props;
+		const { displayName, pageQuery, pageType } = this.props;
 
 		var heading = null;
 
@@ -133,10 +134,15 @@ class ChatViewHeader extends PureComponent {
 			case PAGE_TYPES.CHANNEL:
 				heading = <ChannelName
 					channel={pageQuery}
+					displayName={displayName}
 					key={pageQuery} />;
 				break;
 			case PAGE_TYPES.USER:
-				heading = pageQuery;
+				heading = <UserLink
+					noLink
+					userName={pageQuery}
+					displayName={displayName}
+					key={pageQuery} />;
 		}
 
 		const controls = this.renderControls();
@@ -155,6 +161,7 @@ class ChatViewHeader extends PureComponent {
 }
 
 ChatViewHeader.propTypes = {
+	displayName: PropTypes.string,
 	isLiveChannel: PropTypes.bool,
 	liveUrl: PropTypes.string,
 	logBrowserOpen: PropTypes.bool,
