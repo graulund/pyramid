@@ -102,18 +102,25 @@ class TwitchEmoticon extends PureComponent {
 				src={largestSrc.replace(/\s.+$/, "")}
 				alt=""
 				onLoadStart={this.onTooltipLoad}
-				onLoadedMetaData={this.onTooltipLoad}
+				onLoadedMetadata={this.onTooltipLoad}
 				onLoad={this.onTooltipLoad}
+				key="large"
 				/>;
 		}
 
+		let tooltipContent = [
+			largeImg,
+			<div key="name">{ text }</div>
+		];
+
 		return (
-			<Tipsy ref="tooltip" content={[largeImg, <div>{ text }</div>]}>
+			<Tipsy ref="tooltip" content={tooltipContent}>
 				<img
 					src={url.src}
 					srcSet={url.srcSet.join(", ")}
 					alt={text}
 					onLoad={this.onLoad}
+					key="main"
 					/>
 			</Tipsy>
 		);
