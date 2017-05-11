@@ -173,7 +173,7 @@ const setLastSeenChannel = function(channel, data) {
 				{
 					lastSeenTime: data.time,
 					lastSeenUsername: data.username,
-					lastSeenDisplayName: data.displayName
+					lastSeenDisplayName: data.userDisplayName
 				}
 			);
 		}
@@ -214,7 +214,7 @@ const updateLastSeen = function(
 ) {
 	setLastSeenChannel(
 		channel,
-		{ username, time, displayName }
+		{ username, time, userDisplayName: displayName }
 	);
 
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
@@ -1098,17 +1098,20 @@ const safeAppConfig = function(appConfig = currentAppConfig) {
 const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 	var ircConfigDict = {};
 	ircConfig.forEach((config) => {
-		var outConfig = lodash.omit(config, ["password"]);
+		var outConfig = lodash.omit(config, ["password", "serverId"]);
 
 		if (config.password) {
 			// Signal that a password has been set
 			outConfig.password = true;
 		}
 
-		if (outConfig.channels) {
-			outConfig.channels = outConfig.channels.map(
-				(val) => val.name
-			);
+		let channels = outConfig.channels;
+		if (channels) {
+			outConfig.channels = {};
+			channels.forEach((channel) => {
+				let { displayName, name } = channel;
+				outConfig.channels[name] = { displayName, name };
+			});
 		}
 
 		ircConfigDict[config.name] = outConfig;
@@ -1256,12 +1259,39 @@ const addChannelToIrcConfig = function(serverName, name, callback) {
 	], callback);
 };
 
+const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
+	name = name.replace(/^#/, "");
+	async.waterfall([
+		(callback) => db.getChannelId(serverName, name, callback),
+		(data, callback) => {
+			if (data) {
+				db.modifyChannelInIrcConfig(data.channelId, details, callback);
+			}
+			else {
+				callback(new Error("No such channel"));
+			}
+		}
+	], callback);
+};
+
 const removeChannelFromIrcConfig = function(serverName, name, callback) {
 	name = name.replace(/^#/, "");
 	async.waterfall([
 		(callback) => db.getChannelId(serverName, name, callback),
 		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
 	], callback);
+};
+
+const addAndJoinChannel = function(serverName, name, callback) {
+	addChannelToIrcConfig(
+		serverName, name,
+		(err) => {
+			joinIrcChannel(serverName, name);
+			if (io) {
+				io.emitIrcConfig();
+			}
+		}
+	);
 };
 
 const addConfigValueChangeHandler = function(name, handler) {
@@ -1618,6 +1648,7 @@ onDb((err) => {
 // API
 
 module.exports = {
+	addAndJoinChannel,
 	addCategoryRecipient,
 	addChannelRecipient,
 	addChannelToIrcConfig,
@@ -1673,6 +1704,7 @@ module.exports = {
 	loadNicknames,
 	localMoment,
 	log: _log,
+	modifyChannelInIrcConfig,
 	modifyFriend,
 	modifyNickname,
 	modifyServerInIrcConfig,

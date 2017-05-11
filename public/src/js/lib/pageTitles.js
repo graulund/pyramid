@@ -5,7 +5,8 @@ import store from "../store";
 
 var currentTitle = "";
 var currentUnseenNumber = 0;
-var displayNameSetting = 0;
+var userDisplayNameSetting = 0;
+var channelDisplayNameSetting = false;
 
 function siteTitle(pageTitle = "") {
 	if (pageTitle) {
@@ -19,11 +20,11 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-function displayName(name, displayName, displayBoth = true) {
-	if (displayNameSetting && displayName && displayName !== name) {
-		if (displayBoth && displayName.toLowerCase() !== name.toLowerCase()) {
+function combinedDisplayName(name, displayName) {
+	if (userDisplayNameSetting && displayName && displayName !== name) {
+		if (displayName.toLowerCase() !== name.toLowerCase()) {
 			// Totally different altogether
-			if (displayNameSetting === TWITCH_DISPLAY_NAMES.ALL) {
+			if (userDisplayNameSetting === TWITCH_DISPLAY_NAMES.ALL) {
 				return `${displayName} (${name})`;
 			}
 		}
@@ -37,24 +38,27 @@ function displayName(name, displayName, displayBoth = true) {
 }
 
 function channelPageTitle(channelInfo) {
-	return siteTitle(channelNameFromUrl(
-		channelInfo.channel
-	));
+	return siteTitle(
+		(channelDisplayNameSetting && channelInfo.displayName) ||
+		channelNameFromUrl(channelInfo.channel)
+	);
 }
 
 function userPageTitle(user) {
-	return siteTitle(displayName(user.username, user.displayName));
+	return siteTitle(combinedDisplayName(user.username, user.displayName));
 }
 
 function channelPageLogTitle(channelInfo, date) {
 	return siteTitle(logTitle(
-		date, channelNameFromUrl(channelInfo.channel)
+		date,
+		(channelDisplayNameSetting && channelInfo.displayName) ||
+		channelNameFromUrl(channelInfo.channel)
 	));
 }
 
 function userPageLogTitle(user, date) {
 	return siteTitle(logTitle(
-		date, displayName(user.username, user.displayName)
+		date, combinedDisplayName(user.username, user.displayName)
 	));
 }
 
@@ -85,13 +89,23 @@ function commitTitle() {
 }
 
 function getUserInfo(username) {
-	const state = store.getState();
+	let state = store.getState();
 	return { username, ...state.lastSeenUsers[username] };
 }
 
 function getChannelInfo(channel) {
-	const state = store.getState();
-	return { channel, ...state.lastSeenChannels[channel] };
+	let state = store.getState();
+	let [ serverName, channelName ] = channel.split(/\//);
+	let config = state.ircConfigs[serverName];
+	let setting = state.appConfig.enableTwitchChannelDisplayNames;
+
+	var channelConfig = {};
+
+	if (setting && config) {
+		channelConfig = config.channels[channelName];
+	}
+
+	return { channel, ...channelConfig };
 }
 
 function handleLocationChange(location) {
@@ -151,7 +165,8 @@ store.subscribe(function() {
 		setUnseenNumber(unseenNumber);
 	}
 
-	displayNameSetting = state.appConfig.enableTwitchDisplayNames;
+	userDisplayNameSetting = state.appConfig.enableTwitchUserDisplayNames;
+	channelDisplayNameSetting = state.appConfig.enableTwitchChannelDisplayNames;
 });
 
 export default function setUpPageTitles(history) {

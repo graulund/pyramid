@@ -149,7 +149,6 @@ ChatMessageLine.propTypes = {
 	enableEmojiImages: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
-	enableTwitchDisplayNames: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,

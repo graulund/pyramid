@@ -7,7 +7,13 @@ import { channelUrl } from "../lib/routeHelpers";
 
 class ChannelLink extends PureComponent {
 	render() {
-		const { channel, displayServer, server, strong } = this.props;
+		const {
+			channel,
+			displayName,
+			displayServer,
+			server,
+			strong
+		} = this.props;
 
 		if (!channel) {
 			return null;
@@ -17,6 +23,7 @@ class ChannelLink extends PureComponent {
 			<Link className="invisible" to={channelUrl(channel)}>
 				<ChannelName
 					channel={channel}
+					displayName={displayName}
 					displayServer={displayServer}
 					server={server}
 					strong={strong}
@@ -28,7 +35,7 @@ class ChannelLink extends PureComponent {
 
 ChannelLink.propTypes = {
 	channel: PropTypes.string.isRequired,
-	channelName: PropTypes.string,
+	displayName: PropTypes.string,
 	displayServer: PropTypes.bool,
 	server: PropTypes.string,
 	strong: PropTypes.bool

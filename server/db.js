@@ -555,12 +555,18 @@ const mainMethods = function(main, db) {
 					};
 				});
 				async.parallel(parallelCalls, (err, channelUris) => {
-					const output = {};
+					let output = {};
 					channels.forEach((channel, i) => {
-						const { lastSeenTime, lastSeenUsername } = channel;
+						let {
+							lastSeenTime,
+							lastSeenUsername,
+							lastSeenDisplayName
+						} = channel;
+
 						if (lastSeenTime && lastSeenUsername) {
 							output[channelUris[i]] = {
 								time: lastSeenTime,
+								userDisplayName: lastSeenDisplayName,
 								username: lastSeenUsername
 							};
 						}

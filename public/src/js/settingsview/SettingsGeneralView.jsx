@@ -108,6 +108,13 @@ class SettingsGeneralView extends PureComponent {
 					description: "Enable special features for Twitch"
 				},
 				{
+					name: "automaticallyJoinTwitchGroupChats",
+					readableName: "Automatically join Twitch group chats",
+					type: "bool",
+					description: "Automatically join all the group chats that you are invited to on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
 					name: "enableTwitchColors",
 					readableName: "Enable Twitch username colors",
 					type: "bool",
@@ -115,8 +122,15 @@ class SettingsGeneralView extends PureComponent {
 					requires: ["enableTwitch"]
 				},
 				{
-					name: "enableTwitchDisplayNames",
-					readableName: "Enable Twitch display names",
+					name: "enableTwitchChannelDisplayNames",
+					readableName: "Enable Twitch channel display names",
+					type: "bool",
+					description: "Show the real names of group chats on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableTwitchUserDisplayNames",
+					readableName: "Enable Twitch user display names",
 					type: "enum",
 					description: "Show the display names set by users on Twitch",
 					requires: ["enableTwitch"],

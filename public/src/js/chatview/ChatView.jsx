@@ -19,11 +19,6 @@ const PAGE_TYPE_CACHE_MAP = {
 	[PAGE_TYPES.USER]: "userCaches"
 };
 
-const PAGE_TYPE_LASTSEEN_MAP = {
-	[PAGE_TYPES.CHANNEL]: "lastSeenChannels",
-	[PAGE_TYPES.USER]: "lastSeenUsers"
-};
-
 const HIDDEN_STYLES = { display: "none" };
 
 class ChatView extends PureComponent {
@@ -243,36 +238,44 @@ ChatView.propTypes = {
 	userListOpen: PropTypes.bool
 };
 
+const getDisplayName = function(state, pageType, pageQuery) {
+	if (pageType === PAGE_TYPES.CHANNEL) {
+		let [ serverName, channelName ] = pageQuery.split(/\//);
+		let config = state.ircConfigs[serverName];
+		let setting = state.appConfig.enableTwitchChannelDisplayNames;
+
+		if (setting && config) {
+			let channelConfig = config.channels[channelName];
+			if (channelConfig) {
+				return channelConfig.displayName;
+			}
+		}
+	}
+
+	else if (pageType === PAGE_TYPES.USER) {
+		let ls = state.lastSeenUsers[pageQuery];
+		if (ls) {
+			return ls.displayName;
+		}
+	}
+};
+
 const mapStateToProps = function(state, ownProps) {
 	const { lineId, logDate, pageQuery, pageType } = ownProps;
 	const subject = subjectName(pageType, pageQuery);
 
-	var lines, displayName;
-
-	// Log lines
+	var lines;
 
 	if (logDate) {
 		const logCache = state.logFiles[subject];
 		lines = logCache && logCache[logDate];
 	}
-
-	// Live lines
-
 	else {
 		const cacheName = PAGE_TYPE_CACHE_MAP[pageType];
 		lines = state[cacheName][pageQuery];
 	}
 
-	// Display name
-
-	if (pageType in PAGE_TYPE_LASTSEEN_MAP) {
-		const lsDataName = PAGE_TYPE_LASTSEEN_MAP[pageType];
-
-		if (state[lsDataName][pageQuery]) {
-			displayName = state[lsDataName][pageQuery].displayName;
-		}
-	}
-
+	const displayName = getDisplayName(state, pageType, pageQuery);
 	const selectedLine = lineId && state.lineInfo[lineId];
 	const logDetails = state.logDetails[subject];
 

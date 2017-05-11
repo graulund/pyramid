@@ -10,6 +10,7 @@ const util = require("../server/util");
 
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
+const CHATDEPOT_BASE_URI = "https://chatdepot.twitch.tv/";
 const EMOTE_PREFIX_REGEX = "(\\s|^)";
 const EMOTE_SUFFIX_REGEX = "(\\s|$)";
 const USER_STATE_MESSAGE_FIELDS = [
@@ -238,6 +239,16 @@ const krakenGetRequest = function(commandName, query, callback) {
 	);
 };
 
+const chatdepotGetRequest = function(commandName, password, query, callback) {
+	const oauthId = password.replace(/^oauth:/, "");
+	const queryString = qs.stringify(lodash.extend({ oauth_token: oauthId }, query));
+	return request(
+		CHATDEPOT_BASE_URI + commandName +
+		"?" + queryString,
+		callback
+	);
+};
+
 const requestEmoticonImages = function(emotesets) {
 	log(`Requesting emoticon images for ${emotesets}`);
 	krakenGetRequest(
@@ -432,7 +443,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 	}
 };
 
-const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
+const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 	const enabledTypes = [];
 
 	if (ffzEnabled) {
@@ -444,6 +455,45 @@ const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
 	}
 
 	return enabledTypes;
+};
+
+const requestGroupChatInfo = function(client, callback) {
+	const serverName = client.extConfig.name;
+	chatdepotGetRequest(
+		"room_memberships",
+		client.extConfig.password,
+		{},
+		function(error, response, body) {
+			if (!error && response.statusCode === 200) {
+				try {
+					const data = JSON.parse(body);
+					const memberships = data.memberships;
+					const groupChats = [];
+					memberships.forEach((membership) => {
+						let { room } = membership;
+						if (membership.is_confirmed) {
+							groupChats.push({
+								name: room.irc_channel,
+								displayName: room.display_name
+							});
+						}
+					});
+
+					callback(null, groupChats);
+				}
+				catch(e) {
+					console.warn(
+						"Error occurred trying to get group chat info",
+						e
+					);
+
+					callback(e);
+				}
+			} else {
+				callback(error);
+			}
+		}
+	);
 };
 
 // Event handlers -----------------------------------------------------------------------
@@ -518,6 +568,42 @@ module.exports = function(main) {
 		return g.concat(c);
 	};
 
+	const updateGroupChatInfo = function(client) {
+		let autoJoin = main.configValue("automaticallyJoinTwitchGroupChats");
+		let useDisplayNames = main.configValue("enableTwitchChannelDisplayNames");
+		let serverName = client.extConfig.name;
+
+		if (autoJoin || useDisplayNames) {
+			requestGroupChatInfo(client, function(error, channels) {
+				if (!error && channels) {
+					channels.forEach((channel) => {
+						let { name, displayName } = channel;
+						main.modifyChannelInIrcConfig(
+							serverName,
+							name,
+							{ displayName }
+						);
+					});
+
+					if (autoJoin) {
+						let ircConfigs = main.safeIrcConfigDict();
+						let config = ircConfigs[serverName];
+
+						if (config && config.channels && config.channels.length) {
+							channels.forEach((channel) => {
+								let { name } = channel;
+								if (name && config.channels.indexOf(name) < 0) {
+									console.log("Didn't exist: " + name);
+									main.addAndJoinChannel(serverName, name);
+								}
+							});
+						}
+					}
+				}
+			});
+		}
+	};
+
 	// Events
 
 	const onConnect = (data) => {
@@ -529,6 +615,7 @@ module.exports = function(main) {
 			);
 
 			loadExternalEmotesForClient(client);
+			updateGroupChatInfo(client);
 		}
 	};
 

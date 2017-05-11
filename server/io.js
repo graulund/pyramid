@@ -135,6 +135,7 @@ module.exports = function(main) {
 	};
 
 	const emitIrcConfig = function(socket, callback) {
+		socket = socket || io;
 		main.loadIrcConfig((err, data) => {
 			if (!err) {
 				data = main.safeIrcConfigDict(data);
@@ -770,6 +771,7 @@ module.exports = function(main) {
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
 		emitEventToChannel,
+		emitIrcConfig,
 		emitIrcConnectionStatus,
 		emitMessageToRecipients,
 		emitNewHighlight,

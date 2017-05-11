@@ -6,7 +6,7 @@ import { channelNameFromUrl, channelServerNameFromUrl } from "../lib/channelName
 
 class ChannelName extends Component {
 	render() {
-		const { channel, multiServerChannels } = this.props;
+		const { channel, displayName, multiServerChannels } = this.props;
 		var { displayServer = false, server, strong } = this.props;
 
 		if (!channel) {
@@ -14,9 +14,16 @@ class ChannelName extends Component {
 		}
 
 		// If the server argument is supplied, we assume this is already split up
-		const channelName = server ? channel.replace(/^#*/, "#")
-			: channelNameFromUrl(channel);
-		server = server ? server : channelServerNameFromUrl(channel);
+		let channelName = (
+			server
+				? channel.replace(/^#*/, "#")
+				: channelNameFromUrl(channel)
+		);
+
+		let displayedName = displayName || channelName;
+		let title = displayName ? channelName : undefined;
+
+		server = server || channelServerNameFromUrl(channel);
 
 		if (
 			!displayServer &&
@@ -25,10 +32,10 @@ class ChannelName extends Component {
 			displayServer = true;
 		}
 
-		const main = strong ? <strong>{ channelName }</strong> : channelName;
+		let main = strong ? <strong>{ displayedName }</strong> : displayedName;
 
 		return (
-			<span className="channelname">
+			<span className="channelname" title={title}>
 				{ main }
 				{ displayServer ? <span className="server"> on { server }</span> : null }
 			</span>
@@ -38,6 +45,7 @@ class ChannelName extends Component {
 
 ChannelName.propTypes = {
 	channel: PropTypes.string.isRequired,
+	displayName: PropTypes.string,
 	displayServer: PropTypes.bool,
 	multiServerChannels: PropTypes.array,
 	server: PropTypes.string,

@@ -15,6 +15,7 @@ module.exports = {
 	timeZone: "UTC",
 	webPort: 54335,
 
+	automaticallyJoinTwitchGroupChats: true,
 	collapseJoinParts: true,
 	enableUsernameColors: true,
 	enableDarkMode: false,
@@ -22,7 +23,8 @@ module.exports = {
 	enableEmojiImages: true,
 	enableTwitch: true,
 	enableTwitchColors: true,
-	enableTwitchDisplayNames: 1,
+	enableTwitchChannelDisplayNames: true,
+	enableTwitchUserDisplayNames: 1,
 	enableFfzEmoticons: true,
 	enableFfzGlobalEmoticons: true,
 	enableFfzChannelEmoticons: true,

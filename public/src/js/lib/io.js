@@ -347,13 +347,15 @@ export function initializeIo() {
 				instances.forEach((details) => {
 					if (details.data) {
 						if (details.channel) {
-							const { username, time, displayName } = details.data;
-							channelUpdates[details.channel] = { username, time, displayName };
+							let { username, time, userDisplayName } = details.data;
+							channelUpdates[details.channel] =
+								{ username, time, userDisplayName };
 							channelsDirty = true;
 						}
 						else if (details.username) {
-							const { channel, time, displayName } = details.data;
-							userUpdates[details.username] = { channel, time, displayName };
+							let { channel, time, displayName } = details.data;
+							userUpdates[details.username] =
+								{ channel, time, displayName };
 							usersDirty = true;
 						}
 					}

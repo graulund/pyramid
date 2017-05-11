@@ -260,7 +260,7 @@ class SettingsIrcView extends PureComponent {
 					<h2>Channels</h2>
 					<SettingsList
 						itemKindName="channel"
-						list={data.channels}
+						list={Object.keys(data.channels)}
 						onAdd={eventHandler.addChannel}
 						onRemove={eventHandler.removeChannel}
 					/>

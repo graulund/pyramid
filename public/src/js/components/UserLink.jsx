@@ -11,7 +11,7 @@ class UserLink extends PureComponent {
 		const {
 			className,
 			displayName,
-			enableTwitchDisplayNames,
+			enableTwitchUserDisplayNames,
 			friendsList,
 			noLink,
 			userName
@@ -25,10 +25,10 @@ class UserLink extends PureComponent {
 
 		// If displaying display name
 
-		if (enableTwitchDisplayNames && displayName && displayName !== userName) {
+		if (enableTwitchUserDisplayNames && displayName && displayName !== userName) {
 			if (displayName.toLowerCase() !== userName.toLowerCase()) {
 				// Totally different altogether
-				if (enableTwitchDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
+				if (enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
 					content = [
 						displayName + " ",
 						<em key="origName">({ userName })</em>
@@ -76,16 +76,16 @@ class UserLink extends PureComponent {
 UserLink.propTypes = {
 	className: PropTypes.string,
 	displayName: PropTypes.string,
-	enableTwitchDisplayNames: PropTypes.number,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	friendsList: PropTypes.object,
 	noLink: PropTypes.bool,
 	userName: PropTypes.string.isRequired
 };
 
 export default connect(({
-	appConfig: { enableTwitchDisplayNames },
+	appConfig: { enableTwitchUserDisplayNames },
 	friendsList
 }) => ({
-	enableTwitchDisplayNames,
+	enableTwitchUserDisplayNames,
 	friendsList
 }))(UserLink);
