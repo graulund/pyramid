@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
 import ChannelLink from "../components/ChannelLink.jsx";
 import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
@@ -9,6 +10,7 @@ import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
 import LogLine from "./LogLine.jsx";
+import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
 
@@ -23,6 +25,7 @@ class ChatLine extends PureComponent {
 
 		const {
 			channel,
+			channelDisplayName,
 			displayChannel,
 			highlight,
 			lineId,
@@ -99,7 +102,10 @@ class ChatLine extends PureComponent {
 		if (displayChannel && channel) {
 			channelEl = (
 				<span className={`${block}__channel`} key="channel">
-					<ChannelLink channel={channel} key={channel} />
+					<ChannelLink
+						channel={channel}
+						displayName={channelDisplayName}
+						key={channel} />
 					{" "}
 				</span>
 			);
@@ -142,6 +148,7 @@ ChatLine.propTypes = {
 	argument: PropTypes.string,
 	by: PropTypes.string,
 	channel: PropTypes.string,
+	channelDisplayName: PropTypes.string,
 	channelName: PropTypes.string,
 	collapseJoinParts: PropTypes.bool,
 	color: PropTypes.number,
@@ -165,4 +172,11 @@ ChatLine.propTypes = {
 	username: PropTypes.string
 };
 
-export default ChatLine;
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
+
+	return { channelDisplayName };
+};
+
+export default connect(mapStateToProps)(ChatLine);
