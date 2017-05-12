@@ -320,6 +320,7 @@ export function initializeIo() {
 
 		socket.on("msg", onChatEvent);
 		socket.on("action", onChatEvent);
+		socket.on("notice", onChatEvent);
 		socket.on("join", onChatEvent);
 		socket.on("part", onChatEvent);
 		socket.on("quit", onChatEvent);
