@@ -21,7 +21,8 @@ class ChannelName extends Component {
 		);
 
 		let displayedName = displayName || channelName;
-		let title = displayName && displayName !== channelName
+		let title = displayName &&
+			displayName.toLowerCase() !== channelName.toLowerCase()
 			? channelName : undefined;
 
 		server = server || channelServerNameFromUrl(channel);
