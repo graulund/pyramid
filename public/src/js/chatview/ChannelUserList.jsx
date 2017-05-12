@@ -44,16 +44,24 @@ class ChannelUserList extends PureComponent {
 	groupUserList (userList) {
 		var output = {};
 
-		forOwn(userList, (symbol, userName) => {
+		forOwn(userList, (data, userName) => {
+			let { symbol } = data;
+
 			if (!output[symbol]) {
 				output[symbol] = [];
 			}
 
-			output[symbol].push(userName);
+			output[symbol].push({ userName, ...data });
 		});
 
 		forOwn(output, (list) => {
-			list.sort();
+			list.sort(function(a, b) {
+				if (a && b) {
+					return (a.displayName || a.userName)
+						.localeCompare(b.displayName || b.userName);
+				}
+				return -1;
+			});
 		});
 
 		return output;
@@ -71,11 +79,7 @@ class ChannelUserList extends PureComponent {
 		// Default promoted symbols in order
 		const addUsersOfSymbol = (symbol) => {
 			if (grouped[symbol]) {
-				output = output.concat(
-					grouped[symbol].map((userName) => {
-						return { userName, symbol };
-					})
-				);
+				output = output.concat(grouped[symbol]);
 			}
 		};
 		USER_SYMBOL_ORDER.forEach(addUsersOfSymbol);
@@ -103,8 +107,8 @@ class ChannelUserList extends PureComponent {
 			const sortedList = this.sortedUserList(userList);
 			userListNodes = sortedList.map((data) => {
 				if (data) {
-					const { userName, symbol } = data;
-					const userData = lastSeenUsers[userName];
+					let { displayName, userName, symbol } = data;
+					let userData = lastSeenUsers[userName];
 
 					if (userData) {
 						this.monitoredUserNames.push(userName);
@@ -112,10 +116,11 @@ class ChannelUserList extends PureComponent {
 
 					return <TimedUserItem
 						contextChannel={channel}
-						userData={userData}
-						userName={userName}
-						symbol={symbol}
+						displayName={displayName}
 						skipOld={false}
+						symbol={symbol}
+						userName={userName}
+						{...userData}
 						key={userName} />;
 				}
 			});

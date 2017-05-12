@@ -512,11 +512,53 @@ const setChannelUserList = function(channelUri, userList) {
 };
 
 const getUserCurrentSymbol = function(channelUri, userName) {
-	if (channelUri && channelUserLists[channelUri]) {
-		return channelUserLists[channelUri][userName] || "";
+	if (
+		channelUri &&
+		channelUserLists[channelUri] &&
+		channelUserLists[channelUri][userName]
+	) {
+		return channelUserLists[channelUri][userName].symbol || "";
 	}
 
 	return "";
+};
+
+const getUserCachedDisplayName = function(username, serverName) {
+	return (
+		(displayNameCache[serverName] &&
+			displayNameCache[serverName][username]) ||
+		(lastSeenUsers[username] &&
+			lastSeenUsers[username].displayName)
+	);
+};
+
+const setUserCachedDisplayName = function(username, serverName, displayName) {
+	if (!(serverName in displayNameCache)) {
+		displayNameCache[serverName] = {};
+	}
+	displayNameCache[serverName][username] = displayName;
+
+	// Try to update this user's channel display name if it's in our list
+	if (username.charAt(0) !== "_" && currentIrcConfig[serverName]) {
+		let channel = currentIrcConfig[serverName].channels[username];
+		let channelDisplayName = "#" + displayName;
+		if (channel && channel.displayName !== channelDisplayName) {
+			modifyChannelInIrcConfig(
+				serverName,
+				username,
+				{ displayName: channelDisplayName },
+				() => { loadIrcConfig(); }
+			);
+		}
+	}
+};
+
+const convertIrcUserList = function(channelUserList, serverName) {
+	// Expected format: { username: symbol, ... }
+	return lodash.mapValues(channelUserList, (symbol, username) => {
+		let displayName = getUserCachedDisplayName(username, serverName);
+		return { displayName, symbol };
+	});
 };
 
 const reloadOnlineFriends = function() {
@@ -634,10 +676,7 @@ const handleIncomingMessage = function(
 	const displayName = tags && tags["display-name"];
 
 	if (serverName && username && displayName) {
-		if (!(serverName in displayNameCache)) {
-			displayNameCache[serverName] = {};
-		}
-		displayNameCache[serverName][username] = displayName;
+		setUserCachedDisplayName(username, serverName, displayName);
 	}
 
 	// Store!
@@ -656,8 +695,10 @@ const handleIncomingEvent = function(
 	channelUserList
 ) {
 
-	if (data && data.username) {
-		data.symbol = getUserCurrentSymbol(channelUri, data.username);
+	let username = data && data.username || "";
+
+	if (username) {
+		data.symbol = getUserCurrentSymbol(channelUri, username);
 	}
 
 	// Log
@@ -672,10 +713,11 @@ const handleIncomingEvent = function(
 
 	if (
 		constants.USER_MODIFYING_EVENT_TYPES.indexOf(type) >= 0 &&
-		data &&
-		data.username
+		username
 	) {
-		channelUserLists[channelUri] = channelUserList;
+
+		channelUserLists[channelUri] =
+			convertIrcUserList(channelUserList, serverName);
 
 		// Due to a fault in the node-irc API, they don't always remove this
 		// until after the call, so let's just do this now...
@@ -684,7 +726,7 @@ const handleIncomingEvent = function(
 			constants.PART_EVENT_TYPES.indexOf(type) >= 0 &&
 			channelUserLists[channelUri]
 		) {
-			delete channelUserLists[channelUri][data.username];
+			delete channelUserLists[channelUri][username];
 		}
 
 		if (io) {
@@ -698,14 +740,8 @@ const handleIncomingEvent = function(
 
 	const extraData = {};
 
-	if (
-		serverName &&
-		data &&
-		data.username &&
-		displayNameCache[serverName] &&
-		displayNameCache[serverName][data.username]
-	) {
-		extraData.displayName = displayNameCache[serverName][data.username];
+	if (serverName && username) {
+		extraData.displayName = getUserCachedDisplayName(username, serverName);
 	}
 
 	// Meta data
@@ -714,7 +750,7 @@ const handleIncomingEvent = function(
 		channel: channelUri,
 		channelName,
 		lineId: uuid.v4(),
-		relationship: data && data.username && util.getRelationship(data.username, currentFriendsList),
+		relationship: username && util.getRelationship(username, currentFriendsList),
 		server: serverName,
 		time: time || new Date(),
 		type

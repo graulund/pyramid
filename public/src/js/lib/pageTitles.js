@@ -20,7 +20,7 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-function combinedDisplayName(name, displayName) {
+export function combinedDisplayName(name, displayName) {
 	if (userDisplayNameSetting && displayName && displayName !== name) {
 		if (displayName.toLowerCase() !== name.toLowerCase()) {
 			// Totally different altogether

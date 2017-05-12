@@ -8,6 +8,7 @@ import ChatViewFooter from "./ChatViewFooter.jsx";
 import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
+import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import * as io from "../lib/io";
 import { subjectName, subjectUrl } from "../lib/routeHelpers";
 import store from "../store";
@@ -240,16 +241,7 @@ ChatView.propTypes = {
 
 const getDisplayName = function(state, pageType, pageQuery) {
 	if (pageType === PAGE_TYPES.CHANNEL) {
-		let [ serverName, channelName ] = pageQuery.split(/\//);
-		let config = state.ircConfigs[serverName];
-		let setting = state.appConfig.enableTwitchChannelDisplayNames;
-
-		if (setting && config) {
-			let channelConfig = config.channels[channelName];
-			if (channelConfig) {
-				return channelConfig.displayName;
-			}
-		}
+		return getChannelDisplayNameFromState(state, pageQuery);
 	}
 
 	else if (pageType === PAGE_TYPES.USER) {

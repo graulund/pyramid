@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import UserLink from "../components/UserLink.jsx";
 import { humanDateStamp, timeStamp } from "../lib/formatting";
+import { combinedDisplayName } from "../lib/pageTitles";
 
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;
@@ -48,24 +49,29 @@ class ChatBunchedEventsLine extends PureComponent {
 		var content = [];
 
 		eventOrder.forEach((category) => {
-			var usernames, eventname, count;
+			var users, eventname, count;
 			if (category === "join") {
 				eventname = "joined";
-				usernames = joins;
+				users = joins;
 				count = overloaded ? joinCount : joins.length;
 			}
 			else if (category === "part") {
 				eventname = "left";
-				usernames = parts;
+				users = parts;
 				count = overloaded ? partCount : parts.length;
 			}
-			if (eventname && usernames && usernames.length) {
+			if (eventname && users && users.length) {
 
 				if (content.length) {
 					content.push(", ");
 				}
 
-				if (usernames.length > MAX_USERNAMES && !expanded) {
+				if (users.length > MAX_USERNAMES && !expanded) {
+					let usernames = users.map(
+						({ displayName, username }) =>
+							combinedDisplayName(username, displayName)
+					);
+
 					content.push(
 						<strong title={usernames.join(", ")} key={category}>
 							{ count } people
@@ -73,17 +79,23 @@ class ChatBunchedEventsLine extends PureComponent {
 					);
 				}
 				else {
-					const length = usernames.length;
-					usernames.forEach((username, index) => {
+					const length = users.length;
+					users.forEach((user, index) => {
+						let { displayName, username } = user;
+
 						if (index > 0 && index === length - 1) {
 							content.push(" and ");
 						}
 						else if (index > 0) {
 							content.push(", ");
 						}
+
 						content.push(
 							<strong key={`${category}-${index}`}>
-								<UserLink userName={username} key={username} />
+								<UserLink
+									userName={username}
+									displayName={displayName}
+									key={username} />
 							</strong>
 						);
 					});

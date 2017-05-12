@@ -6,12 +6,14 @@ import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 import { RELATIONSHIP_BEST_FRIEND } from "../constants";
+import { getChannelDisplayNameFromState } from "../lib/channelNames";
 
 class TimedUserItem extends PureComponent {
 
 	render() {
 		const {
 			channel,
+			channelDisplayName,
 			channelName,
 			contextChannel,
 			displayName,
@@ -59,6 +61,7 @@ class TimedUserItem extends PureComponent {
 					<ChannelLink
 						channel={channel}
 						channelName={channelName}
+						displayName={channelDisplayName}
 						key={channel}
 						/>
 				];
@@ -79,6 +82,7 @@ class TimedUserItem extends PureComponent {
 
 TimedUserItem.propTypes = {
 	channel: PropTypes.string,
+	channelDisplayName: PropTypes.string,
 	channelName: PropTypes.string,
 	contextChannel: PropTypes.string,
 	displayName: PropTypes.string,
@@ -91,10 +95,17 @@ TimedUserItem.propTypes = {
 	userName: PropTypes.string
 };
 
-export default connect(({
-	friendsList,
-	onlineFriends
-}) => ({
-	friendsList,
-	onlineFriends
-}))(TimedUserItem);
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let { friendsList, onlineFriends } = state;
+
+	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
+
+	return {
+		channelDisplayName,
+		friendsList,
+		onlineFriends
+	};
+};
+
+export default connect(mapStateToProps)(TimedUserItem);

@@ -5,17 +5,33 @@ const JOIN_ADDEND = 1;
 const PART_ADDEND = -1;
 
 export function prepareBunchedEvents(event, collapseJoinParts) {
-	var joins = [], parts = [], eventOrder = [], earliestTime = event.firstTime, latestTime;
+	var joins = [],
+		parts = [],
+		eventOrder = [],
+		earliestTime = event.firstTime,
+		latestTime;
 
-	const overloaded = event.events.length < event.joinCount + event.partCount;
+	const overloaded =
+		event.events.length < event.joinCount + event.partCount;
 
 	event.events.sort((a, b) => a.time - b.time);
 
 	const userStatus = {};
+	const userInfos = {};
+
+	const addToLists = (list, addendValue, username, displayName) => {
+		let userInfo = { displayName, username };
+		list.push(userInfo);
+		userInfos[username] = userInfo;
+
+		if (collapseJoinParts) {
+			userStatus[username] += addendValue;
+		}
+	};
 
 	event.events.forEach((event) => {
 		if (event) {
-			let { time, type, username } = event;
+			let { displayName, time, type, username } = event;
 
 			if (!(username in userStatus)) {
 				userStatus[username] = 0;
@@ -23,18 +39,10 @@ export function prepareBunchedEvents(event, collapseJoinParts) {
 
 			const eventName = type === "join" ? "join" : "part";
 			if (type === "join") {
-				joins.push(username);
-
-				if (collapseJoinParts) {
-					userStatus[username] += JOIN_ADDEND;
-				}
+				addToLists(joins, JOIN_ADDEND, username, displayName);
 			}
 			else if (PART_EVENT_TYPES.indexOf(type) >= 0) {
-				parts.push(username);
-
-				if (collapseJoinParts) {
-					userStatus[username] += PART_ADDEND;
-				}
+				addToLists(parts, PART_ADDEND, username, displayName);
 			}
 			else {
 				return;
@@ -55,8 +63,10 @@ export function prepareBunchedEvents(event, collapseJoinParts) {
 	});
 
 	if (collapseJoinParts && !overloaded) {
-		joins = Object.keys(pickBy(userStatus, (value) => value > 0));
-		parts = Object.keys(pickBy(userStatus, (value) => value < 0));
+		joins = Object.keys(pickBy(userStatus, (value) => value > 0))
+			.map((username) => userInfos[username]);
+		parts = Object.keys(pickBy(userStatus, (value) => value < 0))
+			.map((username) => userInfos[username]);
 	}
 
 	return {
