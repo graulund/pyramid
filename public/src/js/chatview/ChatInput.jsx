@@ -139,10 +139,6 @@ class ChatInput extends Component {
 		}
 
 		return displayNames;
-
-		// TODO: More clever sorting?
-		// * Most recently speaking first?
-		// * The ones you talked to more recently first?
 	}
 
 	focus() {
