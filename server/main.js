@@ -539,15 +539,18 @@ const setUserCachedDisplayName = function(username, serverName, displayName) {
 	displayNameCache[serverName][username] = displayName;
 
 	// Try to update this user's channel display name if it's in our list
-	if (username.charAt(0) !== "_" && currentIrcConfig[serverName]) {
-		let channel = currentIrcConfig[serverName].channels[username];
+	// TODO: Move this to Twitch only
+	let ircConfig = currentIrcConfig.find((config) => config.name === serverName);
+	if (username.charAt(0) !== "_" && ircConfig) {
+		let channel = ircConfig.channels.find((channel) => channel.name === username);
 		let channelDisplayName = "#" + displayName;
 		if (channel && channel.displayName !== channelDisplayName) {
+			channel.displayName = channelDisplayName;
 			modifyChannelInIrcConfig(
 				serverName,
 				username,
 				{ displayName: channelDisplayName },
-				() => { loadIrcConfig(); }
+				() => loadIrcConfig()
 			);
 		}
 	}
