@@ -589,10 +589,11 @@ module.exports = function(main) {
 						let ircConfigs = main.safeIrcConfigDict();
 						let config = ircConfigs[serverName];
 
-						if (config && config.channels && config.channels.length) {
+						if (config && config.channels) {
+							let configChannels = Object.keys(config.channels);
 							channels.forEach((channel) => {
 								let { name } = channel;
-								if (name && config.channels.indexOf(name) < 0) {
+								if (name && configChannels.indexOf(name) < 0) {
 									console.log("Didn't exist: " + name);
 									main.addAndJoinChannel(serverName, name);
 								}
