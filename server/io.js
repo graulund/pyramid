@@ -640,7 +640,7 @@ module.exports = function(main) {
 					const name = util.formatUriName(details.name);
 
 					main.addChannelToIrcConfig(
-						serverName, name,
+						serverName, name, {},
 						(err) => {
 							main.joinIrcChannel(serverName, name);
 							emitIrcConfig(socket);

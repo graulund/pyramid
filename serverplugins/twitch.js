@@ -574,6 +574,7 @@ module.exports = function(main) {
 		let serverName = client.extConfig.name;
 
 		if (autoJoin || useDisplayNames) {
+			log("Updating Twitch group chat info...");
 			requestGroupChatInfo(client, function(error, channels) {
 				if (!error && channels) {
 					channels.forEach((channel) => {
@@ -592,10 +593,17 @@ module.exports = function(main) {
 						if (config && config.channels) {
 							let configChannels = Object.keys(config.channels);
 							channels.forEach((channel) => {
-								let { name } = channel;
+								let { name, displayName } = channel;
 								if (name && configChannels.indexOf(name) < 0) {
-									console.log("Didn't exist: " + name);
-									main.addAndJoinChannel(serverName, name);
+									log(
+										"Found and added Twitch group chat: " +
+										name
+									);
+									main.addAndJoinChannel(
+										serverName,
+										name,
+										{ displayName }
+									);
 								}
 							});
 						}
@@ -715,7 +723,7 @@ module.exports = function(main) {
 		}
 	};
 
-	// Reload emotes every hour
+	// Reload emotes and group chat data every hour
 
 	setInterval(
 		reloadEmoticonImages,
@@ -724,6 +732,11 @@ module.exports = function(main) {
 
 	setInterval(
 		loadExternalEmotesForAllClients,
+		EMOTE_RELOAD_INTERVAL_MS
+	);
+
+	setInterval(
+		updateGroupChatInfo,
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 

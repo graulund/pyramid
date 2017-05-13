@@ -514,11 +514,13 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addChannelToIrcConfig = (serverId, name, callback) => {
+	const addChannelToIrcConfig = (serverId, name, data, callback) => {
+		data = data || {};
+		let dataKeys = Object.keys(data);
 		upsert(
-			uq("ircChannels", ["isEnabled"], ["serverId", "name"]),
-			iq("ircChannels", ["serverId", "name", "isEnabled"]),
-			dollarize({ serverId, name, isEnabled: 1 }),
+			uq("ircChannels", ["isEnabled"].concat(dataKeys), ["serverId", "name"]),
+			iq("ircChannels", ["serverId", "name", "isEnabled"].concat(dataKeys)),
+			dollarize(lodash.assign({ serverId, name, isEnabled: 1 }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -768,7 +770,7 @@ const mainMethods = function(main, db) {
 
 	API:
 
-	addChannelToIrcConfig(serverId, name, callback)
+	addChannelToIrcConfig(serverId, name, data, callback)
 	addNickname(nickname, callback)
 	addServerToIrcConfig(data, callback)
 	addToFriends(serverId, username, isBestFriend, callback)

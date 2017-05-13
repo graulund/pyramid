@@ -1290,11 +1290,11 @@ const removeServerFromIrcConfig = function(serverName, callback) {
 	], callback);
 };
 
-const addChannelToIrcConfig = function(serverName, name, callback) {
+const addChannelToIrcConfig = function(serverName, name, data, callback) {
 	name = name.replace(/^#/, "");
 	async.waterfall([
 		(callback) => db.getServerId(serverName, callback),
-		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, callback)
+		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, data, callback)
 	], callback);
 };
 
@@ -1321,9 +1321,9 @@ const removeChannelFromIrcConfig = function(serverName, name, callback) {
 	], callback);
 };
 
-const addAndJoinChannel = function(serverName, name, callback) {
+const addAndJoinChannel = function(serverName, name, data, callback) {
 	addChannelToIrcConfig(
-		serverName, name,
+		serverName, name, data,
 		(err) => {
 			joinIrcChannel(serverName, name);
 			if (io) {
@@ -1587,7 +1587,9 @@ const addIrcServerFromDetails = function(details, callback) {
 						if (channelNames.length) {
 							async.parallel(
 								channelNames.map((channelName) =>
-									((callback) => addChannelToIrcConfig(name, channelName, callback))
+									((callback) => addChannelToIrcConfig(
+										name, channelName, {}, callback
+									))
 								),
 								callback
 							);
