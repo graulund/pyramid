@@ -63,10 +63,14 @@ class ChannelList extends PureComponent {
 
 		// Sorting
 
+		const sortableName = function(channel) {
+			let name = channel.displayName || channel.channelName;
+			return name.replace(/^#/, "").toLowerCase();
+		};
+
 		const alphaSorting = function(a, b) {
 			if (a && b) {
-				return (a.displayName || a.channelName)
-					.localeCompare(b.displayName || b.channelName);
+				return sortableName(a).localeCompare(sortableName(b));
 			}
 			return -1;
 		};

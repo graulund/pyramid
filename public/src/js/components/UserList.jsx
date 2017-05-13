@@ -30,7 +30,7 @@ class UserList extends PureComponent {
 		} else {
 			// Sort by username
 			usernames = Object.keys(lastSeenUsers);
-			usernames.sort();
+			usernames.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 		}
 
 		var userListNodes;

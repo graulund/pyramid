@@ -53,7 +53,9 @@ class SettingsFriendsView extends PureComponent {
 			);
 		});
 
-		allFriends.sort((a, b) => a.name < b.name ? -1 : 1);
+		allFriends.sort(
+			(a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+		);
 
 		return <SettingsList
 			extraColumn={this.renderLevelSelector}

@@ -57,8 +57,8 @@ class ChannelUserList extends PureComponent {
 		forOwn(output, (list) => {
 			list.sort(function(a, b) {
 				if (a && b) {
-					return (a.displayName || a.userName)
-						.localeCompare(b.displayName || b.userName);
+					return a.userName.toLowerCase()
+						.localeCompare(b.userName.toLowerCase());
 				}
 				return -1;
 			});

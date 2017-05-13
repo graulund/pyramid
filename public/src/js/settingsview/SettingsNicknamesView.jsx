@@ -146,7 +146,7 @@ class SettingsNicknamesView extends PureComponent {
 		const { nicknames } = this.props;
 
 		const nicknamesList = Object.keys(nicknames);
-		nicknamesList.sort();
+		nicknamesList.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
 		return (
 			<div key="main">
