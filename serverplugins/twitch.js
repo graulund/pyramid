@@ -569,6 +569,11 @@ module.exports = function(main) {
 	};
 
 	const updateGroupChatInfo = function(client) {
+
+		if (!isTwitch(client)) {
+			return;
+		}
+
 		let autoJoin = main.configValue("automaticallyJoinTwitchGroupChats");
 		let useDisplayNames = main.configValue("enableTwitchChannelDisplayNames");
 		let serverName = client.extConfig.name;
@@ -723,6 +728,14 @@ module.exports = function(main) {
 		}
 	};
 
+	const updateGroupChatInfoForAllClients = function() {
+		const clients = main.currentIrcClients();
+
+		if (clients && clients.length) {
+			clients.forEach((client) => updateGroupChatInfo(client));
+		}
+	};
+
 	// Reload emotes and group chat data every hour
 
 	setInterval(
@@ -736,7 +749,7 @@ module.exports = function(main) {
 	);
 
 	setInterval(
-		updateGroupChatInfo,
+		updateGroupChatInfoForAllClients,
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 
