@@ -9,6 +9,7 @@ class SettingsPasswordInput extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.edit = this.edit.bind(this);
 		this.empty = this.empty.bind(this);
 		this.onBlur = this.onBlur.bind(this);
 		this.onChange = this.onChange.bind(this);
@@ -17,8 +18,13 @@ class SettingsPasswordInput extends PureComponent {
 
 		this.state = {
 			dirty: false,
+			editing: false,
 			focus: false
 		};
+	}
+
+	edit() {
+		this.setState({ editing: true });
 	}
 
 	empty() {
@@ -86,7 +92,7 @@ class SettingsPasswordInput extends PureComponent {
 
 	render() {
 		const { defaultValue, emptiable, ...inputProps } = this.props;
-		const { focus } = this.state;
+		const { editing, focus } = this.state;
 		var displayValue = defaultValue;
 
 		if (displayValue === true) {
@@ -94,11 +100,17 @@ class SettingsPasswordInput extends PureComponent {
 		}
 
 		const className = block +
+			(editing ? ` ${block}--editing` : "") +
 			(focus ? ` ${block}--focus` : "");
 
-		return (
-			<span className={className}>
+		let hasValue = !!defaultValue;
+
+		var content;
+
+		if (editing) {
+			content = [
 				<input
+					key="input"
 					ref="input"
 					{...inputProps}
 					defaultValue={displayValue}
@@ -106,13 +118,31 @@ class SettingsPasswordInput extends PureComponent {
 					onFocus={this.onFocus}
 					onChange={this.onChange}
 					onKeyPress={this.onKeyPress}
-					/>
-				{ emptiable && defaultValue
+					/>,
+				" ",
+				emptiable && defaultValue
 					? <button
+						key="empty"
 						className={`${block}__empty`}
 						onClick={this.empty}>Empty</button>
 					: null
-				}
+			];
+		}
+		else {
+			content = [
+				<strong key="status">
+					{ hasValue ? "Password set" : "No password set" }
+				</strong>,
+				" ",
+				<button key="edit" onClick={this.edit}>
+					{ hasValue ? "Set new password" : "Set password" }
+				</button>
+			];
+		}
+
+		return (
+			<span className={className}>
+				{ content }
 			</span>
 		);
 	}

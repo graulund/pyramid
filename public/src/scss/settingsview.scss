@@ -227,6 +227,18 @@
 }
 
 .password-input {
+	border: 1px solid #ccc;
+	padding: 5px 10px;
+
+	&--editing {
+		border: none;
+		padding: 0;
+	}
+
+	strong {
+		color: #999;
+	}
+
 	&__empty {
 		display: none;
 	}
