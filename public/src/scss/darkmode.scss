@@ -6,8 +6,7 @@ body.darkmode {
 	.chatview__input input[type="text"],
 	.chatview__controls,
 	.channeluserlist,
-	.chatview .line__context-before,
-	.chatview .line__context-after,
+	.chatview .contextview__main,
 	.sidebar__system-menu {
 		background-color: #111;
 		color: #ccc;
@@ -48,16 +47,6 @@ body.darkmode {
 		.bunchedevents {
 			&:before {
 				background-color: #777;
-			}
-		}
-
-		.line__context {
-			&-before--edged {
-				border-bottom-color: #111;
-			}
-
-			&-after--edged {
-				border-top-color: #111;
 			}
 		}
 
@@ -126,6 +115,7 @@ body.darkmode {
 
 	// Highlights
 	.chatview .line--highlight,
+	.chatview .contextview--highlight,
 	.sidebar__menu-link--highlighted {
 		background-color: #035;
 	}
