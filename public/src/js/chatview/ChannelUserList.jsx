@@ -120,6 +120,7 @@ class ChannelUserList extends PureComponent {
 						skipOld={false}
 						symbol={symbol}
 						userName={userName}
+						visible={true}
 						{...userData}
 						key={userName} />;
 				}

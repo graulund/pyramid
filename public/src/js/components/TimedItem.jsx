@@ -44,6 +44,10 @@ class TimedItem extends PureComponent {
 
 		this.isStillMounted = false;
 		this.date = new Date(props.time);
+
+		this.state = {
+			shieldedNow: false
+		};
 	}
 
 	componentDidMount() {
@@ -68,6 +72,9 @@ class TimedItem extends PureComponent {
 
 				// Do a lil' flash!
 				this.flash();
+
+				// Shield the "now" time element for performance reasons
+				this.setState({ shieldedNow: true });
 			}
 		}
 	}
@@ -89,9 +96,16 @@ class TimedItem extends PureComponent {
 			return;
 		}
 
+		let { shieldedNow } = this.state;
+
 		if (this.root && this.refs && this.refs.sts) {
 			const then = this.date;
 			const diff = Math.abs(Date.now() - then);
+
+			if (diff >= 30000 && shieldedNow) {
+				// Unshield the "now" if we get too far away from the time
+				this.setState({ shieldedNow: false });
+			}
 
 			// Secondary time stamp
 			const secondaryTimestamp = this.renderSecondaryTimestamp(then);
@@ -108,7 +122,7 @@ class TimedItem extends PureComponent {
 			}
 		}
 
-		this.timeoutId = setTimeout(this.tick, 30000);
+		this.timeoutId = setTimeout(this.tick, 10000);
 	}
 
 	handleWideSts() {
@@ -131,9 +145,10 @@ class TimedItem extends PureComponent {
 	}
 
 	flash() {
-		if (this.root) {
+		let { deviceVisible, visible } = this.props;
+		if (this.root && deviceVisible && visible) {
 			this.root.className = this.renderClassName(true);
-			setTimeout(() => {
+			this.flashTimeout = setTimeout(() => {
 				if (this.root) {
 					this.root.className = this.renderClassName(false);
 				}
@@ -186,6 +201,7 @@ class TimedItem extends PureComponent {
 
 	render() {
 		const { prefix, skipOld = true, suffix, time } = this.props;
+		const { shieldedNow } = this.state;
 
 		const now = Date.now();
 
@@ -210,7 +226,13 @@ class TimedItem extends PureComponent {
 			this.stStr = secondaryTimestamp;
 
 			// Live timestamp
-			primaryTimeEl = <TimeAgo date={time} formatter={formatter} />;
+			if (shieldedNow) {
+				primaryTimeEl = <span className="now" key="now">now</span>;
+			}
+			else {
+				primaryTimeEl = <TimeAgo date={time} formatter={formatter} />;
+			}
+
 			secondaryTimeEl = <div className="ts" ref="sts">{ secondaryTimestamp }</div>;
 		} else {
 
@@ -246,15 +268,19 @@ class TimedItem extends PureComponent {
 
 TimedItem.propTypes = {
 	className: PropTypes.string,
+	deviceVisible: PropTypes.bool,
 	enableDarkMode: PropTypes.bool,
 	prefix: PropTypes.node,
 	skipOld: PropTypes.bool,
 	suffix: PropTypes.node,
-	time: PropTypes.string
+	time: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 export default connect(({
-	appConfig: { enableDarkMode }
+	appConfig: { enableDarkMode },
+	deviceState: { visible }
 }) => ({
+	deviceVisible: visible,
 	enableDarkMode
 }))(TimedItem);

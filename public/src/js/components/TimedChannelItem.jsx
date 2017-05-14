@@ -12,7 +12,8 @@ class TimedChannelItem extends PureComponent {
 			displayName,
 			displayServer = false,
 			lastSeenData = {},
-			skipOld = false
+			skipOld = false,
+			visible
 		} = this.props;
 
 		const prefix = <ChannelLink
@@ -45,6 +46,7 @@ class TimedChannelItem extends PureComponent {
 				skipOld={skipOld}
 				prefix={prefix}
 				suffix={suffix}
+				visible={visible}
 				key="main"
 				/>;
 	}
@@ -55,7 +57,8 @@ TimedChannelItem.propTypes = {
 	displayName: PropTypes.string,
 	displayServer: PropTypes.bool,
 	lastSeenData: PropTypes.object,
-	skipOld: PropTypes.bool
+	skipOld: PropTypes.bool,
+	visible: PropTypes.bool
 };
 
 export default TimedChannelItem;

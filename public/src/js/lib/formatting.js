@@ -164,6 +164,10 @@ export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
 }
 
+function round2(n) {
+	return Math.round(n * 100) / 100;
+}
+
 export function timeOpacity(secondsSince) {
 	// Exponential fall
 	const maxSeconds = 2*3600;
@@ -185,9 +189,9 @@ export function timeColors (milliseconds, color = DEFAULT_COLOR_RGB) {
 	}
 
 	// Color
-	var backgroundOpacity = timeOpacity(milliseconds/1000),
+	var backgroundOpacity = round2(timeOpacity(milliseconds/1000)),
 		textColor = darkMode ? "#ccc" : "#000",
-		opacity = timeTextOpacity(milliseconds/1000);
+		opacity = round2(timeTextOpacity(milliseconds/1000));
 
 	if (backgroundOpacity >= 0.3) {
 		textColor = darkMode ? "#000" : "#fff";

@@ -9,6 +9,7 @@ import UserList from "./UserList.jsx";
 import { storeViewState } from "../lib/io";
 import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
 import { CATEGORY_NAMES } from "../constants";
+import { isMobile } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
 
@@ -55,8 +56,8 @@ class Sidebar extends PureComponent {
 	onClick(evt) {
 		const { cog } = this.refs;
 
-		if (evt && evt.nativeEvent) {
-			var target = evt.nativeEvent.target;
+		if (isMobile() && evt && evt.nativeEvent) {
+			let target = evt.nativeEvent.target;
 
 			if (
 				target &&
@@ -145,10 +146,10 @@ class Sidebar extends PureComponent {
 		var content = null;
 
 		if (tab === "user") {
-			content = <UserList sort={sort} key="userlist" />;
+			content = <UserList sort={sort} visible={visible} key="userlist" />;
 		}
 		else if (tab === "channel") {
-			content = <ChannelList sort={sort} key="channellist" />;
+			content = <ChannelList sort={sort} visible={visible} key="channellist" />;
 		}
 
 		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;

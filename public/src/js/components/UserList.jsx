@@ -7,7 +7,7 @@ import { minuteTime } from "../lib/formatting";
 
 class UserList extends PureComponent {
 	render() {
-		const { hideOldUsers = true, lastSeenUsers, sort } = this.props;
+		const { hideOldUsers = true, lastSeenUsers, sort, visible } = this.props;
 
 		var usernames;
 
@@ -41,6 +41,7 @@ class UserList extends PureComponent {
 					displayOnline
 					userName={userName}
 					skipOld={hideOldUsers}
+					visible={visible}
 					{...userData}
 					key={userName}
 					/>;
@@ -59,7 +60,8 @@ class UserList extends PureComponent {
 UserList.propTypes = {
 	hideOldUsers: PropTypes.bool,
 	lastSeenUsers: PropTypes.object,
-	sort: PropTypes.string
+	sort: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 export default connect(({

@@ -15,7 +15,7 @@ import { initializeIo } from "./lib/io";
 import setUpPageTitles from "./lib/pageTitles";
 import * as routes from "./lib/routeHelpers";
 import store from "./store";
-import { initVisualBehavior } from "./lib/visualBehavior";
+import { initVisualBehavior, isMobile } from "./lib/visualBehavior";
 
 import "../scss/site.scss";
 
@@ -32,7 +32,9 @@ setUpPageTitles(history);
 
 // Data store
 
-var currentViewState = { sidebarVisible: location.pathname === "/" };
+var currentViewState = {
+	sidebarVisible: location.pathname === "/" || !isMobile()
+};
 
 if (window.pyramid_viewState) {
 	currentViewState = { ...currentViewState, ...window.pyramid_viewState };

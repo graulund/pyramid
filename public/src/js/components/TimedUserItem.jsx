@@ -23,7 +23,8 @@ class TimedUserItem extends PureComponent {
 			skipOld = true,
 			symbol = "",
 			time,
-			userName
+			userName,
+			visible
 		} = this.props;
 
 		var classNames = [];
@@ -75,6 +76,7 @@ class TimedUserItem extends PureComponent {
 				prefix={prefix}
 				suffix={suffix}
 				skipOld={skipOld}
+				visible={visible}
 				key="main"
 				/>;
 	}
@@ -92,7 +94,8 @@ TimedUserItem.propTypes = {
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
 	time: PropTypes.string,
-	userName: PropTypes.string
+	userName: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 const mapStateToProps = function(state, ownProps) {

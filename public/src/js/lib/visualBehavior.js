@@ -1,20 +1,21 @@
 import actions from "../actions";
 import store from "../store";
 
+export function isMobile() {
+	return window.innerWidth < 768;
+}
+
 export function areWeScrolledToTheBottom() {
-	// Are we scrolled to the bottom?
+	let contentHeight = document.getElementById("container").clientHeight;
+	let windowHeight = window.innerHeight;
 
-	// --> Elements that have heights and offsets that matter
-	let b = document.documentElement;
-	let w = window;
-	let c = document.getElementById("container");
+	let scrollTop = window.pageYOffset ||
+		document.documentElement.scrollTop ||
+		document.body.scrollTop ||
+		0;
 
-	// --> Two oft-used heights
-	let ch = c.clientHeight;
-	let wh = w.innerHeight;
-
-	// --> The calculation!
-	return (ch - (b.scrollTop + wh)) <= 100 || wh >= ch;
+	return (contentHeight - (scrollTop + windowHeight)) <= 100 ||
+		windowHeight >= contentHeight;
 }
 
 export function scrollToTheBottom() {
@@ -46,11 +47,11 @@ export function initVisualBehavior() {
 	initFocusHandler();
 }
 
-function getFocus () {
+function getFocus() {
 	var inFocus;
 
 	try {
-		inFocus = document.hasFocus() && !window.hidden;
+		inFocus = document.hasFocus();
 	} catch(e){} // eslint-disable-line no-empty
 
 	if (typeof inFocus !== "boolean") {
@@ -61,14 +62,39 @@ function getFocus () {
 	return inFocus;
 }
 
+function getVisibility() {
+	let visible = !document.hidden;
+
+	if (typeof visible !== "boolean") {
+		// Assume it is
+		return true;
+	}
+
+	return visible;
+}
+
 function setFocus(inFocus) {
-	const state = store.getState();
+	let state = store.getState();
+	let changes = {};
+	let changed = false;
+	let visible = getVisibility();
+
 	if (state && state.deviceState.inFocus !== inFocus) {
-		store.dispatch(actions.deviceState.update({ inFocus }));
+		changes.inFocus = inFocus;
+		changed = true;
+	}
+
+	if (state && state.deviceState.visible !== visible) {
+		changes.visible = visible;
+		changed = true;
+	}
+
+	if (changed) {
+		store.dispatch(actions.deviceState.update(changes));
 	}
 }
 
-function focusChangeHandler() {
+function visibilityChangeHandler() {
 	setFocus(getFocus());
 }
 
@@ -81,7 +107,7 @@ function blurHandler() {
 }
 
 function initFocusHandler() {
-	window.addEventListener("visibilitychange", focusChangeHandler);
+	window.addEventListener("visibilitychange", visibilityChangeHandler);
 	window.addEventListener("focus", focusHandler);
 	window.addEventListener("blur", blurHandler);
 }

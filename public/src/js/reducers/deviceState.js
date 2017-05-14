@@ -2,7 +2,8 @@ import * as actionTypes from "../actionTypes";
 
 const deviceStateInitialState = {
 	inFocus: true,
-	isTouchDevice: false
+	isTouchDevice: false,
+	visible: true
 };
 
 export default function (state = deviceStateInitialState, action) {

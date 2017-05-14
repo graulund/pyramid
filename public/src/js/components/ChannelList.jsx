@@ -15,7 +15,8 @@ class ChannelList extends PureComponent {
 			hideOldChannels = false,
 			ircConfigs,
 			lastSeenChannels,
-			sort
+			sort,
+			visible
 		} = this.props;
 
 		// Load IRC channels from the configuration
@@ -110,6 +111,7 @@ class ChannelList extends PureComponent {
 						displayName={displayName}
 						lastSeenData={lastSeenData}
 						skipOld={hideOldChannels}
+						visible={visible}
 						key={channel} />;
 				}
 				return null;
@@ -130,7 +132,8 @@ ChannelList.propTypes = {
 	hideOldChannels: PropTypes.bool,
 	ircConfigs: PropTypes.object,
 	lastSeenChannels: PropTypes.object,
-	sort: PropTypes.string
+	sort: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 export default connect(({
