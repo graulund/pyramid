@@ -34,10 +34,17 @@
 		padding: 0 10px;
 		border-bottom: 1px solid #ccc;
 		user-select: none;
-	}
 
-	&__head h1 {
-		line-height: 20px;
+		h1 {
+			margin: 9px 0;
+			line-height: 20px;
+		}
+
+		.version {
+			font-size: 75%;
+			font-weight: normal;
+			color: #999;
+		}
 	}
 
 	&__list {

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
+import VersionNumber from "./VersionNumber.jsx";
 import { storeViewState } from "../lib/io";
 import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
 import { CATEGORY_NAMES } from "../constants";
@@ -157,7 +158,7 @@ class Sidebar extends PureComponent {
 		return (
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
-					<h1>Pyramid</h1>
+					<h1>Pyramid <VersionNumber /></h1>
 					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>

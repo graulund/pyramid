@@ -4,7 +4,8 @@ import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
 import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
-import { CHANGE_DEBOUNCE_MS, VERSION } from "../constants";
+import VersionNumber from "../components/VersionNumber.jsx";
+import { CHANGE_DEBOUNCE_MS } from "../constants";
 import * as io from "../lib/io";
 import { timeZoneFormattedList } from "../lib/timeZones";
 
@@ -391,7 +392,7 @@ class SettingsGeneralView extends PureComponent {
 			<div key="main">
 				{ content }
 				<div className="settings__section" key="info">
-					<p><em>Pyramid { VERSION }</em></p>
+					<p><em>Pyramid <VersionNumber verbose /></em></p>
 				</div>
 			</div>
 		);

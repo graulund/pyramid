@@ -2,7 +2,7 @@ import values from "lodash/values";
 
 // Constants
 
-export const VERSION = "1.0-edge";
+export const VERSION = "1.0 prerelease";
 
 export const DEFAULT_COLOR_RGB = "0,0,51";
 export const DEFAULT_TIMEZONE = "UTC";
