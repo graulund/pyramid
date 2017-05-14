@@ -381,25 +381,28 @@ export function initializeIo() {
 		});
 
 		socket.on("channelCache", (details) => {
-			if (details && details.channelUri && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.channelUri) {
 				store.dispatch(actions.channelCaches.update({
-					[details.channelUri]: details.cache
+					[details.channelUri]: cache
 				}));
 			}
 		});
 
 		socket.on("userCache", (details) => {
-			if (details && details.username && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.username) {
 				store.dispatch(actions.userCaches.update({
-					[details.username]: details.cache
+					[details.username]: cache
 				}));
 			}
 		});
 
 		socket.on("categoryCache", (details) => {
-			if (details && details.categoryName && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.categoryName) {
 				store.dispatch(actions.categoryCaches.update({
-					[details.categoryName]: details.cache
+					[details.categoryName]: cache
 				}));
 			}
 		});

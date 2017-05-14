@@ -198,6 +198,7 @@ class ChatView extends PureComponent {
 					collapseJoinParts={collapseJoinParts}
 					inFocus={inFocus}
 					lines={lines}
+					loading={loading}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
 					pageQuery={pageQuery}

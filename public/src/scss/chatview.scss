@@ -36,6 +36,13 @@
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
+
+	&__empty {
+		text-align: center;
+		padding: 20px;
+		font-size: 125%;
+		color: #999;
+	}
 }
 
 .chatview {
@@ -50,6 +57,10 @@
 
 		.channeluserlist {
 			top: 68px;
+		}
+
+		.mainview__top {
+			height: auto;
 		}
 	}
 

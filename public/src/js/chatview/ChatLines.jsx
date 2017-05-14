@@ -14,54 +14,58 @@ class ChatLines extends PureComponent {
 			displayContextLink,
 			displayFirstDate = true,
 			displayUsername,
+			loading,
 			messages,
 			observer,
 			onEmoteLoad
 		} = this.props;
 
-		if (!messages || !messages.length) {
-			return null;
-		}
+		var content = null;
 
-		var lastDateString = "";
+		if (messages && messages.length) {
+			var lastDateString = "";
 
-		const lines = messages.map((msg, index) => {
-			if (msg) {
-				var dateString = humanDateStamp(new Date(msg.time), true, true);
-				var line = <ChatLine {...msg}
-					collapseJoinParts={collapseJoinParts}
-					displayChannel={displayChannel}
-					displayContextLink={displayContextLink}
-					displayUsername={displayUsername}
-					observer={observer}
-					onEmoteLoad={onEmoteLoad}
-					key={msg.lineId || index} />;
+			content = messages.map((msg, index) => {
+				if (msg) {
+					var dateString = humanDateStamp(new Date(msg.time), true, true);
+					var line = <ChatLine {...msg}
+						collapseJoinParts={collapseJoinParts}
+						displayChannel={displayChannel}
+						displayContextLink={displayContextLink}
+						displayUsername={displayUsername}
+						observer={observer}
+						onEmoteLoad={onEmoteLoad}
+						key={msg.lineId || index} />;
 
-				if (dateString !== lastDateString) {
-					if (displayFirstDate || lastDateString !== "") {
-						lastDateString = dateString;
-						return [
-							(<li className="date-header" key={dateString}>
-								<span>{ dateString }</span>
-							</li>),
-							line
-						];
+					if (dateString !== lastDateString) {
+						if (displayFirstDate || lastDateString !== "") {
+							lastDateString = dateString;
+							return [
+								(<li className="date-header" key={dateString}>
+									<span>{ dateString }</span>
+								</li>),
+								line
+							];
+						}
+						else {
+							lastDateString = dateString;
+						}
 					}
-					else {
-						lastDateString = dateString;
-					}
+
+					return line;
 				}
 
-				return line;
-			}
-
-			return null;
-		});
+				return null;
+			});
+		}
+		else if (!loading) {
+			content = <li className={`${block}__empty`} key="empty">Nothing here :(</li>;
+		}
 
 		const className = block +
 			(displayContextLink ? ` ${block}--with-context` : "");
 
-		return <ul className={className}>{ lines }</ul>;
+		return <ul className={className}>{ content }</ul>;
 	}
 }
 
@@ -71,6 +75,7 @@ ChatLines.propTypes = {
 	displayContextLink: PropTypes.bool,
 	displayFirstDate: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	loading: PropTypes.bool,
 	messages: PropTypes.array,
 	observer: PropTypes.object,
 	onEmoteLoad: PropTypes.func
