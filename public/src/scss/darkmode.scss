@@ -4,6 +4,7 @@ body.darkmode {
 	.mainview__top,
 	.chatview__input,
 	.chatview__input input[type="text"],
+	.chatview__pagination,
 	.chatview__controls,
 	.channeluserlist,
 	.chatview .contextview__main,
@@ -14,7 +15,8 @@ body.darkmode {
 		border-color: #444;
 	}
 
-	h1, h2, h3, h4, h5, h6 {
+	h1, h2, h3, h4, h5, h6,
+	.chatview__pagination ul li strong {
 		color: #eee;
 	}
 
@@ -30,7 +32,10 @@ body.darkmode {
 	.settings__list ul,
 	.settings__list-item,
 	.settings__add,
-	.settings__detail-view {
+	.settings__detail-view,
+	.password-input,
+	.chatview__pagination ul li a,
+	.chatview__pagination ul li strong {
 		border-color: #444;
 	}
 
@@ -154,6 +159,11 @@ body.darkmode {
 		@media #{$mobile-media} {
 			left: -1px;
 		}
+	}
+
+	.chatview__pagination ul li.next a,
+	.chatview__pagination ul li.prev a {
+		border-color: transparent;
 	}
 
 	// Links
