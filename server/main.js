@@ -540,6 +540,7 @@ const setUserCachedDisplayName = function(username, serverName, displayName) {
 
 	// Try to update this user's channel display name if it's in our list
 	// TODO: Move this to Twitch only
+	// TODO: Use API instead: https://api.twitch.tv/kraken/users?login=username&api_version=5&oauth_token=oauthtoken
 	let ircConfig = currentIrcConfig.find((config) => config.name === serverName);
 	if (username.charAt(0) !== "_" && ircConfig) {
 		let channel = ircConfig.channels.find((channel) => channel.name === username);
