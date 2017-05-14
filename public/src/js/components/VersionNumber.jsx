@@ -33,7 +33,7 @@ const VersionNumber = function(props) {
 	}
 
 	let className = block +
-		(hasName ? `${block}--named` : "");
+		(hasName ? ` ${block}--named` : "");
 
 	return <span className={className}>{ text }</span>;
 };
