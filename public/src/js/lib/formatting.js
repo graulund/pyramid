@@ -16,6 +16,8 @@ export const DAYS = [
 const DEFAULT_DATE_SUFFIX = "th";
 const DATE_SUFFIXES = { 1: "st", 2: "nd", 3: "rd" };
 
+// Internal utility
+
 function darkModeEnabled() {
 	if (store) {
 		const state = store.getState();
@@ -25,10 +27,22 @@ function darkModeEnabled() {
 	return false;
 }
 
+function pad(n) {
+	if (n < 10) {
+		return "0" + n;
+	}
+
+	return "" + n;
+}
+
+// Generic
+
 export function ucfirst(str) {
 	var f = str.charAt(0).toUpperCase();
 	return f + str.substr(1);
 }
+
+// Time
 
 export function formatTime(milliseconds) {
 	var sec = Math.floor(milliseconds / 1000);
@@ -43,41 +57,6 @@ export function formatTime(milliseconds) {
 	sec = sec % 60;
 
 	return { day, hour, min, sec };
-}
-
-export function timeOpacity(secondsSince) {
-	// Exponential fall
-	var maxSeconds = 2*3600;
-	return 1/Math.pow(Math.pow(10, 1/(maxSeconds/2)), secondsSince);
-}
-
-export function timeTextOpacity(secondsSince) {
-	// Linear fall
-	var minOpacity = 0.2, maxOpacity = 1;
-	return Math.max(minOpacity, Math.min(maxOpacity, 29/25 - secondsSince/45000));
-}
-
-export function timeColors (milliseconds, color = DEFAULT_COLOR_RGB) {
-	const darkMode = darkModeEnabled();
-
-	if (color === DEFAULT_COLOR_RGB && darkMode) {
-		color = DEFAULT_DARKMODE_COLOR_RGB;
-	}
-
-	// Color
-	var backgroundOpacity = timeOpacity(milliseconds/1000),
-		textColor = darkMode ? "#ccc" : "#000",
-		opacity = timeTextOpacity(milliseconds/1000);
-
-	if (backgroundOpacity >= 0.3) {
-		textColor = darkMode ? "#000" : "#fff";
-	}
-
-	return {
-		backgroundColor: `rgba(${color},${backgroundOpacity})`,
-		color: textColor,
-		opacity
-	};
 }
 
 export function minuteTime(timeStamp) {
@@ -97,18 +76,6 @@ export function timeStampDate(timeStamp) {
 	}
 
 	return timeStamp;
-}
-
-export function internalUrl(url) {
-	return ROOT_PATHNAME + url;
-}
-
-function pad(n) {
-	if (n < 10) {
-		return "0" + n;
-	}
-
-	return "" + n;
 }
 
 export function dateStamp(date) {
@@ -189,4 +156,50 @@ export function midnightDate(date) {
 	const d = date.getDate();
 
 	return new Date(y, m, d);
+}
+
+// Site specific
+
+export function internalUrl(url) {
+	return ROOT_PATHNAME + url;
+}
+
+function round2(n) {
+	return Math.round(n * 100) / 100;
+}
+
+export function timeOpacity(secondsSince) {
+	// Exponential fall
+	const maxSeconds = 2*3600;
+	const formula = 1/Math.pow(Math.pow(10, 1/(maxSeconds/2)), secondsSince);
+	return Math.min(1, formula);
+}
+
+export function timeTextOpacity(secondsSince) {
+	// Linear fall
+	var minOpacity = 0.2, maxOpacity = 1;
+	return Math.max(minOpacity, Math.min(maxOpacity, 29/25 - secondsSince/45000));
+}
+
+export function timeColors (milliseconds, color = DEFAULT_COLOR_RGB) {
+	const darkMode = darkModeEnabled();
+
+	if (color === DEFAULT_COLOR_RGB && darkMode) {
+		color = DEFAULT_DARKMODE_COLOR_RGB;
+	}
+
+	// Color
+	var backgroundOpacity = round2(timeOpacity(milliseconds/1000)),
+		textColor = darkMode ? "#ccc" : "#000",
+		opacity = round2(timeTextOpacity(milliseconds/1000));
+
+	if (backgroundOpacity >= 0.3) {
+		textColor = darkMode ? "#000" : "#fff";
+	}
+
+	return {
+		backgroundColor: `rgba(${color},${backgroundOpacity})`,
+		color: textColor,
+		opacity
+	};
 }

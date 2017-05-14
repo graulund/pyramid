@@ -1,14 +1,19 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
-import { CHANGE_DEBOUNCE_MS, VERSION } from "../constants";
+import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
+import VersionNumber from "../components/VersionNumber.jsx";
+import { CHANGE_DEBOUNCE_MS } from "../constants";
 import * as io from "../lib/io";
 import { timeZoneFormattedList } from "../lib/timeZones";
 
 class SettingsGeneralView extends PureComponent {
 	constructor(props) {
 		super(props);
+
+		io.requestSystemInfo();
 
 		this.settings = {
 			"Web": [
@@ -23,7 +28,9 @@ class SettingsGeneralView extends PureComponent {
 					name: "webPassword",
 					readableName: "Web password",
 					type: "password",
-					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)"
+					description: "The password required to log in to use the client (does not have to be the same as any IRC passwords)",
+					notice: "Must not be empty",
+					emptiable: false
 				}
 			],
 			"Time zone": [
@@ -68,6 +75,12 @@ class SettingsGeneralView extends PureComponent {
 					description: "Converts type codes like :thinking: to emoji like 🤔"
 				},
 				{
+					name: "enableEmojiImages",
+					readableName: "Emoji images",
+					type: "bool",
+					description: "Shows emojis as images, so systems without unicode support can still display them"
+				},
+				{
 					name: "hideOldUsers",
 					readableName: "Hide silent users in sidebar",
 					type: "bool",
@@ -80,6 +93,12 @@ class SettingsGeneralView extends PureComponent {
 					type: "bool",
 					description: "Hide channels that haven't been spoken in for a long time on the channels list",
 					notice: "Doesn't affect your joined status"
+				},
+				{
+					name: "collapseJoinParts",
+					readableName: "Collapse join/part events",
+					type: "bool",
+					description: "If someone joins and immediately leaves, don't display anything"
 				}
 			],
 			"Twitch": [
@@ -90,6 +109,13 @@ class SettingsGeneralView extends PureComponent {
 					description: "Enable special features for Twitch"
 				},
 				{
+					name: "automaticallyJoinTwitchGroupChats",
+					readableName: "Automatically join Twitch group chats",
+					type: "bool",
+					description: "Automatically join all the group chats that you are invited to on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
 					name: "enableTwitchColors",
 					readableName: "Enable Twitch username colors",
 					type: "bool",
@@ -97,8 +123,15 @@ class SettingsGeneralView extends PureComponent {
 					requires: ["enableTwitch"]
 				},
 				{
-					name: "enableTwitchDisplayNames",
-					readableName: "Enable Twitch display names",
+					name: "enableTwitchChannelDisplayNames",
+					readableName: "Enable Twitch channel display names",
+					type: "bool",
+					description: "Show the real names of group chats on Twitch",
+					requires: ["enableTwitch"]
+				},
+				{
+					name: "enableTwitchUserDisplayNames",
+					readableName: "Enable Twitch user display names",
 					type: "enum",
 					description: "Show the display names set by users on Twitch",
 					requires: ["enableTwitch"],
@@ -182,15 +215,43 @@ class SettingsGeneralView extends PureComponent {
 				}
 			]
 		};
+
+		this.valueChangeHandlers = {};
+	}
+
+	createValueChangeHandler(name) {
+		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+
+		return {
+			bool: (evt) => myChangeValue(name, evt.target.checked),
+			number: (evt) => myChangeValue(name, +evt.target.value),
+			string: (evt) => myChangeValue(name, evt.target.value)
+		};
+	}
+
+	getValueChangeHandler(name) {
+		// Cache the value change handlers so they don't change
+
+		if (!this.valueChangeHandlers[name]) {
+			this.valueChangeHandlers[name] = this.createValueChangeHandler(name);
+		}
+
+		return this.valueChangeHandlers[name];
 	}
 
 	handleValueChange(name, value) {
 		console.log("Tried to set value", name, value);
+
+		if (name === "webPassword" && !value) {
+			console.warn("Denied setting web password to empty");
+			return;
+		}
+
 		io.setAppConfigValue(name, value);
 	}
 
 	renderSetting(setting) {
-		const { appConfig } = this.props;
+		const { appConfig, systemInfo } = this.props;
 		const { description, name, notice, readableName, requires, type } = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
@@ -205,22 +266,24 @@ class SettingsGeneralView extends PureComponent {
 		}
 
 		// Change handler
-		const myChangeValue = debounce(this.handleValueChange, CHANGE_DEBOUNCE_MS);
+		const changeHandler = this.getValueChangeHandler(name);
 
 		// Input field
 		switch (type) {
+
 			case "bool":
 				prefixInput = <input
 					type="checkbox"
 					id={name}
 					defaultChecked={appConfig[name]}
-					onChange={(evt) => myChangeValue(name, evt.target.checked)}
+					onChange={changeHandler.bool}
 					disabled={isDisabled}
 					key="input" />;
 				break;
+
 			case "enum":
 				var options = null, defaultValue = appConfig[name];
-				var valueTransform = (v) => v;
+				var ch = changeHandler.string;
 
 				if (setting.valuePairs) {
 					options = setting.valuePairs.map((pair, i) => {
@@ -231,7 +294,7 @@ class SettingsGeneralView extends PureComponent {
 				else if (setting.valueNames) {
 					// Assume numeric values
 					defaultValue = +appConfig[name] || 0;
-					valueTransform = (v) => +v;
+					ch = changeHandler.number;
 					options = setting.valueNames.map(
 						(name, i) => <option key={i} value={i}>{ name }</option>
 					);
@@ -241,20 +304,33 @@ class SettingsGeneralView extends PureComponent {
 					<select
 						id={name}
 						defaultValue={defaultValue}
-						onChange={(evt) =>
-							myChangeValue(name, valueTransform(evt.target.value))}
+						onChange={ch}
 						disabled={isDisabled}
 						key="input">
 						{ options }
 					</select>
 				);
 				break;
+
+			case "password":
+				var { emptiable = true } = setting;
+				mainInput = <SettingsPasswordInput
+					type={type}
+					id={name}
+					defaultValue={appConfig[name] || ""}
+					onChange={changeHandler.string}
+					disabled={isDisabled}
+					emptiable={emptiable}
+					key="input"
+					/>;
+				break;
+
 			default:
 				mainInput = <input
 					type={type}
 					id={name}
 					defaultValue={appConfig[name] || ""}
-					onChange={(evt) => myChangeValue(name, evt.target.value)}
+					onChange={changeHandler.string}
 					disabled={isDisabled}
 					key="input" />;
 		}
@@ -269,6 +345,18 @@ class SettingsGeneralView extends PureComponent {
 			prefixInput = [prefixInput, " "];
 		}
 
+		var suffix = null;
+
+		if (name === "logLinesDb" && systemInfo.databaseSize) {
+			const dbSizeMb = (systemInfo.databaseSize / 1024 / 1024).toFixed(2);
+			suffix = <p><em>Current database size: { dbSizeMb } MB. Clear your database by running the <tt>clearDatabaseLogs.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
+		}
+
+		if (name === "logLinesFile" && systemInfo.logFolderSize) {
+			const lfSizeMb = (systemInfo.logFolderSize / 1024 / 1024).toFixed(2);
+			suffix = <p><em>Current log folder size: { lfSizeMb } MB. Clear the log folder by running the <tt>clearLogFolder.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
+		}
+
 		return (
 			<div className={className} key={name}>
 				<h3>
@@ -278,6 +366,7 @@ class SettingsGeneralView extends PureComponent {
 				{ mainInput }
 				{ description ? <p>{ description }</p> : null }
 				{ notice ? <p><em>{ notice }</em></p> : null }
+				{ suffix }
 			</div>
 		);
 	}
@@ -303,7 +392,7 @@ class SettingsGeneralView extends PureComponent {
 			<div key="main">
 				{ content }
 				<div className="settings__section" key="info">
-					<p><em>Pyramid { VERSION }</em></p>
+					<p><em>Pyramid <VersionNumber verbose /></em></p>
 				</div>
 			</div>
 		);
@@ -311,7 +400,14 @@ class SettingsGeneralView extends PureComponent {
 }
 
 SettingsGeneralView.propTypes = {
-	appConfig: PropTypes.object
+	appConfig: PropTypes.object,
+	systemInfo: PropTypes.object
 };
 
-export default connect(({ appConfig }) => ({ appConfig }))(SettingsGeneralView);
+export default connect(({
+	appConfig,
+	systemInfo
+}) => ({
+	appConfig,
+	systemInfo
+}))(SettingsGeneralView);

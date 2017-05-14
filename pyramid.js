@@ -1,5 +1,8 @@
 // PYRAMID
 
+// For debugging purposes
+const heapdump = require("heapdump");
+
 // Main app service
 const main = require("./server/main");
 

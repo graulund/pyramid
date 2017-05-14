@@ -1,4 +1,5 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 
 import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
@@ -7,32 +8,45 @@ import UserLink from "./UserLink.jsx";
 class TimedChannelItem extends PureComponent {
 	render() {
 		const {
-			channel, displayServer = false, lastSeenData = {},
-			skipOld = false
+			channel,
+			displayName,
+			displayServer = false,
+			lastSeenData = {},
+			skipOld = false,
+			visible
 		} = this.props;
 
 		const prefix = <ChannelLink
 			strong
 			channel={channel}
 			displayServer={displayServer}
+			displayName={displayName}
 			key={channel}
 			/>;
 
-		const suffix = lastSeenData && lastSeenData.username ? (
-			<span className="msg">
-				by <UserLink
-					userName={lastSeenData.username}
-					className="invisible"
-					key={lastSeenData.username}
-					/>
-			</span>
-		) : null;
+		var suffix = null;
+
+		if (lastSeenData && lastSeenData.username) {
+			let { username, userDisplayName } = lastSeenData;
+
+			suffix = (
+				<span className="msg">
+					by <UserLink
+						userName={username}
+						displayName={userDisplayName}
+						className="invisible"
+						key={username}
+						/>
+				</span>
+			);
+		}
 
 		return <TimedItem
 				time={lastSeenData.time}
 				skipOld={skipOld}
 				prefix={prefix}
 				suffix={suffix}
+				visible={visible}
 				key="main"
 				/>;
 	}
@@ -40,9 +54,11 @@ class TimedChannelItem extends PureComponent {
 
 TimedChannelItem.propTypes = {
 	channel: PropTypes.string,
+	displayName: PropTypes.string,
 	displayServer: PropTypes.bool,
 	lastSeenData: PropTypes.object,
-	skipOld: PropTypes.bool
+	skipOld: PropTypes.bool,
+	visible: PropTypes.bool
 };
 
 export default TimedChannelItem;

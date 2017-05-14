@@ -53,6 +53,14 @@ export default {
 			};
 		}
 	},
+	deviceState: {
+		update(data) {
+			return {
+				type: actionTypes.deviceState.UPDATE,
+				data
+			};
+		}
+	},
 	friendsList: {
 		set(data) {
 			return {
@@ -122,10 +130,12 @@ export default {
 				date
 			};
 		},
-		update(data) {
+		update(subjectName, date, lines) {
 			return {
 				type: actionTypes.logFiles.UPDATE,
-				data
+				subjectName,
+				date,
+				lines
 			};
 		}
 	},
@@ -155,6 +165,14 @@ export default {
 		set(data) {
 			return {
 				type: actionTypes.onlineFriends.SET,
+				data
+			};
+		}
+	},
+	systemInfo: {
+		update(data) {
+			return {
+				type: actionTypes.systemInfo.UPDATE,
 				data
 			};
 		}

@@ -2,20 +2,20 @@ import store from "../store";
 import actions from "../actions";
 
 export function calibrateMultiServerChannels(ircConfigs) {
-	var multiServerChannels = [];
-	var namesSeen = [];
-	for (var i = 0; i < ircConfigs.length; i++) {
-		var c = ircConfigs[i];
+	let multiServerChannels = [];
+	let namesSeen = [];
+
+	Object.keys(ircConfigs).forEach((name) => {
+		let c = ircConfigs[name];
 		if (c && c.channels) {
-			for (var j = 0; j < c.channels.length; j++) {
-				var ch = c.channels[j];
+			Object.keys(c.channels).forEach((ch) => {
 				if (namesSeen.indexOf(ch) >= 0) {
 					multiServerChannels.push(ch);
 				}
 				namesSeen.push(ch);
-			}
+			});
 		}
-	}
+	});
 
 	return multiServerChannels;
 }

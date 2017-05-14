@@ -1,44 +1,99 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import Linkify from "react-linkify";
-//import Highlighter from "react-highlight-words";
 
 import ChatUsername from "./ChatUsername.jsx";
-import TwitchMessageLine from "../twitch/TwitchMessageLine.jsx";
+import TwitchEmoticon from "../twitch/TwitchEmoticon.jsx";
 import { isTwitch } from "../lib/ircConfigs";
-import { LINKIFY_PROPERTIES } from "../constants";
+import { TOKEN_TYPES, tokenizeChatLine } from "../lib/tokenizer";
+
+const emojiImageUrl = function(codepoints) {
+	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
+};
 
 class ChatMessageLine extends PureComponent {
+
+	renderText(token) {
+		return token.text;
+	}
+
+	renderLink(token, index) {
+		return (
+			<a
+			target="_blank"
+			href={token.url}
+			key={index}>
+				{ token.text }
+			</a>
+		);
+	}
+
+	renderMention(token, index) {
+		return <mark key={index}>{ token.text }</mark>;
+	}
+
+	renderEmoji(token, index) {
+		const { enableEmojiImages } = this.props;
+
+		if (enableEmojiImages) {
+			return <img
+				className="emoji"
+				src={emojiImageUrl(token.codepoints)}
+				alt={token.text}
+				key={index}
+				/>;
+		}
+
+		return token.text;
+	}
+
+	renderTwitchEmoticon(token, index) {
+		const { onEmoteLoad } = this.props;
+		return <TwitchEmoticon
+			{...token.emote}
+			text={token.text}
+			onLoad={onEmoteLoad}
+			key={index} />;
+	}
+
+	renderToken(token, index) {
+		switch(token.type) {
+			case TOKEN_TYPES.TEXT:
+				return this.renderText(token, index);
+			case TOKEN_TYPES.LINK:
+				return this.renderLink(token, index);
+			case TOKEN_TYPES.MENTION:
+				return this.renderMention(token, index);
+			case TOKEN_TYPES.EMOJI:
+				return this.renderEmoji(token, index);
+			case TOKEN_TYPES.TWITCH_EMOTICON:
+				return this.renderTwitchEmoticon(token, index);
+		}
+
+		console.warn(
+			`Encountered unsupported line token type \`${token.type}\``
+		);
+		return null;
+	}
 
 	render() {
 		const {
 			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, /*highlight,*/ ircConfigs, message,
-			server, symbol = "", tags, type, username
+			enableUsernameColors, ircConfigs, server, symbol = "",
+			tags, type, username
 		} = this.props;
 
-		//const isHighlight = !!(highlight && highlight.length);
 		const className = "msg" +
 			(type !== "msg" ? ` msg--${type}` : "");
-
-		var messageEl = message;
 
 		const useTwitch = enableTwitch && server &&
 			ircConfigs && isTwitch(ircConfigs[server]);
 
-		if (useTwitch) {
-			messageEl = <TwitchMessageLine tags={tags}>{ message }</TwitchMessageLine>;
-		}
-		else {
-			messageEl = <Linkify properties={LINKIFY_PROPERTIES}>{ messageEl }</Linkify>;
-		}
+		const tokens = tokenizeChatLine(this.props, useTwitch);
 
-		/*
-		if (isHighlight) {
-			// TODO: Find better non-plain text solution for this
-			messageEl = <Highlighter searchWords={highlight} textToHighlight={message} />;
-		}
-		*/
+		const messageContent = tokens.map(
+			(token, index) => this.renderToken(token, index)
+		);
 
 		var authorClassName = "msg__author";
 		var authorColor = null;
@@ -77,7 +132,7 @@ class ChatMessageLine extends PureComponent {
 							key="username" />,
 						" "
 					] : null }
-				{ messageEl }
+				{ messageContent }
 			</span>
 		);
 
@@ -91,15 +146,16 @@ ChatMessageLine.propTypes = {
 	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	enableEmojiImages: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
-	enableTwitchDisplayNames: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	observer: PropTypes.object,
+	onEmoteLoad: PropTypes.func,
 	server: PropTypes.string,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
@@ -110,12 +166,14 @@ ChatMessageLine.propTypes = {
 
 export default connect(({
 	appConfig: {
+		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
 		enableUsernameColors
 	},
 	ircConfigs
 }) => ({
+	enableEmojiImages,
 	enableTwitch,
 	enableTwitchColors,
 	enableUsernameColors,

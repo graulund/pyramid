@@ -1,13 +1,16 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
+import VersionNumber from "./VersionNumber.jsx";
 import { storeViewState } from "../lib/io";
 import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
 import { CATEGORY_NAMES } from "../constants";
+import { isMobile } from "../lib/visualBehavior";
 import store from "../store";
 import actions from "../actions";
 
@@ -16,30 +19,67 @@ class Sidebar extends PureComponent {
 		super(props);
 
 		this.onClick = this.onClick.bind(this);
-		this.setSort = this.setSort.bind(this);
-		this.setTab = this.setTab.bind(this);
+		this.hide = this.hide.bind(this);
+		this.showUsers = this.showUsers.bind(this);
+		this.showChannels = this.showChannels.bind(this);
+		this.sortByAlpha = this.sortByAlpha.bind(this);
+		this.sortByActivity = this.sortByActivity.bind(this);
+		this.toggleSystemMenu = this.toggleSystemMenu.bind(this);
+
+		this.state = {
+			systemMenuOpen: false
+		};
 	}
 
+	componentDidMount() {
+		const { cog } = this.refs;
+
+		// Close the menu on outside and inside click
+		this.closeClickHandler = (evt) => {
+			if (evt.target === cog || evt.target.parentNode === cog) {
+				return;
+			}
+
+			this.closeSystemMenu();
+		};
+		document.addEventListener("click", this.closeClickHandler);
+	}
+
+	componentWillUnmount() {
+		// Remove external close handler
+		if (this.closeClickHandler) {
+			document.removeEventListener("click", this.closeClickHandler);
+		}
+	}
+
+	// Event handler
+
 	onClick(evt) {
-		if (evt && evt.nativeEvent) {
-			var target = evt.nativeEvent.target;
+		const { cog } = this.refs;
+
+		if (isMobile() && evt && evt.nativeEvent) {
+			let target = evt.nativeEvent.target;
 
 			if (
-				target && (
+				target &&
+				target !== cog && (
 					target.tagName === "A" ||
 					target.className === "channelname" ||
 					(
-						target.parentNode && (
+						target.parentNode &&
+						target.parentNode !== cog && (
 							target.parentNode.tagName === "A" ||
 							target.parentNode.className === "channelname"
 						)
 					)
 				)
 			) {
-				this.setVisible(false);
+				this.hide();
 			}
 		}
 	}
+
+	// Generic state methods
 
 	setSort(sort) {
 		const change = { sidebarSort: sort };
@@ -60,14 +100,44 @@ class Sidebar extends PureComponent {
 		// depending on which page you're on, and your viewport
 	}
 
-	render() {
-		const { viewState = {} } = this.props;
+	closeSystemMenu() {
+		this.setState({ systemMenuOpen: false });
+	}
 
+	// Bound state methods
+
+	hide() {
+		this.setVisible(false);
+	}
+
+	showUsers() {
+		this.setTab("user");
+	}
+
+	showChannels() {
+		this.setTab("channel");
+	}
+
+	sortByAlpha() {
+		this.setSort("alpha");
+	}
+
+	sortByActivity() {
+		this.setSort("activity");
+	}
+
+	toggleSystemMenu() {
+		const { systemMenuOpen } = this.state;
+		this.setState({ systemMenuOpen: !systemMenuOpen });
+	}
+
+	render() {
 		const {
 			sidebarSort: sort = "alpha",
 			sidebarTab: tab = "user",
 			sidebarVisible: visible = true
-		} = viewState;
+		} = this.props;
+		const { systemMenuOpen } = this.state;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
@@ -77,22 +147,43 @@ class Sidebar extends PureComponent {
 		var content = null;
 
 		if (tab === "user") {
-			content = <UserList sort={sort} key="userlist" />;
+			content = <UserList sort={sort} visible={visible} key="userlist" />;
 		}
 		else if (tab === "channel") {
-			content = <ChannelList sort={sort} key="channellist" />;
+			content = <ChannelList sort={sort} visible={visible} key="channellist" />;
 		}
+
+		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;
 
 		return (
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
-					<h1>Pyramid</h1>
-					<a className="sidebar__close" href="javascript://" onClick={() => this.setVisible(false)}>
+					<h1>Pyramid <VersionNumber /></h1>
+					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
-					<ul className="controls sidebar__controls">
-						<li><Link to={settingsUrl()}>Settings</Link></li>
-						<li><a href={internalUrl("/logout")}>Log out</a></li>
+					<a className="sidebar__cog"
+						href="javascript://"
+						ref="cog"
+						onClick={this.toggleSystemMenu}>
+						<img src="/img/cog.svg" width="16" height="16" alt="System" />
+					</a>
+					<ul className="sidebar__system-menu" style={systemMenuStyles}>
+						<li key="settings">
+							<Link to={settingsUrl()} className="sidebar__menu-link">
+								Settings
+							</Link>
+						</li>
+						<li key="log">
+							<Link to={categoryUrl("system")} className="sidebar__menu-link">
+								System log
+							</Link>
+						</li>
+						<li key="logout" className="sep">
+							<a href={internalUrl("/logout")} className="sidebar__menu-link">
+								Log out
+							</a>
+						</li>
 					</ul>
 				</div>
 				<ul className="sidebar__menu" key="menu">
@@ -110,13 +201,13 @@ class Sidebar extends PureComponent {
 						<ul className="sidebar__tabs switcher" key="tabs">
 							<li key="user">
 								<button className="user"
-									onClick={() => this.setTab("user")}>
+									onClick={this.showUsers}>
 									Friends
 								</button>
 							</li>
 							<li key="channel">
 								<button className="channel"
-									onClick={() => this.setTab("channel")}>
+									onClick={this.showChannels}>
 									Channels
 								</button>
 							</li>
@@ -125,12 +216,14 @@ class Sidebar extends PureComponent {
 							<ul className="switcher" key="sortswitcher">
 								<li key="alpha">
 									<button className="alpha"
-										onClick={() => this.setSort("alpha")}>Alphabetical
+										onClick={this.sortByAlpha}>
+										Alphabetical
 									</button>
 								</li>
 								<li key="activity">
 									<button className="activity"
-										onClick={() => this.setSort("activity")}>Activity
+										onClick={this.sortByActivity}>
+										Activity
 									</button>
 								</li>
 							</ul>
@@ -144,8 +237,19 @@ class Sidebar extends PureComponent {
 }
 
 Sidebar.propTypes = {
-	viewState: PropTypes.object
+	sidebarSort: PropTypes.string,
+	sidebarTab: PropTypes.string,
+	sidebarVisible: PropTypes.bool
 };
 
-// TODO: Only connect the relevant subproperties of viewState
-export default connect(({ viewState }) => ({ viewState }))(Sidebar);
+export default connect(({
+	viewState: {
+		sidebarSort,
+		sidebarTab,
+		sidebarVisible
+	}
+}) => ({
+	sidebarSort,
+	sidebarTab,
+	sidebarVisible
+}))(Sidebar);

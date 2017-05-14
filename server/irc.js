@@ -5,6 +5,7 @@
 const irc    = require("irc");
 const fs     = require("fs");
 const path   = require("path");
+const lodash = require("lodash");
 
 const constants = require("./constants");
 const log = require("./log");
@@ -121,7 +122,7 @@ module.exports = function(main) {
 
 				// Handle our own message as if it's incoming
 				handleIncomingMessage(
-					client, client.extConfig.nickname,
+					client, client.nick,
 					channelName, type, message, {},
 					true
 				);
@@ -143,7 +144,7 @@ module.exports = function(main) {
 		const channelUri = getChannelUri(chobj);
 		const channelName = getChannelFullName(chobj);
 		const serverName = chobj.server;
-		const meUsername = client.extConfig.nickname;
+		const meUsername = client.nick;
 
 		// Time
 		const time = new Date();
@@ -188,9 +189,19 @@ module.exports = function(main) {
 
 	const handleConnectionStateChange = function(client, state) {
 		const server = clientServerName(client);
+
+		if (client._pyramidAborted) {
+			state = constants.CONNECTION_STATUS.ABORTED;
+		}
+
 		if (server) {
 			main.handleIrcConnectionStateChange(server, state);
 		}
+	};
+
+	const handleSystemLog = function(client, text, level) {
+		const serverName = clientServerName(client);
+		main.handleSystemLog(serverName, text, level);
 	};
 
 	const setChannelUserList = function(client, channel, userList) {
@@ -198,10 +209,15 @@ module.exports = function(main) {
 		main.setChannelUserList(getChannelUri(chobj), userList);
 	};
 
+	const abortClient = function(client, status = constants.CONNECTION_STATUS.ABORTED) {
+		client._pyramidAborted = true;
+		handleConnectionStateChange(client, status);
+	};
+
 	const setUpClient = function(client) {
 
 		client.addListener("connect", function() {
-			client.aborted = false;
+			client._pyramidAborted = false;
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.CONNECTED
 			);
@@ -225,15 +241,14 @@ module.exports = function(main) {
 		});
 
 		client.addListener("abort", function() {
-			client.aborted = true;
+			// IRC library gave up reconnecting
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.FAILED
 			);
 		});
 
-		client.addListener("netError", function(exception) {
-			// TODO: Send net error info to client
-			console.log("IRC NET ERROR", exception);
+		client.addListener("netError", function(error) {
+			handleSystemLog(client, `Net error: ${error.message}`, "error");
 		});
 
 		client.addListener("unhandled", function(message) {
@@ -281,7 +296,10 @@ module.exports = function(main) {
 		});
 
 		client.addListener("error", function(message) {
-			main.handleChatNetworkError(message);
+			const errString = message.commandType + ": " +
+				message.args.join(" ") +
+				` (${message.command})`;
+			handleSystemLog(client, errString, message.commandType);
 		});
 
 		client.addListener("names", (channel, nicks) => {
@@ -290,10 +308,16 @@ module.exports = function(main) {
 
 		client.addListener("join", (channel, username) => {
 			handleIncomingEvent(client, channel, "join", { username });
+
+			const channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent("join", { client, channel: channelUri, username });
 		});
 
 		client.addListener("part", (channel, username, reason) => {
 			handleIncomingEvent(client, channel, "part", { username, reason });
+
+			const channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent("part", { client, channel: channelUri, username });
 		});
 
 		client.addListener("quit", (username, reason, channels) => {
@@ -339,7 +363,7 @@ module.exports = function(main) {
 
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
-			console.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
 			cf.username = cf.username || cf.nickname;
 
 			var c = new irc.Client(
@@ -423,11 +447,11 @@ module.exports = function(main) {
 
 	const reconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
-		if (c && c.aborted) {
+		if (c && c._pyramidAborted) {
 			c.connect();
 		}
 		else {
-			console.log(
+			main.warn(
 				"Disregarded " + serverName +
 				" IRC reconnect request, because client isn't aborted"
 			);
@@ -437,8 +461,16 @@ module.exports = function(main) {
 	const disconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.aborted = true;
+			abortClient(c);
 			c.disconnect();
+		}
+	};
+
+	const removeServer = function(serverName) {
+		const c = findClientByServerName(serverName);
+		if (c) {
+			disconnectServer(serverName);
+			clients = lodash.without(clients, c);
 		}
 	};
 
@@ -452,6 +484,7 @@ module.exports = function(main) {
 		joinChannel,
 		partChannel,
 		reconnectServer,
+		removeServer,
 		sendOutgoingMessage
 	};
 

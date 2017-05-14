@@ -18,3 +18,21 @@ export function channelServerNameFromUrl(url) {
 export function channelUrlFromNames(server, channel) {
 	return server + "/" + channel.replace(/^#/, "");
 }
+
+export function getChannelDisplayNameFromState(state, channel) {
+
+	if (!channel) {
+		return;
+	}
+
+	let [ serverName, channelName ] = channel.split(/\//);
+	let config = state.ircConfigs[serverName];
+	let setting = state.appConfig.enableTwitchChannelDisplayNames;
+
+	if (setting && config) {
+		let channelConfig = config.channels[channelName];
+		if (channelConfig) {
+			return channelConfig.displayName;
+		}
+	}
+}

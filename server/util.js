@@ -2,7 +2,6 @@
 // Utilities module
 
 const fs = require("fs");
-const path = require("path");
 const moment = require("moment-timezone");
 
 const constants = require("./constants");
@@ -126,7 +125,7 @@ const getChannelUri = function(channelName, serverName) {
 	var c = safeString(channelName);
 
 	if (serverName) {
-		return path.join(safeString(serverName), c);
+		return safeString(serverName) + "/" + c;
 	}
 
 	return c;
@@ -158,7 +157,6 @@ const passesChannelWhiteBlacklist = function(target, channelUri) {
 
 	const segs = channelUri.toLowerCase().split("/");
 	const server = segs[0], channel = segs[1];
-	console.log(server, channel);
 
 	if (target) {
 
@@ -255,6 +253,16 @@ const getRelationship = function(username, friendsList) {
 	return constants.RELATIONSHIP_NONE;
 };
 
+// Event utilities
+
+const isJoinEvent = function(event) {
+	return event && event.type === "join";
+};
+
+const isPartEvent = function(event) {
+	return event && constants.PART_EVENT_TYPES.indexOf(event.type) >= 0;
+};
+
 // API
 
 module.exports = {
@@ -291,5 +299,9 @@ module.exports = {
 	clearAcceptedTokens,
 
 	// Relationship
-	getRelationship
+	getRelationship,
+
+	// Event
+	isJoinEvent,
+	isPartEvent
 };

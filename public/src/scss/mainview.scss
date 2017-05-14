@@ -7,6 +7,7 @@
 		left: 320px;
 		right: 0;
 		padding: 10px 20px;
+		height: 20px;
 		background-color: #fff;
 		border-bottom: 1px solid #ccc;
 		white-space: nowrap;
@@ -32,7 +33,7 @@
 		}
 	}
 
-	> .loader {
+	&__loader {
 		position: fixed;
 		top: 0;
 		left: 320px;
@@ -51,7 +52,7 @@
 			padding-right: 10px;
 		}
 
-		> .loader {
+		&__loader {
 			left: 0;
 			width: 100%;
 		}

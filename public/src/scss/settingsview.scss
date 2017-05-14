@@ -20,6 +20,25 @@
 	&--nicknames &__tabs a.nicknames {
 		font-weight: bold;
 	}
+
+	@media #{$mobile-media} {
+		margin-top: 60px;
+
+		&__top {
+			&__main {
+				// Undo flex since it breaks layout in narrow viewports
+				display: block;
+
+				h2 {
+					float: none;
+				}
+			}
+		}
+
+		&__tabs {
+			margin: 6px 0 -3px -6px;
+		}
+	}
 }
 
 .settings {
@@ -89,6 +108,10 @@
 
 			button {
 				flex: 0 0 auto;
+			}
+
+			@media #{$mobile-media} {
+				overflow-x: auto;
 			}
 		}
 
@@ -185,5 +208,42 @@
 		p.l label {
 			width: 5em;
 		}
+	}
+
+	@media #{$mobile-media} {
+		&__detail-view {
+			display: block;
+		}
+
+		&__detail-view &__list {
+			flex: none;
+			width: 100%;
+
+			ul {
+				margin-bottom: 0;
+			}
+		}
+	}
+}
+
+.password-input {
+	border: 1px solid #ccc;
+	padding: 5px 10px;
+
+	&--editing {
+		border: none;
+		padding: 0;
+	}
+
+	strong {
+		color: #999;
+	}
+
+	&__empty {
+		display: none;
+	}
+
+	&--focus &__empty {
+		display: inline-block;
 	}
 }

@@ -27,12 +27,12 @@ var currentOnlineFriends = [];
 
 var channelCaches = {};
 var userCaches = {};
-var categoryCaches = { highlights: [], allfriends: [] };
+var categoryCaches = { highlights: [], allfriends: [], system: [] };
 var currentHighlightContexts = {};
 
 var channelRecipients = {};
 var userRecipients = {};
-var categoryRecipients = { highlights: [], allfriends: [] };
+var categoryRecipients = { highlights: [], allfriends: [], system: [] };
 
 var cachedLastSeens = {};
 
@@ -51,6 +51,8 @@ var bunchableLinesToInsert = {};
 var lineIdsToDelete = new Set();
 
 var configValueChangeHandlers = {};
+
+var displayNameCache = {};
 
 // Delayed singletons
 
@@ -149,9 +151,17 @@ const localMoment = function(arg) {
 	return moment(arg).tz(configValue("timeZone"));
 };
 
+const _log = function(message, level = "info", time = null) {
+	handleSystemLog(null, message, level, time);
+};
+
+const _warn = function(message, time = null) {
+	_log(message, "warning", time);
+};
+
 // Last seen
 
-const setLastSeenChannel = (channel, data) => {
+const setLastSeenChannel = function(channel, data) {
 	if (data) {
 		// Update
 		lastSeenChannels[channel] = data;
@@ -162,7 +172,8 @@ const setLastSeenChannel = (channel, data) => {
 				channelIdCache[channel],
 				{
 					lastSeenTime: data.time,
-					lastSeenUsername: data.username
+					lastSeenUsername: data.username,
+					lastSeenDisplayName: data.userDisplayName
 				}
 			);
 		}
@@ -174,7 +185,7 @@ const setLastSeenChannel = (channel, data) => {
 	}
 };
 
-const setLastSeenUser = (username, data) => {
+const setLastSeenUser = function(username, data) {
 	if (data) {
 		// Update
 		lastSeenUsers[username] = data;
@@ -185,7 +196,8 @@ const setLastSeenUser = (username, data) => {
 				friendIdCache[username],
 				{
 					lastSeenTime: data.time,
-					lastSeenChannelId: channelIdCache[data.channel]
+					lastSeenChannelId: channelIdCache[data.channel],
+					displayName: data.displayName
 				}
 			);
 		}
@@ -198,26 +210,26 @@ const setLastSeenUser = (username, data) => {
 };
 
 const updateLastSeen = function(
-	channelUri, channelName, username, time, relationship
+	channel, username, time, relationship, displayName
 ) {
 	setLastSeenChannel(
-		channelUri,
-		{ username, time }
+		channel,
+		{ username, time, userDisplayName: displayName }
 	);
 
 	if (relationship >= constants.RELATIONSHIP_FRIEND) {
 		setLastSeenUser(
 			username,
-			{ channel: channelUri, channelName, time }
+			{ channel, time, displayName }
 		);
 	}
 };
 
-const clearCachedLastSeens = () => {
+const clearCachedLastSeens = function() {
 	cachedLastSeens = {};
 };
 
-const flushCachedLastSeens = () => {
+const flushCachedLastSeens = function() {
 	const c = cachedLastSeens;
 	clearCachedLastSeens();
 	return c;
@@ -308,7 +320,7 @@ const createCurrentHighlightContext = function(channelUri, highlightMsg) {
 const addToCurrentHighlightContext = function(channelUri, msg) {
 	const highlights = currentHighlightContexts[channelUri];
 
-	if (highlights) {
+	if (highlights && highlights.length) {
 		const survivingHighlights = [];
 		highlights.forEach((highlight) => {
 			const list = highlight.contextMessages;
@@ -373,14 +385,25 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 	if (cache && cache.length) {
 		const lastItem = cache[cache.length-1];
 		if (lastItem) {
+
+			const isJoin = util.isJoinEvent(data);
+			const isPart = util.isPartEvent(data);
+
 			var bunch;
 			if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
 				// Create bunch and insert in place
+
+				const lastIsJoin = util.isJoinEvent(lastItem);
+				const lastIsPart = util.isPartEvent(lastItem);
+
 				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
 					events: [lastItem, data],
+					firstTime: lastItem.time,
+					joinCount: isJoin + lastIsJoin,
 					lineId: uuid.v4(),
+					partCount: isPart + lastIsPart,
 					prevIds: [lastItem.lineId],
 					server: lastItem.server,
 					time: data.time,
@@ -389,12 +412,27 @@ const cacheBunchableChannelEvent = function(channelUri, data) {
 			}
 			else if (lastItem.type === "events") {
 				// Add to bunch, resulting in a new, inserted in place
+				let maxLines = constants.BUNCHED_EVENT_SIZE;
+
+				var prevIds = lastItem.prevIds.concat([lastItem.lineId]);
+				if (prevIds.length > maxLines) {
+					prevIds = prevIds.slice(prevIds.length - maxLines);
+				}
+
+				var events = lastItem.events.concat([data]);
+				if (events.length > maxLines) {
+					events = events.slice(events.length - maxLines);
+				}
+
 				bunch = {
 					channel: lastItem.channel,
 					channelName: lastItem.channelName,
-					events: lastItem.events.concat([data]),
+					events,
+					firstTime: lastItem.firstTime,
+					joinCount: lastItem.joinCount + isJoin,
 					lineId: uuid.v4(),
-					prevIds: lastItem.prevIds.concat([lastItem.lineId]),
+					partCount: lastItem.partCount + isPart,
+					prevIds,
 					server: lastItem.server,
 					time: data.time,
 					type: "events"
@@ -474,11 +512,56 @@ const setChannelUserList = function(channelUri, userList) {
 };
 
 const getUserCurrentSymbol = function(channelUri, userName) {
-	if (channelUri && channelUserLists[channelUri]) {
-		return channelUserLists[channelUri][userName] || "";
+	if (
+		channelUri &&
+		channelUserLists[channelUri] &&
+		channelUserLists[channelUri][userName]
+	) {
+		return channelUserLists[channelUri][userName].symbol || "";
 	}
 
 	return "";
+};
+
+const getUserCachedDisplayName = function(username, serverName) {
+	return (
+		(displayNameCache[serverName] &&
+			displayNameCache[serverName][username]) ||
+		(lastSeenUsers[username] &&
+			lastSeenUsers[username].displayName)
+	);
+};
+
+const setUserCachedDisplayName = function(username, serverName, displayName) {
+	if (!(serverName in displayNameCache)) {
+		displayNameCache[serverName] = {};
+	}
+	displayNameCache[serverName][username] = displayName;
+
+	// Try to update this user's channel display name if it's in our list
+	// TODO: Move this to Twitch only
+	let ircConfig = currentIrcConfig.find((config) => config.name === serverName);
+	if (username.charAt(0) !== "_" && ircConfig) {
+		let channel = ircConfig.channels.find((channel) => channel.name === username);
+		let channelDisplayName = "#" + displayName;
+		if (channel && channel.displayName !== channelDisplayName) {
+			channel.displayName = channelDisplayName;
+			modifyChannelInIrcConfig(
+				serverName,
+				username,
+				{ displayName: channelDisplayName },
+				() => loadIrcConfig()
+			);
+		}
+	}
+};
+
+const convertIrcUserList = function(channelUserList, serverName) {
+	// Expected format: { username: symbol, ... }
+	return lodash.mapValues(channelUserList, (symbol, username) => {
+		let displayName = getUserCachedDisplayName(username, serverName);
+		return { displayName, symbol };
+	});
 };
 
 const reloadOnlineFriends = function() {
@@ -513,7 +596,7 @@ const reloadOnlineFriends = function() {
 	}
 };
 
-const getUserColorNumber = (username) => {
+const getUserColorNumber = function(username) {
 	if (username) {
 		username = username.toLowerCase();
 
@@ -558,7 +641,8 @@ const handleIncomingMessage = function(
 	const symbol = getUserCurrentSymbol(channelUri, username);
 	const line = log.lineFormats[type].build(symbol, username, message);
 
-	// Log the line!
+	// Log
+
 	if (configValue("logLinesFile")) {
 		log.logChannelLine(channelUri, channelName, line, time);
 	}
@@ -576,6 +660,7 @@ const handleIncomingMessage = function(
 	}
 
 	// Highlighted? Add to specific logs
+
 	var highlightStrings = [];
 	if (!username || username.toLowerCase() !== meUsername.toLowerCase()) {
 		highlightStrings = getHighlightStringsForMessage(
@@ -589,8 +674,18 @@ const handleIncomingMessage = function(
 		}
 	}
 
+	// Display name
+
+	const displayName = tags && tags["display-name"];
+
+	if (serverName && username && displayName) {
+		setUserCachedDisplayName(username, serverName, displayName);
+	}
+
+	// Store!
+
 	updateLastSeen(
-		channelUri, channelName, username, time, relationship
+		channelUri, username, time, relationship, displayName
 	);
 	cacheMessage(
 		channelUri, channelName, serverName, username, symbol,
@@ -603,9 +698,13 @@ const handleIncomingEvent = function(
 	channelUserList
 ) {
 
-	if (data && data.username) {
-		data.symbol = getUserCurrentSymbol(channelUri, data.username);
+	let username = data && data.username || "";
+
+	if (username) {
+		data.symbol = getUserCurrentSymbol(channelUri, username);
 	}
+
+	// Log
 
 	const line = log.getLogLineFromData(type, data);
 
@@ -614,12 +713,14 @@ const handleIncomingEvent = function(
 	}
 
 	// Channel user lists
+
 	if (
 		constants.USER_MODIFYING_EVENT_TYPES.indexOf(type) >= 0 &&
-		data &&
-		data.username
+		username
 	) {
-		channelUserLists[channelUri] = channelUserList;
+
+		channelUserLists[channelUri] =
+			convertIrcUserList(channelUserList, serverName);
 
 		// Due to a fault in the node-irc API, they don't always remove this
 		// until after the call, so let's just do this now...
@@ -628,7 +729,7 @@ const handleIncomingEvent = function(
 			constants.PART_EVENT_TYPES.indexOf(type) >= 0 &&
 			channelUserLists[channelUri]
 		) {
-			delete channelUserLists[channelUri][data.username];
+			delete channelUserLists[channelUri][username];
 		}
 
 		if (io) {
@@ -638,17 +739,27 @@ const handleIncomingEvent = function(
 		reloadOnlineFriends();
 	}
 
+	// Display name
+
+	const extraData = {};
+
+	if (serverName && username) {
+		extraData.displayName = getUserCachedDisplayName(username, serverName);
+	}
+
+	// Meta data
+
 	const metadata = {
 		channel: channelUri,
 		channelName,
 		lineId: uuid.v4(),
-		relationship: data && data.username && util.getRelationship(data.username, currentFriendsList),
+		relationship: username && util.getRelationship(username, currentFriendsList),
 		server: serverName,
 		time: time || new Date(),
 		type
 	};
 
-	const event = lodash.assign(metadata, data);
+	const event = lodash.assign(metadata, data, extraData);
 
 	if (constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0) {
 		cacheBunchableChannelEvent(channelUri, event);
@@ -657,19 +768,79 @@ const handleIncomingEvent = function(
 	}
 };
 
+const handleSystemLog = function(serverName, message, level = "info", time = null) {
+	if (level === "warn") {
+		level = "warning";
+	}
+
+	if (configValue("debug") || level === "warning" || level === "error") {
+		let loggedMessage = serverName
+			? `[${serverName}] ${message}`
+			: message;
+
+		if (level === "error") {
+			console.error(loggedMessage);
+		}
+		else if (level === "warning") {
+			console.warn(loggedMessage);
+		}
+		else {
+			console.log(loggedMessage);
+		}
+	}
+
+	const data = {
+		level,
+		lineId: uuid.v4(),
+		message,
+		server: serverName,
+		time: time || new Date(),
+		type: "log"
+	};
+
+	cacheCategoryMessage("system", data);
+};
+
 const handleIrcConnectionStateChange = function(serverName, status) {
-	const info = { status, time: new Date() };
-	currentIrcConnectionState[serverName] = info;
+
+	const time = new Date();
+
+	if (
+		currentIrcConnectionState[serverName] &&
+		currentIrcConnectionState[serverName].status === status
+	) {
+		// Ignore if status is already the given one
+		return;
+	}
+
+	var info = null;
+
+	if (currentIrcConfig.find((config) => config.name === serverName)) {
+		// Update status
+		info = { status, time };
+		currentIrcConnectionState[serverName] = info;
+	}
+	else {
+		// No longer in config
+		delete currentIrcConnectionState[serverName];
+	}
 
 	if (io) {
 		io.emitIrcConnectionStatus(serverName, info);
 	}
-}
 
-const handleChatNetworkError = function(message) {
-	console.log("WARN: Chat network error occurred:", message);
-
-	// TODO: Add error to a server cache
+	// Propagate message to all channels in this server
+	const channelList = getConfigChannelsInServer(serverName);
+	if (channelList && channelList.length) {
+		channelList.forEach((channel) => {
+			let channelName = util.channelNameFromUrl(channel, "#");
+			let type = "connectionEvent";
+			let data = { server: serverName, status };
+			handleIncomingEvent(
+				channel, channelName, serverName, type, data, time
+			);
+		});
+	}
 };
 
 // Recipients of messages
@@ -684,7 +855,7 @@ const addRecipient = function(list, targetName, socket) {
 };
 
 const removeRecipient = function(list, targetName, socket) {
-	if (list[targetName]){
+	if (list[targetName] && list[targetName].indexOf(socket) >= 0){
 		lodash.remove(list[targetName], (r) => r === socket);
 	}
 };
@@ -717,6 +888,18 @@ const removeCategoryRecipient = function(categoryName, socket) {
 	}
 };
 
+const removeRecipientEverywhere = function(socket) {
+	lodash.forOwn(channelRecipients, (list, channelUri) => {
+		removeChannelRecipient(channelUri, socket);
+	});
+	lodash.forOwn(userRecipients, (list, username) => {
+		removeUserRecipient(username, socket);
+	});
+	lodash.forOwn(categoryRecipients, (list, categoryName) => {
+		removeCategoryRecipient(categoryName, socket);
+	});
+};
+
 // See an unseen highlight
 
 const reportHighlightAsSeen = function(messageId) {
@@ -728,6 +911,15 @@ const reportHighlightAsSeen = function(messageId) {
 		}
 	}
 };
+
+const clearUnseenHighlights = function() {
+	unseenHighlightIds.clear();
+
+	if (io) {
+		io.emitUnseenHighlights();
+	}
+};
+
 const sendOutgoingMessage = function(channelUri, message, isAction = false) {
 	irc.sendOutgoingMessage(channelUri, message, isAction);
 };
@@ -931,15 +1123,36 @@ const generateFriendIdCache = function() {
 	});
 };
 
+const safeAppConfig = function(appConfig = currentAppConfig) {
+	var outConfig = lodash.omit(appConfig, ["webPassword"]);
+
+	if (appConfig.webPassword) {
+		// Signal that a password has been set
+		outConfig.webPassword = true;
+	}
+
+	return outConfig;
+};
+
 const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 	var ircConfigDict = {};
 	ircConfig.forEach((config) => {
-		var outConfig = lodash.omit(config, ["password"]);
-		if (outConfig.channels) {
-			outConfig.channels = outConfig.channels.map(
-				(val) => val.name
-			);
+		var outConfig = lodash.omit(config, ["password", "serverId"]);
+
+		if (config.password) {
+			// Signal that a password has been set
+			outConfig.password = true;
 		}
+
+		let channels = outConfig.channels;
+		if (channels) {
+			outConfig.channels = {};
+			channels.forEach((channel) => {
+				let { displayName, name } = channel;
+				outConfig.channels[name] = { displayName, name };
+			});
+		}
+
 		ircConfigDict[config.name] = outConfig;
 	});
 
@@ -954,6 +1167,15 @@ const getIrcConfigByName = function(name, ircConfig = currentIrcConfig) {
 	}
 
 	return null;
+};
+
+const getConfigChannelsInServer = function(serverName, ircConfig = currentIrcConfig) {
+	const s = getIrcConfigByName(serverName);
+	if (s) {
+		return s.channels.map((val) => util.getChannelUri(val.name, serverName));
+	}
+
+	return [];
 };
 
 const nicknamesDict = function(nicknames = currentNicknames) {
@@ -992,6 +1214,13 @@ const addToFriends = function(serverId, username, isBestFriend, callback) {
 };
 
 const storeConfigValue = function(name, value, callback) {
+
+	if (name === "webPassword" && !value) {
+		// Do not allow the setting of an empty web password
+		callback(new Error("Empty web password"));
+		return;
+	}
+
 	db.storeConfigValue(
 		name,
 		value,
@@ -1061,11 +1290,26 @@ const removeServerFromIrcConfig = function(serverName, callback) {
 	], callback);
 };
 
-const addChannelToIrcConfig = function(serverName, name, callback) {
+const addChannelToIrcConfig = function(serverName, name, data, callback) {
 	name = name.replace(/^#/, "");
 	async.waterfall([
 		(callback) => db.getServerId(serverName, callback),
-		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, callback)
+		(data, callback) => db.addChannelToIrcConfig(data.serverId, name, data, callback)
+	], callback);
+};
+
+const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
+	name = name.replace(/^#/, "");
+	async.waterfall([
+		(callback) => db.getChannelId(serverName, name, callback),
+		(data, callback) => {
+			if (data) {
+				db.modifyChannelInIrcConfig(data.channelId, details, callback);
+			}
+			else {
+				callback(new Error("No such channel"));
+			}
+		}
 	], callback);
 };
 
@@ -1075,6 +1319,18 @@ const removeChannelFromIrcConfig = function(serverName, name, callback) {
 		(callback) => db.getChannelId(serverName, name, callback),
 		(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
 	], callback);
+};
+
+const addAndJoinChannel = function(serverName, name, data, callback) {
+	addChannelToIrcConfig(
+		serverName, name, data,
+		(err) => {
+			joinIrcChannel(serverName, name);
+			if (io) {
+				io.emitIrcConfig();
+			}
+		}
+	);
 };
 
 const addConfigValueChangeHandler = function(name, handler) {
@@ -1203,13 +1459,13 @@ const getDateLineCountForChannel = function(channelUri, date, callback) {
 	], callback);
 };
 
-const getDateLinesForChannel = function(channelUri, date, callback) {
+const getDateLinesForChannel = function(channelUri, date, options, callback) {
 	const serverName = util.channelServerNameFromUrl(channelUri);
 	const channelName = util.channelNameFromUrl(channelUri);
 
 	async.waterfall([
 		(callback) => db.getChannelId(serverName, channelName, callback),
-		(data, callback) => db.getDateLinesForChannel(data.channelId, date, callback),
+		(data, callback) => db.getDateLinesForChannel(data.channelId, date, options, callback),
 		(lines, callback) => parseDbLines(lines, callback)
 	], callback);
 };
@@ -1218,9 +1474,9 @@ const getDateLineCountForUsername = function(username, date, callback) {
 	db.getDateLineCountForUsername(username, date, callback);
 };
 
-const getDateLinesForUsername = function(username, date, callback) {
+const getDateLinesForUsername = function(username, date, options, callback) {
 	async.waterfall([
-		(callback) => db.getDateLinesForUsername(username, date, callback),
+		(callback) => db.getDateLinesForUsername(username, date, options, callback),
 		(lines, callback) => parseDbLines(lines, callback)
 	], callback);
 };
@@ -1232,46 +1488,74 @@ const getLineByLineId = function(lineId, callback) {
 	], callback);
 };
 
-const getChannelLogDetails = function(channelUri, callback) {
+const getChannelLogDetails = function(channelUri, date, callback) {
 	const today = util.ymd(localMoment());
 	const yesterday = util.ymd(localMoment().subtract(1, "day"));
 
-	// TODO: Time zone issue, database dates are UTC
-
-	async.parallel([
+	const calls = [
 		(callback) => getDateLineCountForChannel(channelUri, today, callback),
 		(callback) => getDateLineCountForChannel(channelUri, yesterday, callback)
-	], (err, results) => {
+	];
+
+	if (date && date !== today && date !== yesterday) {
+		calls.push(
+			(callback) => getDateLineCountForChannel(channelUri, date, callback)
+		);
+	}
+
+	async.parallel(calls, (err, results) => {
 		if (err) {
 			callback(err);
 		}
 		else {
 			const t = results[0], y = results[1];
-			callback(null, {
-				[today]: !!(t && t.count && t.count > 0),
-				[yesterday]: !!(y && y.count && y.count > 0)
-			});
+			const out = {
+				[today]: t && t.count || 0,
+				[yesterday]: y && y.count || 0
+			};
+
+			if (calls.length > 2) {
+				const d = results[2];
+				out[date] = d && d.count || 0;
+			}
+
+			callback(null, out);
 		}
 	});
 };
 
-const getUserLogDetails = function(username, callback) {
+const getUserLogDetails = function(username, date, callback) {
 	const today = util.ymd(localMoment());
 	const yesterday = util.ymd(localMoment().subtract(1, "day"));
 
-	async.parallel([
+	const calls = [
 		(callback) => getDateLineCountForUsername(username, today, callback),
 		(callback) => getDateLineCountForUsername(username, yesterday, callback)
-	], (err, results) => {
+	];
+
+	if (date && date !== today && date !== yesterday) {
+		calls.push(
+			(callback) => getDateLineCountForUsername(username, date, callback)
+		);
+	}
+
+	async.parallel(calls, (err, results) => {
 		if (err) {
 			callback(err);
 		}
 		else {
 			const t = results[0], y = results[1];
-			callback(null, {
-				[today]: !!(t && t.count && t.count > 0),
-				[yesterday]: !!(y && y.count && y.count > 0)
-			});
+			const out = {
+				[today]: t && t.count || 0,
+				[yesterday]: y && y.count || 0
+			};
+
+			if (calls.length > 2) {
+				const d = results[2];
+				out[date] = d && d.count || 0;
+			}
+
+			callback(null, out);
 		}
 	});
 };
@@ -1303,7 +1587,9 @@ const addIrcServerFromDetails = function(details, callback) {
 						if (channelNames.length) {
 							async.parallel(
 								channelNames.map((channelName) =>
-									((callback) => addChannelToIrcConfig(name, channelName, callback))
+									((callback) => addChannelToIrcConfig(
+										name, channelName, {}, callback
+									))
 								),
 								callback
 							);
@@ -1348,6 +1634,10 @@ const disconnectIrcServer = function(serverName) {
 	irc.disconnectServer(serverName);
 };
 
+const disconnectAndRemoveIrcServer = function(serverName) {
+	irc.removeServer(serverName);
+};
+
 const joinIrcChannel = function(serverName, channelName) {
 	irc.joinChannel(serverName, channelName);
 };
@@ -1374,12 +1664,12 @@ onDb((err) => {
 				onIrc,
 				onPlugins,
 				onWeb,
-				loadLastSeenUsers,
-				loadLastSeenChannels,
-				loadIrcConfig,
 				loadAppConfig,
-				loadNicknames,
-				loadFriendsList
+				loadFriendsList,
+				loadIrcConfig,
+				loadLastSeenChannels,
+				loadLastSeenUsers,
+				loadNicknames
 			],
 			(err, results) => {
 				console.log("Everything's ready!");
@@ -1399,6 +1689,7 @@ onDb((err) => {
 // API
 
 module.exports = {
+	addAndJoinChannel,
 	addCategoryRecipient,
 	addChannelRecipient,
 	addChannelToIrcConfig,
@@ -1410,16 +1701,18 @@ module.exports = {
 	addUserRecipient,
 	cachedLastSeens: () => cachedLastSeens,
 	clearCachedLastSeens,
+	clearUnseenHighlights,
 	configValue,
 	connectUnconnectedIrcs,
 	currentAppConfig: () => currentAppConfig,
 	currentFriendsList: () => currentFriendsList,
-	currentIrcConfig: () => currentIrcConfig,
 	currentIrcClients,
+	currentIrcConfig: () => currentIrcConfig,
 	currentIrcConnectionState: () => currentIrcConnectionState,
 	currentNicknames: () => currentNicknames,
 	currentOnlineFriends: () => currentOnlineFriends,
 	currentViewState: () => currentViewState,
+	disconnectAndRemoveIrcServer,
 	disconnectIrcServer,
 	flushCachedLastSeens,
 	getCategoryCache: (categoryName) => categoryCaches[categoryName],
@@ -1436,10 +1729,10 @@ module.exports = {
 	getUserCurrentSymbol,
 	getUserLogDetails,
 	getUserRecipients: (username) => userRecipients[username],
-	handleChatNetworkError,
 	handleIncomingEvent,
 	handleIncomingMessage,
 	handleIrcConnectionStateChange,
+	handleSystemLog,
 	joinIrcChannel,
 	lastSeenChannels: () => lastSeenChannels,
 	lastSeenUsers: () => lastSeenUsers,
@@ -1447,8 +1740,12 @@ module.exports = {
 	loadAppConfig,
 	loadFriendsList,
 	loadIrcConfig,
+	loadLastSeenChannels,
+	loadLastSeenUsers,
 	loadNicknames,
 	localMoment,
+	log: _log,
+	modifyChannelInIrcConfig,
 	modifyFriend,
 	modifyNickname,
 	modifyServerInIrcConfig,
@@ -1461,9 +1758,11 @@ module.exports = {
 	removeChannelRecipient,
 	removeFromFriends,
 	removeNickname,
+	removeRecipientEverywhere,
 	removeServerFromIrcConfig,
 	removeUserRecipient,
 	reportHighlightAsSeen,
+	safeAppConfig,
 	safeIrcConfigDict,
 	sendOutgoingMessage,
 	setChannelUserList,
@@ -1474,5 +1773,6 @@ module.exports = {
 	setWeb,
 	storeConfigValue,
 	storeViewState,
-	unseenHighlightIds: () => unseenHighlightIds
+	unseenHighlightIds: () => unseenHighlightIds,
+	warn: _warn
 };

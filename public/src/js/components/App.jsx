@@ -1,5 +1,7 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 
 import ConnectionInfo from "./ConnectionInfo.jsx";
 import Header from "./Header.jsx";
@@ -15,7 +17,11 @@ class App extends PureComponent {
 
 		return Object.keys(connectionStatus).filter((key) => {
 			return connectionStatus[key] &&
-				connectionStatus[key].status !== STATUS.CONNECTED;
+				(
+					connectionStatus[key].status === STATUS.DISCONNECTED ||
+					connectionStatus[key].status === STATUS.FAILED ||
+					connectionStatus[key].status === STATUS.REJECTED
+				);
 		}).length;
 	}
 
@@ -43,6 +49,6 @@ App.propTypes = {
 	connectionStatus: PropTypes.object
 };
 
-export default connect(
+export default withRouter(connect(
 	({ connectionStatus }) => ({ connectionStatus })
-)(App);
+)(App));

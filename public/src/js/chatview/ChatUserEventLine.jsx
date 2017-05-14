@@ -1,11 +1,21 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 
 import UserLink from "../components/UserLink.jsx";
+
+const block = "userevent";
 
 class ChatUserEventLine extends PureComponent {
 	render() {
 		const {
-			argument, by, displayUsername, mode, reason, type, username
+			argument,
+			by,
+			displayName,
+			displayUsername,
+			mode,
+			reason,
+			type,
+			username
 		} = this.props;
 
 		var eventDescription = "";
@@ -40,15 +50,18 @@ class ChatUserEventLine extends PureComponent {
 				break;
 		}
 
-		const className = "userevent" +
-			(isStrong ? " userevent--strong" : "");
+		const className = block +
+			(isStrong ? ` ${block}--strong` : "");
 
 		return (
 			<span className={className}>
 				{ displayUsername
 					? (
-						<strong className="userevent__target">
-							<UserLink userName={username} key={username} />
+						<strong className={`${block}__target`}>
+							<UserLink
+								displayName={displayName}
+								userName={username}
+								key={username} />
 							{" "}
 						</strong>
 					) : null }
@@ -66,6 +79,7 @@ ChatUserEventLine.propTypes = {
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
 	displayChannel: PropTypes.bool,
+	displayName: PropTypes.string,
 	displayUsername: PropTypes.bool,
 	highlight: PropTypes.array,
 	lineId: PropTypes.string,

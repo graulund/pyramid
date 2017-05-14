@@ -285,7 +285,15 @@ export class RGBAColor {
 	}
 
 	static fromHex(code) {
-		var raw = parseInt(code.charAt(0) === "#" ? code.substr(1) : code, 16);
+		var hex = code.charAt(0) === "#" ? code.substr(1) : code;
+
+		if (hex.length === 3) {
+			// Shorthand notation
+			hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+		}
+
+		var raw = parseInt(hex, 16);
+
 		return new RGBAColor(
 			(raw >> 16),         // Red
 			(raw >> 8 & 0x00FF), // Green

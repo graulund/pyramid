@@ -3,73 +3,81 @@ import store from "../store";
 import pull from "lodash/pull";
 import without from "lodash/without";
 
-import { CACHE_LINES } from "../constants";
+import { CACHE_LINES, PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
-import { categoryUrl, channelUrl, userUrl } from "./routeHelpers";
+import {
+	categoryUrl, channelUrl, parseSubjectName, subjectName, userUrl
+} from "./routeHelpers";
 
 var io;
 var socket;
 
 var currentSubscriptions = [];
 
+function emit(name, value) {
+	if (socket) {
+		socket.emit(name, value);
+	}
+}
+
 function emitSubscribe(type, subject) {
 	if (socket && type && subject) {
-		socket.emit("subscribe", { [type]: subject });
-		const subscriptionName = type + ":" + subject;
-		currentSubscriptions = [ ...currentSubscriptions, subscriptionName ];
+		emit("subscribe", { [type]: subject });
+		const subscriptionName = subjectName(type, subject);
+		currentSubscriptions = [
+			...currentSubscriptions, subscriptionName
+		];
 	}
 }
 
 function emitUnsubscribe(type, subject) {
 	if (socket && type && subject) {
-		socket.emit("unsubscribe", { [type]: subject });
-		const subscriptionName = type + ":" + subject;
-		currentSubscriptions = without(currentSubscriptions, subscriptionName);
+		emit("unsubscribe", { [type]: subject });
+		const subscriptionName = subjectName(type, subject);
+		currentSubscriptions = without(
+			currentSubscriptions, subscriptionName
+		);
 	}
 }
 
 function emitCurrentSubscriptions() {
 	currentSubscriptions.forEach((sub) => {
-		const [ type, subject ] = sub.split(":");
-		emitSubscribe(type, subject);
+		const { type, query } = parseSubjectName(sub);
+		emitSubscribe(type, query);
 	});
 }
 
-export function subscribeToChannel(channelUrl) {
-	emitSubscribe("channel", channelUrl);
+function _handleSubscription(subject, unsubscribe = false) {
+	const { type, query } = parseSubjectName(subject);
+	const typeName = type === "user" ? "username" : type;
+
+	if (unsubscribe) {
+		emitUnsubscribe(typeName, query);
+	}
+	else {
+		emitSubscribe(typeName, query);
+	}
 }
 
-export function unsubscribeFromChannel(channelUrl) {
-	emitUnsubscribe("channel", channelUrl);
+export function subscribeToSubject(subject) {
+	_handleSubscription(subject, false);
 }
 
-export function subscribeToUser(username) {
-	emitSubscribe("username", username);
+export function unsubscribeFromSubject(subject) {
+	_handleSubscription(subject, true);
 }
 
-export function unsubscribeFromUser(username) {
-	emitUnsubscribe("username", username);
-}
-
-export function subscribeToCategory(categoryName) {
-	emitSubscribe("category", categoryName);
-}
-
-export function unsubscribeFromCategory(categoryName) {
-	emitUnsubscribe("category", categoryName);
-}
-
-export function sendMessage(channelUrl, message) {
-	if (socket && channelUrl && message) {
+export function sendMessage(channelUri, message) {
+	if (socket && channelUri && message) {
 		const state = store.getState();
 		const data = {
-			channel: channelUrl,
+			channel: channelUri,
 			message,
 			token: state && state.token
 		};
 
-		socket.emit("sendMessage", data);
+		emit("sendMessage", data);
 	}
 }
 
@@ -85,11 +93,7 @@ export function cacheItem(cache, item) {
 
 	// And make sure we only have the maximum amount
 	if (cache.length > CACHE_LINES) {
-		if (cache.length === CACHE_LINES + 1) {
-			cache = cache.slice(1);
-		} else {
-			cache = cache.slice(cache.length - CACHE_LINES);
-		}
+		cache = cache.slice(cache.length - CACHE_LINES);
 	}
 
 	return cache;
@@ -97,7 +101,9 @@ export function cacheItem(cache, item) {
 
 export function clearReplacedIdsFromCache(cache, prevIds) {
 	if (cache && cache.length && prevIds && prevIds.length) {
-		const itemsWithPrevIds = cache.filter((item) => prevIds.indexOf(item.lineId) >= 0);
+		const itemsWithPrevIds = cache.filter(
+			(item) => prevIds.indexOf(item.lineId) >= 0
+		);
 		return pull(cache, ...itemsWithPrevIds);
 
 		// NOTE: We are modifiying in place to prevent too many change handlers from
@@ -108,132 +114,118 @@ export function clearReplacedIdsFromCache(cache, prevIds) {
 	return cache;
 }
 
-export function requestLogDetailsForChannel(channelUri) {
-	if (socket) {
-		socket.emit("requestChannelLogDetails", { channelUri });
+export function requestLogDetailsForChannel(channelUri, time) {
+	emit("requestChannelLogDetails", { channelUri, time });
+}
+
+export function requestLogDetailsForUsername(username, time) {
+	emit("requestUserLogDetails", { username, time });
+}
+
+export function requestLogDetails(subject, time) {
+	const { type, query } = parseSubjectName(subject);
+	switch(type) {
+		case PAGE_TYPES.CHANNEL:
+			return requestLogDetailsForChannel(query, time);
+		case PAGE_TYPES.USER:
+			return requestLogDetailsForUsername(query, time);
 	}
 }
 
-export function requestLogDetailsForUsername(username) {
-	if (socket) {
-		socket.emit("requestUserLogDetails", { username });
-	}
+export function requestLogFileForChannel(channelUri, time, pageNumber) {
+	emit("requestChannelLogFile", { channelUri, pageNumber, time });
 }
 
-export function requestLogFileForChannel(channelUri, time) {
-	if (socket) {
-		socket.emit("requestChannelLogFile", { channelUri, time });
-	}
+export function requestLogFileForUsername(username, time, pageNumber) {
+	emit("requestUserLogFile", { pageNumber, time, username });
 }
 
-export function requestLogFileForUsername(username, time) {
-	if (socket) {
-		socket.emit("requestUserLogFile", { time, username });
+export function requestLogFile(subject, time, pageNumber) {
+	const { type, query } = parseSubjectName(subject);
+	switch(type) {
+		case PAGE_TYPES.CHANNEL:
+			return requestLogFileForChannel(query, time, pageNumber);
+		case PAGE_TYPES.USER:
+			return requestLogFileForUsername(query, time, pageNumber);
 	}
 }
 
 export function requestLineInfo(lineId) {
-	if (socket) {
-		socket.emit("requestLineInfo", { lineId });
-	}
+	emit("requestLineInfo", { lineId });
+}
+
+export function requestSystemInfo() {
+	emit("requestSystemInfo");
+}
+
+export function requestBaseDataReload() {
+	emit("reloadBaseData");
 }
 
 export function reportHighlightAsSeen(messageId) {
-	if (socket) {
-		socket.emit("reportHighlightAsSeen", { messageId });
-	}
+	emit("reportHighlightAsSeen", { messageId });
 }
 
 export function storeViewState(viewState) {
-	if (socket && viewState) {
-		socket.emit("storeViewState", { viewState });
+	if (viewState) {
+		emit("storeViewState", { viewState });
 	}
-}
-
-function updateLastSeenChannels(channelInfo) {
-	store.dispatch(actions.lastSeenChannels.update(channelInfo));
-}
-
-function updateLastSeenUsers(userInfo) {
-	store.dispatch(actions.lastSeenUsers.update(userInfo));
 }
 
 export function addNewFriend(username, level) {
-	if (socket) {
-		socket.emit("addNewFriend", { username, level });
-	}
+	emit("addNewFriend", { username, level });
 }
 
 export function changeFriendLevel(username, level) {
-	if (socket) {
-		socket.emit("changeFriendLevel", { username, level });
-	}
+	emit("changeFriendLevel", { username, level });
 }
 
 export function removeFriend(username) {
-	if (socket) {
-		socket.emit("removeFriend", { username });
-	}
+	emit("removeFriend", { username });
 }
 
 export function setAppConfigValue(key, value) {
-	if (socket) {
-		socket.emit("setAppConfigValue", { key, value });
-	}
+	emit("setAppConfigValue", { key, value });
 }
 
 export function addIrcServer(name, data) {
-	if (socket) {
-		socket.emit("addIrcServer", { name, data });
-	}
+	emit("addIrcServer", { name, data });
 }
 
 export function changeIrcServer(name, data) {
-	if (socket) {
-		socket.emit("changeIrcServer", { name, data });
-	}
+	emit("changeIrcServer", { name, data });
 }
 
 export function removeIrcServer(name) {
-	if (socket) {
-		socket.emit("removeIrcServer", { name });
-	}
+	emit("removeIrcServer", { name });
 }
 
 export function addIrcChannel(serverName, name) {
-	if (socket) {
-		socket.emit("addIrcChannel", { serverName, name });
-	}
+	emit("addIrcChannel", { serverName, name });
 }
 
 export function removeIrcChannel(serverName, name) {
-	if (socket) {
-		socket.emit("removeIrcChannel", { serverName, name });
-	}
+	emit("removeIrcChannel", { serverName, name });
 }
 
 export function addNickname(nickname) {
-	if (socket) {
-		socket.emit("addNickname", { nickname });
-	}
+	emit("addNickname", { nickname });
 }
 
 export function changeNicknameValue(nickname, key, value) {
-	if (socket) {
-		socket.emit("changeNicknameValue", { nickname, key, value });
-	}
+	emit("changeNicknameValue", { nickname, key, value });
 }
 
 export function removeNickname(nickname) {
-	if (socket) {
-		socket.emit("removeNickname", { nickname });
-	}
+	emit("removeNickname", { nickname });
 }
 
 export function reconnectToIrcServer(name) {
-	if (socket) {
-		socket.emit("reconnectToIrcServer", { name });
-	}
+	emit("reconnectToIrcServer", { name });
+}
+
+export function clearUnseenHighlights() {
+	emit("clearUnseenHighlights");
 }
 
 export function initializeIo() {
@@ -263,6 +255,7 @@ export function initializeIo() {
 			console.log("Socket reconnected");
 			setGlobalConnectionStatus(STATUS.CONNECTED);
 			emitCurrentSubscriptions();
+			requestBaseDataReload();
 		});
 
 		socket.on("reconnect_attempt", () => {
@@ -327,12 +320,17 @@ export function initializeIo() {
 
 		socket.on("msg", onChatEvent);
 		socket.on("action", onChatEvent);
+		socket.on("notice", onChatEvent);
 		socket.on("join", onChatEvent);
 		socket.on("part", onChatEvent);
 		socket.on("quit", onChatEvent);
 		socket.on("kick", onChatEvent);
 		socket.on("kill", onChatEvent);
 		socket.on("events", onChatEvent);
+		socket.on("+mode", onChatEvent);
+		socket.on("-mode", onChatEvent);
+		socket.on("log", onChatEvent);
+		socket.on("connectionEvent", onChatEvent);
 
 		socket.on("channelUserList", (details) => {
 			if (details && details.channel && details.list) {
@@ -350,29 +348,32 @@ export function initializeIo() {
 				instances.forEach((details) => {
 					if (details.data) {
 						if (details.channel) {
-							const { username, time } = details.data;
-							channelUpdates[details.channel] = { username, time };
+							let { username, time, userDisplayName } = details.data;
+							channelUpdates[details.channel] =
+								{ username, time, userDisplayName };
 							channelsDirty = true;
 						}
 						else if (details.username) {
-							const { channel, time } = details.data;
-							userUpdates[details.username] = { channel, time };
+							let { channel, time, displayName } = details.data;
+							userUpdates[details.username] =
+								{ channel, time, displayName };
 							usersDirty = true;
 						}
 					}
 				});
 
 				if (channelsDirty) {
-					updateLastSeenChannels(channelUpdates);
+					store.dispatch(actions.lastSeenChannels.update(channelUpdates));
 				}
+
 				if (usersDirty) {
-					updateLastSeenUsers(userUpdates);
+					store.dispatch(actions.lastSeenUsers.update(userUpdates));
 				}
 			}
 		});
 
 		socket.on("connectionStatus", (details) => {
-			if (details && details.serverName && details.status) {
+			if (details && details.serverName) {
 				store.dispatch(actions.connectionStatus.update({
 					[details.serverName]: details.status
 				}));
@@ -380,62 +381,69 @@ export function initializeIo() {
 		});
 
 		socket.on("channelCache", (details) => {
-			if (details && details.channelUri && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.channelUri) {
 				store.dispatch(actions.channelCaches.update({
-					[details.channelUri]: details.cache
+					[details.channelUri]: cache
 				}));
 			}
 		});
 
 		socket.on("userCache", (details) => {
-			if (details && details.username && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.username) {
 				store.dispatch(actions.userCaches.update({
-					[details.username]: details.cache
+					[details.username]: cache
 				}));
 			}
 		});
 
 		socket.on("categoryCache", (details) => {
-			if (details && details.categoryName && details.cache) {
+			let cache = details && details.cache || [];
+			if (details && details.categoryName) {
 				store.dispatch(actions.categoryCaches.update({
-					[details.categoryName]: details.cache
+					[details.categoryName]: cache
 				}));
 			}
 		});
 
 		socket.on("channelLogDetails", (details) => {
 			if (details && details.channelUri && details.details) {
+				let subject = subjectName("channel", details.channelUri);
 				store.dispatch(actions.logDetails.update({
-					["channel:" + details.channelUri]: details.details
+					[subject]: details.details
 				}));
 			}
 		});
 
 		socket.on("userLogDetails", (details) => {
 			if (details && details.username && details.details) {
+				let subject = subjectName("user", details.username);
 				store.dispatch(actions.logDetails.update({
-					["user:" + details.username]: details.details
+					[subject]: details.details
 				}));
 			}
 		});
 
 		socket.on("channelLogFile", (details) => {
 			if (details && details.channelUri && details.file && details.time) {
-				store.dispatch(actions.logFiles.update({
-					["channel:" + details.channelUri]: {
-						[details.time]: details.file
-					}
-				}));
+				let subject = subjectName("channel", details.channelUri);
+				store.dispatch(actions.logFiles.update(
+					subject,
+					details.time,
+					details.file
+				));
 			}
 		});
 
 		socket.on("userLogFile", (details) => {
 			if (details && details.username && details.file && details.time) {
-				store.dispatch(actions.logFiles.update({
-					["user:" + details.username]: {
-						[details.time]: details.file
-					}
-				}));
+				let subject = subjectName("user", details.username);
+				store.dispatch(actions.logFiles.update(
+					subject,
+					details.time,
+					details.file
+				));
 			}
 		});
 
@@ -460,7 +468,22 @@ export function initializeIo() {
 			}
 		});
 
+		socket.on("systemInfo", (details) => {
+			if (details && details.key) {
+				store.dispatch(actions.systemInfo.update({
+					[details.key]: details.value
+				}));
+			}
+		});
+
 		// Data store refreshes
+
+		socket.on("appConfig", (details) => {
+			if (details && details.data) {
+				console.log("Received appConfig", details);
+				store.dispatch(actions.appConfig.update(details.data));
+			}
+		});
 
 		socket.on("friendsList", (details) => {
 			if (details && details.data) {
@@ -476,13 +499,6 @@ export function initializeIo() {
 			}
 		});
 
-		socket.on("appConfig", (details) => {
-			if (details && details.data) {
-				console.log("Received appConfig", details);
-				store.dispatch(actions.appConfig.update(details.data));
-			}
-		});
-
 		socket.on("nicknames", (details) => {
 			if (details && details.data) {
 				console.log("Received nicknames", details);
@@ -494,6 +510,13 @@ export function initializeIo() {
 			if (details && details.data) {
 				console.log("Received onlineFriends", details);
 				store.dispatch(actions.onlineFriends.set(details.data));
+			}
+		});
+
+		socket.on("viewState", (details) => {
+			if (details && details.data) {
+				console.log("Received viewState", details);
+				store.dispatch(actions.viewState.update(details.data));
 			}
 		});
 

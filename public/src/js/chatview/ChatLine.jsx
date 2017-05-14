@@ -1,134 +1,52 @@
-import React, { PureComponent, PropTypes } from "react";
-import { Link } from "react-router";
-import "intersection-observer";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
 import ChannelLink from "../components/ChannelLink.jsx";
 import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
+import ChatConnectionEventLine from "./ChatConnectionEventLine.jsx";
+import ChatContextView from "./ChatContextView.jsx";
 import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
-import ChatLines from "./ChatLines.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
+import LogLine from "./LogLine.jsx";
+import { getChannelDisplayNameFromState } from "../lib/channelNames";
+import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
-import { channelUrl } from "../lib/routeHelpers";
+
+const block = "line";
 
 class ChatLine extends PureComponent {
-	constructor(props) {
-		super(props);
-
-		this.toggleContext = this.toggleContext.bind(this);
-
-		this.state = {
-			afterObserver: null,
-			beforeObserver: null,
-			showContext: false
-		};
-	}
-
-	componentDidUpdate(prevProps, prevState) {
-		const { showContext } = this.state;
-		const { showContext: prevShowContext } = prevState;
-
-		if (!prevShowContext && showContext) {
-			this.initializeExpandedView();
-		}
-		else if (prevShowContext && !showContext) {
-			this.destroyExpandedView();
-		}
-	}
-
-	componentWillUnmount() {
-		this.destroyExpandedView();
-	}
-
-	initializeExpandedView() {
-
-		// TODO: Move expanded view to its own component to keep this simple
-
-		const { after: afterEl, afterEdge, before: beforeEl, beforeEdge } = this.refs;
-		const { afterObserver, beforeObserver } = this.state;
-
-		if (beforeEl) {
-			// Scroll to the bottom in the "before" view on initial render
-			// TODO: Same after image render?
-			beforeEl.scrollTop = beforeEl.children[0].offsetHeight;
-		}
-
-		if (!afterObserver && !beforeObserver) {
-			const createCallback = (el, prefix) => {
-				return (entries) => {
-					const entry = entries[0];
-					const { intersectionRatio } = entry;
-					const edgedClass = `${prefix}--edged`;
-					if (intersectionRatio >= 1) {
-						el.classList.add(edgedClass);
-					}
-					else {
-						el.classList.remove(edgedClass);
-					}
-				};
-			};
-
-			const beforeCallback = createCallback(beforeEl, "line__context-before");
-			const afterCallback = createCallback(afterEl, "line__context-after");
-
-			// Create intersection observer
-			const beforeObserver = new IntersectionObserver(
-				beforeCallback, { root: beforeEl }
-			);
-			const afterObserver = new IntersectionObserver(
-				afterCallback, { root: afterEl }
-			);
-
-			beforeObserver.observe(beforeEdge);
-			afterObserver.observe(afterEdge);
-
-			this.setState({ afterObserver, beforeObserver });
-		}
-	}
-
-	destroyExpandedView() {
-		// Destroy intersection observer
-		const { afterObserver, beforeObserver } = this.state;
-
-		if (afterObserver) {
-			afterObserver.disconnect();
-		}
-
-		if (beforeObserver) {
-			beforeObserver.disconnect();
-		}
-
-		this.setState({ afterObserver: null, beforeObserver: null });
-	}
-
-	toggleContext() {
-		this.setState({ showContext: !this.state.showContext });
-	}
-
 	render() {
 		const {
-			channel,
-			contextMessages,
-			displayChannel,
 			displayContextLink = false,
-			displayUsername,
+			...contextProps
+		} = this.props;
+
+		const {
+			channel,
+			channelDisplayName,
+			displayChannel,
 			highlight,
 			lineId,
 			time,
 			type
 		} = this.props;
 
-		const { showContext } = this.state;
+		if (displayContextLink) {
+			// Display a context view instead
+			return <ChatContextView {...contextProps} key="content" />;
+		}
 
 		const d = new Date(time);
 		const timestamp = timeStamp(d);
 		const datestamp = dateStamp(d);
 
 		const isHighlight = !!(highlight && highlight.length);
-		const className = "line" +
-			(isHighlight ? " line--highlight" : "") +
-			(showContext ? " line--with-context": "") +
-			(type === "notice" ? " line--notice" : "");
+		const className = block +
+			(isHighlight ? ` ${block}--highlight` : "") +
+			(type === "notice" ? ` ${block}--notice` : "") +
+			(type === "connectionEvent" ? ` ${block}--connection` : "");
 
 		var content = null;
 
@@ -148,91 +66,48 @@ class ChatLine extends PureComponent {
 				content = <ChatUserEventLine {...this.props} key="content" />;
 				break;
 			case "events":
-				content = <ChatBunchedEventsLine {...this.props} key="content" />;
+				var { collapseJoinParts, ...bunchedProps } = this.props;
+				var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
+				if (
+					calculated &&
+					(calculated.joins.length || calculated.parts.length)
+				) {
+					content = <ChatBunchedEventsLine
+						{...this.props}
+						{...calculated}
+						key="content" />;
+				}
+				break;
+			case "log":
+				content = <LogLine {...this.props} key="content" />;
+				break;
+			case "connectionEvent":
+				content = <ChatConnectionEventLine {...this.props} key="content" />;
+				break;
+			default:
+				content = (
+					<em key="placeholder">
+						no template for `{ type }` event
+					</em>
+				);
 				break;
 		}
 
 		if (!content) {
-			content = <em>{ `no template for \`${type}\` event` }</em>;
+			return null;
 		}
 
-		var channelEl = null, contextLinkEl = null;
+		var channelEl = null;
 
-		if (displayChannel) {
+		if (displayChannel && channel) {
 			channelEl = (
-				<span className="line__channel" key="channel">
-					<ChannelLink channel={channel} key={channel} />
+				<span className={`${block}__channel`} key="channel">
+					<ChannelLink
+						channel={channel}
+						displayName={channelDisplayName}
+						key={channel} />
 					{" "}
 				</span>
-			);
-		}
-
-		if (displayContextLink) {
-			contextLinkEl = (
-				<a className="line__context"
-					href="javascript://"
-					onClick={this.toggleContext}
-					key="showContext">
-					Context
-				</a>
-			);
-		}
-
-		// Render context
-		var contextBefore = null, contextAfter = null, header = null;
-
-		if (showContext && contextMessages) {
-			const before = [], after = [];
-			contextMessages.forEach((msg) => {
-				if (msg) {
-					if (msg.time <= time) {
-						before.push(msg);
-					}
-					else {
-						after.push(msg);
-					}
-				}
-			});
-
-			header = (
-				<div className="line__header" key="header">
-					<strong>Expanded view</strong>
-					<span className="line__context">
-						<Link to={`${channelUrl(channel)}#line-${lineId}`}
-							key="showFullContext">
-							Full context
-						</Link>{" "}
-						<a href="javascript://"
-							onClick={this.toggleContext}
-							key="closeContext">
-							Close
-						</a>
-					</span>
-				</div>
-			);
-
-			contextLinkEl = null;
-
-			contextBefore = (
-				<div className="line__context-before line__context-before--edged" ref="before" key="before">
-					<ChatLines
-						messages={before}
-						displayChannel={displayChannel}
-						displayUsername={displayUsername}
-						displayFirstDate={false} />
-					<div key="before-edge" ref="beforeEdge" />
-				</div>
-			);
-
-			contextAfter = (
-				<div className="line__context-after line__context-after--edged" ref="after" key="after">
-					<div key="after-edge" ref="afterEdge" />
-					<ChatLines
-						messages={after}
-						displayChannel={displayChannel}
-						displayUsername={displayUsername}
-						displayFirstDate={false} />
-				</div>
 			);
 		}
 
@@ -246,14 +121,10 @@ class ChatLine extends PureComponent {
 		);
 
 		const outerContent = [
-			header,
-			contextBefore,
-			contextLinkEl,
 			channelEl,
 			timeStampEl,
 			" ",
-			content,
-			contextAfter
+			content
 		];
 
 		const itemProps = {
@@ -277,7 +148,9 @@ ChatLine.propTypes = {
 	argument: PropTypes.string,
 	by: PropTypes.string,
 	channel: PropTypes.string,
+	channelDisplayName: PropTypes.string,
 	channelName: PropTypes.string,
+	collapseJoinParts: PropTypes.bool,
 	color: PropTypes.number,
 	contextMessages: PropTypes.array,
 	displayChannel: PropTypes.bool,
@@ -289,6 +162,7 @@ ChatLine.propTypes = {
 	message: PropTypes.string,
 	mode: PropTypes.string,
 	observer: PropTypes.object,
+	onEmoteLoad: PropTypes.func,
 	reason: PropTypes.string,
 	server: PropTypes.string,
 	symbol: PropTypes.string,
@@ -298,4 +172,11 @@ ChatLine.propTypes = {
 	username: PropTypes.string
 };
 
-export default ChatLine;
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
+
+	return { channelDisplayName };
+};
+
+export default connect(mapStateToProps)(ChatLine);

@@ -8,6 +8,7 @@ const path   = require("path");
 const lazy   = require("lazy");
 const async  = require("async");
 const lodash = require("lodash");
+const getFolderSize = require("get-folder-size");
 
 const constants = require("./constants");
 const util = require("./util");
@@ -22,6 +23,10 @@ const lastSeenChannelsFileName = path.join(
 const lastSeenUsersFileName = path.join(
 	__dirname, "..", "data", "lastSeenUsers.json"
 );
+
+const pathChannelUri = function(channelUri) {
+	return channelUri.replace(/\//g, path.sep);
+};
 
 const standardWritingCallback = function(err){
 	if (err) {
@@ -218,7 +223,28 @@ const lineFormats = {
 				(reason ? " (" + reason + ")" : "");
 		},
 		parse: eventWithReasonLogParser("was killed")
-	}
+	},
+
+	connectionEvent: {
+		build: (status, server) => {
+			var by = "by";
+			if (status === "connected") { by = "to"; }
+			if (status === "disconnected") { by = "from"; }
+
+			return `*** ${status} ${by} ${server}`;
+		},
+		parse: (line) => {
+			var match = line.match(/^\*\*\*\s*([^\s\*]+)\s+(by|to|from)\s+([^\s\*]+)$/);
+			if (match) {
+				return {
+					status: match[1],
+					server: match[3]
+				};
+			}
+
+			return null;
+		}
+	},
 };
 
 const lineTypes = Object.keys(lineFormats);
@@ -254,6 +280,11 @@ const getLogLineFromData = function(type, data) {
 				const t = type === "+mode" ? "addMode" : "removeMode";
 				return lineFormats[t].build(
 					data.symbol, data.username, data.mode, data.argument
+				);
+
+			case "connectionEvent":
+				return lineFormats.connectionEvent.build(
+					data.status, data.server
 				);
 		}
 	}
@@ -545,7 +576,9 @@ const logChannelLine = function(channelUri, channelName, line, d) {
 		console.log(channelPrefix(line, channelName));
 	}
 
-	const dirName = path.join(constants.LOG_ROOT, channelUri, util.ym(d));
+	const dirName = path.join(
+		constants.LOG_ROOT, pathChannelUri(channelUri), util.ym(d)
+	);
 
 	logLine(line, dirName, util.ymd(d));
 };
@@ -590,24 +623,36 @@ const writeLastSeenUsers = function(data, callback) {
 	writeLastSeen(lastSeenUsersFileName, data, callback);
 };
 
+// System info
+
+const getDatabaseSize = function(callback) {
+	return getFolderSize(constants.DATA_ROOT, callback);
+};
+
+const getLogFolderSize = function(callback) {
+	return getFolderSize(constants.LOG_ROOT, callback);
+};
+
 module.exports = {
-	getLastLinesFromUser,
+	getChannelLogDetails,
 	getChatroomLinesForDay,
+	getDatabaseSize,
+	getLastLinesFromUser,
+	getLogFolderSize,
+	getLogLineFromData,
 	getUserLinesForMonth,
+	getUserLogDetails,
+	lineFormats,
+	loadLastSeenChannels,
+	loadLastSeenInfo,
+	loadLastSeenUsers,
+	logCategoryLine,
+	logChannelLine,
 	parseLogLine,
 	pathHasAnyLogs,
 	pathHasLogsForDay,
 	pathHasLogsForToday,
 	pathHasLogsForYesterday,
-	getChannelLogDetails,
-	getUserLogDetails,
-	getLogLineFromData,
-	lineFormats,
-	loadLastSeenInfo,
-	loadLastSeenChannels,
-	loadLastSeenUsers,
-	logChannelLine,
-	logCategoryLine,
 	writeLastSeen,
 	writeLastSeenChannels,
 	writeLastSeenUsers

@@ -5,6 +5,7 @@ import categoryCaches from "./categoryCaches";
 import channelCaches from "./channelCaches";
 import channelUserLists from "./channelUserLists";
 import connectionStatus from "./connectionStatus";
+import deviceState from "./deviceState";
 import friendsList from "./friendsList";
 import ircConfigs from "./ircConfigs";
 import lastSeenChannels from "./lastSeenChannels";
@@ -15,6 +16,7 @@ import logFiles from "./logFiles";
 import multiServerChannels from "./multiServerChannels";
 import nicknames from "./nicknames";
 import onlineFriends from "./onlineFriends";
+import systemInfo from "./systemInfo";
 import token from "./token";
 import unseenHighlights from "./unseenHighlights";
 import userCaches from "./userCaches";
@@ -26,6 +28,7 @@ export default combineReducers({
 	channelCaches,
 	channelUserLists,
 	connectionStatus,
+	deviceState,
 	friendsList,
 	ircConfigs,
 	lastSeenChannels,
@@ -36,6 +39,7 @@ export default combineReducers({
 	multiServerChannels,
 	nicknames,
 	onlineFriends,
+	systemInfo,
 	token,
 	unseenHighlights,
 	userCaches,

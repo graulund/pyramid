@@ -3,6 +3,7 @@
 
 // Prerequisites
 
+const async = require("async");
 const lodash = require("lodash");
 const socketIo = require("socket.io");
 
@@ -53,8 +54,8 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelLogDetails = function(socket, channelUri) {
-		main.getChannelLogDetails(channelUri, (err, details) => {
+	const emitChannelLogDetails = function(socket, channelUri, time) {
+		main.getChannelLogDetails(channelUri, time, (err, details) => {
 			if (!err) {
 				socket.emit("channelLogDetails", {
 					channelUri,
@@ -64,8 +65,8 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitUserLogDetails = function(socket, username) {
-		main.getUserLogDetails(username, (err, details) => {
+	const emitUserLogDetails = function(socket, username, time) {
+		main.getUserLogDetails(username, time, (err, details) => {
 			if (!err) {
 				socket.emit("userLogDetails", {
 					username,
@@ -82,10 +83,12 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelLogFile = function(socket, channelUri, time) {
+	const emitChannelLogFile = function(socket, channelUri, time, pageNumber) {
 		const ymd = util.ymd(time);
+		pageNumber = +pageNumber || 1;
 		if (ymd) {
-			main.getDateLinesForChannel(channelUri, ymd, (err, file) => {
+			const options = { pageNumber };
+			main.getDateLinesForChannel(channelUri, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("channelLogFile", {
 						channelUri,
@@ -97,10 +100,12 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitUserLogFile = function(socket, username, time) {
+	const emitUserLogFile = function(socket, username, time, pageNumber) {
 		const ymd = util.ymd(time);
+		pageNumber = +pageNumber || 1;
 		if (ymd) {
-			main.getDateLinesForUsername(username, ymd, (err, file) => {
+			const options = { pageNumber };
+			main.getDateLinesForUsername(username, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("userLogFile", {
 						file,
@@ -112,14 +117,6 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitFriendsList = function(socket) {
-		main.loadFriendsList((err, data) => {
-			if (!err) {
-				socket.emit("friendsList", { data });
-			}
-		});
-	};
-
 	const emitAppConfig = function(socket) {
 		main.loadAppConfig((err, data) => {
 			if (!err) {
@@ -129,7 +126,16 @@ module.exports = function(main) {
 		});
 	};
 
+	const emitFriendsList = function(socket) {
+		main.loadFriendsList((err, data) => {
+			if (!err) {
+				socket.emit("friendsList", { data });
+			}
+		});
+	};
+
 	const emitIrcConfig = function(socket, callback) {
+		socket = socket || io;
 		main.loadIrcConfig((err, data) => {
 			if (!err) {
 				data = main.safeIrcConfigDict(data);
@@ -140,6 +146,37 @@ module.exports = function(main) {
 				callback(err, data);
 			}
 		});
+	};
+
+	const emitIrcConnectionStatusAll = function(socket) {
+		const state = main.currentIrcConnectionState();
+		lodash.forOwn(state, (status, serverName) => {
+			emitIrcConnectionStatus(serverName, status, socket);
+		});
+	};
+
+	const emitLastSeen = function(socket) {
+		async.parallel(
+			[
+				main.loadLastSeenUsers,
+				main.loadLastSeenChannels
+			],
+			(err, results) => {
+				if (!err) {
+					const [ users = {}, channels = {} ] = results;
+					const instances = [];
+
+					lodash.forOwn(users, (data, username) => {
+						instances.push({ username, data });
+					});
+					lodash.forOwn(channels, (data, channel) => {
+						instances.push({ channel, data });
+					});
+
+					socket.emit("lastSeen", instances);
+				}
+			}
+		);
 	};
 
 	const emitNicknames = function(socket) {
@@ -188,9 +225,7 @@ module.exports = function(main) {
 	};
 
 	const emitUnseenHighlights = function(socket) {
-		if (!socket) {
-			socket = io;
-		}
+		socket = socket || io;
 		if (socket) {
 			socket.emit(
 				"unseenHighlights",
@@ -200,9 +235,7 @@ module.exports = function(main) {
 	};
 
 	const emitNewHighlight = function(socket, message) {
-		if (!socket) {
-			socket = io;
-		}
+		socket = socket || io;
 		if (socket) {
 			socket.emit(
 				"newHighlight",
@@ -227,20 +260,49 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitIrcConnectionStatus = function(serverName, status) {
-		if (io) {
-			io.emit("connectionStatus", {
+	const emitIrcConnectionStatus = function(serverName, status, socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("connectionStatus", {
 				serverName,
 				status
 			});
 		}
 	};
 
-	const emitOnlineFriends = function() {
-		if (io) {
-			io.emit("onlineFriends", {
+	const emitOnlineFriends = function(socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("onlineFriends", {
 				data: main.currentOnlineFriends()
 			});
+		}
+	};
+
+	const emitViewState = function(socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit("viewState", {
+				data: main.currentViewState()
+			});
+		}
+	};
+
+	const emitBaseData = function(socket) {
+		emitAppConfig(socket);
+		emitFriendsList(socket);
+		emitIrcConfig(socket);
+		emitIrcConnectionStatusAll(socket);
+		emitLastSeen(socket);
+		emitNicknames(socket);
+		emitOnlineFriends(socket);
+		emitUnseenHighlights(socket);
+		emitViewState(socket);
+	};
+
+	const emitSystemInfo = function(socket, key, value) {
+		if (socket) {
+			socket.emit("systemInfo", { key, value });
 		}
 	};
 
@@ -253,18 +315,18 @@ module.exports = function(main) {
 		io.on("connection", (socket) => {
 			var connectionToken = null;
 
+			socket.on("disconnect", () => {
+				main.removeRecipientEverywhere(socket);
+			});
+
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
 
 					const isAccepted = util.isAnAcceptedToken(connectionToken);
 					emitTokenStatus(socket, isAccepted);
-
-					if (isAccepted) {
-						emitUnseenHighlights(socket);
-					}
 				}
-			})
+			});
 
 			// Respond to requests for cache
 
@@ -326,14 +388,14 @@ module.exports = function(main) {
 			socket.on("requestUserLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
-					emitUserLogDetails(socket, details.username);
+					emitUserLogDetails(socket, details.username, details.time);
 				}
 			});
 
 			socket.on("requestChannelLogDetails", (details) => {
 				if (!util.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.channelUri === "string") {
-					emitChannelLogDetails(socket, details.channelUri);
+					emitChannelLogDetails(socket, details.channelUri, details.time);
 				}
 			});
 
@@ -344,7 +406,9 @@ module.exports = function(main) {
 					typeof details.username === "string" &&
 					typeof details.time === "string"
 				) {
-					emitUserLogFile(socket, details.username, details.time);
+					emitUserLogFile(
+						socket, details.username, details.time, details.pageNumber
+					);
 				}
 			});
 
@@ -355,7 +419,9 @@ module.exports = function(main) {
 					typeof details.channelUri === "string" &&
 					typeof details.time === "string"
 				) {
-					emitChannelLogFile(socket, details.channelUri, details.time);
+					emitChannelLogFile(
+						socket, details.channelUri, details.time, details.pageNumber
+					);
 				}
 			});
 
@@ -366,6 +432,11 @@ module.exports = function(main) {
 				if (details && typeof details.messageId === "string") {
 					main.reportHighlightAsSeen(details.messageId);
 				}
+			});
+
+			socket.on("clearUnseenHighlights", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				main.clearUnseenHighlights();
 			});
 
 			// Storing view state
@@ -403,6 +474,13 @@ module.exports = function(main) {
 				) {
 					emitLineInfo(socket, details.lineId);
 				}
+			});
+
+			// Requesting base data
+
+			socket.on("reloadBaseData", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				emitBaseData(socket);
 			});
 
 			// Storing settings
@@ -520,7 +598,13 @@ module.exports = function(main) {
 								console.warn("Error occurred changing irc server", err);
 							}
 							else {
-								emitIrcConfig(socket);
+								emitIrcConfig(
+									socket,
+									() => {
+										main.disconnectAndRemoveIrcServer(name);
+										main.connectUnconnectedIrcs();
+									}
+								);
 							}
 						}
 					);
@@ -539,8 +623,10 @@ module.exports = function(main) {
 								console.warn("Error occurred removing irc server", err);
 							}
 							else {
-								main.disconnectIrcServer(details.name);
-								emitIrcConfig(socket);
+								emitIrcConfig(
+									socket,
+									() => main.disconnectAndRemoveIrcServer(name)
+								);
 							}
 						}
 					);
@@ -554,7 +640,7 @@ module.exports = function(main) {
 					const name = util.formatUriName(details.name);
 
 					main.addChannelToIrcConfig(
-						serverName, name,
+						serverName, name, {},
 						(err) => {
 							main.joinIrcChannel(serverName, name);
 							emitIrcConfig(socket);
@@ -647,6 +733,20 @@ module.exports = function(main) {
 					main.reconnectIrcServer(name);
 				}
 			});
+
+			socket.on("requestSystemInfo", () => {
+				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				log.getDatabaseSize((err, size) => {
+					if (!err) {
+						emitSystemInfo(socket, "databaseSize", size);
+					}
+				});
+				log.getLogFolderSize((err, size) => {
+					if (!err) {
+						emitSystemInfo(socket, "logFolderSize", size);
+					}
+				});
+			});
 		});
 	};
 
@@ -671,6 +771,7 @@ module.exports = function(main) {
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
 		emitEventToChannel,
+		emitIrcConfig,
 		emitIrcConnectionStatus,
 		emitMessageToRecipients,
 		emitNewHighlight,

@@ -1,6 +1,7 @@
 module.exports = {
 	"env": {
-		"browser": true
+		"browser": true,
+		"es6": true
 	},
 	"extends": ["eslint:recommended", "plugin:react/recommended"],
 	"parser": "babel-eslint",
@@ -21,6 +22,7 @@ module.exports = {
 		"no-console": 0,
 		"no-tabs": 0,
 		"quotes": [2, "double"],
+		"react/jsx-no-bind": 2,
 		"semi": [2, "always"],
 		"spaced-comment": 0
 	}

@@ -1,13 +1,14 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 
 import UserLink from "../components/UserLink.jsx";
 import { humanDateStamp, timeStamp } from "../lib/formatting";
+import { combinedDisplayName } from "../lib/pageTitles";
 
-const PART_EVENT_TYPES = ["part", "quit", "kick", "kill"];
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;
 
-class ChatUserEventLine extends PureComponent {
+class ChatBunchedEventsLine extends PureComponent {
 	constructor(props) {
 		super(props);
 
@@ -27,77 +28,74 @@ class ChatUserEventLine extends PureComponent {
 
 	render() {
 
-		const { events } = this.props;
+		const {
+			eventOrder = [],
+			joinCount,
+			joins = [],
+			overloaded,
+			partCount,
+			parts = []
+		} = this.props;
+
+		var {
+			earliestTime,
+			latestTime,
+		} = this.props;
+
 		const { expanded } = this.state;
-
-		var joins = [], parts = [], eventOrder = [], earliestTime, latestTime;
-
-		events.forEach((event) => {
-			if (event) {
-				const eventName = event.type === "join" ? "join" : "part";
-				if (event.type === "join") {
-					joins.push(event.username);
-				}
-				else if (PART_EVENT_TYPES.indexOf(event.type) >= 0) {
-					parts.push(event.username);
-				}
-				else {
-					return;
-				}
-
-				if (eventOrder.indexOf(eventName) < 0) {
-					eventOrder.push(eventName);
-				}
-
-				if (!earliestTime || event.time < earliestTime) {
-					earliestTime = event.time;
-				}
-
-				if (!latestTime || event.time > latestTime) {
-					latestTime = event.time;
-				}
-			}
-		});
 
 		this.expandable = joins.length > MAX_USERNAMES || parts.length > MAX_USERNAMES;
 
 		var content = [];
 
 		eventOrder.forEach((category) => {
-			var usernames, eventname;
+			var users, eventname, count;
 			if (category === "join") {
 				eventname = "joined";
-				usernames = joins;
+				users = joins;
+				count = overloaded ? joinCount : joins.length;
 			}
 			else if (category === "part") {
 				eventname = "left";
-				usernames = parts;
+				users = parts;
+				count = overloaded ? partCount : parts.length;
 			}
-			if (eventname && usernames && usernames.length) {
+			if (eventname && users && users.length) {
 
 				if (content.length) {
 					content.push(", ");
 				}
 
-				if (usernames.length > MAX_USERNAMES && !expanded) {
+				if (users.length > MAX_USERNAMES && !expanded) {
+					let usernames = users.map(
+						({ displayName, username }) =>
+							combinedDisplayName(username, displayName)
+					);
+
 					content.push(
 						<strong title={usernames.join(", ")} key={category}>
-							{ `${usernames.length} people` }
+							{ count } people
 						</strong>
 					);
 				}
 				else {
-					const length = usernames.length;
-					usernames.forEach((username, index) => {
+					const length = users.length;
+					users.forEach((user, index) => {
+						let { displayName, username } = user;
+
 						if (index > 0 && index === length - 1) {
 							content.push(" and ");
 						}
 						else if (index > 0) {
 							content.push(", ");
 						}
+
 						content.push(
 							<strong key={`${category}-${index}`}>
-								<UserLink userName={username} key={username} />
+								<UserLink
+									userName={username}
+									displayName={displayName}
+									key={username} />
 							</strong>
 						);
 					});
@@ -106,6 +104,10 @@ class ChatUserEventLine extends PureComponent {
 				content.push(" " + eventname);
 			}
 		});
+
+		if (!content.length) {
+			return null;
+		}
 
 		// Time difference
 
@@ -151,18 +153,27 @@ class ChatUserEventLine extends PureComponent {
 	}
 }
 
-ChatUserEventLine.propTypes = {
+ChatBunchedEventsLine.propTypes = {
 	argument: PropTypes.string,
 	by: PropTypes.string,
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
-	events: PropTypes.array,
+	collapseJoinParts: PropTypes.bool,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	earliestTime: PropTypes.string,
+	eventOrder: PropTypes.array,
+	events: PropTypes.array,
 	highlight: PropTypes.array,
+	joinCount: PropTypes.number,
+	joins: PropTypes.array,
+	latestTime: PropTypes.string,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
 	mode: PropTypes.string,
+	overloaded: PropTypes.bool,
+	partCount: PropTypes.number,
+	parts: PropTypes.array,
 	reason: PropTypes.string,
 	server: PropTypes.string,
 	time: PropTypes.string,
@@ -170,4 +181,4 @@ ChatUserEventLine.propTypes = {
 	username: PropTypes.string
 };
 
-export default ChatUserEventLine;
+export default ChatBunchedEventsLine;

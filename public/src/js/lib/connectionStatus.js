@@ -4,6 +4,7 @@ import store from "../store";
 export const GLOBAL_CONNECTION = "_global";
 
 export const STATUS = {
+	ABORTED: "aborted",
 	CONNECTED: "connected",
 	DISCONNECTED: "disconnected",
 	FAILED: "failed",

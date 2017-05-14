@@ -18,9 +18,13 @@ module.exports = function(main) {
 					throw err;
 				}
 
+				const appConfig = main.safeAppConfig(
+					lodash.assign({}, configDefaults, results.appConfig)
+				);
+
 				res.render("index", {
 					// Variables
-					appConfig: lodash.assign({}, configDefaults, results.appConfig),
+					appConfig,
 					friendsList: main.currentFriendsList(),
 					ircConfig: main.safeIrcConfigDict(results.ircConfig),
 					ircConnectionState: main.currentIrcConnectionState(),
@@ -29,6 +33,7 @@ module.exports = function(main) {
 					nicknames: main.nicknamesDict(),
 					onlineFriends: main.currentOnlineFriends(),
 					token: routeUtils.getUsedToken(req),
+					unseenHighlights: Array.from(main.unseenHighlightIds()),
 					viewState: main.currentViewState(),
 					// Template-related
 					enableScripts: true,

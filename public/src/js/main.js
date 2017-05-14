@@ -1,26 +1,40 @@
+/*eslint no-undef: 0*/
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { Router, Route, IndexRoute, browserHistory } from "react-router";
+import { Router, Route, Switch } from "react-router-dom";
+import { createBrowserHistory } from "history";
 
 import App from "./components/App.jsx";
-import ChatView from "./chatview/ChatView.jsx";
-import NoChatView from "./components/NoChatView.jsx";
+import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
+import NoChatView from "./chatview/NoChatView.jsx";
 import SettingsView from "./settingsview/SettingsView.jsx";
 
-import store from "./store";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
+import setUpPageTitles from "./lib/pageTitles";
 import * as routes from "./lib/routeHelpers";
+import store from "./store";
+import { initVisualBehavior, isMobile } from "./lib/visualBehavior";
 
 import "../scss/site.scss";
 
-// Temp
-window.store = store;
+if (__DEV__) {
+	window.Perf = require("react-addons-perf");
+	/** /
+	const { whyDidYouUpdate } = require("why-did-you-update");
+	whyDidYouUpdate(React);
+	/**/
+}
+
+const history = createBrowserHistory();
+setUpPageTitles(history);
 
 // Data store
 
-var currentViewState = { sidebarVisible: location.pathname === "/" };
+var currentViewState = {
+	sidebarVisible: location.pathname === "/" || !isMobile()
+};
 
 if (window.pyramid_viewState) {
 	currentViewState = { ...currentViewState, ...window.pyramid_viewState };
@@ -65,43 +79,66 @@ if (window.pyramid_onlineFriends) {
 	store.dispatch(actions.onlineFriends.set(window.pyramid_onlineFriends));
 }
 
+if (window.pyramid_unseenHighlights) {
+	store.dispatch(actions.unseenHighlights.set(window.pyramid_unseenHighlights));
+}
+
 // Sockets
 
 initializeIo();
 
 // View
 
+initVisualBehavior();
+
 const main = document.querySelector("main");
 
 if (main) {
 	render(
 		<Provider store={store}>
-			<Router history={browserHistory}>
-				<Route path={routes.homeUrl} component={App}>
-					<IndexRoute component={NoChatView} />
-					<Route
-						path={routes.userUrl(":userName")}
-						component={ChatView} />
-					<Route
-						path={routes.channelUrl(":serverName/:channelName")}
-						component={ChatView} />
-					<Route
-						path={routes.userUrl(":userName", ":logDate")}
-						component={ChatView} />
-					<Route
-						path={routes.channelUrl(":serverName/:channelName", ":logDate")}
-						component={ChatView} />
-					<Route
-						path={routes.settingsPattern}
-						component={SettingsView}
-						/>
-					<Route
-						path={routes.categoryUrl(":categoryName")}
-						component={ChatView} />
-					<Route
-						path="*"
-						component={NoChatView} />
-				</Route>
+			<Router history={history}>
+				<App>
+					<Switch>
+						<Route exact path={routes.homeUrl} component={NoChatView} />
+						<Route
+							path={routes.channelUrl(
+								":serverName/:channelName", ":logDate"
+							) + "/page/:pageNumber"}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.channelUrl(
+								":serverName/:channelName", ":logDate"
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.channelUrl(
+								":serverName/:channelName"
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(
+								":userName", ":logDate"
+							) + "/page/:pageNumber"}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(
+								":userName", ":logDate"
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.userUrl(":userName")}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.settingsPattern}
+							component={SettingsView} />
+						<Route
+							path={routes.categoryUrl(":categoryName")}
+							component={ChatViewWrapper} />
+						<Route
+							path="*"
+							component={NoChatView} />
+					</Switch>
+				</App>
 			</Router>
 		</Provider>,
 		main

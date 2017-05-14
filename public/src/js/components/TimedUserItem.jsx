@@ -1,18 +1,30 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChannelLink from "./ChannelLink.jsx";
 import TimedItem from "./TimedItem.jsx";
 import UserLink from "./UserLink.jsx";
 import { RELATIONSHIP_BEST_FRIEND } from "../constants";
+import { getChannelDisplayNameFromState } from "../lib/channelNames";
 
 class TimedUserItem extends PureComponent {
 
 	render() {
 		const {
-			contextChannel, displayOnline = false, friendsList = {},
-			onlineFriends = [], skipOld = true, symbol = "",
-			userData, userName
+			channel,
+			channelDisplayName,
+			channelName,
+			contextChannel,
+			displayName,
+			displayOnline = false,
+			friendsList = {},
+			onlineFriends = [],
+			skipOld = true,
+			symbol = "",
+			time,
+			userName,
+			visible
 		} = this.props;
 
 		var classNames = [];
@@ -31,20 +43,27 @@ class TimedUserItem extends PureComponent {
 		var className = classNames.join(" ");
 
 		const prefix = (
-			<strong>{ symbol }<UserLink userName={userName} key={userName} /></strong>
+			<strong>
+				{ symbol }
+				<UserLink
+					userName={userName}
+					displayName={displayName}
+					key={userName} />
+			</strong>
 		);
 
 		var suffix = null;
 
-		if (userData) {
-			const channelEl = contextChannel === userData.channel
+		if (channel) {
+			const channelEl = contextChannel === channel
 				? "here"
 				: [
 					"in ",
 					<ChannelLink
-						channel={userData.channel}
-						channelName={userData.channelName}
-						key={userData.channel}
+						channel={channel}
+						channelName={channelName}
+						displayName={channelDisplayName}
+						key={channel}
 						/>
 				];
 
@@ -53,30 +72,43 @@ class TimedUserItem extends PureComponent {
 
 		return <TimedItem
 				className={className}
-				time={userData && userData.time}
+				time={time}
 				prefix={prefix}
 				suffix={suffix}
 				skipOld={skipOld}
+				visible={visible}
 				key="main"
 				/>;
 	}
 }
 
 TimedUserItem.propTypes = {
+	channel: PropTypes.string,
+	channelDisplayName: PropTypes.string,
+	channelName: PropTypes.string,
 	contextChannel: PropTypes.string,
+	displayName: PropTypes.string,
 	displayOnline: PropTypes.bool,
 	friendsList: PropTypes.object,
 	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
-	userData: PropTypes.object,
-	userName: PropTypes.string
+	time: PropTypes.string,
+	userName: PropTypes.string,
+	visible: PropTypes.bool
 };
 
-export default connect(({
-	friendsList,
-	onlineFriends
-}) => ({
-	friendsList,
-	onlineFriends
-}))(TimedUserItem);
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let { friendsList, onlineFriends } = state;
+
+	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
+
+	return {
+		channelDisplayName,
+		friendsList,
+		onlineFriends
+	};
+};
+
+export default connect(mapStateToProps)(TimedUserItem);

@@ -10,6 +10,7 @@ const util = require("../server/util");
 
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
+const CHATDEPOT_BASE_URI = "https://chatdepot.twitch.tv/";
 const EMOTE_PREFIX_REGEX = "(\\s|^)";
 const EMOTE_SUFFIX_REGEX = "(\\s|$)";
 const USER_STATE_MESSAGE_FIELDS = [
@@ -38,6 +39,9 @@ var globalUserStates = {};
 
 var externalGlobalEmotes = [];
 var externalChannelEmotes = {};
+
+var log = console.log;
+var warn = console.warn;
 
 // Utility methods ----------------------------------------------------------------------
 
@@ -235,8 +239,18 @@ const krakenGetRequest = function(commandName, query, callback) {
 	);
 };
 
+const chatdepotGetRequest = function(commandName, password, query, callback) {
+	const oauthId = password.replace(/^oauth:/, "");
+	const queryString = qs.stringify(lodash.extend({ oauth_token: oauthId }, query));
+	return request(
+		CHATDEPOT_BASE_URI + commandName +
+		"?" + queryString,
+		callback
+	);
+};
+
 const requestEmoticonImages = function(emotesets) {
-	console.log(`Requesting emoticon images for ${emotesets}`);
+	log(`Requesting emoticon images for ${emotesets}`);
 	krakenGetRequest(
 		"chat/emoticon_images",
 		{ emotesets },
@@ -246,7 +260,7 @@ const requestEmoticonImages = function(emotesets) {
 				emoticonImages[emotesets] =
 					flattenEmoticonImagesData(data);
 
-				console.log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
+				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 			catch(e) {
 				console.warn("Error occurred trying to request emoticon images from the Twitch API.");
@@ -266,7 +280,7 @@ const requestEmoticonImagesIfNeeded = function(emotesets) {
 };
 
 const reloadEmoticonImages = function() {
-	console.log("Reloading emoticon images...");
+	log("Reloading emoticon images...");
 	const queries = Object.keys(emoticonImages);
 	queries.forEach((emotesets) => {
 		requestEmoticonImages(emotesets);
@@ -341,7 +355,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 								externalGlobalEmotes = storeExternalEmotes(
 									type, externalGlobalEmotes, data.sets[setId].emoticons
 								);
-								console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+								log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 							}
 						})
 					}
@@ -350,7 +364,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 						externalGlobalEmotes = storeExternalEmotes(
 							type, externalGlobalEmotes, data.emotes
 						);
-						console.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+						log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 					}
 				}
 				catch(e) {
@@ -406,7 +420,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								);
 							});
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 						else if (data.emotes) {
 							// BTTV
@@ -414,12 +428,12 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 								type, externalChannelEmotes[channel], data.emotes
 							);
 
-							console.log(`There are now ${externalChannelEmotes[channel].length} external emotes for channel ${channelName} aka ${channel} (after ${type})`);
+							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 						}
 					}
 					catch(e) {
 						console.warn(
-							`Error occurred trying to get external emoticons for channel ${channelName} aka ${channel} (${type})`,
+							`Error occurred trying to get external emoticons for ${channel} (${type})`,
 							e
 						);
 					}
@@ -429,7 +443,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 	}
 };
 
-const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
+const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 	const enabledTypes = [];
 
 	if (ffzEnabled) {
@@ -443,9 +457,51 @@ const getEnabledExternalEmoticonTypes = (ffzEnabled, bttvEnabled) => {
 	return enabledTypes;
 };
 
+const requestGroupChatInfo = function(client, callback) {
+	const serverName = client.extConfig.name;
+	chatdepotGetRequest(
+		"room_memberships",
+		client.extConfig.password,
+		{},
+		function(error, response, body) {
+			if (!error && response.statusCode === 200) {
+				try {
+					const data = JSON.parse(body);
+					const memberships = data.memberships;
+					const groupChats = [];
+					memberships.forEach((membership) => {
+						let { room } = membership;
+						if (membership.is_confirmed) {
+							groupChats.push({
+								name: room.irc_channel,
+								displayName: room.display_name
+							});
+						}
+					});
+
+					callback(null, groupChats);
+				}
+				catch(e) {
+					console.warn(
+						"Error occurred trying to get group chat info",
+						e
+					);
+
+					callback(e);
+				}
+			} else {
+				callback(error);
+			}
+		}
+	);
+};
+
 // Event handlers -----------------------------------------------------------------------
 
 module.exports = function(main) {
+
+	log = main.log;
+	warn = main.warn;
 
 	// Utility
 
@@ -471,21 +527,20 @@ module.exports = function(main) {
 		if (isTwitch(client)) {
 			const globalEnabledTypes = enabledGlobalEmoteTypes();
 			requestExternalGlobalEmoticons(globalEnabledTypes);
-
-			if (client.extConfig && client.extConfig.channels) {
-				const channelEnabledTypes = enabledChannelEmoteTypes();
-
-				client.extConfig.channels.forEach((channel) => {
-					const channelUri = util.getChannelUri(
-						channel.name, client.extConfig.name
-					);
-					console.log(`Requesting external channel emoticons for ${channelUri}`);
-					requestExternalChannelEmoticons(
-						channelUri, channelEnabledTypes
-					);
-				});
-			}
 		}
+	};
+
+	const loadExternalEmotesForChannel = (channel) => {
+		const channelEnabledTypes = enabledChannelEmoteTypes();
+		log(`Requesting external channel emoticons for ${channel}`);
+		requestExternalChannelEmoticons(
+			channel, channelEnabledTypes
+		);
+	};
+
+	const clearExternalEmotesForChannel = (channel) => {
+		log(`Clearing external channel emoticons for ${channel}`);
+		delete externalChannelEmotes[channel];
 	};
 
 	const getExternalEmotesForChannel = (channel) => {
@@ -513,6 +568,56 @@ module.exports = function(main) {
 		return g.concat(c);
 	};
 
+	const updateGroupChatInfo = function(client) {
+
+		if (!isTwitch(client)) {
+			return;
+		}
+
+		let autoJoin = main.configValue("automaticallyJoinTwitchGroupChats");
+		let useDisplayNames = main.configValue("enableTwitchChannelDisplayNames");
+		let serverName = client.extConfig.name;
+
+		if (autoJoin || useDisplayNames) {
+			log("Updating Twitch group chat info...");
+			requestGroupChatInfo(client, function(error, channels) {
+				if (!error && channels) {
+					channels.forEach((channel) => {
+						let { name, displayName } = channel;
+						main.modifyChannelInIrcConfig(
+							serverName,
+							name,
+							{ displayName }
+						);
+					});
+
+					if (autoJoin) {
+						let ircConfigs = main.safeIrcConfigDict();
+						let config = ircConfigs[serverName];
+
+						if (config && config.channels) {
+							let configChannels = Object.keys(config.channels);
+							channels.forEach((channel) => {
+								let { name, displayName } = channel;
+								if (name && configChannels.indexOf(name) < 0) {
+									log(
+										"Found and added Twitch group chat: " +
+										name
+									);
+									main.addAndJoinChannel(
+										serverName,
+										name,
+										{ displayName }
+									);
+								}
+							});
+						}
+					}
+				}
+			});
+		}
+	};
+
 	// Events
 
 	const onConnect = (data) => {
@@ -524,15 +629,39 @@ module.exports = function(main) {
 			);
 
 			loadExternalEmotesForClient(client);
+			updateGroupChatInfo(client);
+		}
+	};
+
+	const onJoin = function(data) {
+		const { client, channel, username } = data;
+		if (isTwitch(client) && username === client.nick) {
+			loadExternalEmotesForChannel(channel);
+		}
+	};
+
+	const onPart = function(data) {
+		const { client, channel, username } = data;
+		if (
+			isTwitch(client) &&
+			username === client.nick &&
+			externalChannelEmotes[channel]
+		) {
+			clearExternalEmotesForChannel(channel);
 		}
 	};
 
 	const onMessageTags = function(data) {
-		const {
+		var {
 			client, channel, message, meUsername, postedLocally,
 			serverName, tags, username
 		} = data;
-		if (isTwitch(client) && tags) {
+
+		if (isTwitch(client)) {
+			if (!tags) {
+				tags = data.tags = {};
+			}
+
 			if (tags.emotes) {
 				if (typeof tags.emotes === "string") {
 					tags.emotes = parseEmoticonIndices(tags.emotes);
@@ -552,13 +681,11 @@ module.exports = function(main) {
 			}
 
 			// Add external emotes
-			if (externalChannelEmotes[channel]) {
-				tags.emotes = generateEmoticonIndices(
-					message,
-					getExternalEmotesForChannel(channel),
-					tags.emotes
-				);
-			}
+			tags.emotes = generateEmoticonIndices(
+				message,
+				getExternalEmotesForChannel(channel),
+				tags.emotes || []
+			);
 		}
 	};
 
@@ -592,7 +719,7 @@ module.exports = function(main) {
 	};
 
 	const loadExternalEmotesForAllClients = () => {
-		console.log("Reloading emotes for all clients...");
+		log("Reloading emotes for all clients...");
 
 		const clients = main.currentIrcClients();
 
@@ -601,7 +728,15 @@ module.exports = function(main) {
 		}
 	};
 
-	// Reload emotes every hour
+	const updateGroupChatInfoForAllClients = function() {
+		const clients = main.currentIrcClients();
+
+		if (clients && clients.length) {
+			clients.forEach((client) => updateGroupChatInfo(client));
+		}
+	};
+
+	// Reload emotes and group chat data every hour
 
 	setInterval(
 		reloadEmoticonImages,
@@ -610,6 +745,11 @@ module.exports = function(main) {
 
 	setInterval(
 		loadExternalEmotesForAllClients,
+		EMOTE_RELOAD_INTERVAL_MS
+	);
+
+	setInterval(
+		updateGroupChatInfoForAllClients,
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 
@@ -633,6 +773,8 @@ module.exports = function(main) {
 	return {
 		onConnect,
 		onCustomMessage,
-		onMessageTags
+		onJoin,
+		onMessageTags,
+		onPart
 	};
 };

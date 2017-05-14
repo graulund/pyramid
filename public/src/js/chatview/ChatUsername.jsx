@@ -1,7 +1,7 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
-import { TWITCH_DISPLAY_NAMES } from "../constants";
 import { fixColorContrast } from "../lib/color";
 
 import UserLink from "../components/UserLink.jsx";
@@ -9,12 +9,13 @@ import UserLink from "../components/UserLink.jsx";
 class ChatUsername extends PureComponent {
 	render() {
 		const {
-			className: givenClassName = "", color,
-			enableDarkMode, enableTwitchDisplayNames,
-			symbol = "", username
+			className: givenClassName = "",
+			color,
+			displayName,
+			enableDarkMode,
+			symbol = "",
+			username
 		} = this.props;
-
-		var { displayName } = this.props;
 
 		var className = "chatusername " + givenClassName;
 
@@ -33,21 +34,6 @@ class ChatUsername extends PureComponent {
 			styles.color = enableDarkMode ? fixedColor.dark : fixedColor.light;
 		}
 
-		// Prevent display name depending on settings
-
-		if (
-			displayName &&
-			(
-				!enableTwitchDisplayNames ||
-				(
-					enableTwitchDisplayNames < TWITCH_DISPLAY_NAMES.ALL &&
-					displayName.toLowerCase() !== username.toLowerCase()
-				)
-			)
-		) {
-			displayName = null;
-		}
-
 		return (
 			<strong className={className} style={styles}>
 				{ symbol }
@@ -62,14 +48,12 @@ ChatUsername.propTypes = {
 	className: PropTypes.string,
 	displayName: PropTypes.string,
 	enableDarkMode: PropTypes.bool,
-	enableTwitchDisplayNames: PropTypes.number,
 	symbol: PropTypes.string,
 	username: PropTypes.string.isRequired
 };
 
 export default connect(({
-	appConfig: { enableDarkMode, enableTwitchDisplayNames }
+	appConfig: { enableDarkMode }
 }) => ({
-	enableDarkMode,
-	enableTwitchDisplayNames
+	enableDarkMode
 }))(ChatUsername);

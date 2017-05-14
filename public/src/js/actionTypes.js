@@ -20,6 +20,10 @@ export const connectionStatus = {
 	"UPDATE": "connectionStatus/UPDATE"
 };
 
+export const deviceState = {
+	"UPDATE": "deviceState/UPDATE"
+};
+
 export const friendsList = {
 	"SET": "friendsList/SET",
 	"UPDATE": "friendsList/UPDATE"
@@ -62,6 +66,10 @@ export const nicknames = {
 
 export const onlineFriends = {
 	"SET": "onlineFriends/SET"
+};
+
+export const systemInfo = {
+	"UPDATE": "systemInfo/UPDATE"
 };
 
 export const token = {

@@ -1,27 +1,39 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
+import { TWITCH_DISPLAY_NAMES } from "../constants";
 import { userUrl } from "../lib/routeHelpers";
 
 class UserLink extends PureComponent {
 	render() {
-		const { className, displayName, friendsList, userName } = this.props;
+		const {
+			className,
+			displayName,
+			enableTwitchUserDisplayNames,
+			friendsList,
+			noLink,
+			userName
+		} = this.props;
 
 		if (!userName) {
 			return null;
 		}
 
+		var content = userName;
+
 		// If displaying display name
 
-		var content = userName;
-		if (displayName && displayName !== userName) {
+		if (enableTwitchUserDisplayNames && displayName && displayName !== userName) {
 			if (displayName.toLowerCase() !== userName.toLowerCase()) {
 				// Totally different altogether
-				content = [
-					displayName + " ",
-					<em key="origName">({ userName })</em>
-				];
+				if (enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
+					content = [
+						displayName + " ",
+						<em key="origName">({ userName })</em>
+					];
+				}
 			}
 			else {
 				// Merely case changes
@@ -44,7 +56,7 @@ class UserLink extends PureComponent {
 
 		// Link-free output for non-friends
 
-		if (!isFriend) {
+		if (!isFriend || noLink) {
 			return <span className={className} key="main">{ content }</span>;
 		}
 
@@ -64,8 +76,16 @@ class UserLink extends PureComponent {
 UserLink.propTypes = {
 	className: PropTypes.string,
 	displayName: PropTypes.string,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	friendsList: PropTypes.object,
+	noLink: PropTypes.bool,
 	userName: PropTypes.string.isRequired
 };
 
-export default connect(({ friendsList }) => ({ friendsList }))(UserLink);
+export default connect(({
+	appConfig: { enableTwitchUserDisplayNames },
+	friendsList
+}) => ({
+	enableTwitchUserDisplayNames,
+	friendsList
+}))(UserLink);

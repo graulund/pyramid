@@ -1,15 +1,22 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import TimedChannelItem from "./TimedChannelItem.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 import { minuteTime } from "../lib/formatting";
 
+const defaultLastSeenData = { time: "" };
+
 class ChannelList extends PureComponent {
 	render() {
 		const {
-			hideOldChannels = false, ircConfigs, lastSeenChannels,
-			sort
+			enableTwitchChannelDisplayNames,
+			hideOldChannels = false,
+			ircConfigs,
+			lastSeenChannels,
+			sort,
+			visible
 		} = this.props;
 
 		// Load IRC channels from the configuration
@@ -18,18 +25,26 @@ class ChannelList extends PureComponent {
 
 		for (var irc in ircConfigs) {
 			var info = ircConfigs[irc];
-			if (info && info.channels && info.channels.length) {
-				ircChannels = ircChannels.concat(info.channels.map((channelName) => {
-					if (channelName) {
-						return {
-							channel: channelUrlFromNames(irc, channelName),
-							channelName,
-							server: irc
-						};
-					}
+			if (info && info.channels) {
+				let channelNames = Object.keys(info.channels);
+				if (channelNames && channelNames.length) {
+					ircChannels = ircChannels.concat(channelNames.map((channelName) => {
+						if (channelName) {
+							let displayName =
+								enableTwitchChannelDisplayNames &&
+								info.channels[channelName].displayName;
+							return {
+								channel: channelUrlFromNames(irc, channelName),
+								channelName,
+								displayName,
+								server: irc
+							};
+						}
 
-					return null;
-				}));
+						return null;
+					}));
+				}
+
 			}
 		}
 
@@ -37,7 +52,7 @@ class ChannelList extends PureComponent {
 
 		ircChannels = ircChannels.map((data) => {
 			if (data) {
-				var lastSeenData = { time: "" };
+				var lastSeenData = defaultLastSeenData;
 				if (data.channel && lastSeenChannels && data.channel in lastSeenChannels) {
 					lastSeenData = lastSeenChannels[data.channel];
 				}
@@ -49,6 +64,18 @@ class ChannelList extends PureComponent {
 
 		// Sorting
 
+		const sortableName = function(channel) {
+			let name = channel.displayName || channel.channelName;
+			return name.replace(/^#/, "").toLowerCase();
+		};
+
+		const alphaSorting = function(a, b) {
+			if (a && b) {
+				return sortableName(a).localeCompare(sortableName(b));
+			}
+			return -1;
+		};
+
 		if (sort === "activity") {
 			// Sorting by last activity
 			ircChannels.sort((a, b) => {
@@ -59,7 +86,7 @@ class ChannelList extends PureComponent {
 
 					if (sort === 0) {
 						// Sort by channel name as a backup
-						return a.channelName.localeCompare(b.channelName);
+						return alphaSorting(a, b);
 					}
 
 					return sort;
@@ -68,12 +95,7 @@ class ChannelList extends PureComponent {
 			});
 		} else {
 			// Sorting by channel name
-			ircChannels.sort((a, b) => {
-				if (a && b) {
-					return a.channelName.localeCompare(b.channelName);
-				}
-				return -1;
-			});
+			ircChannels.sort(alphaSorting);
 		}
 
 		// Rendering
@@ -82,11 +104,15 @@ class ChannelList extends PureComponent {
 		if (ircChannels.length) {
 			channelListNodes = ircChannels.map((data) => {
 				if (data && data.channel) {
+					let { channel, displayName, lastSeen } = data;
+					let lastSeenData = lastSeen || defaultLastSeenData;
 					return <TimedChannelItem
-						channel={data.channel}
-						lastSeenData={data.lastSeen || {}}
+						channel={channel}
+						displayName={displayName}
+						lastSeenData={lastSeenData}
 						skipOld={hideOldChannels}
-						key={data.channel} />;
+						visible={visible}
+						key={channel} />;
 				}
 				return null;
 			});
@@ -102,17 +128,20 @@ class ChannelList extends PureComponent {
 }
 
 ChannelList.propTypes = {
+	enableTwitchChannelDisplayNames: PropTypes.bool,
 	hideOldChannels: PropTypes.bool,
 	ircConfigs: PropTypes.object,
 	lastSeenChannels: PropTypes.object,
-	sort: PropTypes.string
+	sort: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 export default connect(({
-	appConfig: { hideOldChannels },
+	appConfig: { enableTwitchChannelDisplayNames, hideOldChannels },
 	ircConfigs,
 	lastSeenChannels
 }) => ({
+	enableTwitchChannelDisplayNames,
 	hideOldChannels,
 	ircConfigs,
 	lastSeenChannels

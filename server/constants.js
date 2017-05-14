@@ -18,6 +18,8 @@ module.exports = {
 	CACHE_LINES: 150,
 	CONTEXT_CACHE_LINES: 40,
 	LAST_SEEN_UPDATE_RATE: 500,
+	LOG_PAGE_SIZE: 300,
+	BUNCHED_EVENT_SIZE: 50,
 
 	USER_MODIFYING_EVENT_TYPES:
 		["join", "part", "quit", "kick", "kill", "+mode", "-mode"],
@@ -26,12 +28,13 @@ module.exports = {
 	BUNCHABLE_EVENT_TYPES:
 		["join", "part", "quit", "kill", "+mode", "-mode"],
 
-	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends"],
+	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends", "system"],
 
 	TOKEN_COOKIE_NAME: "token",
 	TOKEN_COOKIE_SECONDS: 86400 * 365,
 
 	CONNECTION_STATUS: {
+		ABORTED: "aborted",
 		CONNECTED: "connected",
 		DISCONNECTED: "disconnected",
 		FAILED: "failed",

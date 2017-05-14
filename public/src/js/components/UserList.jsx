@@ -1,4 +1,5 @@
-import React, { PureComponent, PropTypes } from "react";
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import TimedUserItem from "./TimedUserItem.jsx";
@@ -6,7 +7,7 @@ import { minuteTime } from "../lib/formatting";
 
 class UserList extends PureComponent {
 	render() {
-		const { hideOldUsers = true, lastSeenUsers, sort } = this.props;
+		const { hideOldUsers = true, lastSeenUsers, sort, visible } = this.props;
 
 		var usernames;
 
@@ -29,7 +30,7 @@ class UserList extends PureComponent {
 		} else {
 			// Sort by username
 			usernames = Object.keys(lastSeenUsers);
-			usernames.sort();
+			usernames.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 		}
 
 		var userListNodes;
@@ -38,9 +39,10 @@ class UserList extends PureComponent {
 				const userData = lastSeenUsers[userName];
 				return <TimedUserItem
 					displayOnline
-					userData={userData}
 					userName={userName}
 					skipOld={hideOldUsers}
+					visible={visible}
+					{...userData}
 					key={userName}
 					/>;
 			});
@@ -58,7 +60,8 @@ class UserList extends PureComponent {
 UserList.propTypes = {
 	hideOldUsers: PropTypes.bool,
 	lastSeenUsers: PropTypes.object,
-	sort: PropTypes.string
+	sort: PropTypes.string,
+	visible: PropTypes.bool
 };
 
 export default connect(({
