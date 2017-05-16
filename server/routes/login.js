@@ -5,7 +5,7 @@ const util = require("../util");
 module.exports = function(main) {
 
 	function get(req, res) {
-		const config = main.currentAppConfig();
+		const config = main.appConfig().currentAppConfig();
 		if (!config || !config.webPassword) {
 			res.redirect("/welcome");
 		}
@@ -18,7 +18,10 @@ module.exports = function(main) {
 	}
 
 	function post(req, res) {
-		if (req.body && req.body.password === main.currentAppConfig().webPassword) {
+		if (
+			req.body &&
+			req.body.password === main.appConfig().currentAppConfig().webPassword
+		) {
 
 			if (req.body.logOutOtherSessions) {
 				util.clearAcceptedTokens();

@@ -9,32 +9,42 @@ module.exports = function(main) {
 	return function(req, res) {
 		const accepted = routeUtils.denyAccessWithoutToken(req, res, main);
 		if (accepted) {
+			let appConfig = main.appConfig();
+			let friends = main.friends();
+			let ircConfig = main.ircConfig();
+			let ircConn = main.ircConnectionState;
+			let lastSeen = main.lastSeen();
+			let nicknames = main.nicknames();
+			let unseenHighlights = main.unseenHighlights();
+			let userLists = main.userLists();
+			let viewState = main.viewState;
+
 			async.parallel({
-				ircConfig: main.loadIrcConfig,
-				appConfig: main.loadAppConfig
+				appConfig: appConfig.loadAppConfig,
+				ircConfig: ircConfig.loadIrcConfig
 			}, function(err, results) {
 				if (err) {
 					// TODO: handle lol
 					throw err;
 				}
 
-				const appConfig = main.safeAppConfig(
+				let currentAppConfig = appConfig.safeAppConfig(
 					lodash.assign({}, configDefaults, results.appConfig)
 				);
 
 				res.render("index", {
 					// Variables
-					appConfig,
-					friendsList: main.currentFriendsList(),
-					ircConfig: main.safeIrcConfigDict(results.ircConfig),
-					ircConnectionState: main.currentIrcConnectionState(),
-					lastSeenChannels: main.lastSeenChannels(),
-					lastSeenUsers: main.lastSeenUsers(),
-					nicknames: main.nicknamesDict(),
-					onlineFriends: main.currentOnlineFriends(),
+					appConfig: currentAppConfig,
+					friendsList: friends.currentFriendsList(),
+					ircConfig: ircConfig.safeIrcConfigDict(results.ircConfig),
+					ircConnectionState: ircConn.currentIrcConnectionState(),
+					lastSeenChannels: lastSeen.lastSeenChannels(),
+					lastSeenUsers: lastSeen.lastSeenUsers(),
+					nicknames: nicknames.nicknamesDict(),
+					onlineFriends: userLists.currentOnlineFriends(),
 					token: routeUtils.getUsedToken(req),
-					unseenHighlights: Array.from(main.unseenHighlightIds()),
-					viewState: main.currentViewState(),
+					unseenHighlights: Array.from(unseenHighlights.unseenHighlightIds()),
+					viewState: viewState.currentViewState(),
 					// Template-related
 					enableScripts: true,
 					// Includes

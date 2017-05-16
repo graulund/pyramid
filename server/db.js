@@ -142,7 +142,7 @@ const dq = (table, whereCols) => {
 const mainMethods = function(main, db) {
 
 	const getLocalDatestampFromTime = (time) => {
-		return util.ymd(main.localMoment(time));
+		return util.ymd(main.logs().localMoment(time));
 	};
 
 	const close = () => { db.close() };

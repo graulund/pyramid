@@ -506,20 +506,22 @@ module.exports = function(main) {
 	// Utility
 
 	const enabledGlobalEmoteTypes = () => {
+		let appConfig = main.appConfig();
 		return getEnabledExternalEmoticonTypes(
-			main.configValue("enableFfzEmoticons") &&
-			main.configValue("enableFfzGlobalEmoticons"),
-			main.configValue("enableBttvEmoticons") &&
-			main.configValue("enableBttvGlobalEmoticons")
+			appConfig.configValue("enableFfzEmoticons") &&
+			appConfig.configValue("enableFfzGlobalEmoticons"),
+			appConfig.configValue("enableBttvEmoticons") &&
+			appConfig.configValue("enableBttvGlobalEmoticons")
 		);
 	};
 
 	const enabledChannelEmoteTypes = () => {
+		let appConfig = main.appConfig();
 		return getEnabledExternalEmoticonTypes(
-			main.configValue("enableFfzEmoticons") &&
-			main.configValue("enableFfzChannelEmoticons"),
-			main.configValue("enableBttvEmoticons") &&
-			main.configValue("enableBttvChannelEmoticons")
+			appConfig.configValue("enableFfzEmoticons") &&
+			appConfig.configValue("enableFfzChannelEmoticons"),
+			appConfig.configValue("enableBttvEmoticons") &&
+			appConfig.configValue("enableBttvChannelEmoticons")
 		);
 	};
 
@@ -558,7 +560,7 @@ module.exports = function(main) {
 
 		// Filter away animated emotes
 
-		if (!main.configValue("enableBttvAnimatedEmoticons")) {
+		if (!main.appConfig().configValue("enableBttvAnimatedEmoticons")) {
 			g = g.filter(({ imageType }) => imageType !== "gif");
 			c = c.filter(({ imageType }) => imageType !== "gif");
 		}
@@ -574,8 +576,9 @@ module.exports = function(main) {
 			return;
 		}
 
-		let autoJoin = main.configValue("automaticallyJoinTwitchGroupChats");
-		let useDisplayNames = main.configValue("enableTwitchChannelDisplayNames");
+		let appConfig = main.appConfig();
+		let autoJoin = appConfig.configValue("automaticallyJoinTwitchGroupChats");
+		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
 		let serverName = client.extConfig.name;
 
 		if (autoJoin || useDisplayNames) {
@@ -584,7 +587,7 @@ module.exports = function(main) {
 				if (!error && channels) {
 					channels.forEach((channel) => {
 						let { name, displayName } = channel;
-						main.modifyChannelInIrcConfig(
+						main.ircConfig().modifyChannelInIrcConfig(
 							serverName,
 							name,
 							{ displayName }
@@ -592,7 +595,7 @@ module.exports = function(main) {
 					});
 
 					if (autoJoin) {
-						let ircConfigs = main.safeIrcConfigDict();
+						let ircConfigs = main.ircConfig().safeIrcConfigDict();
 						let config = ircConfigs[serverName];
 
 						if (config && config.channels) {
@@ -604,7 +607,7 @@ module.exports = function(main) {
 										"Found and added Twitch group chat: " +
 										name
 									);
-									main.addAndJoinChannel(
+									main.ircControl().addAndJoinChannel(
 										serverName,
 										name,
 										{ displayName }
@@ -721,7 +724,7 @@ module.exports = function(main) {
 	const loadExternalEmotesForAllClients = () => {
 		log("Reloading emotes for all clients...");
 
-		const clients = main.currentIrcClients();
+		const clients = main.ircConfig().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => loadExternalEmotesForClient(client));
@@ -729,7 +732,7 @@ module.exports = function(main) {
 	};
 
 	const updateGroupChatInfoForAllClients = function() {
-		const clients = main.currentIrcClients();
+		const clients = main.ircConfig().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => updateGroupChatInfo(client));
@@ -755,18 +758,20 @@ module.exports = function(main) {
 
 	// React to external emote settings changes
 
-	main.addConfigValueChangeHandler(
-		[
-			"enableFfzEmoticons",
-			"enableFfzGlobalEmoticons",
-			"enableFfzChannelEmoticons",
-			"enableBttvEmoticons",
-			"enableBttvGlobalEmoticons",
-			"enableBttvAnimatedEmoticons",
-			"enableBttvPersonalEmoticons"
-		],
-		loadExternalEmotesForAllClients
-	);
+	setTimeout(function() {
+		main.appConfig().addConfigValueChangeHandler(
+			[
+				"enableFfzEmoticons",
+				"enableFfzGlobalEmoticons",
+				"enableFfzChannelEmoticons",
+				"enableBttvEmoticons",
+				"enableBttvGlobalEmoticons",
+				"enableBttvAnimatedEmoticons",
+				"enableBttvPersonalEmoticons"
+			],
+			loadExternalEmotesForAllClients
+		);
+	}, 10000);
 
 	// Events API
 

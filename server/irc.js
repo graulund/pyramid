@@ -155,7 +155,7 @@ module.exports = function(main) {
 			postedLocally, serverName, tags, type, username
 		});
 
-		main.handleIncomingMessage(
+		main.incomingEvents().handleIncomingMessage(
 			channelUri, channelName, serverName, username,
 			time, type, message, parsedTags, meUsername
 		);
@@ -165,7 +165,7 @@ module.exports = function(main) {
 		const chobj = channelObject(client, channel);
 		const time = new Date();
 
-		main.handleIncomingEvent(
+		main.incomingEvents().handleIncomingEvent(
 			getChannelUri(chobj), getChannelFullName(chobj), chobj.server,
 			type, data, time, client.chans[channel].users
 		);
@@ -195,18 +195,18 @@ module.exports = function(main) {
 		}
 
 		if (server) {
-			main.handleIrcConnectionStateChange(server, state);
+			main.incomingEvents().handleIrcConnectionStateChange(server, state);
 		}
 	};
 
 	const handleSystemLog = function(client, text, level) {
 		const serverName = clientServerName(client);
-		main.handleSystemLog(serverName, text, level);
+		main.incomingEvents().handleSystemLog(serverName, text, level);
 	};
 
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
-		main.setChannelUserList(getChannelUri(chobj), userList);
+		main.userLists().setChannelUserList(getChannelUri(chobj), userList);
 	};
 
 	const abortClient = function(client, status = constants.CONNECTION_STATUS.ABORTED) {
@@ -366,7 +366,9 @@ module.exports = function(main) {
 			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
 			cf.username = cf.username || cf.nickname;
 
-			var c = new irc.Client(
+			let appConfig = main.appConfig();
+
+			let c = new irc.Client(
 				cf.hostname, cf.nickname,
 				{
 					channels:    convertChannelObjects(cf.channels),
@@ -377,8 +379,8 @@ module.exports = function(main) {
 					secure:      cf.secure || false,
 					selfSigned:  cf.selfSigned || false,
 					certExpired: cf.certExpired || false,
-					debug:       main.configValue("debug") || false,
-					showErrors:  main.configValue("debug") || false,
+					debug:       appConfig.configValue("debug") || false,
+					showErrors:  appConfig.configValue("debug") || false,
 					retryCount:  999
 				}
 			);
@@ -388,7 +390,7 @@ module.exports = function(main) {
 	}
 
 	const go = () => {
-		const ircConfig = main.currentIrcConfig();
+		const ircConfig = main.ircConfig().currentIrcConfig();
 		ircConfig.forEach((config) => {
 			if (config) {
 				initiateClient(config);
@@ -406,7 +408,7 @@ module.exports = function(main) {
 
 	const connectUnconnectedClients = () => {
 		const newNames = [];
-		const ircConfig = main.currentIrcConfig();
+		const ircConfig = main.ircConfig().currentIrcConfig();
 		ircConfig.forEach((config) => {
 			if (
 				config &&

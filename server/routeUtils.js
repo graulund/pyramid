@@ -30,7 +30,7 @@ const denyAccessWithoutToken = function(req, res, main) {
 	}
 
 	// If we have no password, redirect to welcome page
-	const config = main.currentAppConfig();
+	const config = main.appConfig().currentAppConfig();
 	if (!config || !config.webPassword) {
 		res.redirect("/welcome");
 	}

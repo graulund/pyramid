@@ -22,7 +22,7 @@ module.exports = function(main) {
 	};
 
 	const showWelcomePage = function (res, error = null, reqBody = {}) {
-		main.loadAppConfig((err, appConfig) => {
+		main.appConfig().loadAppConfig((err, appConfig) => {
 
 			if (appConfig && appConfig.webPassword) {
 				// It's already set up; no longer showing welcome page
@@ -50,7 +50,7 @@ module.exports = function(main) {
 	const post = function(req, res) {
 		var error = null;
 
-		const config = main.currentAppConfig();
+		const config = main.appConfig().currentAppConfig();
 		if (config && config.webPassword) {
 			// It's already set up; no longer showing welcome page
 			res.redirect("/");
@@ -93,7 +93,7 @@ module.exports = function(main) {
 			const friends = lodash.uniq(splitByLineBreak(reqBody.friends));
 
 			const friendActions = friends.map((friendName) => {
-				return (callback) => main.addToFriends(
+				return (callback) => main.friends().addToFriends(
 					0, util.formatUriName(friendName), false, callback
 				);
 			});
@@ -103,7 +103,7 @@ module.exports = function(main) {
 			async.parallel([
 				(callback) => {
 					if (reqBody.timeZone) {
-						return main.storeConfigValue(
+						return main.appConfig().storeConfigValue(
 							"timeZone", reqBody.timeZone, callback
 						);
 					}
@@ -111,23 +111,23 @@ module.exports = function(main) {
 				},
 				(callback) => {
 					if (reqBody.webPort) {
-						return main.storeConfigValue(
+						return main.appConfig().storeConfigValue(
 							"webPort", reqBody.webPort, callback
 						);
 					}
 					callback();
 				},
 				(callback) =>
-					main.storeConfigValue(
+					main.appConfig().storeConfigValue(
 						"webPassword", reqBody.webPassword, callback
 					),
 				(callback) => {
-					main.addIrcServerFromDetails(ircData, (err) => {
+					main.ircConfig().addIrcServerFromDetails(ircData, (err) => {
 						if (err) {
 							callback(err);
 						}
 						else {
-							main.loadAndConnectUnconnectedIrcs(callback);
+							main.ircControl().loadAndConnectUnconnectedIrcs(callback);
 						}
 					});
 				},
@@ -141,8 +141,8 @@ module.exports = function(main) {
 				else {
 					// Reload data after success
 					async.parallel([
-						main.loadAppConfig,
-						main.loadFriendsList
+						main.appConfig().loadAppConfig,
+						main.friends().loadFriendsList
 					], () => {
 						// Ready to go!!
 						res.redirect("/login");

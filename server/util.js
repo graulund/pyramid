@@ -1,12 +1,11 @@
 // PYRAMID
 // Utilities module
 
-const fs = require("fs");
-const moment = require("moment-timezone");
+const fs        = require("fs");
+const long      = require("long");
+const moment    = require("moment-timezone");
 
 const constants = require("./constants");
-
-var allFriends = null;
 
 // Input string utilities
 
@@ -263,6 +262,25 @@ const isPartEvent = function(event) {
 	return event && constants.PART_EVENT_TYPES.indexOf(event.type) >= 0;
 };
 
+// Username utilities
+
+const getUserColorNumber = function(username) {
+	if (username) {
+		username = username.toLowerCase();
+
+		var hashedValue = new long(0);
+
+		for (var i = 0; i < username.length; i++) {
+			var c = username.charCodeAt(i);
+			hashedValue = hashedValue.shiftLeft(6).add(hashedValue).add(c);
+		}
+
+		return hashedValue.mod(30).toNumber();
+	}
+
+	return null;
+};
+
 // API
 
 module.exports = {
@@ -303,5 +321,8 @@ module.exports = {
 
 	// Event
 	isJoinEvent,
-	isPartEvent
+	isPartEvent,
+
+	// Username
+	getUserColorNumber
 };

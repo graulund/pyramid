@@ -82,7 +82,7 @@ module.exports = function(main, io) {
 
 		var server;
 
-		var config = main.configValue;
+		var config = main.appConfig().configValue;
 
 		if (config("sslKeyPath") && config("sslCertPath")){
 			// Secure HTTPS server
