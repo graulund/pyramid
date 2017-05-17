@@ -226,7 +226,6 @@ module.exports = function(
 
 	// Display names
 
-
 	var displayNameCache = {};
 
 	const getUserCachedDisplayName = function(username, serverName) {
@@ -272,7 +271,6 @@ module.exports = function(
 			return { displayName, symbol };
 		});
 	};
-
 
 	return {
 		handleIncomingMessage,

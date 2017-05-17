@@ -78,9 +78,6 @@ module.exports = function(
 		if (!categoryCaches[categoryName]) {
 			categoryCaches[categoryName] = [];
 		}
-		/*if (!categoryRecipients[categoryName]) {
-			categoryRecipients[categoryName] = [];
-		}*/
 
 		cacheItem(categoryCaches[categoryName], msg);
 		recipients.emitToCategoryRecipients(categoryName, msg);
