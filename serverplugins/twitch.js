@@ -724,7 +724,7 @@ module.exports = function(main) {
 	const loadExternalEmotesForAllClients = () => {
 		log("Reloading emotes for all clients...");
 
-		const clients = main.ircConfig().currentIrcClients();
+		const clients = main.ircControl().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => loadExternalEmotesForClient(client));
@@ -732,7 +732,7 @@ module.exports = function(main) {
 	};
 
 	const updateGroupChatInfoForAllClients = function() {
-		const clients = main.ircConfig().currentIrcClients();
+		const clients = main.ircControl().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => updateGroupChatInfo(client));

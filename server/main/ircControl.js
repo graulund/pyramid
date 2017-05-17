@@ -52,9 +52,14 @@ module.exports = function(irc, ircConfig, io) {
 		irc.sendOutgoingMessage(channelUri, message, isAction);
 	};
 
+	const currentIrcClients = function() {
+		return irc.clients();
+	};
+
 	return {
 		addAndJoinChannel,
 		connectUnconnectedIrcs,
+		currentIrcClients,
 		disconnectAndRemoveIrcServer,
 		disconnectIrcServer,
 		joinIrcChannel,
