@@ -383,27 +383,27 @@ export function initializeIo() {
 		socket.on("channelCache", (details) => {
 			let cache = details && details.cache || [];
 			if (details && details.channelUri) {
-				store.dispatch(actions.channelCaches.update({
-					[details.channelUri]: cache
-				}));
+				store.dispatch(actions.channelCaches.update(
+					details.channelUri, cache
+				));
 			}
 		});
 
 		socket.on("userCache", (details) => {
 			let cache = details && details.cache || [];
 			if (details && details.username) {
-				store.dispatch(actions.userCaches.update({
-					[details.username]: cache
-				}));
+				store.dispatch(actions.userCaches.update(
+					details.username, cache
+				));
 			}
 		});
 
 		socket.on("categoryCache", (details) => {
 			let cache = details && details.cache || [];
 			if (details && details.categoryName) {
-				store.dispatch(actions.categoryCaches.update({
-					[details.categoryName]: cache
-				}));
+				store.dispatch(actions.categoryCaches.update(
+					details.categoryName, cache
+				));
 			}
 		});
 

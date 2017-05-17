@@ -80,6 +80,7 @@ class ChatView extends PureComponent {
 
 	requestDataIfNeeded(props = this.props, oldProps = {}) {
 		const {
+			lastReload,
 			lines,
 			logDate,
 			pageNumber,
@@ -88,6 +89,7 @@ class ChatView extends PureComponent {
 		} = props;
 
 		const {
+			lastReload: oldLastReload,
 			lines: oldLines,
 			logDate: oldLogDate,
 			pageNumber: oldPageNumber,
@@ -113,7 +115,10 @@ class ChatView extends PureComponent {
 
 		else if (
 			loading &&
-			lines !== oldLines &&
+			(
+				lastReload !== oldLastReload ||
+				lines !== oldLines
+			) &&
 			pageQuery === oldQuery &&
 			pageType === oldType &&
 			logDate === oldLogDate &&
@@ -228,6 +233,7 @@ ChatView.propTypes = {
 	collapseJoinParts: PropTypes.bool,
 	displayName: PropTypes.string,
 	inFocus: PropTypes.bool,
+	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	logBrowserOpen: PropTypes.bool,
@@ -257,7 +263,7 @@ const mapStateToProps = function(state, ownProps) {
 	const { lineId, logDate, pageQuery, pageType } = ownProps;
 	const subject = subjectName(pageType, pageQuery);
 
-	var lines;
+	var lines, lastReload;
 
 	if (logDate) {
 		const logCache = state.logFiles[subject];
@@ -265,7 +271,9 @@ const mapStateToProps = function(state, ownProps) {
 	}
 	else {
 		const cacheName = PAGE_TYPE_CACHE_MAP[pageType];
-		lines = state[cacheName][pageQuery];
+		const cacheData = state[cacheName][pageQuery];
+		lines = cacheData && cacheData.cache;
+		lastReload = cacheData && cacheData.lastReload;
 	}
 
 	const displayName = getDisplayName(state, pageType, pageQuery);
@@ -276,6 +284,7 @@ const mapStateToProps = function(state, ownProps) {
 		collapseJoinParts: state.appConfig.collapseJoinParts,
 		displayName,
 		inFocus: state.deviceState.inFocus,
+		lastReload,
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,
 		logDetails,

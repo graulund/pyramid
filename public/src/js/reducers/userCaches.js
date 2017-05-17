@@ -8,23 +8,32 @@ const userCachesInitialState = {};
 export default function (state = userCachesInitialState, action) {
 
 	switch (action.type) {
-		case actionTypes.userCaches.UPDATE:
+		case actionTypes.userCaches.UPDATE: {
+			let { username, cache } = action;
+			let item = state[username] || {};
 			return {
 				...state,
-				...action.data
+				[username]: {
+					...item,
+					cache,
+					lastReload: new Date()
+				}
 			};
-		case actionTypes.userCaches.APPEND:
-			var s = clone(state), d = action.data;
+		}
+
+		case actionTypes.userCaches.APPEND: {
+			let s = clone(state), d = action.data;
 
 			if (!s[d.username]) {
-				s[d.username] = [];
+				s[d.username] = { cache: [] };
 			}
 
 			// Simpler append logic than channelCaches,
 			// due to this stream only including message events
 
-			s[d.username] = cacheItem(s[d.username], d);
+			s[d.username].cache = cacheItem(s[d.username].cache, d);
 			return s;
+		}
 	}
 
 	return state;

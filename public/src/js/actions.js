@@ -16,10 +16,11 @@ export default {
 				data
 			};
 		},
-		update(data) {
+		update(categoryName, cache) {
 			return {
 				type: actionTypes.categoryCaches.UPDATE,
-				data
+				categoryName,
+				cache
 			};
 		}
 	},
@@ -30,10 +31,11 @@ export default {
 				data
 			};
 		},
-		update(data) {
+		update(channel, cache) {
 			return {
 				type: actionTypes.channelCaches.UPDATE,
-				data
+				channel,
+				cache
 			};
 		}
 	},
@@ -200,10 +202,11 @@ export default {
 				data
 			};
 		},
-		update(data) {
+		update(username, cache) {
 			return {
 				type: actionTypes.userCaches.UPDATE,
-				data
+				username,
+				cache
 			};
 		}
 	},
