@@ -138,7 +138,7 @@ module.exports = function(main) {
 		socket = socket || io;
 		main.ircConfig().loadIrcConfig((err, data) => {
 			if (!err) {
-				data = main.safeIrcConfigDict(data);
+				data = main.ircConfig().safeIrcConfigDict(data);
 				socket.emit("ircConfig", { data });
 			}
 
@@ -182,7 +182,7 @@ module.exports = function(main) {
 	const emitNicknames = function(socket) {
 		main.nicknames().loadNicknames((err, data) => {
 			if (!err) {
-				const dict = main.nicknamesDict(data);
+				const dict = main.nicknames().nicknamesDict(data);
 				socket.emit("nicknames", { data: dict });
 			}
 		});
