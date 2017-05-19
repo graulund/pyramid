@@ -251,8 +251,8 @@ class SettingsGeneralView extends PureComponent {
 	}
 
 	renderSetting(setting) {
-		const { appConfig, systemInfo } = this.props;
-		const { description, name, notice, readableName, requires, type } = setting;
+		let { appConfig, systemInfo } = this.props;
+		let { description, name, notice, readableName, requires, type } = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
 
@@ -355,6 +355,15 @@ class SettingsGeneralView extends PureComponent {
 		if (name === "logLinesFile" && systemInfo.logFolderSize) {
 			const lfSizeMb = (systemInfo.logFolderSize / 1024 / 1024).toFixed(2);
 			suffix = <p><em>Current log folder size: { lfSizeMb } MB. Clear the log folder by running the <tt>clearLogFolder.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
+		}
+
+		if (name === "enableDarkMode") {
+			notice = [
+				"Switch quickly with ",
+				<a href="https://en.wikipedia.org/wiki/Access_key"
+					target="_blank">access key</a>,
+				" D"
+			];
 		}
 
 		return (

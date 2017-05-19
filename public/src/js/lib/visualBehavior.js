@@ -111,3 +111,14 @@ function initFocusHandler() {
 	window.addEventListener("focus", focusHandler);
 	window.addEventListener("blur", blurHandler);
 }
+
+export function setDarkModeStatus(status) {
+	let list = document.body.classList;
+	let name = "darkmode";
+	if (status && !list.contains(name)) {
+		list.add(name);
+	}
+	else if (!status && list.contains(name)) {
+		list.remove(name);
+	}
+}
