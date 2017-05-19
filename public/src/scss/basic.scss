@@ -62,3 +62,10 @@ p.ta {
 		height: 100px;
 	}
 }
+
+.accesskeys {
+	position: absolute;
+	visibility: hidden;
+	pointer-events: none;
+	z-index: -1;
+}
