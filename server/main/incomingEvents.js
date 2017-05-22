@@ -16,10 +16,13 @@ module.exports = function(
 	ircConnectionState
 ) {
 
+	const userListEmissionMethods = {};
+
 	const handleIncomingMessage = function(
 		channelUri, channelName, serverName, username,
 		time, type, message, tags, meUsername
 	) {
+
 		const symbol = userLists.getUserCurrentSymbol(channelUri, username);
 		const line = log.lineFormats[type].build(symbol, username, message);
 
@@ -79,8 +82,7 @@ module.exports = function(
 	};
 
 	const handleIncomingEvent = function(
-		channelUri, channelName, serverName, type, data, time,
-		channelUserList
+		channelUri, channelName, serverName, type, data, time
 	) {
 
 		let username = data && data.username || "";
@@ -109,14 +111,24 @@ module.exports = function(
 			if (constants.PART_EVENT_TYPES.indexOf(type) >= 0) {
 				userLists.deleteUserFromUserList(channelUri, username);
 			}
-
-			userLists.setChannelUserList(
-				channelUri,
-				convertIrcUserList(channelUserList, serverName)
-			);
+			else if (type === "join") {
+				userLists.addUserToUserList(channelUri, username);
+				// TODO: Extra attributes
+			}
+			else if (type === "mode") {
+				// TODO
+			}
 
 			if (io) {
-				io.emitChannelUserListToRecipients(channelUri);
+				// Debounce to prevent many repeated calls
+				if (!userListEmissionMethods[channelUri]) {
+					userListEmissionMethods[channelUri] =
+						lodash.debounce(function() {
+							io.emitChannelUserListToRecipients(channelUri)
+						}, 500);
+				}
+
+				userListEmissionMethods[channelUri]();
 			}
 		}
 
@@ -146,6 +158,13 @@ module.exports = function(
 		} else {
 			messageCaches.cacheChannelEvent(channelUri, event);
 		}
+	};
+
+	const handleIncomingUserList = function(channelUri, serverName, userList) {
+		userLists.setChannelUserList(
+			channelUri,
+			convertIrcUserList(userList, serverName)
+		);
 	};
 
 	const handleSystemLog = function(serverName, message, level = "info", time = null) {
@@ -266,15 +285,21 @@ module.exports = function(
 
 	const convertIrcUserList = function(channelUserList, serverName) {
 		// Expected format: { username: symbol, ... }
-		return lodash.mapValues(channelUserList, (symbol, username) => {
+		let out = {};
+
+		channelUserList.forEach((user) => {
+			let username = user.nick;
 			let displayName = getUserCachedDisplayName(username, serverName);
-			return { displayName, symbol };
+			out[username] = lodash.assign({}, user, { displayName });
 		});
+
+		return out;
 	};
 
 	return {
-		handleIncomingMessage,
 		handleIncomingEvent,
+		handleIncomingMessage,
+		handleIncomingUserList,
 		handleIrcConnectionStateChange,
 		handleSystemLog
 	};

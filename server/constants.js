@@ -4,7 +4,7 @@
 const path = require("path");
 
 module.exports = {
-	DEBUG: false,
+	DEBUG: true,
 	FILE_ENCODING: "utf8",
 
 	PROJECT_ROOT: path.join(__dirname, ".."),

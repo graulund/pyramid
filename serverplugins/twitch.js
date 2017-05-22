@@ -46,8 +46,8 @@ var warn = console.warn;
 // Utility methods ----------------------------------------------------------------------
 
 const isTwitch = function(client) {
-	if (client && client.extConfig) {
-		return /irc\.(chat\.)?twitch\.tv/.test(client.extConfig.hostname);
+	if (client && client.config) {
+		return /irc\.(chat\.)?twitch\.tv/.test(client.config.hostname);
 	}
 
 	return false;
@@ -458,10 +458,10 @@ const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 };
 
 const requestGroupChatInfo = function(client, callback) {
-	const serverName = client.extConfig.name;
+	const serverName = client.config.name;
 	chatdepotGetRequest(
 		"room_memberships",
-		client.extConfig.password,
+		client.config.password,
 		{},
 		function(error, response, body) {
 			if (!error && response.statusCode === 200) {
@@ -579,7 +579,7 @@ module.exports = function(main) {
 		let appConfig = main.appConfig();
 		let autoJoin = appConfig.configValue("automaticallyJoinTwitchGroupChats");
 		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
-		let serverName = client.extConfig.name;
+		let serverName = client.config.name;
 
 		if (autoJoin || useDisplayNames) {
 			log("Updating Twitch group chat info...");
@@ -623,13 +623,14 @@ module.exports = function(main) {
 
 	// Events
 
-	const onConnect = (data) => {
-		const { client } = data;
+	const onClient = (data) => {
+		let { client } = data;
 		if (isTwitch(client)) {
-			client.send(
-				"CAP", "REQ",
-				"twitch.tv/commands twitch.tv/membership twitch.tv/tags"
-			);
+			client.irc.requestCap([
+				"twitch.tv/commands",
+				"twitch.tv/membership",
+				"twitch.tv/tags"
+			]);
 
 			loadExternalEmotesForClient(client);
 			updateGroupChatInfo(client);
@@ -638,7 +639,7 @@ module.exports = function(main) {
 
 	const onJoin = function(data) {
 		const { client, channel, username } = data;
-		if (isTwitch(client) && username === client.nick) {
+		if (isTwitch(client) && username === client.irc.user.nick) {
 			loadExternalEmotesForChannel(channel);
 		}
 	};
@@ -647,7 +648,7 @@ module.exports = function(main) {
 		const { client, channel, username } = data;
 		if (
 			isTwitch(client) &&
-			username === client.nick &&
+			username === client.irc.user.nick &&
 			externalChannelEmotes[channel]
 		) {
 			clearExternalEmotesForChannel(channel);
@@ -776,7 +777,7 @@ module.exports = function(main) {
 	// Events API
 
 	return {
-		onConnect,
+		onClient,
 		onCustomMessage,
 		onJoin,
 		onMessageTags,

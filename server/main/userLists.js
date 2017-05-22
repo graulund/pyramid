@@ -15,6 +15,33 @@ module.exports = function(io, friends) {
 		}
 	};
 
+	const addUserToUserList = function(
+		channelUri, username, ident = "", hostname = "", modes = []
+	) {
+		if (!channelUserLists[channelUri]) {
+			channelUserLists[channelUri] = {};
+		}
+
+		channelUserLists[channelUri][username] = {
+			nick: username,
+			ident,
+			hostname,
+			modes
+		};
+	};
+
+	const updateUserInUserList = function(channelUri, username, data = {}) {
+		if (!channelUserLists[channelUri]) {
+			channelUserLists[channelUri] = {};
+		}
+
+		channelUserLists[channelUri][username] = lodash.assign(
+			{},
+			channelUserLists[channelUri][username] || {},
+			data
+		);
+	};
+
 	const deleteUserFromUserList = function(channelUri, username) {
 		if (channelUserLists[channelUri]) {
 			delete channelUserLists[channelUri][username];
@@ -68,12 +95,14 @@ module.exports = function(io, friends) {
 	};
 
 	return {
+		addUserToUserList,
 		channelUserLists: () => channelUserLists,
 		currentOnlineFriends: () => currentOnlineFriends,
 		deleteUserFromUserList,
 		getChannelUserList: (channelUri) => channelUserLists[channelUri],
 		getUserCurrentSymbol,
 		reloadOnlineFriends,
-		setChannelUserList
+		setChannelUserList,
+		updateUserInUserList
 	};
 };
