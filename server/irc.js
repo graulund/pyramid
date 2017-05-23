@@ -438,21 +438,21 @@ module.exports = function(main) {
 	const joinChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.join(formatChannelName(channelName));
+			c.irc.join(formatChannelName(channelName));
 		}
 	};
 
 	const partChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.part(formatChannelName(channelName));
+			c.irc.part(formatChannelName(channelName));
 		}
 	};
 
 	const reconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
 		if (c && c._pyramidAborted) {
-			c.connect();
+			c.irc.connect();
 		}
 		else {
 			main.warn(
@@ -466,7 +466,7 @@ module.exports = function(main) {
 		const c = findClientByServerName(serverName);
 		if (c) {
 			abortClient(c);
-			c.disconnect();
+			c.irc.quit();
 		}
 	};
 
