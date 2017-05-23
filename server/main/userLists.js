@@ -8,26 +8,29 @@ module.exports = function(io, friends) {
 	var channelUserLists = {};
 	var currentOnlineFriends = [];
 
-	const setChannelUserList = function(channelUri, userList) {
+	const setChannelUserList = function(channelUri, userList, ircClient) {
 		if (channelUri) {
-			channelUserLists[channelUri] = userList || {};
+			channelUserLists[channelUri] = lodash.mapValues(
+				userList || {},
+				(user) => addUserSymbol(user, ircClient)
+			);
 			reloadOnlineFriends();
 		}
 	};
 
 	const addUserToUserList = function(
-		channelUri, username, ident = "", hostname = "", modes = []
+		channelUri, username, ident = "", hostname = "", modes = [], ircClient = null
 	) {
 		if (!channelUserLists[channelUri]) {
 			channelUserLists[channelUri] = {};
 		}
 
-		channelUserLists[channelUri][username] = {
+		channelUserLists[channelUri][username] = addUserSymbol({
 			nick: username,
 			ident,
 			hostname,
 			modes
-		};
+		}, ircClient);
 	};
 
 	const updateUserInUserList = function(channelUri, username, data = {}) {
@@ -40,6 +43,56 @@ module.exports = function(io, friends) {
 			channelUserLists[channelUri][username] || {},
 			data
 		);
+	};
+
+	const changeNickInUserList = function(channelUri, prevName, newName) {
+		if (
+			channelUserLists[channelUri] &&
+			channelUserLists[channelUri][prevName]
+		) {
+			channelUserLists[channelUri][newName] = channelUserLists[channelUri][prevName];
+			delete channelUserLists[channelUri][prevName];
+		}
+	};
+
+	const addModesInUserList = function(channelUri, username, modes, ircClient) {
+		if (channelUserLists[channelUri] && modes) {
+			if (!(modes instanceof Array)) {
+				modes = [modes];
+			}
+
+			let userData = channelUserLists[channelUri][username];
+
+			if (userData) {
+				let newModes = (userData.modes || []).concat(modes);
+				updateUserInUserList(channelUri, username, {
+					modes: newModes,
+					symbol: userSymbol(newModes, ircClient)
+				});
+			}
+		}
+	};
+
+	const removeModesFromUserList = function(channelUri, username, modes, ircClient) {
+		if (channelUserLists[channelUri] && modes) {
+			if (!(modes instanceof Array)) {
+				modes = [modes];
+			}
+
+			let userData = channelUserLists[channelUri][username];
+
+			if (userData) {
+				let { modes: userModes } = userData;
+
+				if (userModes && userModes.length) {
+					let newModes = lodash.without(userModes, ...modes);
+					updateUserInUserList(channelUri, username, {
+						modes: newModes,
+						symbol: userSymbol(newModes, ircClient)
+					});
+				}
+			}
+		}
 	};
 
 	const deleteUserFromUserList = function(channelUri, username) {
@@ -94,14 +147,33 @@ module.exports = function(io, friends) {
 		}
 	};
 
+	const userSymbol = function(modes, ircClient) {
+		if (modes && modes.length && ircClient) {
+			let netPrefixes = ircClient.network.options.PREFIX;
+			let prefix = lodash.find(netPrefixes, { mode: modes[0] });
+			if (prefix) {
+				return prefix.symbol;
+			}
+		}
+
+		return "";
+	};
+
+	const addUserSymbol = function(user, ircClient) {
+		return lodash.assign(user, { symbol: userSymbol(user.modes, ircClient) });
+	};
+
 	return {
+		addModesInUserList,
 		addUserToUserList,
+		changeNickInUserList,
 		channelUserLists: () => channelUserLists,
 		currentOnlineFriends: () => currentOnlineFriends,
 		deleteUserFromUserList,
 		getChannelUserList: (channelUri) => channelUserLists[channelUri],
 		getUserCurrentSymbol,
 		reloadOnlineFriends,
+		removeModesFromUserList,
 		setChannelUserList,
 		updateUserInUserList
 	};

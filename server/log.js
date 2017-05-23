@@ -59,29 +59,6 @@ const eventWithReasonLogParser = (descriptor) => {
 	}
 };
 
-const modeEventLogParser = (symbol) => {
-	return (line) => {
-		var match = line.match(new RegExp(
-			"^\\*\\*\\s*" +
-			USERNAME_SYMBOL_RGXSTR +
-			"\\s+" +
-			"sets mode:\\s+" + symbol +
-			"\\s*([^\\s]+)" +
-			"(\\s+(.+))?$"
-		));
-		if (match) {
-			return {
-				argument: match[4],
-				mode: match[3],
-				symbol: match[1],
-				username: match[2]
-			};
-		}
-
-		return null;
-	}
-};
-
 const lineFormats = {
 	msg: {
 		build: (symbol, username, message) => {
@@ -201,20 +178,30 @@ const lineFormats = {
 		}
 	},
 
-	addMode: {
+	mode: {
 		build: (symbol, username, mode, argument) => {
-			return `** ${symbol}${username} sets mode: +${mode}` +
+			return `** ${symbol}${username} sets mode: ${mode}` +
 				(argument ? " " + argument : "");
 		},
-		parse: modeEventLogParser("\\+")
-	},
+		parse: (line) => {
+			var match = line.match(new RegExp(
+				"^\\*\\*\\s*" +
+				USERNAME_SYMBOL_RGXSTR +
+				"\\s+" +
+				"sets mode:\\s+([^\\s]+)" +
+				"(\\s+(.+))?$"
+			));
+			if (match) {
+				return {
+					argument: match[4],
+					mode: match[3],
+					symbol: match[1],
+					username: match[2]
+				};
+			}
 
-	removeMode: {
-		build: (symbol, username, mode, argument) => {
-			return `** ${symbol}${username} sets mode: -${mode}` +
-				(argument ? " " + argument : "");
-		},
-		parse: modeEventLogParser("-")
+			return null;
+		}
 	},
 
 	kill: {
@@ -275,10 +262,8 @@ const getLogLineFromData = function(type, data) {
 					data.symbol, data.username, data.by, data.reason
 				);
 
-			case "+mode":
-			case "-mode":
-				const t = type === "+mode" ? "addMode" : "removeMode";
-				return lineFormats[t].build(
+			case "mode":
+				return lineFormats.mode.build(
 					data.symbol, data.username, data.mode, data.argument
 				);
 

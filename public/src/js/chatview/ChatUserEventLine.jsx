@@ -40,12 +40,8 @@ class ChatUserEventLine extends PureComponent {
 				eventDescription = "was killed" +
 					(reason ? " (" + reason + ")" : "");
 				break;
-			case "+mode":
-				eventDescription = "sets mode: +" + mode +
-					(argument ? " " + argument : "");
-				break;
-			case "-mode":
-				eventDescription = "sets mode: -" + mode +
+			case "mode":
+				eventDescription = "sets mode: " + mode +
 					(argument ? " " + argument : "");
 				break;
 		}

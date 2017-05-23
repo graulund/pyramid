@@ -61,8 +61,7 @@ class ChatLine extends PureComponent {
 			case "quit":
 			case "kick":
 			case "kill":
-			case "+mode":
-			case "-mode":
+			case "mode":
 				content = <ChatUserEventLine {...this.props} key="content" />;
 				break;
 			case "events":

@@ -22,11 +22,11 @@ module.exports = {
 	BUNCHED_EVENT_SIZE: 50,
 
 	USER_MODIFYING_EVENT_TYPES:
-		["join", "part", "quit", "kick", "kill", "+mode", "-mode"],
+		["join", "part", "quit", "kick", "kill", "mode"],
 	PART_EVENT_TYPES:
 		["part", "quit", "kick", "kill"],
 	BUNCHABLE_EVENT_TYPES:
-		["join", "part", "quit", "kill", "+mode", "-mode"],
+		["join", "part", "quit", "kill", "mode"],
 
 	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends", "system"],
 

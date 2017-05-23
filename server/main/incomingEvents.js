@@ -82,7 +82,7 @@ module.exports = function(
 	};
 
 	const handleIncomingEvent = function(
-		channelUri, channelName, serverName, type, data, time
+		channelUri, channelName, serverName, type, data, time, ircClient
 	) {
 
 		let username = data && data.username || "";
@@ -112,11 +112,24 @@ module.exports = function(
 				userLists.deleteUserFromUserList(channelUri, username);
 			}
 			else if (type === "join") {
-				userLists.addUserToUserList(channelUri, username);
-				// TODO: Extra attributes
+				userLists.addUserToUserList(
+					channelUri, username, data.ident, data.hostname, [], ircClient
+				);
 			}
 			else if (type === "mode") {
-				// TODO
+				let { argument, mode } = data;
+				let [ modifier, modeLetter ] = Array.from(mode);
+
+				if (argument && modifier === "+") {
+					userLists.addModesInUserList(
+						channelUri, argument, modeLetter, ircClient
+					);
+				}
+				else if (argument && modifier === "-") {
+					userLists.removeModesFromUserList(
+						channelUri, argument, modeLetter, ircClient
+					);
+				}
 			}
 
 			if (io) {
@@ -160,10 +173,11 @@ module.exports = function(
 		}
 	};
 
-	const handleIncomingUserList = function(channelUri, serverName, userList) {
+	const handleIncomingUserList = function(channelUri, serverName, userList, ircClient) {
 		userLists.setChannelUserList(
 			channelUri,
-			convertIrcUserList(userList, serverName)
+			convertIrcUserList(userList, serverName),
+			ircClient
 		);
 	};
 

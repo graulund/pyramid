@@ -164,7 +164,7 @@ module.exports = function(main) {
 
 		main.incomingEvents().handleIncomingEvent(
 			getChannelUri(chobj), getChannelFullName(chobj), chobj.server,
-			type, data, time
+			type, data, time, client.irc
 		);
 	};
 
@@ -205,7 +205,7 @@ module.exports = function(main) {
 		const chobj = channelObject(client, channel);
 		const serverName = clientServerName(client);
 		main.incomingEvents().handleIncomingUserList(
-			getChannelUri(chobj), serverName, userList
+			getChannelUri(chobj), serverName, userList, client.irc
 		);
 	};
 
@@ -276,18 +276,22 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("join", (event) => {
-			let { channel, nick } = event;
+			let { channel, ident, hostname, nick } = event;
 
 			if (nick === client.irc.user.nick) {
 				client.joinedChannels.push(channel);
 				console.log("Joined channels list is now " + client.joinedChannels.length);
 			}
 
-			handleIncomingEvent(client, channel, "join", { username: nick });
+			handleIncomingEvent(
+				client, channel, "join",
+				{ username: nick, ident, hostname }
+			);
 
 			let channelUri = getChannelUri(channelObject(client, channel));
 			main.plugins().handleEvent(
-				"join", { client, channel: channelUri, username: nick }
+				"join",
+				{ client, channel: channelUri, username: nick, ident, hostname }
 			);
 		});
 
@@ -328,35 +332,18 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("mode", (event) => {
-			/* TODO Restructure
+			let { modes, nick, target } = event;
 
-			example: { target: '#dansgaming',
-			  nick: 'jtv',
-			  modes: [ { mode: '+o', param: 'dansgaming' } ],
-			  time: undefined }
-
-			*/
+			if (modes && modes.length) {
+				modes.forEach((data) => {
+					let { mode, param } = data;
+					handleIncomingEvent(
+						client, target, "mode",
+						{ username: nick, mode, argument: param }
+					);
+				});
+			}
 		});
-
-		/*client.irc.on("+mode", (channel, username, mode, argument) => {
-			handleIncomingEvent(
-				client, channel, "+mode", { username, mode, argument }
-			);
-		});
-
-		client.irc.on("-mode", (channel, username, mode, argument) => {
-			handleIncomingEvent(
-				client, channel, "-mode", { username, mode, argument }
-			);
-		});
-
-		client.irc.on("kill", (username, reason, channels) => {
-			channels.forEach((channel) => {
-				handleIncomingEvent(
-					client, channel, "kill", { username, reason }
-				);
-			});
-		});*/
 	};
 
 	const convertChannelObjects = (channels) => {
