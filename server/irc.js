@@ -168,6 +168,15 @@ module.exports = function(main) {
 		);
 	};
 
+	const handleIncomingGlobalEvent = function(client, type, data) {
+		let time = new Date();
+		let serverName = clientServerName(client);
+
+		main.incomingEvents().handleIncomingGlobalEvent(
+			serverName, type, data, time
+		);
+	};
+
 	const handleIncomingUnhandledMessage = function(client, message) {
 		const username = message.nick;
 		const channel = message.params[0];
@@ -312,15 +321,13 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("quit", (event) => {
-			/*let { nick, message } = event;
-			// TODO FIX
-			channels.forEach((channel) => {
-				handleIncomingEvent(
-					client, channel, "quit",
-					{ username: nick, reason: message }
-				);
-			});
-			*/
+			let { nick, message } = event;
+			let serverName = clientServerName(client);
+
+			handleIncomingEvent(
+				client, serverName, "quit",
+				{ username: nick, reason: message }
+			);
 		});
 
 		client.irc.on("kick", (event) => {

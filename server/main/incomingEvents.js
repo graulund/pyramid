@@ -173,6 +173,30 @@ module.exports = function(
 		}
 	};
 
+	const handleIncomingGlobalEvent = function(serverName, type, data, time) {
+		let { username } = data;
+		if (type === "quit" && username) {
+			let channels = userLists.deleteUserFromAllUserLists(
+				serverName, username
+			);
+
+			if (channels && channels.length) {
+				// TODO: This should map to a non-global quit event, not a part event
+				channels.forEach((channelUri) => {
+					handleIncomingEvent(
+						channelUri,
+						"#" + util.channelNameFromUrl(channelUri),
+						serverName,
+						"part",
+						data,
+						time,
+						null
+					);
+				})
+			}
+		}
+	};
+
 	const handleIncomingUserList = function(channelUri, serverName, userList, ircClient) {
 		userLists.setChannelUserList(
 			channelUri,
@@ -312,6 +336,7 @@ module.exports = function(
 
 	return {
 		handleIncomingEvent,
+		handleIncomingGlobalEvent,
 		handleIncomingMessage,
 		handleIncomingUserList,
 		handleIrcConnectionStateChange,

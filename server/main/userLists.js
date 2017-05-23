@@ -101,6 +101,23 @@ module.exports = function(io, friends) {
 		}
 	};
 
+	const deleteUserFromAllUserLists = function(serverName, username) {
+		let channels = [];
+
+		Object.keys(channelUserLists).forEach((channelUri) => {
+			let sName = util.channelServerNameFromUrl(channelUri);
+			if (
+				sName === serverName &&
+				channelUserLists[channelUri][username]
+			) {
+				delete channelUserLists[channelUri][username];
+				channels.push(channelUri);
+			}
+		});
+
+		return channels;
+	};
+
 	const getUserCurrentSymbol = function(channelUri, userName) {
 		if (
 			channelUri &&
@@ -169,6 +186,7 @@ module.exports = function(io, friends) {
 		changeNickInUserList,
 		channelUserLists: () => channelUserLists,
 		currentOnlineFriends: () => currentOnlineFriends,
+		deleteUserFromAllUserLists,
 		deleteUserFromUserList,
 		getChannelUserList: (channelUri) => channelUserLists[channelUri],
 		getUserCurrentSymbol,
