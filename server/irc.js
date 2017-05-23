@@ -322,10 +322,9 @@ module.exports = function(main) {
 
 		client.irc.on("quit", (event) => {
 			let { nick, message } = event;
-			let serverName = clientServerName(client);
 
-			handleIncomingEvent(
-				client, serverName, "quit",
+			handleIncomingGlobalEvent(
+				client, "quit",
 				{ username: nick, reason: message }
 			);
 		});
