@@ -91,7 +91,7 @@ initializeIo();
 // View
 
 initVisualBehavior();
-updateNotificationsActiveState();
+startUpdatingNotificationsActiveState();
 
 const main = document.querySelector("main");
 
