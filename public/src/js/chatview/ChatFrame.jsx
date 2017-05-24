@@ -29,6 +29,14 @@ class ChatFrame extends PureComponent {
 		this.clearObserver();
 	}
 
+	componentDidMount() {
+		let { lines, logDate } = this.props;
+
+		if (lines && lines.length && !logDate) {
+			scrollToTheBottom();
+		}
+	}
+
 	componentWillReceiveProps(newProps) {
 		const {
 			lines,
