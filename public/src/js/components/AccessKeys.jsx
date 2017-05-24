@@ -24,7 +24,7 @@ class AccessKeys extends PureComponent {
 			<div className="accesskeys">
 				<a
 					href="javascript://"
-					accessKey="d"
+					accessKey="k"
 					onClick={this.toggleDarkMode}
 					key="darkmode">Dark mode</a>
 			</div>

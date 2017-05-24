@@ -362,7 +362,7 @@ class SettingsGeneralView extends PureComponent {
 				"Switch quickly with ",
 				<a href="https://en.wikipedia.org/wiki/Access_key"
 					target="_blank" key="access-key-info">access key</a>,
-				" D"
+				" K"
 			];
 		}
 
