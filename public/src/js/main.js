@@ -13,7 +13,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import setUpPageTitles from "./lib/pageTitles";
-import { updateNotificationsActiveState } from "./lib/notifications";
+import { startUpdatingNotificationsActiveState } from "./lib/notifications";
 import * as routes from "./lib/routeHelpers";
 import store from "./store";
 import { initVisualBehavior, isMobile } from "./lib/visualBehavior";

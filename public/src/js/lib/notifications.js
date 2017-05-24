@@ -50,7 +50,7 @@ export function askForNotificationsPermission() {
 	}
 }
 
-export function updateNotificationsActiveState() {
+export function startUpdatingNotificationsActiveState() {
 	store.subscribe(function() {
 		let state = store.getState();
 		let { deviceState } = state;
