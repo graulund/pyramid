@@ -1,12 +1,12 @@
 // PYRAMID
 // Database logic
 
+const _ = require("lodash");
+const async = require("async");
 const fs = require("fs");
+const mkdirp = require("mkdirp");
 const path = require("path");
 const sqlite = require("sqlite3");
-const async = require("async");
-const lodash = require("lodash");
-const mkdirp = require("mkdirp");
 
 const constants = require("./constants");
 const util = require("./util");
@@ -89,7 +89,7 @@ const formatIn = (list) => {
 
 const dollarize = (data) => {
 	const out = {};
-	lodash.forOwn(data, (value, key) => {
+	_.forOwn(data, (value, key) => {
 		out["$" + key] = value;
 	});
 	return out;
@@ -99,7 +99,7 @@ const onlyParamsInQuery = (params, query) => {
 	const out = {};
 
 	if (params && query) {
-		lodash.forOwn(params, (value, key) => {
+		_.forOwn(params, (value, key) => {
 			if (query.indexOf(key) >= 0) {
 				out[key] = value;
 			}
@@ -290,7 +290,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("friends", Object.keys(data), ["friendId"]),
-			dollarize(lodash.assign({ friendId }, data)),
+			dollarize(_.assign({ friendId }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -385,7 +385,7 @@ const mainMethods = function(main, db) {
 				}
 				else {
 					var obj = nameValueRowsToObject(rows);
-					lodash.forOwn(obj, (value, key) => {
+					_.forOwn(obj, (value, key) => {
 						obj[key] = JSON.parse(value);
 					});
 					callback(null, obj);
@@ -454,7 +454,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("nicknames", keys, ["nickname"]),
-			dollarize(lodash.assign({ nickname }, data)),
+			dollarize(_.assign({ nickname }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -501,7 +501,7 @@ const mainMethods = function(main, db) {
 	const modifyServerInIrcConfig = (serverId, data, callback) => {
 		db.run(
 			uq("ircServers", Object.keys(data), ["serverId"]),
-			dollarize(lodash.assign({ serverId }, data)),
+			dollarize(_.assign({ serverId }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -520,7 +520,7 @@ const mainMethods = function(main, db) {
 		upsert(
 			uq("ircChannels", ["isEnabled"].concat(dataKeys), ["serverId", "name"]),
 			iq("ircChannels", ["serverId", "name", "isEnabled"].concat(dataKeys)),
-			dollarize(lodash.assign({ serverId, name, isEnabled: 1 }, data)),
+			dollarize(_.assign({ serverId, name, isEnabled: 1 }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -532,7 +532,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("ircChannels", Object.keys(data), ["channelId"]),
-			dollarize(lodash.assign({ channelId }, data)),
+			dollarize(_.assign({ channelId }, data)),
 			dbCallback(callback)
 		);
 	};

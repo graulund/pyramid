@@ -5,7 +5,7 @@
 const irc    = require("irc-framework");
 const fs     = require("fs");
 const path   = require("path");
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const constants = require("./constants");
 const log = require("./log");
@@ -308,7 +308,7 @@ module.exports = function(main) {
 			let { channel, nick } = event;
 
 			if (nick === client.irc.user.nick) {
-				client.joinedChannels = lodash.without(client.joinedChannels, channel);
+				client.joinedChannels = _.without(client.joinedChannels, channel);
 				console.log("Joined channels list is now " + client.joinedChannels.length);
 			}
 
@@ -473,7 +473,7 @@ module.exports = function(main) {
 		const c = findClientByServerName(serverName);
 		if (c) {
 			disconnectServer(serverName);
-			clients = lodash.without(clients, c);
+			clients = _.without(clients, c);
 		}
 	};
 

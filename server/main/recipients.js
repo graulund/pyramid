@@ -1,4 +1,4 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const constants = require("../constants");
 
@@ -21,7 +21,7 @@ module.exports = function(io) {
 
 	const removeRecipient = function(list, targetName, socket) {
 		if (list[targetName] && list[targetName].indexOf(socket) >= 0){
-			lodash.remove(list[targetName], (r) => r === socket);
+			_.remove(list[targetName], (r) => r === socket);
 		}
 	};
 
@@ -54,13 +54,13 @@ module.exports = function(io) {
 	};
 
 	const removeRecipientEverywhere = function(socket) {
-		lodash.forOwn(channelRecipients, (list, channelUri) => {
+		_.forOwn(channelRecipients, (list, channelUri) => {
 			removeChannelRecipient(channelUri, socket);
 		});
-		lodash.forOwn(userRecipients, (list, username) => {
+		_.forOwn(userRecipients, (list, username) => {
 			removeUserRecipient(username, socket);
 		});
-		lodash.forOwn(categoryRecipients, (list, categoryName) => {
+		_.forOwn(categoryRecipients, (list, categoryName) => {
 			removeCategoryRecipient(categoryName, socket);
 		});
 	};

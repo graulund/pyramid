@@ -1,5 +1,5 @@
 const async  = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 const moment = require("moment-timezone");
 
 const util   = require("../util");
@@ -13,7 +13,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 	const parseDbLine = function(line, callback) {
 		var l = null;
 		if (line) {
-			l = lodash.clone(line);
+			l = _.clone(line);
 
 			// Channel and server names
 

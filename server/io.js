@@ -4,7 +4,7 @@
 // Prerequisites
 
 const async = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
@@ -120,7 +120,7 @@ module.exports = function(main) {
 	const emitAppConfig = function(socket) {
 		main.appConfig().loadAppConfig((err, data) => {
 			if (!err) {
-				data = lodash.assign({}, configDefaults, data);
+				data = _.assign({}, configDefaults, data);
 				socket.emit("appConfig", { data });
 			}
 		});
@@ -150,7 +150,7 @@ module.exports = function(main) {
 
 	const emitIrcConnectionStatusAll = function(socket) {
 		const state = main.ircConnectionState.currentIrcConnectionState();
-		lodash.forOwn(state, (status, serverName) => {
+		_.forOwn(state, (status, serverName) => {
 			emitIrcConnectionStatus(serverName, status, socket);
 		});
 	};
@@ -166,10 +166,10 @@ module.exports = function(main) {
 					const [ users = {}, channels = {} ] = results;
 					const instances = [];
 
-					lodash.forOwn(users, (data, username) => {
+					_.forOwn(users, (data, username) => {
 						instances.push({ username, data });
 					});
-					lodash.forOwn(channels, (data, channel) => {
+					_.forOwn(channels, (data, channel) => {
 						instances.push({ channel, data });
 					});
 

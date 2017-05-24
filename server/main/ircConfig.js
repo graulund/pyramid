@@ -1,5 +1,5 @@
 const async  = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const util   = require("../util");
 
@@ -57,7 +57,7 @@ module.exports = function(db) {
 	const safeIrcConfigDict = function(ircConfig = currentIrcConfig) {
 		var ircConfigDict = {};
 		ircConfig.forEach((config) => {
-			var outConfig = lodash.omit(config, ["password", "serverId"]);
+			var outConfig = _.omit(config, ["password", "serverId"]);
 
 			if (config.password) {
 				// Signal that a password has been set
@@ -163,7 +163,7 @@ module.exports = function(db) {
 	const addIrcServerFromDetails = function(details, callback) {
 		if (details && details.name && details.data) {
 			const name = util.formatUriName(details.name);
-			const data = lodash.assign({}, details.data, { name });
+			const data = _.assign({}, details.data, { name });
 
 			addServerToIrcConfig(
 				data,

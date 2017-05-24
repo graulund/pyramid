@@ -1,9 +1,9 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 
 var currentViewState = {};
 
 const storeViewState = function(viewState) {
-	currentViewState = lodash.assign({}, currentViewState, viewState);
+	currentViewState = _.assign({}, currentViewState, viewState);
 };
 
 module.exports = {

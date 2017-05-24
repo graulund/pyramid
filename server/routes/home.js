@@ -1,5 +1,5 @@
 const async = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const configDefaults = require("../defaults");
 const constants = require("../constants");
@@ -29,7 +29,7 @@ module.exports = function(main) {
 				}
 
 				let currentAppConfig = appConfig.safeAppConfig(
-					lodash.assign({}, configDefaults, results.appConfig)
+					_.assign({}, configDefaults, results.appConfig)
 				);
 
 				res.render("index", {
@@ -49,7 +49,7 @@ module.exports = function(main) {
 					enableScripts: true,
 					// Includes
 					constants,
-					lodash
+					_
 				});
 			});
 		}

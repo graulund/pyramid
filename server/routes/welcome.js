@@ -1,5 +1,5 @@
 const async = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const util = require("../util");
 
@@ -86,11 +86,11 @@ module.exports = function(main) {
 					secure: !!reqBody.ircSecure,
 					selfSigned: !!reqBody.ircSelfSigned,
 					certExpired: !!reqBody.ircCertExpired,
-					channels: lodash.uniq(splitByLineBreak(reqBody.ircChannels))
+					channels: _.uniq(splitByLineBreak(reqBody.ircChannels))
 				}
 			};
 
-			const friends = lodash.uniq(splitByLineBreak(reqBody.friends));
+			const friends = _.uniq(splitByLineBreak(reqBody.friends));
 
 			const friendActions = friends.map((friendName) => {
 				return (callback) => main.friends().addToFriends(

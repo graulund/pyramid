@@ -1,4 +1,4 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const configDefaults = require("../defaults");
 
@@ -40,7 +40,7 @@ module.exports = function(db) {
 	// Output data
 
 	const safeAppConfig = function(appConfig = currentAppConfig) {
-		var outConfig = lodash.omit(appConfig, ["webPassword"]);
+		var outConfig = _.omit(appConfig, ["webPassword"]);
 
 		if (appConfig.webPassword) {
 			// Signal that a password has been set

@@ -1,4 +1,4 @@
-const lodash    = require("lodash");
+const _    = require("lodash");
 
 const constants = require("../constants");
 const util      = require("../util");
@@ -10,7 +10,7 @@ module.exports = function(io, friends) {
 
 	const setChannelUserList = function(channelUri, userList, ircClient) {
 		if (channelUri) {
-			channelUserLists[channelUri] = lodash.mapValues(
+			channelUserLists[channelUri] = _.mapValues(
 				userList || {},
 				(user) => addUserSymbol(user, ircClient)
 			);
@@ -38,7 +38,7 @@ module.exports = function(io, friends) {
 			channelUserLists[channelUri] = {};
 		}
 
-		channelUserLists[channelUri][username] = lodash.assign(
+		channelUserLists[channelUri][username] = _.assign(
 			{},
 			channelUserLists[channelUri][username] || {},
 			data
@@ -85,7 +85,7 @@ module.exports = function(io, friends) {
 				let { modes: userModes } = userData;
 
 				if (userModes && userModes.length) {
-					let newModes = lodash.without(userModes, ...modes);
+					let newModes = _.without(userModes, ...modes);
 					updateUserInUserList(channelUri, username, {
 						modes: newModes,
 						symbol: userSymbol(newModes, ircClient)
@@ -133,7 +133,7 @@ module.exports = function(io, friends) {
 	const reloadOnlineFriends = function() {
 		const onlines = new Set();
 
-		lodash.forOwn(channelUserLists, (list) => {
+		_.forOwn(channelUserLists, (list) => {
 			// TODO: Vary friends by server at some point
 			if (list) {
 				const names = Object.keys(list);
@@ -167,7 +167,7 @@ module.exports = function(io, friends) {
 	const userSymbol = function(modes, ircClient) {
 		if (modes && modes.length && ircClient) {
 			let netPrefixes = ircClient.network.options.PREFIX;
-			let prefix = lodash.find(netPrefixes, { mode: modes[0] });
+			let prefix = _.find(netPrefixes, { mode: modes[0] });
 			if (prefix) {
 				return prefix.symbol;
 			}
@@ -177,7 +177,7 @@ module.exports = function(io, friends) {
 	};
 
 	const addUserSymbol = function(user, ircClient) {
-		return lodash.assign(user, { symbol: userSymbol(user.modes, ircClient) });
+		return _.assign(user, { symbol: userSymbol(user.modes, ircClient) });
 	};
 
 	return {

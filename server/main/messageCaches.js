@@ -1,4 +1,4 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 const uuid   = require("uuid");
 
 const constants = require("../constants");
@@ -149,7 +149,7 @@ module.exports = function(
 	};
 
 	const _scheduledBunchableStore = function() {
-		lodash.forOwn(bunchableLinesToInsert, (line, key) => {
+		_.forOwn(bunchableLinesToInsert, (line, key) => {
 			if (line && line.channelUri && line.data) {
 				storeLine(line.channelUri, line.data);
 			}
@@ -264,7 +264,7 @@ module.exports = function(
 				Math.max(0, currentCache.length - constants.CONTEXT_CACHE_LINES),
 				currentCache.length
 			);
-			highlightMsg = lodash.clone(msg);
+			highlightMsg = _.clone(msg);
 			highlightMsg.contextMessages = contextMessages;
 		}
 
@@ -305,7 +305,7 @@ module.exports = function(
 	setInterval(_scheduledLineDelete, 10000);
 
 	const withUuid = function(data) {
-		return lodash.assign({}, data, { lineId: uuid.v4() });
+		return _.assign({}, data, { lineId: uuid.v4() });
 	};
 
 	return {

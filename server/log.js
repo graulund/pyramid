@@ -7,7 +7,7 @@ const mkdirp = require("mkdirp");
 const path   = require("path");
 const lazy   = require("lazy");
 const async  = require("async");
-const lodash = require("lodash");
+const _ = require("lodash");
 const getFolderSize = require("get-folder-size");
 
 const constants = require("./constants");
@@ -402,7 +402,7 @@ var parseLogLine = function(line, date) {
 					type = "-mode";
 				}
 
-				obj = lodash.assign(obj, { type: type }, result);
+				obj = _.assign(obj, { type: type }, result);
 				dirty = true;
 				break;
 			}

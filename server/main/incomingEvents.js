@@ -1,4 +1,4 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const constants = require("../constants");
 const log = require("../log");
@@ -136,7 +136,7 @@ module.exports = function(
 				// Debounce to prevent many repeated calls
 				if (!userListEmissionMethods[channelUri]) {
 					userListEmissionMethods[channelUri] =
-						lodash.debounce(function() {
+						_.debounce(function() {
 							io.emitChannelUserListToRecipients(channelUri)
 						}, 500);
 				}
@@ -164,7 +164,7 @@ module.exports = function(
 			type
 		});
 
-		const event = lodash.assign(metadata, data, extraData);
+		const event = _.assign(metadata, data, extraData);
 
 		if (constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0) {
 			messageCaches.cacheBunchableChannelEvent(channelUri, event);
@@ -328,7 +328,7 @@ module.exports = function(
 		channelUserList.forEach((user) => {
 			let username = user.nick;
 			let displayName = getUserCachedDisplayName(username, serverName);
-			out[username] = lodash.assign({}, user, { displayName });
+			out[username] = _.assign({}, user, { displayName });
 		});
 
 		return out;
