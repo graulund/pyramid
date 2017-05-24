@@ -1,11 +1,16 @@
+import store from "../store";
+
 const icon = "/img/touchicon.png";
+
+var notificationsActive = true;
 
 function closeNotificationAfterTimeout(n) {
 	setTimeout(n.close.bind(n), 5000);
 }
 
 function sendNotification(title, body) {
-	if (!window.Notification) {
+	if (!window.Notification || !notificationsActive) {
+		console.log("Skipped notification due to not being active");
 		return;
 	}
 
@@ -43,4 +48,17 @@ export function askForNotificationsPermission() {
 			}
 		});
 	}
+}
+
+export function updateNotificationsActiveState() {
+	store.subscribe(function() {
+		let state = store.getState();
+		let { deviceState } = state;
+
+		let active = !deviceState.visible || !deviceState.inFocus;
+
+		if (active !== notificationsActive) {
+			notificationsActive = active;
+		}
+	});
 }
