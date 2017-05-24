@@ -23,8 +23,14 @@ module.exports = function(main) {
 				ircConfig: ircConfig.loadIrcConfig
 			}, function(err, results) {
 				if (err) {
-					// TODO: handle lol
-					throw err;
+					res.status(500);
+					res.render("error", {
+						appConfig: null,
+						enableScripts: false,
+						error: {},
+						message: err.message
+					});
+					return;
 				}
 
 				let currentAppConfig = appConfig.safeAppConfig(
