@@ -1,8 +1,7 @@
-const async = require("async");
 const _ = require("lodash");
+const async = require("async");
 
 const configDefaults = require("../defaults");
-const constants = require("../constants");
 const routeUtils = require("../routeUtils");
 
 module.exports = function(main) {
@@ -46,10 +45,7 @@ module.exports = function(main) {
 					unseenHighlights: Array.from(unseenHighlights.unseenHighlightIds()),
 					viewState: viewState.currentViewState(),
 					// Template-related
-					enableScripts: true,
-					// Includes
-					constants,
-					_
+					enableScripts: true
 				});
 			});
 		}
