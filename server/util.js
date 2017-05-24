@@ -1,9 +1,10 @@
 // PYRAMID
 // Utilities module
 
-const fs        = require("fs");
-const long      = require("long");
-const moment    = require("moment-timezone");
+const fs = require("fs");
+
+const long = require("long");
+const moment = require("moment-timezone");
 
 const constants = require("./constants");
 
@@ -14,7 +15,7 @@ const normalise = function(s) {
 		return s.replace(/\s+/g, " ");
 	}
 
-	return s;
+	return "";
 };
 
 const clean = function(s) {
@@ -22,40 +23,40 @@ const clean = function(s) {
 		return normalise(s).trim();
 	}
 
-	return s;
+	return "";
 };
 
 const oneWord = function(s) {
 	const cleanedString = clean(s);
 
 	// Only return the first word in the string, for strings where space is not allowed
-	if (s && s.replace) {
-		return s.replace(/\s.*$/, "");
+	if (cleanedString) {
+		return cleanedString.replace(/\s.*$/, "");
 	}
 
-	return s;
+	return "";
 };
 
 const formatUriName = function(s) {
 	const cleanedString = oneWord(s);
 
 	// No slashes allowed, and all lowercase
-	if (s && s.replace) {
-		return s.replace(/\//g, "").toLowerCase();
+	if (cleanedString) {
+		return cleanedString.replace(/\//g, "").toLowerCase();
 	}
 
-	return s;
+	return "";
 };
 
 const lowerClean = function(s) {
 	const cleanedString = clean(s);
 
 	// All lowercase
-	if (s && s.toLowerCase) {
-		return s.toLowerCase();
+	if (cleanedString) {
+		return cleanedString.toLowerCase();
 	}
 
-	return s;
+	return "";
 };
 
 // Time utilities
@@ -67,12 +68,12 @@ const hms = function(d) {
 
 const ymd = function(d) {
 	if (!d) { d = new Date(); }
-	return moment(d).format("YYYY-MM-DD")
+	return moment(d).format("YYYY-MM-DD");
 };
 
 const ym = function(d){
 	if (!d) { d = new Date(); }
-	return moment(d).format("YYYY-MM")
+	return moment(d).format("YYYY-MM");
 };
 
 const hmsPrefix = function(str, d){
@@ -96,7 +97,7 @@ const copyFile = function(source, target, cb) {
 	wr.on("error", function(err) {
 		done(err);
 	});
-	wr.on("close", function(ex) {
+	wr.on("close", function() {
 		done();
 	});
 	rd.pipe(wr);
@@ -119,7 +120,7 @@ const getChannelUri = function(channelName, serverName) {
 		}
 
 		return str.replace(/[^a-zA-Z0-9_-]+/g, "");
-	}
+	};
 
 	var c = safeString(channelName);
 

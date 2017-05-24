@@ -1,17 +1,18 @@
 // PYRAMID
 // Database logic
 
+const fs = require("fs");
+const path = require("path");
+
 const _ = require("lodash");
 const async = require("async");
-const fs = require("fs");
 const mkdirp = require("mkdirp");
-const path = require("path");
 const sqlite = require("sqlite3");
 
 const constants = require("./constants");
 const util = require("./util");
 
-const ASC = 0, DESC = 1;
+const ASC = 0; //, DESC = 1;
 
 const DB_FILENAME = path.join(constants.DATA_ROOT, "pyramid.db");
 
@@ -49,7 +50,7 @@ const dbCallback = function(callback) {
 		if (typeof callback === "function") {
 			callback(err, data);
 		}
-	}
+	};
 };
 
 // Query utility
@@ -70,7 +71,7 @@ const nameValueRowsToObject = (rows) => {
 			if (row && row.name) {
 				output[row.name] = row.value;
 			}
-		})
+		});
 	}
 
 	return output;
@@ -145,7 +146,7 @@ const mainMethods = function(main, db) {
 		return util.ymd(main.logs().localMoment(time));
 	};
 
-	const close = () => { db.close() };
+	const close = () => { db.close(); };
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
 		db.run(
@@ -589,7 +590,7 @@ const mainMethods = function(main, db) {
 			}
 			else {
 				const output = {};
-				friends.forEach((friend, i) => {
+				friends.forEach((friend) => {
 					const {
 						displayName,
 						lastSeenTime,
@@ -625,7 +626,7 @@ const mainMethods = function(main, db) {
 					[constants.RELATIONSHIP_BEST_FRIEND]: []
 				};
 
-				friends.forEach((friend, i) => {
+				friends.forEach((friend) => {
 					const { isBestFriend, username } = friend;
 					if (isBestFriend) {
 						friendsList[constants.RELATIONSHIP_BEST_FRIEND].push(username);
@@ -779,6 +780,7 @@ const mainMethods = function(main, db) {
 	getAllConfigValues(callback)
 	getChannelId(serverName, channelName, callback)
 	getChannelUri(serverId, channelName, callback)
+	getChannelUriFromId(channelId, callback)
 	getConfigValue(name, callback)
 	getDateLineCountForChannel(channelId, date, callback)
 	getDateLineCountForUsername(username, date, callback)
@@ -822,6 +824,7 @@ const mainMethods = function(main, db) {
 		getAllConfigValues,
 		getChannelId,
 		getChannelUri,
+		getChannelUriFromId,
 		getConfigValue,
 		getDateLineCountForChannel,
 		getDateLineCountForUsername,

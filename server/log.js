@@ -1,14 +1,13 @@
 // PYRAMID
 // Logging module
 
-const moment = require("moment-timezone");
-const fs     = require("fs");
-const mkdirp = require("mkdirp");
-const path   = require("path");
-const lazy   = require("lazy");
-const async  = require("async");
+const fs = require("fs");
+const path = require("path");
+
 const _ = require("lodash");
 const getFolderSize = require("get-folder-size");
+const mkdirp = require("mkdirp");
+const moment = require("moment-timezone");
 
 const constants = require("./constants");
 const util = require("./util");
@@ -28,24 +27,24 @@ const pathChannelUri = function(channelUri) {
 	return channelUri.replace(/\//g, path.sep);
 };
 
-const standardWritingCallback = function(err){
+const standardWritingCallback = function(err) {
 	if (err) {
 		throw err;
 	}
 };
 
-const eventWithReasonLogRegExp = (descriptor) => {
+const eventWithReasonLogRegExp = function(descriptor) {
 	return new RegExp(
 		"^\\*\\*\\s*" +
 		USERNAME_SYMBOL_RGXSTR +
 		"\\s+" +
 		descriptor +
 		"(\\s+\\(([^\\)]+)\\))?$"
-	)
+	);
 };
 
-const eventWithReasonLogParser = (descriptor) => {
-	return (line) => {
+const eventWithReasonLogParser = function(descriptor) {
+	return function(line) {
 		var match = line.match(eventWithReasonLogRegExp(descriptor));
 		if (match) {
 			return {
@@ -56,7 +55,7 @@ const eventWithReasonLogParser = (descriptor) => {
 		}
 
 		return null;
-	}
+	};
 };
 
 const lineFormats = {
@@ -283,38 +282,37 @@ const channelPrefix = function(line, channelName) {
 
 var getLastLinesFromUser = function(username, options, done) {
 
-	var limit = options.limit
+	var limit = options.limit;
 
 	// Normal limit
-	if(typeof limit != "number"){
-		limit = 200
+	if (typeof limit != "number") {
+		limit = 200;
 	}
 
 	// Sanitizing input
-	username = username.replace(/[^a-zA-Z0-9_-]+/g, "")
+	username = username.replace(/[^a-zA-Z0-9_-]+/g, "");
 
 	// Log dir
-	var logDir = path.join(LOG_ROOT, "_global", util.ym(options.d))
+	var logDir = path.join(LOG_ROOT, "_global", util.ym(options.d));
 
-	fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data){
+	fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data) {
 
-		if(err){
-			done(err)
-			return
+		if (err) {
+			done(err);
+			return;
 		}
 
-		data = data.toString(constants.FILE_ENCODING)
+		data = data.toString(constants.FILE_ENCODING);
 
-		var lines = data.split("\n")
+		var lines = data.split("\n");
 
-		if(lines.length <= limit){
-			done(null, data, lines.length-1)
+		if (lines.length <= limit) {
+			done(null, data, lines.length-1);
 		} else {
-			done(null, lines.slice(-1*limit).join("\n"), lines.length-1)
+			done(null, lines.slice(-1*limit).join("\n"), lines.length-1);
 		}
-	})
-
-}
+	});
+};
 
 var getLinesForFile = function(filePath, date, done) {
 	fs.readFile(filePath, function(err, data) {
@@ -360,30 +358,36 @@ var parseLogLine = function(line, date) {
 	var dirty = false;
 
 	// Extract channel identifier (if present)
-	if(m = obj.message.match(/^\s*\[([^0-9:])([^\]]*)\]\s*/)){
-		obj.to = m[1] + m[2]
+	m = obj.message.match(/^\s*\[([^0-9:])([^\]]*)\]\s*/);
+
+	if (m) {
+		obj.to = m[1] + m[2];
 		// Remove channel from content string
-		obj.message = obj.message.substr(m[0].length)
+		obj.message = obj.message.substr(m[0].length);
 		dirty = true;
 	}
 
 	// Extract time (if date not present)
-	if(m = obj.message.match(/^\s*\[([0-9:]+)\]\s*/)){
+	m = obj.message.match(/^\s*\[([0-9:]+)\]\s*/);
+
+	if (m) {
 		// Extract date from argument, if given
-		var d = typeof date == "string" ? date + " " : ""
+		var d = typeof date == "string" ? date + " " : "";
 		// Add time as property
-		obj.time = d + m[1]
+		obj.time = d + m[1];
 		// Remove time from content string
-		obj.message = obj.message.substr(m[0].length)
+		obj.message = obj.message.substr(m[0].length);
 		dirty = true;
 	}
 
 	// Extract time (if date present)
-	if(m = obj.message.match(/^\s*\[([0-9-]+) ([0-9:]+)\]\s*/)){
+	m = obj.message.match(/^\s*\[([0-9-]+) ([0-9:]+)\]\s*/);
+
+	if (m) {
 		// Add time as property
-		obj.time = m[1] + " " + m[2]
+		obj.time = m[1] + " " + m[2];
 		// Remove time from content string
-		obj.message = obj.message.substr(m[0].length)
+		obj.message = obj.message.substr(m[0].length);
 		dirty = true;
 	}
 
@@ -413,7 +417,7 @@ var parseLogLine = function(line, date) {
 		return null;
 	}
 
-	return obj
+	return obj;
 };
 
 var addLineObjectToList = function(linesList, data) {
@@ -446,7 +450,7 @@ var addLineObjectToList = function(linesList, data) {
 
 		linesList.push(data);
 	}
-}
+};
 
 var convertLogFileToLineObjects = function(data, date) {
 
@@ -457,12 +461,13 @@ var convertLogFileToLineObjects = function(data, date) {
 	var rawLines = data.split("\n");
 	var lines = [];
 
-	for(var i = 0; i < rawLines.length; i++){
+	for (var i = 0; i < rawLines.length; i++) {
 		// Convert item to obj instead of str
 		var line = parseLogLine(rawLines[i], date);
 		addLineObjectToList(lines, line);
 	}
-	return lines
+
+	return lines;
 };
 
 const pathHasAnyLogs = function(channelPath) {
@@ -476,7 +481,7 @@ const pathHasAnyLogs = function(channelPath) {
 };
 
 const pathHasLogsForDay = function(channelPath, d) {
-	channelPath = channelPath.replace(/[^a-zA-Z0-9_\/-]+/g, "")
+	channelPath = channelPath.replace(/[^a-zA-Z0-9_\/-]+/g, "");
 	return pathHasAnyLogs(path.join(
 		channelPath, util.ym(d), util.ymd(d) + ".txt"
 	));
@@ -539,7 +544,9 @@ const loadLastSeenInfo = function(fileName) {
 	var output = {};
 	try {
 		output = JSON.parse(json);
-	} catch(e){}
+	} catch(e) {
+		// Not in JSON format, abort
+	}
 
 	return output || {};
 };
@@ -587,7 +594,7 @@ const logLine = function(line, dirName, fileName, callback = standardWritingCall
 			line + "\n",
 			{ encoding: constants.FILE_ENCODING },
 			callback
-		)
+		);
 	});
 };
 

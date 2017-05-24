@@ -3,8 +3,8 @@
 
 // Prerequisites
 
-const async = require("async");
 const _ = require("lodash");
+const async = require("async");
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
@@ -20,7 +20,7 @@ module.exports = function(main) {
 	const emit = () => {
 		if (io) {
 			return io.emit.apply(io, arguments);
-		};
+		}
 
 		return null;
 	};
@@ -644,8 +644,13 @@ module.exports = function(main) {
 					main.ircConfig().addChannelToIrcConfig(
 						serverName, name, {},
 						(err) => {
-							main.ircControl().joinIrcChannel(serverName, name);
-							emitIrcConfig(socket);
+							if (err) {
+								console.warn("Error occurred adding irc channel", err);
+							}
+							else {
+								main.ircControl().joinIrcChannel(serverName, name);
+								emitIrcConfig(socket);
+							}
 						}
 					);
 				}
@@ -660,8 +665,13 @@ module.exports = function(main) {
 					main.ircConfig().removeChannelFromIrcConfig(
 						serverName, name,
 						(err) => {
-							main.ircControl().partIrcChannel(serverName, name);
-							emitIrcConfig(socket);
+							if (err) {
+								console.warn("Error occurred removing irc channel", err);
+							}
+							else {
+								main.ircControl().partIrcChannel(serverName, name);
+								emitIrcConfig(socket);
+							}
 						}
 					);
 				}

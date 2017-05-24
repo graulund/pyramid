@@ -3,7 +3,6 @@
 
 const async  = require("async");
 
-
 // Sub model objects not requiring state
 
 const ircConnectionState = require("./main/ircConnectionState");
@@ -141,12 +140,12 @@ const initDependencies = function() {
 			onWeb
 		],
 		(err) => {
-			console.log("Everything's ready!");
 			if (err) {
 				console.error("Got error during startup", err);
 				process.exit(1);
 			}
 			else {
+				console.log("Dependencies loaded");
 				initStartup();
 			}
 		}
@@ -202,12 +201,12 @@ const finalizeStartup = function() {
 			nicknames.loadNicknames
 		],
 		(err) => {
-			console.log("Everything's ready!");
 			if (err) {
 				console.error("Got error during startup", err);
 				process.exit(1);
 			}
 			else {
+				console.log("Configuration loaded");
 				irc.go();
 				web.go();
 			}
@@ -215,14 +214,18 @@ const finalizeStartup = function() {
 	);
 };
 
+// Startup
+
+console.log("Welcome to Pyramid");
+
 onDb((err) => {
-	console.log("Got db");
 	if (err) {
 		console.error("Got error loading database during startup", err);
 		process.exit(1);
 	}
 	else {
-		initStartup();
+		console.log("Database connected");
+		initDependencies();
 	}
 });
 

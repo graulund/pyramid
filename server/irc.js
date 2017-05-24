@@ -2,18 +2,16 @@
 // IRC module
 
 // Prerequisites
-const irc    = require("irc-framework");
-const fs     = require("fs");
-const path   = require("path");
+
 const _ = require("lodash");
+const irc = require("irc-framework");
 
 const constants = require("./constants");
-const log = require("./log");
 const util = require("./util");
 
 module.exports = function(main) {
 
-	var clients = [], i, multiServerChannels = [], debug = false;
+	var clients = [], multiServerChannels = [], debug = false;
 
 	// "Multi server channels" are channel names that exist on more than one connection,
 	// and thus connection needs to be specified upon mention of this channel name,
@@ -36,7 +34,7 @@ module.exports = function(main) {
 				namesSeen.push(channel);
 			});
 		});
-	}
+	};
 
 	// Channel objects (chobj); helping easily identify sources of events
 
@@ -55,7 +53,7 @@ module.exports = function(main) {
 			server: clientServerName(client),
 			channel: channel,
 			client: client
-		}
+		};
 	};
 
 	const getChannelUri = function(chobj) {
@@ -73,7 +71,7 @@ module.exports = function(main) {
 
 	const findClientByServerName = function(serverName) {
 		for(var i = 0; i < clients.length; i++){
-			var c = clients[i]
+			var c = clients[i];
 			if (clientServerName(c) === serverName) {
 				return c;
 			}
@@ -356,7 +354,7 @@ module.exports = function(main) {
 		return channels.map((channel) => {
 			return "#" + channel.name;
 		});
-	}
+	};
 
 	// Set up clients
 
@@ -388,7 +386,7 @@ module.exports = function(main) {
 			main.plugins().handleEvent("client", { client });
 			c.connect();
 		}
-	}
+	};
 
 	const go = () => {
 		const ircConfig = main.ircConfig().currentIrcConfig();
@@ -493,4 +491,4 @@ module.exports = function(main) {
 
 	main.setIrc(output);
 	return output;
-}
+};

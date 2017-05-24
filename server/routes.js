@@ -22,4 +22,4 @@ module.exports = function(app, main) {
 	// Main page
 
 	app.get("*", require("./routes/home")(main));
-}
+};

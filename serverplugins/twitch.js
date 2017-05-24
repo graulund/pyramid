@@ -1,12 +1,9 @@
 // PYRAMID
 // Twitch support
 
-const lodash = require("lodash");
-const path = require("path");
+const _ = require("lodash");
 const qs = require("querystring");
 const request = require("request");
-
-const util = require("../server/util");
 
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
@@ -135,6 +132,7 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 			if (emote && emote.id && emote.code) {
 				const indices = [];
 				const rgx = generateEmoteRegex(emote.code);
+				var result;
 
 				while ((result = rgx.exec(cleanedMessage)) !== null) {
 
@@ -154,21 +152,21 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 
 				if (indices.length) {
 					emotes.push(
-						lodash.assign(lodash.omit(emote, ["code"]), { indices })
+						_.assign(_.omit(emote, ["code"]), { indices })
 					);
 				}
 			}
-		})
+		});
 	}
 	return emotes;
 };
 
 const populateLocallyPostedTags = function(tags, serverName, channel, message) {
 	if (tags) {
-		lodash.assign(
+		_.assign(
 			tags,
-			lodash.pick(globalUserStates[serverName], USER_STATE_MESSAGE_FIELDS),
-			lodash.pick(userStates[channel], USER_STATE_MESSAGE_FIELDS),
+			_.pick(globalUserStates[serverName], USER_STATE_MESSAGE_FIELDS),
+			_.pick(userStates[channel], USER_STATE_MESSAGE_FIELDS),
 			{
 				emotes: generateEmoticonIndices(
 						message,
@@ -180,7 +178,7 @@ const populateLocallyPostedTags = function(tags, serverName, channel, message) {
 			}
 		);
 	}
-}
+};
 
 // API response methods -----------------------------------------------------------------
 
@@ -188,9 +186,9 @@ const flattenEmoticonImagesData = function(data) {
 	if (data && data.emoticon_sets) {
 		const obj = data.emoticon_sets;
 		var ids = [], list = [];
-		lodash.forOwn(obj, (value, key) => {
-			if (value && value.length) {
-				value.forEach((emote) => {
+		_.forOwn(obj, (emotes) => {
+			if (emotes && emotes.length) {
+				emotes.forEach((emote) => {
 					if (emote && emote.id) {
 						if (ids.indexOf(emote.id) >= 0) {
 							return;
@@ -216,7 +214,7 @@ const flattenEmoticonImagesData = function(data) {
 // API request methods ------------------------------------------------------------------
 
 const clientIdRequest = function(url, callback, extraOptions = {}) {
-	const options = lodash.merge(
+	const options = _.merge(
 		{
 			url,
 			headers: {
@@ -241,7 +239,7 @@ const krakenGetRequest = function(commandName, query, callback) {
 
 const chatdepotGetRequest = function(commandName, password, query, callback) {
 	const oauthId = password.replace(/^oauth:/, "");
-	const queryString = qs.stringify(lodash.extend({ oauth_token: oauthId }, query));
+	const queryString = qs.stringify(_.extend({ oauth_token: oauthId }, query));
 	return request(
 		CHATDEPOT_BASE_URI + commandName +
 		"?" + queryString,
@@ -263,7 +261,7 @@ const requestEmoticonImages = function(emotesets) {
 				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 			catch(e) {
-				console.warn("Error occurred trying to request emoticon images from the Twitch API.");
+				warn("Error occurred trying to request emoticon images from the Twitch API.");
 			}
 		}
 	);
@@ -296,7 +294,7 @@ const parseExternalEmoticon = function(type, data) {
 		}
 
 		return {
-			code: lodash.escapeRegExp(data.code || data.name),
+			code: _.escapeRegExp(data.code || data.name),
 			id: data.id,
 			imageType: data.imageType,
 			sizes,
@@ -315,7 +313,7 @@ const parseExternalEmoticons = function(type, list) {
 			if (emote) {
 				output.push(emote);
 			}
-		})
+		});
 	}
 
 	return output;
@@ -329,7 +327,7 @@ const storeExternalEmotes = function(type, store, list) {
 };
 
 const requestExternalGlobalEmoticons = function(enabledTypes) {
-	if (!enabledTypes || !enabledTypes.length) {
+	if (!enabledTypes || !enabledTypes.length) {
 		return;
 	}
 
@@ -357,7 +355,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 								);
 								log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 							}
-						})
+						});
 					}
 					else if (data.emotes) {
 						// BTTV
@@ -368,7 +366,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 					}
 				}
 				catch(e) {
-					console.warn(
+					warn(
 						`Error occurred trying to get external global emoticons (${type})`,
 						e
 					);
@@ -379,7 +377,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 };
 
 const requestExternalChannelEmoticons = function(channel, enabledTypes) {
-	if (!enabledTypes || !enabledTypes.length) {
+	if (!enabledTypes || !enabledTypes.length) {
 		return;
 	}
 
@@ -414,7 +412,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 
 						if (data.sets) {
 							// FFZ
-							lodash.forOwn(data.sets, (set) => {
+							_.forOwn(data.sets, (set) => {
 								externalChannelEmotes[channel] = storeExternalEmotes(
 									type, externalChannelEmotes[channel], set.emoticons
 								);
@@ -432,7 +430,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 						}
 					}
 					catch(e) {
-						console.warn(
+						warn(
 							`Error occurred trying to get external emoticons for ${channel} (${type})`,
 							e
 						);
@@ -458,7 +456,6 @@ const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 };
 
 const requestGroupChatInfo = function(client, callback) {
-	const serverName = client.config.name;
 	chatdepotGetRequest(
 		"room_memberships",
 		client.config.password,
@@ -482,7 +479,7 @@ const requestGroupChatInfo = function(client, callback) {
 					callback(null, groupChats);
 				}
 				catch(e) {
-					console.warn(
+					warn(
 						"Error occurred trying to get group chat info",
 						e
 					);

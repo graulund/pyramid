@@ -1,8 +1,8 @@
 // PYRAMID
 // Plugin interface
 
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 
 module.exports = function(main) {
 	// Constants

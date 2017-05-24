@@ -1,5 +1,5 @@
-const async = require("async");
 const _ = require("lodash");
+const async = require("async");
 
 const util = require("../util");
 
@@ -132,7 +132,7 @@ module.exports = function(main) {
 					});
 				},
 				...friendActions
-			], (err, results) => {
+			], (err) => {
 				if (err) {
 					// Show error
 					showWelcomePage(res, err, reqBody);
@@ -149,7 +149,7 @@ module.exports = function(main) {
 						res.end();
 					});
 				}
-			})
+			});
 		}
 		else {
 			// Show form again, pre-filled

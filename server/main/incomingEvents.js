@@ -137,7 +137,7 @@ module.exports = function(
 				if (!userListEmissionMethods[channelUri]) {
 					userListEmissionMethods[channelUri] =
 						_.debounce(function() {
-							io.emitChannelUserListToRecipients(channelUri)
+							io.emitChannelUserListToRecipients(channelUri);
 						}, 500);
 				}
 
@@ -192,7 +192,7 @@ module.exports = function(
 						time,
 						null
 					);
-				})
+				});
 			}
 		}
 	};
