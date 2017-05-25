@@ -1,8 +1,26 @@
 {
   "name": "pyramid",
   "version": "1.0.0-beta.2",
-  "description": "Get real time status of your friends on any IRC network",
+  "description": "Web-based IRCv3 client with bouncer, and support for Twitch features",
+  "author": "Andy Graulund <andy@graulund.com>",
+  "license": "MIT",
+  "preferGlobal": true,
   "main": "pyramid.js",
+  "engines": {
+    "node": ">=7.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/graulund/pyramid.git"
+  },
+  "scripts": {
+    "start": "node pyramid.js",
+    "prod": "node scripts/bumpBuildNumber.js && npm run webpack:prod",
+    "webpack:dev": "webpack --config webpack.dev.config.js --watch",
+    "webpack:prod": "webpack --config webpack.prod.config.js",
+    "lint:server": "./node_modules/.bin/eslint -c .eslintrc.server.js pyramid.js server/ serverplugins/; exit 0",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "async": "^2.4.1",
     "basic-auth-connect": "^1.0.0",
@@ -62,19 +80,5 @@
     "sass-loader": "^6.0.5",
     "webpack": "^2.6.0",
     "why-did-you-update": "0.0.8"
-  },
-  "scripts": {
-    "start": "node pyramid.js",
-    "prod": "node scripts/bumpBuildNumber.js && npm run webpack:prod",
-    "webpack:dev": "webpack --config webpack.dev.config.js --watch",
-    "webpack:prod": "webpack --config webpack.prod.config.js",
-    "lint-server": "./node_modules/.bin/eslint -c .eslintrc.server.js pyramid.js server/ serverplugins/; exit 0",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Andy Graulund <andy@graulund.com>",
-  "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/graulund/pyramid.git"
   }
 }
