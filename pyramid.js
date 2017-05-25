@@ -1,7 +1,7 @@
 // PYRAMID
 
 // For debugging purposes
-const heapdump = require("heapdump");
+const heapdump = require("heapdump"); // eslint-disable-line no-unused-vars
 
 // Main app service
 const main = require("./server/main");
