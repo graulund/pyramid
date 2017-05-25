@@ -2,7 +2,9 @@ const async  = require("async");
 const _ = require("lodash");
 const moment = require("moment-timezone");
 
-const util   = require("../util");
+const channelUtils = require("../util/channels");
+const timeUtils = require("../util/time");
+const usernameUtils = require("../util/usernames");
 
 module.exports = function(db, appConfig, ircConfig, nicknames) {
 
@@ -18,7 +20,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			// Channel and server names
 
 			if (l.channelName && l.serverName) {
-				l.channel = util.getChannelUri(l.channelName, l.serverName);
+				l.channel = channelUtils.getChannelUri(l.channelName, l.serverName);
 			}
 
 			if (l.channelName) {
@@ -33,7 +35,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			// Color
 
 			if (l.username) {
-				l.color = util.getUserColorNumber(l.username);
+				l.color = usernameUtils.getUserColorNumber(l.username);
 			}
 
 			// Highlights
@@ -110,8 +112,8 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 	};
 
 	const getDateLineCountForChannel = function(channelUri, date, callback) {
-		const serverName = util.channelServerNameFromUrl(channelUri);
-		const channelName = util.channelNameFromUrl(channelUri);
+		const serverName = channelUtils.channelServerNameFromUrl(channelUri);
+		const channelName = channelUtils.channelNameFromUrl(channelUri);
 
 		async.waterfall([
 			(callback) => db.getChannelId(serverName, channelName, callback),
@@ -120,8 +122,8 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 	};
 
 	const getDateLinesForChannel = function(channelUri, date, options, callback) {
-		const serverName = util.channelServerNameFromUrl(channelUri);
-		const channelName = util.channelNameFromUrl(channelUri);
+		const serverName = channelUtils.channelServerNameFromUrl(channelUri);
+		const channelName = channelUtils.channelNameFromUrl(channelUri);
 
 		async.waterfall([
 			(callback) => db.getChannelId(serverName, channelName, callback),
@@ -149,8 +151,8 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 	};
 
 	const getChannelLogDetails = function(channelUri, date, callback) {
-		const today = util.ymd(localMoment());
-		const yesterday = util.ymd(localMoment().subtract(1, "day"));
+		const today = timeUtils.ymd(localMoment());
+		const yesterday = timeUtils.ymd(localMoment().subtract(1, "day"));
 
 		const calls = [
 			(callback) => getDateLineCountForChannel(channelUri, today, callback),
@@ -185,8 +187,8 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 	};
 
 	const getUserLogDetails = function(username, date, callback) {
-		const today = util.ymd(localMoment());
-		const yesterday = util.ymd(localMoment().subtract(1, "day"));
+		const today = timeUtils.ymd(localMoment());
+		const yesterday = timeUtils.ymd(localMoment().subtract(1, "day"));
 
 		const calls = [
 			(callback) => getDateLineCountForUsername(username, today, callback),

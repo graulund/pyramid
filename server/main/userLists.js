@@ -1,7 +1,8 @@
-const _    = require("lodash");
+const _ = require("lodash");
 
 const constants = require("../constants");
-const util      = require("../util");
+const channelUtils = require("../util/channels");
+const relationshipUtils = require("../util/relationships");
 
 module.exports = function(io, friends) {
 
@@ -105,7 +106,7 @@ module.exports = function(io, friends) {
 		let channels = [];
 
 		Object.keys(channelUserLists).forEach((channelUri) => {
-			let sName = util.channelServerNameFromUrl(channelUri);
+			let sName = channelUtils.channelServerNameFromUrl(channelUri);
 			if (
 				sName === serverName &&
 				channelUserLists[channelUri][username]
@@ -138,7 +139,7 @@ module.exports = function(io, friends) {
 			if (list) {
 				const names = Object.keys(list);
 				names.forEach((name) => {
-					const relationship = util.getRelationship(
+					const relationship = relationshipUtils.getRelationship(
 						name, friends.currentFriendsList()
 					);
 					if (relationship >= constants.RELATIONSHIP_FRIEND) {

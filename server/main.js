@@ -1,7 +1,7 @@
 // PYRAMID
 // Main data logic
 
-const async  = require("async");
+const async = require("async");
 
 // Sub model objects not requiring state
 

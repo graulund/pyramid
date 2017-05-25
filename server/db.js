@@ -10,7 +10,9 @@ const mkdirp = require("mkdirp");
 const sqlite = require("sqlite3");
 
 const constants = require("./constants");
-const util = require("./util");
+const channelUtils = require("./util/channels");
+const fileUtils = require("./util/files");
+const timeUtils = require("./util/time");
 
 const ASC = 0; //, DESC = 1;
 
@@ -30,7 +32,7 @@ const createDatabaseFromEmpty = function(callback) {
 					callback(err);
 				}
 				else {
-					util.copyFile(source, target, callback);
+					fileUtils.copyFile(source, target, callback);
 				}
 			});
 		} else {
@@ -143,7 +145,7 @@ const dq = (table, whereCols) => {
 const mainMethods = function(main, db) {
 
 	const getLocalDatestampFromTime = (time) => {
-		return util.ymd(main.logs().localMoment(time));
+		return timeUtils.ymd(main.logs().localMoment(time));
 	};
 
 	const close = () => { db.close(); };
@@ -602,7 +604,7 @@ const mainMethods = function(main, db) {
 						output[username] = {
 							displayName,
 							time: lastSeenTime,
-							channel: util.getChannelUri(
+							channel: channelUtils.getChannelUri(
 								friend.channelName,
 								friend.serverName
 							)

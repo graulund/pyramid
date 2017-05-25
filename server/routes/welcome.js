@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const async = require("async");
 
-const util = require("../util");
+const stringUtils = require("../util/strings");
 
 module.exports = function(main) {
 
@@ -94,7 +94,7 @@ module.exports = function(main) {
 
 			const friendActions = friends.map((friendName) => {
 				return (callback) => main.friends().addToFriends(
-					0, util.formatUriName(friendName), false, callback
+					0, stringUtils.formatUriName(friendName), false, callback
 				);
 			});
 

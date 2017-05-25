@@ -10,7 +10,7 @@ const mkdirp = require("mkdirp");
 const moment = require("moment-timezone");
 
 const constants = require("./constants");
-const util = require("./util");
+const timeUtils = require("./util/time");
 
 const LOG_ROOT = constants.LOG_ROOT;
 
@@ -293,7 +293,7 @@ var getLastLinesFromUser = function(username, options, done) {
 	username = username.replace(/[^a-zA-Z0-9_-]+/g, "");
 
 	// Log dir
-	var logDir = path.join(LOG_ROOT, "_global", util.ym(options.d));
+	var logDir = path.join(LOG_ROOT, "_global", timeUtils.ym(options.d));
 
 	fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data) {
 
@@ -335,9 +335,9 @@ var getChatroomLinesForDay = function(server, channel, date, done) {
 	channel = channel.replace(/[^a-zA-Z0-9_-]+/g, "");
 
 	// Log dir
-	var logDir = path.join(LOG_ROOT, server, channel, util.ym(date));
+	var logDir = path.join(LOG_ROOT, server, channel, timeUtils.ym(date));
 
-	return getLinesForFile(path.join(logDir, util.ymd(date) + ".txt"), date, done);
+	return getLinesForFile(path.join(logDir, timeUtils.ymd(date) + ".txt"), date, done);
 };
 
 var getUserLinesForMonth = function(userName, date, done) {
@@ -455,7 +455,7 @@ var addLineObjectToList = function(linesList, data) {
 var convertLogFileToLineObjects = function(data, date) {
 
 	if (date && typeof date !== "string") {
-		date = util.ymd(date);
+		date = timeUtils.ymd(date);
 	}
 
 	var rawLines = data.split("\n");
@@ -483,7 +483,7 @@ const pathHasAnyLogs = function(channelPath) {
 const pathHasLogsForDay = function(channelPath, d) {
 	channelPath = channelPath.replace(/[^a-zA-Z0-9_\/-]+/g, "");
 	return pathHasAnyLogs(path.join(
-		channelPath, util.ym(d), util.ymd(d) + ".txt"
+		channelPath, timeUtils.ym(d), timeUtils.ymd(d) + ".txt"
 	));
 };
 
@@ -502,13 +502,13 @@ const pathHasLogsForYesterday = function(channelPath) {
 const userMonthPath = function(userName, d) {
 	userName = userName.replace(/[^a-zA-Z0-9_-]+/g, "");
 	return path.join(
-		"_global", util.ym(d), userName + ".txt"
+		"_global", timeUtils.ym(d), userName + ".txt"
 	);
 };
 
 const getChannelLogDetails = function(channel) {
-	const today = util.ymd(moment());
-	const yesterday = util.ymd(moment().subtract(1, "day"));
+	const today = timeUtils.ymd(moment());
+	const yesterday = timeUtils.ymd(moment().subtract(1, "day"));
 
 	return {
 		[today]: pathHasLogsForToday(channel),
@@ -517,7 +517,7 @@ const getChannelLogDetails = function(channel) {
 };
 
 const getUserLogDetails = function(userName) {
-	const today = util.ym(moment());
+	const today = timeUtils.ym(moment());
 	return {
 		[today]: userNameHasLogsForMonth(userName, moment())
 	};
@@ -562,24 +562,24 @@ const loadLastSeenUsers = function() {
 // Logging
 
 const logChannelLine = function(channelUri, channelName, line, d) {
-	line = util.hmsPrefix(line, d);
+	line = timeUtils.hmsPrefix(line, d);
 
 	if (constants.DEBUG) {
 		console.log(channelPrefix(line, channelName));
 	}
 
 	const dirName = path.join(
-		constants.LOG_ROOT, pathChannelUri(channelUri), util.ym(d)
+		constants.LOG_ROOT, pathChannelUri(channelUri), timeUtils.ym(d)
 	);
 
-	logLine(line, dirName, util.ymd(d));
+	logLine(line, dirName, timeUtils.ymd(d));
 };
 
 const logCategoryLine = function(categoryName, channelUri, channelName, line, d) {
-	line = util.ymdhmsPrefix(line, d);
+	line = timeUtils.ymdhmsPrefix(line, d);
 	line = channelPrefix(line, channelName);
 
-	const dirName = path.join(constants.LOG_ROOT, "_global", util.ym(d));
+	const dirName = path.join(constants.LOG_ROOT, "_global", timeUtils.ym(d));
 
 	logLine(line, dirName, categoryName);
 };

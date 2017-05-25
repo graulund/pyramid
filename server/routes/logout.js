@@ -1,4 +1,4 @@
-const routeUtils = require("../routeUtils");
+const routeUtils = require("../util/routing");
 
 module.exports = function(req, res) {
 	// Set already expired cookie in order to remove the cookie

@@ -10,7 +10,9 @@ const socketIo = require("socket.io");
 const constants = require("./constants");
 const configDefaults = require("./defaults");
 const log = require("./log");
-const util = require("./util");
+const timeUtils = require("./util/time");
+const stringUtils = require("./util/strings");
+const tokenUtils = require("./util/tokens");
 
 module.exports = function(main) {
 
@@ -84,7 +86,7 @@ module.exports = function(main) {
 	};
 
 	const emitChannelLogFile = function(socket, channelUri, time, pageNumber) {
-		const ymd = util.ymd(time);
+		const ymd = timeUtils.ymd(time);
 		pageNumber = +pageNumber || 1;
 		if (ymd) {
 			const options = { pageNumber };
@@ -101,7 +103,7 @@ module.exports = function(main) {
 	};
 
 	const emitUserLogFile = function(socket, username, time, pageNumber) {
-		const ymd = util.ymd(time);
+		const ymd = timeUtils.ymd(time);
 		pageNumber = +pageNumber || 1;
 		if (ymd) {
 			const options = { pageNumber };
@@ -323,7 +325,7 @@ module.exports = function(main) {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
 
-					const isAccepted = util.isAnAcceptedToken(connectionToken);
+					const isAccepted = tokenUtils.isAnAcceptedToken(connectionToken);
 					emitTokenStatus(socket, isAccepted);
 				}
 			});
@@ -331,21 +333,21 @@ module.exports = function(main) {
 			// Respond to requests for cache
 
 			socket.on("requestChannelCache", (channelUri) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channelUri === "string") {
 					emitChannelCache(socket, channelUri);
 				}
 			});
 
 			socket.on("requestUserCache", (username) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
 					emitUserCache(socket, username);
 				}
 			});
 
 			socket.on("requestCategoryCache", (categoryName) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof categoryName === "string") {
 					emitCategoryCache(socket, categoryName);
 				}
@@ -354,7 +356,7 @@ module.exports = function(main) {
 			// Response to subscription requests
 
 			socket.on("subscribe", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
 					main.recipients().addChannelRecipient(details.channel, socket);
 					emitChannelCache(socket, details.channel);
@@ -371,7 +373,7 @@ module.exports = function(main) {
 			});
 
 			socket.on("unsubscribe", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
 					main.recipients().removeChannelRecipient(details.channel, socket);
 				}
@@ -386,21 +388,21 @@ module.exports = function(main) {
 			// Response to log requests
 
 			socket.on("requestUserLogDetails", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
 					emitUserLogDetails(socket, details.username, details.time);
 				}
 			});
 
 			socket.on("requestChannelLogDetails", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.channelUri === "string") {
 					emitChannelLogDetails(socket, details.channelUri, details.time);
 				}
 			});
 
 			socket.on("requestUserLogFile", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
 					typeof details.username === "string" &&
@@ -413,7 +415,7 @@ module.exports = function(main) {
 			});
 
 			socket.on("requestChannelLogFile", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
 					typeof details.channelUri === "string" &&
@@ -428,21 +430,21 @@ module.exports = function(main) {
 			// See an unseen highlight
 
 			socket.on("reportHighlightAsSeen", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.messageId === "string") {
 					main.unseenHighlights().reportHighlightAsSeen(details.messageId);
 				}
 			});
 
 			socket.on("clearUnseenHighlights", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				main.unseenHighlights().clearUnseenHighlights();
 			});
 
 			// Storing view state
 
 			socket.on("storeViewState", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.viewState) {
 					main.viewState.storeViewState(details.viewState);
 				}
@@ -451,14 +453,14 @@ module.exports = function(main) {
 			// Sending messages
 
 			socket.on("sendMessage", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel && details.message && details.token) {
 
 					// Only allow this socket to send a message
 					// if the command itself includes an accepted token
 
-					if (util.isAnAcceptedToken(details.token)) {
-						const message = util.normalise(details.message);
+					if (tokenUtils.isAnAcceptedToken(details.token)) {
+						const message = stringUtils.normalise(details.message);
 						main.ircControl().sendOutgoingMessage(details.channel, message);
 					}
 				}
@@ -467,7 +469,7 @@ module.exports = function(main) {
 			// Requesting line info
 
 			socket.on("requestLineInfo", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
 					typeof details.lineId === "string"
@@ -479,16 +481,16 @@ module.exports = function(main) {
 			// Requesting base data
 
 			socket.on("reloadBaseData", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				emitBaseData(socket);
 			});
 
 			// Storing settings
 
 			socket.on("addNewFriend", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
 					main.friends().addToFriends(
 						0,
@@ -507,9 +509,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeFriendLevel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username && details.level) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
 					main.friends().modifyFriend(
 						0,
@@ -531,9 +533,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeFriend", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
 					main.friends().removeFromFriends(
 						0,
@@ -551,7 +553,7 @@ module.exports = function(main) {
 			});
 
 			socket.on("setAppConfigValue", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.key) {
 					main.appConfig().storeConfigValue(
 						details.key, details.value,
@@ -568,7 +570,7 @@ module.exports = function(main) {
 			});
 
 			socket.on("addIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 
 				if (details && details.name && details.data) {
 					main.ircConfig().addIrcServerFromDetails(details, (err) => {
@@ -587,9 +589,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name && details.data) {
-					const name = util.formatUriName(details.name);
+					const name = stringUtils.formatUriName(details.name);
 
 					main.ircConfig().modifyServerInIrcConfig(
 						name, details.data,
@@ -613,9 +615,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
-					const name = util.formatUriName(details.name);
+					const name = stringUtils.formatUriName(details.name);
 
 					main.ircConfig().removeServerFromIrcConfig(
 						name,
@@ -636,10 +638,10 @@ module.exports = function(main) {
 			});
 
 			socket.on("addIrcChannel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
-					const serverName = util.formatUriName(details.serverName);
-					const name = util.formatUriName(details.name);
+					const serverName = stringUtils.formatUriName(details.serverName);
+					const name = stringUtils.formatUriName(details.name);
 
 					main.ircConfig().addChannelToIrcConfig(
 						serverName, name, {},
@@ -657,10 +659,10 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeIrcChannel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
-					const serverName = util.formatUriName(details.serverName);
-					const name = util.formatUriName(details.name);
+					const serverName = stringUtils.formatUriName(details.serverName);
+					const name = stringUtils.formatUriName(details.name);
 
 					main.ircConfig().removeChannelFromIrcConfig(
 						serverName, name,
@@ -678,9 +680,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("addNickname", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
 					main.nicknames().addNickname(
 						nickname,
@@ -697,9 +699,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeNicknameValue", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname && details.key) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
 					main.nicknames().modifyNickname(
 						nickname,
@@ -720,9 +722,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeNickname", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
 					main.nicknames().removeNickname(
 						nickname,
@@ -739,15 +741,15 @@ module.exports = function(main) {
 			});
 
 			socket.on("reconnectToIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
-					const name = util.formatUriName(details.name);
+					const name = stringUtils.formatUriName(details.name);
 					main.ircControl().reconnectIrcServer(name);
 				}
 			});
 
 			socket.on("requestSystemInfo", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				log.getDatabaseSize((err, size) => {
 					if (!err) {
 						emitSystemInfo(socket, "databaseSize", size);

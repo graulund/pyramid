@@ -2,7 +2,8 @@ const _ = require("lodash");
 
 const constants = require("../constants");
 const log = require("../log");
-const util = require("../util");
+const channelUtils = require("../util/channels");
+const relationshipUtils = require("../util/relationships");
 
 module.exports = function(
 	io,
@@ -37,7 +38,9 @@ module.exports = function(
 
 		// Is this from a person among our friends? Note down "last seen" time.
 
-		const relationship = util.getRelationship(username, friends.currentFriendsList());
+		const relationship = relationshipUtils.getRelationship(
+			username, friends.currentFriendsList()
+		);
 
 		if (
 			relationship >= constants.RELATIONSHIP_FRIEND &&
@@ -158,7 +161,8 @@ module.exports = function(
 		const metadata = messageCaches.withUuid({
 			channel: channelUri,
 			channelName,
-			relationship: username && util.getRelationship(username, friends.currentFriendsList()),
+			relationship: username &&
+				relationshipUtils.getRelationship(username, friends.currentFriendsList()),
 			server: serverName,
 			time: time || new Date(),
 			type
@@ -185,7 +189,7 @@ module.exports = function(
 				channels.forEach((channelUri) => {
 					handleIncomingEvent(
 						channelUri,
-						"#" + util.channelNameFromUrl(channelUri),
+						"#" + channelUtils.channelNameFromUrl(channelUri),
 						serverName,
 						"part",
 						data,
@@ -271,7 +275,7 @@ module.exports = function(
 		const channelList = ircConfig.getConfigChannelsInServer(serverName);
 		if (channelList && channelList.length) {
 			channelList.forEach((channel) => {
-				let channelName = util.channelNameFromUrl(channel, "#");
+				let channelName = channelUtils.channelNameFromUrl(channel, "#");
 				let type = "connectionEvent";
 				let data = { server: serverName, status };
 				handleIncomingEvent(

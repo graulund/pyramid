@@ -1,4 +1,4 @@
-const util = require("../util");
+const channelUtils = require("../util/channels");
 
 module.exports = function(db) {
 
@@ -57,7 +57,7 @@ module.exports = function(db) {
 			const nickRegex = new RegExp("\\b" + nickname.nickname + "\\b", "i");
 			if (
 				nickRegex.test(message) &&
-				util.passesChannelWhiteBlacklist(nickname, channelUri)
+				channelUtils.passesChannelWhiteBlacklist(nickname, channelUri)
 			) {
 				highlightStrings.push(nickname.nickname);
 			}

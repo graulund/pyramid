@@ -1,6 +1,6 @@
 const constants = require("../constants");
-const routeUtils = require("../routeUtils");
-const util = require("../util");
+const routeUtils = require("../util/routing");
+const tokenUtils = require("../util/tokens");
 
 module.exports = function(main) {
 
@@ -24,10 +24,10 @@ module.exports = function(main) {
 		) {
 
 			if (req.body.logOutOtherSessions) {
-				util.clearAcceptedTokens();
+				tokenUtils.clearAcceptedTokens();
 			}
 
-			const token = util.generateAcceptedToken();
+			const token = tokenUtils.generateAcceptedToken();
 			routeUtils.setTokenCookie(
 				res,
 				token,

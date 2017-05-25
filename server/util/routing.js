@@ -1,7 +1,7 @@
 const cookie = require("cookie");
 
-const constants = require("./constants");
-const util = require("./util");
+const constants = require("../constants");
+const tokenUtils = require("./tokens");
 
 const getUsedToken = function(req) {
 	var cookies = cookie.parse(req.headers.cookie || "");
@@ -15,7 +15,7 @@ const getUsedToken = function(req) {
 const isLoggedIn = function(req) {
 	const token = getUsedToken(req);
 	if (token) {
-		return util.isAnAcceptedToken(token);
+		return tokenUtils.isAnAcceptedToken(token);
 	}
 
 	return false;

@@ -1,8 +1,9 @@
 const _ = require("lodash");
-const uuid   = require("uuid");
+const uuid = require("uuid");
 
 const constants = require("../constants");
-const util   = require("../util");
+const eventUtils = require("../util/events");
+const usernameUtils = require("../util/usernames");
 
 module.exports = function(
 	db,
@@ -166,15 +167,15 @@ module.exports = function(
 			const lastItem = cache[cache.length-1];
 			if (lastItem) {
 
-				const isJoin = util.isJoinEvent(data);
-				const isPart = util.isPartEvent(data);
+				const isJoin = eventUtils.isJoinEvent(data);
+				const isPart = eventUtils.isPartEvent(data);
 
 				var bunch;
 				if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
 					// Create bunch and insert in place
 
-					const lastIsJoin = util.isJoinEvent(lastItem);
-					const lastIsPart = util.isPartEvent(lastItem);
+					const lastIsJoin = eventUtils.isJoinEvent(lastItem);
+					const lastIsPart = eventUtils.isPartEvent(lastItem);
 
 					bunch = {
 						channel: lastItem.channel,
@@ -240,7 +241,7 @@ module.exports = function(
 		const msg = {
 			channel: channelUri,
 			channelName: channelName,
-			color: util.getUserColorNumber(username),
+			color: usernameUtils.getUserColorNumber(username),
 			highlight: highlightStrings,
 			lineId: uuid.v4(),
 			message,

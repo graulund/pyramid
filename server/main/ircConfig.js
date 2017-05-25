@@ -1,7 +1,8 @@
 const async  = require("async");
 const _ = require("lodash");
 
-const util   = require("../util");
+const channelUtils = require("../util/channels");
+const stringUtils = require("../util/strings");
 
 module.exports = function(db) {
 
@@ -42,7 +43,9 @@ module.exports = function(db) {
 					if (server.channels && server.channels.length) {
 						server.channels.forEach((channel) => {
 							if (channel && channel.channelId && channel.name) {
-								const channelUri = util.getChannelUri(channel.name, server.name);
+								const channelUri = channelUtils.getChannelUri(
+									channel.name, server.name
+								);
 								channelIds[channelUri] = channel.channelId;
 							}
 						});
@@ -93,7 +96,7 @@ module.exports = function(db) {
 		const s = getIrcConfigByName(serverName, ircConfig);
 		if (s) {
 			return s.channels.map(
-				(val) => util.getChannelUri(val.name, serverName)
+				(val) => channelUtils.getChannelUri(val.name, serverName)
 			);
 		}
 
@@ -162,7 +165,7 @@ module.exports = function(db) {
 
 	const addIrcServerFromDetails = function(details, callback) {
 		if (details && details.name && details.data) {
-			const name = util.formatUriName(details.name);
+			const name = stringUtils.formatUriName(details.name);
 			const data = _.assign({}, details.data, { name });
 
 			addServerToIrcConfig(
@@ -179,7 +182,7 @@ module.exports = function(db) {
 								const channelName = channel.name || channel;
 
 								if (typeof channelName === "string" && channelName) {
-									channelNames.push(util.formatUriName(channelName));
+									channelNames.push(stringUtils.formatUriName(channelName));
 								}
 							});
 							if (channelNames.length) {

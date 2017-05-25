@@ -2,7 +2,7 @@ const _ = require("lodash");
 const async = require("async");
 
 const configDefaults = require("../defaults");
-const routeUtils = require("../routeUtils");
+const routeUtils = require("../util/routing");
 
 module.exports = function(main) {
 	return function(req, res) {

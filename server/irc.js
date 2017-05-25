@@ -10,7 +10,7 @@ const _ = require("lodash");
 const irc = require("irc-framework");
 
 const constants = require("./constants");
-const util = require("./util");
+const channelUtils = require("./util/channels");
 
 module.exports = function(main) {
 
@@ -60,7 +60,7 @@ module.exports = function(main) {
 	};
 
 	const getChannelUri = function(chobj) {
-		return util.getChannelUri(chobj.channel, chobj.server);
+		return channelUtils.getChannelUri(chobj.channel, chobj.server);
 	};
 
 	const getChannelFullName = function(chobj) {
@@ -98,8 +98,8 @@ module.exports = function(main) {
 	// Send message
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
-		const serverName  = util.channelServerNameFromUrl(channelUri);
-		const channelName = util.channelNameFromUrl(channelUri, "#");
+		const serverName  = channelUtils.channelServerNameFromUrl(channelUri);
+		const channelName = channelUtils.channelNameFromUrl(channelUri, "#");
 		if (serverName && channelName) {
 			const client = findClientByServerName(serverName);
 			if (client) {
