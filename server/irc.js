@@ -1,3 +1,6 @@
+/*eslint no-unused-vars: 0*/
+// (above is temporary)
+
 // PYRAMID
 // IRC module
 
@@ -255,9 +258,9 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("debug", function (msg) {
-			if (debug) {
+			//if (debug) {
 				console.log(msg);
-			}
+			//}
 		});
 
 		client.irc.on("message", function (event) {
@@ -278,7 +281,6 @@ module.exports = function(main) {
 
 		client.irc.on("userlist", (event) => {
 			let { channel, users } = event;
-			console.log("userlist", event);
 			setChannelUserList(client, channel, users);
 		});
 
@@ -287,7 +289,6 @@ module.exports = function(main) {
 
 			if (nick === client.irc.user.nick) {
 				client.joinedChannels.push(channel);
-				console.log("Joined channels list is now " + client.joinedChannels.length);
 			}
 
 			handleIncomingEvent(
@@ -307,7 +308,6 @@ module.exports = function(main) {
 
 			if (nick === client.irc.user.nick) {
 				client.joinedChannels = _.without(client.joinedChannels, channel);
-				console.log("Joined channels list is now " + client.joinedChannels.length);
 			}
 
 			handleIncomingEvent(client, channel, "part", { username: nick });

@@ -2,7 +2,7 @@
 // Change your local settings on your Pyramid settings page.
 
 module.exports = {
-	debug: true,
+	debug: false,
 
 	// Whether or not to store the log lines in a database
 	logLinesDb: true,
