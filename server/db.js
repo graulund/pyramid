@@ -14,7 +14,7 @@ const util = require("./util");
 
 const ASC = 0; //, DESC = 1;
 
-const DB_FILENAME = path.join(constants.DATA_ROOT, "pyramid.db");
+const DB_FILENAME = constants.DB_FILENAME;
 
 // Create db
 

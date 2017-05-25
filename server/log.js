@@ -618,7 +618,9 @@ const writeLastSeenUsers = function(data, callback) {
 // System info
 
 const getDatabaseSize = function(callback) {
-	return getFolderSize(constants.DATA_ROOT, callback);
+	return fs.stat(constants.DB_FILENAME, (err, stats) => {
+		callback(err, stats && stats.size);
+	});
 };
 
 const getLogFolderSize = function(callback) {
