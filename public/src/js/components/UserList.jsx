@@ -49,7 +49,7 @@ class UserList extends PureComponent {
 		}
 		else {
 			userListNodes = [
-				<li className="nothing">No friends :(</li>
+				<li className="nothing" key="nothing">No friends :(</li>
 			];
 		}
 

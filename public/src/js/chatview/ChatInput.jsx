@@ -6,6 +6,7 @@ import escapeRegExp from "lodash/escapeRegExp";
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem, sendMessage } from "../lib/io";
 import { combinedDisplayName } from "../lib/pageTitles";
+import { refElSetter } from "../lib/refEls";
 
 const YOUNG_MESSAGE_MS = 1800000;
 
@@ -58,6 +59,9 @@ class ChatInput extends Component {
 
 		this.currentCyclingNames = null;
 		this.currentCyclingOffset = 0;
+
+		this.els = {};
+		this.setInputEl = refElSetter("input").bind(this);
 	}
 
 	shouldComponentUpdate(newProps) {
@@ -143,7 +147,7 @@ class ChatInput extends Component {
 
 	focus() {
 		const { isTouchDevice } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (inputEl && !isTouchDevice) {
 			inputEl.focus();
@@ -151,7 +155,7 @@ class ChatInput extends Component {
 	}
 
 	handleHistoryKey(direction, origHistory) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		var next;
 
@@ -191,7 +195,7 @@ class ChatInput extends Component {
 	}
 
 	handleTabKey(tokens) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		const last = tokens.length-1;
 		const suffix = last === 0
@@ -238,7 +242,7 @@ class ChatInput extends Component {
 
 		// Ensure focus if we are typing characters without having focus in the input field
 
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (
 			inputEl &&
@@ -259,7 +263,7 @@ class ChatInput extends Component {
 		this.resetCurrentHistory();
 
 		const { enableEmojiCodes } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 		if (inputEl && inputEl.value && enableEmojiCodes) {
 			const val = inputEl.value;
 			const convertedValue = convertCodesToEmojis(val, true);
@@ -276,7 +280,7 @@ class ChatInput extends Component {
 
 	onKeyDown(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		// Note: These things are in the keydown event because they are not acting
 		// correctly when they are in keyup.
@@ -328,7 +332,7 @@ class ChatInput extends Component {
 
 	onKeyUp(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (
 			channel &&
@@ -351,7 +355,7 @@ class ChatInput extends Component {
 	resetCurrentHistory() {
 		// Call if the contents of the field has been edited
 
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		currentInput = inputEl && inputEl.value || "";
 		currentHistoryIndex = -1;
@@ -359,7 +363,7 @@ class ChatInput extends Component {
 
 	submit(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (evt) {
 			evt.preventDefault();
@@ -386,7 +390,7 @@ class ChatInput extends Component {
 			<form onSubmit={this.submit} className="chatview__input" key="main">
 				<input
 					type="text"
-					ref="input"
+					ref={this.setInputEl}
 					onChange={this.onChange}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}

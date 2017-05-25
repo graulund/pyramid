@@ -119,7 +119,7 @@ class ChannelList extends PureComponent {
 		}
 		else {
 			channelListNodes = [
-				<li className="nothing">No channels :(</li>
+				<li className="nothing" key="nothing">No channels :(</li>
 			];
 		}
 

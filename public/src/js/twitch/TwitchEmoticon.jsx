@@ -2,6 +2,7 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import Tipsy from "react-tipsy";
 
+import { refElSetter } from "../lib/refEls";
 import { stickToTheBottom } from "../lib/visualBehavior";
 
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
@@ -71,8 +72,12 @@ const getEmoticonUrlsets = function(emote) {
 class TwitchEmoticon extends PureComponent {
 	constructor(props) {
 		super(props);
+
 		this.onLoad = this.onLoad.bind(this);
 		this.onTooltipLoad = this.onTooltipLoad.bind(this);
+
+		this.els = {};
+		this.setTooltip = refElSetter("tooltip").bind(this);
 	}
 
 	onLoad() {
@@ -83,7 +88,7 @@ class TwitchEmoticon extends PureComponent {
 	}
 
 	onTooltipLoad() {
-		const { tooltip } = this.refs;
+		const { tooltip } = this.els;
 
 		if (tooltip) {
 			tooltip.updatePosition();
@@ -114,7 +119,7 @@ class TwitchEmoticon extends PureComponent {
 		];
 
 		return (
-			<Tipsy ref="tooltip" content={tooltipContent}>
+			<Tipsy ref={this.setTooltip} content={tooltipContent}>
 				<img
 					src={url.src}
 					srcSet={url.srcSet.join(", ")}

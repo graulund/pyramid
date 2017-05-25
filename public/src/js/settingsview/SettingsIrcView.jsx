@@ -9,6 +9,7 @@ import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
 import { CHANGE_DEBOUNCE_MS, INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
 import * as io from "../lib/io";
+import { refElSetter } from "../lib/refEls";
 
 class SettingsIrcView extends PureComponent {
 	constructor(props) {
@@ -21,6 +22,9 @@ class SettingsIrcView extends PureComponent {
 		this.eventHandlers = {};
 		this.valueChangeHandlers = {};
 
+		this.els = {};
+		this.setAddForm = refElSetter("addForm").bind(this);
+
 		this.state = {
 			newServer: { channels: [] },
 			newServerName: null,
@@ -29,14 +33,14 @@ class SettingsIrcView extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps, prevState) {
-		const { showingAddForm } = this.state;
-		const { addForm } = this.refs;
+		let { showingAddForm } = this.state;
+		let { addForm } = this.els;
 
 		// Automatically add focus to the first input element
 		// if we just started showing a form
 
 		if (addForm && showingAddForm && !prevState.showingAddForm) {
-			const input = addForm.querySelector(INPUT_SELECTOR);
+			let input = addForm.querySelector(INPUT_SELECTOR);
 
 			if (input) {
 				input.focus();
@@ -207,7 +211,7 @@ class SettingsIrcView extends PureComponent {
 	renderAddForm() {
 		const { newServer, newServerName } = this.state;
 		return (
-			<div className="settings__add" key="add" ref="addForm">
+			<div className="settings__add" key="add" ref={this.setAddForm}>
 				<h3>Add IRC server &#8220;{ newServerName }&#8221;</h3>
 				{ this.renderIrcConfigForm(newServer) }
 				<button onClick={this.onAddSubmit}>Submit</button>

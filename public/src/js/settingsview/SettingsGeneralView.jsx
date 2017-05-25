@@ -360,8 +360,14 @@ class SettingsGeneralView extends PureComponent {
 		if (name === "enableDarkMode") {
 			notice = [
 				"Switch quickly with ",
-				<a href="https://en.wikipedia.org/wiki/Access_key"
-					target="_blank" key="access-key-info">access key</a>,
+				(
+					<a
+						href="https://en.wikipedia.org/wiki/Access_key"
+						target="_blank" rel="noopener noreferrer"
+						key="access-key-info">
+						access key
+					</a>
+				),
 				" K"
 			];
 		}

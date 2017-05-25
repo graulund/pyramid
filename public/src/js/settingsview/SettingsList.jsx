@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import { INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
+import { refElSetter } from "../lib/refEls";
 
 class SettingsList extends PureComponent {
 	constructor(props) {
@@ -12,6 +13,11 @@ class SettingsList extends PureComponent {
 		this.showAddForm = this.showAddForm.bind(this);
 
 		this.eventHandlers = new Map();
+
+		this.els = {};
+		this.setAddExtraContainer = refElSetter("addExtraContainer").bind(this);
+		this.setAddForm = refElSetter("addForm").bind(this);
+		this.setAddName = refElSetter("addName").bind(this);
 
 		this.state = {
 			selectedItem: null,
@@ -28,7 +34,7 @@ class SettingsList extends PureComponent {
 
 	componentDidUpdate(prevProps, prevState) {
 		const { showingAddForm } = this.state;
-		const { addForm } = this.refs;
+		const { addForm } = this.els;
 
 		// Automatically add focus to the first input element
 		// if we just started showing a form
@@ -76,7 +82,7 @@ class SettingsList extends PureComponent {
 		evt.preventDefault();
 
 		const { extraColumnName, onAdd } = this.props;
-		const { addName, addExtraContainer } = this.refs;
+		const { addName, addExtraContainer } = this.els;
 
 		const name = addName.value;
 
@@ -106,16 +112,16 @@ class SettingsList extends PureComponent {
 	renderAddForm() {
 		const { extraColumn, extraColumnName, itemKindName } = this.props;
 		return (
-			<form className="settings__add" onSubmit={this.onSubmit} key="add" ref="addForm">
+			<form className="settings__add" onSubmit={this.onSubmit} key="add" ref={this.setAddForm}>
 				<h3>Add { itemKindName }</h3>
 				<p className="l">
 					<label htmlFor="name">Name </label>
-					<input type="text" name="name" id="name" ref="addName" />
+					<input type="text" name="name" id="name" ref={this.setAddName} />
 				</p>
 				{
 					(typeof extraColumn === "function")
 					? (
-						<p className="l" ref="addExtraContainer">
+						<p className="l" ref={this.setAddExtraContainer}>
 							<label htmlFor={extraColumnName}>{ ucfirst(extraColumnName) + " " }</label>
 							{ extraColumn(null) }
 						</p>

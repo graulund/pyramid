@@ -7,12 +7,13 @@ import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import UserList from "./UserList.jsx";
 import VersionNumber from "./VersionNumber.jsx";
-import { storeViewState } from "../lib/io";
-import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
-import { CATEGORY_NAMES } from "../constants";
-import { isMobile } from "../lib/visualBehavior";
-import store from "../store";
 import actions from "../actions";
+import { CATEGORY_NAMES } from "../constants";
+import store from "../store";
+import { storeViewState } from "../lib/io";
+import { refElSetter } from "../lib/refEls";
+import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
+import { isMobile } from "../lib/visualBehavior";
 
 class Sidebar extends PureComponent {
 	constructor(props) {
@@ -26,13 +27,16 @@ class Sidebar extends PureComponent {
 		this.sortByActivity = this.sortByActivity.bind(this);
 		this.toggleSystemMenu = this.toggleSystemMenu.bind(this);
 
+		this.els = {};
+		this.setCog = refElSetter("cog").bind(this);
+
 		this.state = {
 			systemMenuOpen: false
 		};
 	}
 
 	componentDidMount() {
-		const { cog } = this.refs;
+		let { cog } = this.els;
 
 		// Close the menu on outside and inside click
 		this.closeClickHandler = (evt) => {
@@ -55,7 +59,7 @@ class Sidebar extends PureComponent {
 	// Event handler
 
 	onClick(evt) {
-		const { cog } = this.refs;
+		let { cog } = this.els;
 
 		if (isMobile() && evt && evt.nativeEvent) {
 			let target = evt.nativeEvent.target;
@@ -164,7 +168,7 @@ class Sidebar extends PureComponent {
 					</a>
 					<a className="sidebar__cog"
 						href="javascript://"
-						ref="cog"
+						ref={this.setCog}
 						onClick={this.toggleSystemMenu}>
 						<img src="/img/cog.svg" width="16" height="16" alt="System" />
 					</a>
