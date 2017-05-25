@@ -11,6 +11,9 @@ module.exports = function(db) {
 	var channelIdCache = {};
 	var serverIdCache = {};
 
+	var ircPasswords = {};
+	var passwordKey = null;
+
 	const getIrcConfig = function(callback) {
 		db.getIrcConfig(callback);
 	};

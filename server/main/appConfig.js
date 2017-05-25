@@ -1,6 +1,7 @@
 const _ = require("lodash");
 
 const configDefaults = require("../defaults");
+const passwordUtils = require("../util/passwords");
 
 module.exports = function(db) {
 
@@ -64,9 +65,15 @@ module.exports = function(db) {
 	const storeConfigValue = function(name, value, callback) {
 
 		if (name === "webPassword" && !value) {
-			// Do not allow the setting of an empty web password
-			callback(new Error("Empty web password"));
-			return;
+			if (!value) {
+				// Do not allow the setting of an empty web password
+				callback(new Error("Empty web password"));
+				return;
+			}
+			else {
+				// Hash the web password
+				value = passwordUtils.generatePasswordHash(value);
+			}
 		}
 
 		db.storeConfigValue(
