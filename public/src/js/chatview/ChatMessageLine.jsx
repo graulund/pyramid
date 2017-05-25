@@ -20,10 +20,10 @@ class ChatMessageLine extends PureComponent {
 	renderLink(token, index) {
 		return (
 			<a
-			target="_blank"
-			rel="noopener noreferrer"
-			href={token.url}
-			key={index}>
+				target="_blank"
+				rel="noopener noreferrer"
+				href={token.url}
+				key={index}>
 				{ token.text }
 			</a>
 		);
