@@ -18,10 +18,19 @@ function generatePasswordHash(password) {
 }
 
 function verifyPassword(enteredPassword, passwordHash) {
-	return sodium.api.crypto_pwhash_str_verify(
-		new Buffer(passwordHash),
-		new Buffer(enteredPassword)
-	);
+	var out;
+
+	try {
+		out = sodium.api.crypto_pwhash_str_verify(
+			new Buffer(passwordHash),
+			new Buffer(enteredPassword)
+		);
+	}
+	catch (e) {
+		out = false;
+	}
+
+	return out;
 }
 
 // Symmetric encryption
