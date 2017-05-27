@@ -35,9 +35,9 @@ module.exports = function(db, appConfig, ircConfig) {
 			decryptionKey = key;
 			let config = ircConfig.currentIrcConfig();
 			_.forOwn(config, (c) => {
-				if (c && c.name && c.password && c.passwordNonce) {
+				if (c && c.name && c.password) {
 					ircPasswords[c.name] = passwordUtils.decryptSecret(
-						c.password, c.passwordNonce, decryptionKey
+						JSON.parse(c.password), decryptionKey
 					);
 				}
 			});
@@ -54,10 +54,9 @@ module.exports = function(db, appConfig, ircConfig) {
 		else if (!isStrongEncryption()) {
 			let config = ircConfig.currentIrcConfig()[serverName];
 
-			if (config && config.password && config.passwordNonce) {
+			if (config && config.password) {
 				return passwordUtils.decryptSecret(
-					config.password,
-					config.passwordNonce
+					JSON.parse(config.password),
 					getSoftDecryptionKey()
 				);
 			}

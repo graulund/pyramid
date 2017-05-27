@@ -1,6 +1,5 @@
 const lodash = require("lodash");
 
-//const config = require("../config");
 const dbSource = require("../server/db");
 const readline = require("readline");
 const Writable = require("stream").Writable;
@@ -15,26 +14,11 @@ const mutableStdout = new Writable({
 	}
 });
 
-/*process.stdout.write("Password: ");
-
-process.stdin.setEncoding("utf8");
-
-process.stdin.on("readable", () => {
-	var chunk = process.stdin.read();
-	if (chunk !== null) {
-		process.stdout.write(`data: ${chunk}`);
-	}
-});
-
-process.stdin.on("end", () => {
-	process.stdout.write("end");
-});*/
-
 const passwordUtils = require("../server/util/passwords");
 
-var db;
+var db, wasStrong = false, currentlyStoredWebPassword;
 
-function askForPassword (storedPassword, db) {
+function askForPassword (storedPassword) {
 	console.log("This script changes your Pyramid's IRC password encryption mode.");
 	console.log("First, we need your Pyramid password. Type it in the following prompt and type enter, but be aware that your input cannot be seen.");
 	console.log("");
@@ -48,13 +32,13 @@ function askForPassword (storedPassword, db) {
 	rl.question("Password: ", (givenPassword) => {
 		rl.close();
 		process.stdout.write("\n");
-		handleGivenPassword(givenPassword, storedPassword, db);
+		handleGivenPassword(givenPassword, storedPassword);
 	});
 
 	mutableStdout.muted = true;
 }
 
-function handleGivenPassword (givenPassword, storedPassword, db) {
+function handleGivenPassword (givenPassword, storedPassword) {
 	if (givenPassword === storedPassword) {
 		// It is currently stored in plain text
 
@@ -67,16 +51,15 @@ function handleGivenPassword (givenPassword, storedPassword, db) {
 			}
 			else {
 				// Continue
-				askForPreference(givenPassword, db);
+				askForPreference(givenPassword);
 			}
 		});
 	}
 
 	else if (passwordUtils.verifyPassword(givenPassword, storedPassword)) {
-		console.log("hashed");
 		// It is currently stored as a hash
 		// Continue directly
-		askForPreference(givenPassword, db);
+		askForPreference(givenPassword);
 	}
 
 	else {
@@ -84,7 +67,7 @@ function handleGivenPassword (givenPassword, storedPassword, db) {
 	}
 }
 
-function askForPreference (decryptedPassword, db) {
+function askForPreference (decryptedPassword) {
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout
@@ -106,11 +89,11 @@ function askForPreference (decryptedPassword, db) {
 	rl.question("Do you wish to use the secure mode? [y/n]: ", (preference) => {
 		rl.close();
 		process.stdout.write("\n");
-		handlePreference(preference, decryptedPassword, db);
+		handlePreference(preference, decryptedPassword);
 	});
 }
 
-function handlePreference (preference, decryptedPassword, db) {
+function handlePreference (preference, decryptedPassword) {
 	preference = preference.toLowerCase();
 	var isStrong;
 
@@ -132,60 +115,90 @@ function handlePreference (preference, decryptedPassword, db) {
 			throw err;
 		}
 		else {
-			// ENCRYPT THE PASSWORDS
+			// Encrypt the passwords
 
 			console.log("Setting stored. Please ensure that you restart your Pyramid instance before using it again.");
+
+			db.getIrcConfig((err, ircConfig) => {
+				if (err) {
+					throw err;
+				}
+				else {
+					encryptPasswords(isStrong, ircConfig, decryptedPassword);
+				}
+			});
 		}
 	});
+}
+
+function encryptPasswords (isStrong, ircConfig, decryptedPassword) {
+	let ircConfigTools = require("../server/main/ircConfig")(db);
+	ircConfig.forEach((config) => {
+		if (config && config.name && config.password) {
+			var decodedData;
+			try {
+				decodedData = JSON.parse(config.password);
+			}
+			catch (e) {}
+
+			var ircPw;
+
+			if (decodedData) {
+				// Was already encrypted, let's decrypt first before we re-encrypt
+				let decryptKey = wasStrong
+					? decryptedPassword
+					: currentlyStoredWebPassword;
+
+				ircPw = passwordUtils.decryptSecret(decodedData, decryptKey);
+			}
+			else {
+				ircPw = config.password;
+			}
+
+			let encryptKey = isStrong
+				? decryptedPassword
+				: currentlyStoredWebPassword;
+			let encrypted = passwordUtils.encryptSecret(ircPw, encryptKey);
+
+			// Store in db
+			ircConfigTools.modifyServerInIrcConfig(
+				config.name,
+				{ password: JSON.stringify(encrypted) },
+				(err) => {
+					if (err) {
+						throw err;
+					}
+					else {
+						console.log(
+							(decodedData ? "Re-e" : "E") +
+							"ncrypted the password for IRC server " +
+							config.name
+						);
+					}
+				}
+			);
+		}
+	})
 }
 
 // Init
 
 dbSource({ setDb: (_) => { db = _; } }, () => {
-
 	db.getConfigValue("webPassword", (err, storedPassword) => {
 		if (err) {
 			throw err;
 		}
 		else {
-			askForPassword(storedPassword, db);
+			currentlyStoredWebPassword = storedPassword;
+			db.getConfigValue("strongIrcPasswordEncryption", (err, status) => {
+				if (err) {
+					throw err;
+				}
+				else {
+					wasStrong = status || false;
+					askForPassword(storedPassword);
+				}
+			});
 		}
 	});
-
-
-/*
-	var keyValues = lodash.omit(config, [
-		// Properties handled separately
-		"irc", "nicknames", "friends", "bestFriends",
-		// No longer a thing
-		"debug", "encoding", "nonPeople"
-	]);
-
-	// Key values
-	lodash.forOwn(keyValues, (value, key) => {
-		console.log("Adding key " + key);
-		db.storeConfigValue(key, value, callback);
-	});
-
-	// IRC config
-	if (config.irc && config.irc.length) {
-		var serverId = 0;
-		config.irc.forEach((server) => {
-			serverId++;
-			var serverData = lodash.omit(server, ["channels"]);
-			serverData.hostname = serverData.hostname || serverData.server;
-			serverData.nickname = serverData.nickname || serverData.username;
-			console.log("Adding server " + server.name);
-			db.addServerToIrcConfig(serverData, callback);
-
-			if (server.channels && server.channels.length) {
-				server.channels.forEach((channel) => {
-					console.log("Adding channel " + channel);
-					db.addChannelToIrcConfig(
-						serverId, channel.replace(/^#/, ""), callback
-					);
-				});
-			}
-		});
-	}*/
 });

@@ -1,5 +1,8 @@
 const sodium = require("sodium");
 
+const NOT_SO_SECRET_KEY = "Sup homie, I heard you like keys";
+const KEY_LENGTH = 32;
+
 // Password hashing
 // Inspired by https://paragonie.com/blog/2016/02/how-safely-store-password-in-2016#nodejs
 
@@ -35,23 +38,32 @@ function verifyPassword(enteredPassword, passwordHash) {
 
 // Symmetric encryption
 
-function prepareSecretBoxKey(key) {
-	if (key.length < 32) {
-		throw new Error("Key is not long enough");
-	}
-
-	return new Buffer(key.substr(0, 32)).toString("base64");
+function convertTextToCompatibleKey(text) {
+	// This is better than just repeating it or cutting it off (I think...)
+	let m = new Buffer(text);
+	let k = new Buffer(NOT_SO_SECRET_KEY);
+	return sodium.api.crypto_generichash(KEY_LENGTH, m, k)
+		.toString("base64");
 }
 
-function encryptSecret(secretMessage, key) {
-	let secretBox = new sodium.SecretBox(prepareSecretBoxKey(key), "base64");
-	return secretBox.encrypt(secretMessage, "utf8");
+function encryptSecret(secretMessage, keyString) {
 	// Returns object { cipherText, nonce }
+
+	let secretBox = new sodium.SecretBox(
+		convertTextToCompatibleKey(keyString), "base64"
+	);
+
+	return secretBox.encrypt(secretMessage, "utf8");
 }
 
-function decryptSecret(cipherText, nonce, key) {
-	let secretBox = new sodium.SecretBox(prepareSecretBoxKey(key), "base64");
-	return secretBox.decrypt({ cipherText, nonce }, "utf8");
+function decryptSecret(encryptedObj, keyString) {
+	// Expects an object with { cipherText, nonce }
+
+	let secretBox = new sodium.SecretBox(
+		convertTextToCompatibleKey(keyString), "base64"
+	);
+
+	return secretBox.decrypt(encryptedObj, "utf8");
 }
 
 module.exports = {
