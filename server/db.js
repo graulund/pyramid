@@ -373,7 +373,7 @@ const mainMethods = function(main, db) {
 					callback(err);
 				}
 				else {
-					callback(null, JSON.parse(row.value));
+					callback(null, row && JSON.parse(row.value));
 				}
 			})
 		);
