@@ -1,5 +1,3 @@
-const lodash = require("lodash");
-
 const dbSource = require("../server/db");
 const readline = require("readline");
 const Writable = require("stream").Writable;
@@ -139,7 +137,9 @@ function encryptPasswords (isStrong, ircConfig, decryptedPassword) {
 			try {
 				decodedData = JSON.parse(config.password);
 			}
-			catch (e) {}
+			catch (e) {
+				// Invalid format
+			}
 
 			var ircPw;
 
@@ -178,7 +178,7 @@ function encryptPasswords (isStrong, ircConfig, decryptedPassword) {
 				}
 			);
 		}
-	})
+	});
 }
 
 // Init

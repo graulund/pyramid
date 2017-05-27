@@ -64,6 +64,8 @@ module.exports = function(db) {
 
 	const storeConfigValue = function(name, value, callback) {
 
+		var rawValue;
+
 		if (name === "webPassword" && !value) {
 			if (!value) {
 				// Do not allow the setting of an empty web password
@@ -72,6 +74,7 @@ module.exports = function(db) {
 			}
 			else {
 				// Hash the web password
+				rawValue = value;
 				value = passwordUtils.generatePasswordHash(value);
 			}
 		}
@@ -91,7 +94,7 @@ module.exports = function(db) {
 					if (handlers && handlers.length) {
 						loadAppConfig(() => {
 							handlers.forEach((handler) => {
-								handler(value, name);
+								handler(value, name, rawValue);
 							});
 						});
 					}

@@ -1,12 +1,14 @@
 const _ = require("lodash");
-const async = require("async");
 
 const passwordUtils = require("../util/passwords");
 
-module.exports = function(db, appConfig, ircConfig) {
+module.exports = function(irc, appConfig, ircConfig) {
 
 	var ircPasswords = {};
 	var decryptionKey = null;
+	var softDecryptionKey = null;
+
+	// Utility
 
 	function isStrongEncryption() {
 		return appConfig.configValue("strongIrcPasswordEncryption");
@@ -16,35 +18,24 @@ module.exports = function(db, appConfig, ircConfig) {
 		return appConfig.configValue("webPassword");
 	}
 
-	function setUpIrcPasswords() {
+	function decryptIrcPassword(config, key) {
+		if (config && config.password) {
+			try {
+				let passwordData = JSON.parse(config.password);
 
-		let strongEncryption = isStrongEncryption();
-
-		appConfig.addConfigValueChangeHandler("webPassword", function(){
-			// TODO: Re-encrypt all IRC passwords
-		});
-
-		if (strongEncryption) {
-			// stuff
+				return passwordUtils.decryptSecret(
+					passwordData, key
+				);
+			}
+			catch (e) {
+				// Invalid data
+			}
 		}
+
+		return null;
 	}
 
-	function onDecryptionKey(key) {
-		if (isStrongEncryption()) {
-			// Store
-			decryptionKey = key;
-			let config = ircConfig.currentIrcConfig();
-			_.forOwn(config, (c) => {
-				if (c && c.name && c.password) {
-					ircPasswords[c.name] = passwordUtils.decryptSecret(
-						JSON.parse(c.password), decryptionKey
-					);
-				}
-			});
-
-			// TODO: Let IRC know that passwords are now available
-		}
-	}
+	// Main stuff
 
 	function getDecryptedPasswordForServer(serverName) {
 		if (ircPasswords[serverName]) {
@@ -54,21 +45,123 @@ module.exports = function(db, appConfig, ircConfig) {
 		else if (!isStrongEncryption()) {
 			let config = ircConfig.currentIrcConfig()[serverName];
 
-			if (config && config.password) {
-				return passwordUtils.decryptSecret(
-					JSON.parse(config.password),
-					getSoftDecryptionKey()
-				);
+			let decrypted = decryptIrcPassword(
+				config, softDecryptionKey
+			);
+
+			if (decrypted) {
+				return decrypted;
 			}
 		}
 
-		return false;
+		return null;
+	}
+
+	function reencryptIrcPasswords(newKey, newSoftKey) {
+		let config = ircConfig.currentIrcConfig();
+		let isStrong = isStrongEncryption();
+		let oldKey = isStrong ? decryptionKey : softDecryptionKey;
+		let key = isStrong ? newKey : newSoftKey;
+
+		config.forEach((c) => {
+			if (c && c.name && c.password) {
+
+				var ircPw;
+
+				// Is the decrypted version in our cache?
+
+				if (ircPasswords[c.name]) {
+					ircPw = ircPasswords[c.name];
+				}
+
+				else {
+					let decrypted = decryptIrcPassword(c, oldKey);
+
+					if (!decrypted) {
+						return;
+					}
+
+					ircPw = decrypted;
+				}
+
+				let encrypted = passwordUtils.encryptSecret(ircPw, key);
+
+				// Store in db
+				ircConfig.modifyServerInIrcConfig(
+					c.name,
+					{ password: JSON.stringify(encrypted) }
+				);
+			}
+		});
+	}
+
+	// Events
+
+	function onStartUp() {
+		softDecryptionKey = getSoftDecryptionKey();
+		appConfig.addConfigValueChangeHandler("webPassword", function(value, name, rawValue) {
+			// Re-encrypt all IRC passwords
+			onDecryptionKeyChanged(rawValue);
+		});
+
+		if (!isStrongEncryption()) {
+			ircConfig.setEncryptionKey(softDecryptionKey);
+		}
+	}
+
+	function onDecryptionKey(key) {
+		if (isStrongEncryption()) {
+
+			// Store
+			decryptionKey = key;
+			ircConfig.setEncryptionKey(decryptionKey);
+
+			let added = [];
+			let config = ircConfig.currentIrcConfig();
+
+			_.forOwn(config, (c) => {
+				if (c && c.name && c.password) {
+					let decrypted = decryptIrcPassword(c, decryptionKey);
+
+					if (decrypted) {
+						ircPasswords[c.name] = decrypted;
+						added.push(c.name);
+					}
+				}
+			});
+
+			// Let IRC know that passwords are now available
+			added.forEach((serverName) => {
+				irc.clientPasswordAvailable(serverName);
+			});
+		}
+	}
+
+	function onDecryptionKeyChanged(newKey) {
+		// Value is changed in the db at this point
+
+		let newSoftKey = getSoftDecryptionKey();
+
+		// Handle
+		reencryptIrcPasswords(newKey, newSoftKey);
+
+		// Update internal
+		decryptionKey = newKey;
+		softDecryptionKey = newSoftKey;
+
+		if (isStrongEncryption()) {
+			ircConfig.setEncryptionKey(newKey);
+		}
+		else {
+			ircConfig.setEncryptionKey(newSoftKey);
+		}
 	}
 
 	return {
 		getDecryptedPasswordForServer,
 		isStrongEncryption,
 		onDecryptionKey,
-		setUpIrcPasswords
+		onDecryptionKeyChanged,
+		onStartUp
 	};
 };

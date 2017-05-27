@@ -46,6 +46,32 @@ function convertTextToCompatibleKey(text) {
 		.toString("base64");
 }
 
+function packageSecret(secret) {
+
+	if (!(typeof secret === "object")) {
+		return null;
+	}
+
+	return {
+		c: secret.cipherText.toString("base64"),
+		n: secret.nonce.toString("base64")
+	};
+}
+
+function unpackageSecret(packagedSecret) {
+
+	if (!(typeof packagedSecret === "object")) {
+		return null;
+	}
+
+	// Expects an object with { cipherText, nonce }
+
+	return {
+		cipherText: new Buffer(packagedSecret.c, "base64"),
+		nonce: new Buffer(packagedSecret.n, "base64")
+	};
+}
+
 function encryptSecret(secretMessage, keyString) {
 	// Returns object { cipherText, nonce }
 
@@ -53,11 +79,11 @@ function encryptSecret(secretMessage, keyString) {
 		convertTextToCompatibleKey(keyString), "base64"
 	);
 
-	return secretBox.encrypt(secretMessage, "utf8");
+	return packageSecret(secretBox.encrypt(secretMessage, "utf8"));
 }
 
-function decryptSecret(encryptedObj, keyString) {
-	// Expects an object with { cipherText, nonce }
+function decryptSecret(packagedObj, keyString) {
+	let encryptedObj = unpackageSecret(packagedObj);
 
 	let secretBox = new sodium.SecretBox(
 		convertTextToCompatibleKey(keyString), "base64"
