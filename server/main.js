@@ -164,6 +164,9 @@ const initStartup = function() {
 	ircControl       = require("./main/ircControl")(
 		irc, ircConfig, io
 	);
+	ircPasswords     = require("./main/ircPasswords")(
+		db, appConfig, ircConfig
+	);
 	logs             = require("./main/logs")(
 		db, appConfig, ircConfig, nicknames
 	);

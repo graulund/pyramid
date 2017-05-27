@@ -46,11 +46,12 @@ function prepareSecretBoxKey(key) {
 function encryptSecret(secretMessage, key) {
 	let secretBox = new sodium.SecretBox(prepareSecretBoxKey(key), "base64");
 	return secretBox.encrypt(secretMessage, "utf8");
+	// Returns object { cipherText, nonce }
 }
 
-function decryptSecret(cipherText, key) {
+function decryptSecret(cipherText, nonce, key) {
 	let secretBox = new sodium.SecretBox(prepareSecretBoxKey(key), "base64");
-	return secretBox.decrypt(cipherText, "utf8");
+	return secretBox.decrypt({ cipherText, nonce }, "utf8");
 }
 
 module.exports = {

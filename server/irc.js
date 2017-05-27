@@ -14,7 +14,8 @@ const channelUtils = require("./util/channels");
 
 module.exports = function(main) {
 
-	var clients = [], multiServerChannels = [], debug = false;
+	let clients = [], multiServerChannels = [], debug = false;
+	let clientsWaitingForPassword = [];
 
 	// "Multi server channels" are channel names that exist on more than one connection,
 	// and thus connection needs to be specified upon mention of this channel name,
@@ -360,7 +361,40 @@ module.exports = function(main) {
 
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
-			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+
+			let serverName = cf.name;
+			let strongEncryption = main.ircPasswords().isStrongEncryption();
+
+			if (cf.password) {
+				let decryptedPassword = main.ircPasswords().
+					getDecryptedPasswordForServer(serverName);
+
+				if (!decryptedPassword) {
+
+					if (strongEncryption) {
+						main.warn(
+							"Cannot connect to " + serverName +
+							" before you log in using the web interface."
+						);
+
+						if (clientsWaitingForPassword.indexOf(serverName) < 0) {
+							clientsWaitingForPassword.push(serverName);
+						}
+
+					}
+
+					else {
+						main.warn(
+							"Could not decrypt the password for " +
+							serverName
+						);
+					}
+
+					return;
+				}
+			}
+
+			main.log(`Connecting to ${cf.hostname} as ${cf.nickname}`);
 			cf.username = cf.username || cf.nickname;
 
 			let appConfig = main.appConfig();
@@ -475,9 +509,25 @@ module.exports = function(main) {
 		}
 	};
 
+	const clientPasswordAvailable = function(serverName) {
+		if (clientsWaitingForPassword.indexOf(serverName) >= 0) {
+			clientsWaitingForPassword = _.without(
+				clientsWaitingForPassword, serverName
+			);
+
+			let ircConfig = main.ircConfig().currentIrcConfig();
+			ircConfig.forEach((config) => {
+				if (config && config.name === serverName) {
+					initiateClient(config);
+				}
+			});
+		}
+	};
+
 	// Exported objects and methods
 	const output = {
 		calibrateMultiServerChannels,
+		clientPasswordAvailable,
 		clients: () => clients,
 		connectUnconnectedClients,
 		disconnectServer,

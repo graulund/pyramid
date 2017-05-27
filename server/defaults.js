@@ -10,11 +10,17 @@ module.exports = {
 	// Whether or not to store the log files as text files in a folder
 	logLinesFile: true,
 
+	// SSL certificate settings
 	sslCertPath: "",
 	sslKeyPath: "",
+
 	timeZone: "UTC",
 	webPort: 54335,
 
+	// Encryption settings
+	strongIrcPasswordEncryption: false,
+
+	// App config
 	automaticallyJoinTwitchGroupChats: true,
 	collapseJoinParts: true,
 	enableUsernameColors: true,
