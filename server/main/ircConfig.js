@@ -1,5 +1,5 @@
-const async  = require("async");
 const _ = require("lodash");
+const async = require("async");
 
 const channelUtils = require("../util/channels");
 const stringUtils = require("../util/strings");
