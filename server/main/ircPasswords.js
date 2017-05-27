@@ -57,11 +57,10 @@ module.exports = function(irc, appConfig, ircConfig) {
 		return null;
 	}
 
-	function reencryptIrcPasswords(newKey, newSoftKey) {
+	function reencryptIrcPasswords() {
 		let config = ircConfig.currentIrcConfig();
 		let isStrong = isStrongEncryption();
 		let oldKey = isStrong ? decryptionKey : softDecryptionKey;
-		let key = isStrong ? newKey : newSoftKey;
 
 		config.forEach((c) => {
 			if (c && c.name && c.password) {
@@ -84,12 +83,10 @@ module.exports = function(irc, appConfig, ircConfig) {
 					ircPw = decrypted;
 				}
 
-				let encrypted = passwordUtils.encryptSecret(ircPw, key);
-
-				// Store in db
+				// Store in db; this command automatically encrypts
 				ircConfig.modifyServerInIrcConfig(
 					c.name,
-					{ password: JSON.stringify(encrypted) }
+					{ password: ircPw }
 				);
 			}
 		});
@@ -142,19 +139,20 @@ module.exports = function(irc, appConfig, ircConfig) {
 
 		let newSoftKey = getSoftDecryptionKey();
 
-		// Handle
-		reencryptIrcPasswords(newKey, newSoftKey);
-
-		// Update internal
-		decryptionKey = newKey;
-		softDecryptionKey = newSoftKey;
-
+		// Set the new encryption key
 		if (isStrongEncryption()) {
 			ircConfig.setEncryptionKey(newKey);
 		}
 		else {
 			ircConfig.setEncryptionKey(newSoftKey);
 		}
+
+		// Encrypt with that key
+		reencryptIrcPasswords();
+
+		// Update internal
+		decryptionKey = newKey;
+		softDecryptionKey = newSoftKey;
 	}
 
 	return {

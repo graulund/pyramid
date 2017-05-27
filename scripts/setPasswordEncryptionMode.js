@@ -155,15 +155,10 @@ function encryptPasswords (isStrong, ircConfig, decryptedPassword) {
 				ircPw = config.password;
 			}
 
-			let encryptKey = isStrong
-				? decryptedPassword
-				: currentlyStoredWebPassword;
-			let encrypted = passwordUtils.encryptSecret(ircPw, encryptKey);
-
-			// Store in db
+			// Store in db; this command automatically encrypts
 			ircConfigTools.modifyServerInIrcConfig(
 				config.name,
-				{ password: JSON.stringify(encrypted) },
+				{ password: ircPw },
 				(err) => {
 					if (err) {
 						throw err;
