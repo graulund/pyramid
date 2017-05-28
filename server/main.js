@@ -243,6 +243,7 @@ module.exports = {
 	ircConfig: () => ircConfig,
 	ircConnectionState,
 	ircControl: () => ircControl,
+	ircPasswords: () => ircPasswords,
 	lastSeen: () => lastSeen,
 	log: _log,
 	logs: () => logs,

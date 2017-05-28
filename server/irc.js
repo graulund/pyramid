@@ -365,8 +365,10 @@ module.exports = function(main) {
 			let serverName = cf.name;
 			let strongEncryption = main.ircPasswords().isStrongEncryption();
 
+			var decryptedPassword;
+
 			if (cf.password) {
-				let decryptedPassword = main.ircPasswords().
+				decryptedPassword = main.ircPasswords().
 					getDecryptedPasswordForServer(serverName);
 
 				if (!decryptedPassword) {
@@ -406,7 +408,7 @@ module.exports = function(main) {
 				port:        cf.port || 6667,
 				userName:    cf.username,
 				realName:    cf.realname || cf.nickname || cf.username,
-				password:    cf.password || "",
+				password:    decryptedPassword || "",
 				tls:         cf.secure || false,
 				rejectUnauthorized: !cf.selfSigned || !cf.certExpired || false,
 				auto_reconnect_max_retries: 999
@@ -419,7 +421,11 @@ module.exports = function(main) {
 			clients.push(client);
 			main.plugins().handleEvent("client", { client });
 			c.connect();
+
+			return client;
 		}
+
+		return null;
 	};
 
 	const go = () => {
@@ -465,6 +471,22 @@ module.exports = function(main) {
 			}
 		});
 	};
+
+	const connectOneClient = function(serverName) {
+		var client;
+
+		let ircConfig = main.ircConfig().currentIrcConfig();
+		ircConfig.forEach((config) => {
+			if (config && config.name === serverName) {
+				client = initiateClient(config);
+			}
+		});
+
+		if (client) {
+			calibrateMultiServerChannels();
+			setUpClient(client);
+		}
+	}
 
 	const joinChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
@@ -514,13 +536,7 @@ module.exports = function(main) {
 			clientsWaitingForPassword = _.without(
 				clientsWaitingForPassword, serverName
 			);
-
-			let ircConfig = main.ircConfig().currentIrcConfig();
-			ircConfig.forEach((config) => {
-				if (config && config.name === serverName) {
-					initiateClient(config);
-				}
-			});
+			connectOneClient(serverName);
 		}
 	};
 
