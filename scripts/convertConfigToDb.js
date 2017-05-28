@@ -7,7 +7,7 @@ var db;
 
 dbSource({ setDb: (_) => { db = _; } }, () => {
 
-	const callback = (err, data) => {
+	const callback = (err) => {
 		if (err) {
 			throw err;
 		}
@@ -39,13 +39,13 @@ dbSource({ setDb: (_) => { db = _; } }, () => {
 		config.friends.forEach((username) => {
 			console.log("Adding friend " + username);
 			db.addToFriends(0, username, false, callback);
-		})
+		});
 	}
 	if (config.bestFriends && config.bestFriends.length) {
 		config.bestFriends.forEach((username) => {
 			console.log("Adding best friend " + username);
 			db.addToFriends(0, username, true, callback);
-		})
+		});
 	}
 
 	// IRC config

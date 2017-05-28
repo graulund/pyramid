@@ -486,7 +486,7 @@ module.exports = function(main) {
 			calibrateMultiServerChannels();
 			setUpClient(client);
 		}
-	}
+	};
 
 	const joinChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
