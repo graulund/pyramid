@@ -1,4 +1,4 @@
-const lodash = require("lodash");
+const _ = require("lodash");
 
 const config = require("../config");
 const dbSource = require("../server/db");
@@ -7,13 +7,13 @@ var db;
 
 dbSource({ setDb: (_) => { db = _; } }, () => {
 
-	const callback = (err, data) => {
+	const callback = (err) => {
 		if (err) {
 			throw err;
 		}
 	};
 
-	var keyValues = lodash.omit(config, [
+	var keyValues = _.omit(config, [
 		// Properties handled separately
 		"irc", "nicknames", "friends", "bestFriends",
 		// No longer a thing
@@ -21,7 +21,7 @@ dbSource({ setDb: (_) => { db = _; } }, () => {
 	]);
 
 	// Key values
-	lodash.forOwn(keyValues, (value, key) => {
+	_.forOwn(keyValues, (value, key) => {
 		console.log("Adding key " + key);
 		db.storeConfigValue(key, value, callback);
 	});
@@ -39,13 +39,13 @@ dbSource({ setDb: (_) => { db = _; } }, () => {
 		config.friends.forEach((username) => {
 			console.log("Adding friend " + username);
 			db.addToFriends(0, username, false, callback);
-		})
+		});
 	}
 	if (config.bestFriends && config.bestFriends.length) {
 		config.bestFriends.forEach((username) => {
 			console.log("Adding best friend " + username);
 			db.addToFriends(0, username, true, callback);
-		})
+		});
 	}
 
 	// IRC config
@@ -53,7 +53,7 @@ dbSource({ setDb: (_) => { db = _; } }, () => {
 		var serverId = 0;
 		config.irc.forEach((server) => {
 			serverId++;
-			var serverData = lodash.omit(server, ["channels"]);
+			var serverData = _.omit(server, ["channels"]);
 			serverData.hostname = serverData.hostname || serverData.server;
 			serverData.nickname = serverData.nickname || serverData.username;
 			console.log("Adding server " + server.name);

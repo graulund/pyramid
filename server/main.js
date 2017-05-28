@@ -15,6 +15,7 @@ var friends;
 var incomingEvents;
 var ircConfig;
 var ircControl;
+var ircPasswords;
 var lastSeen;
 var logs;
 var messageCaches;
@@ -164,6 +165,9 @@ const initStartup = function() {
 	ircControl       = require("./main/ircControl")(
 		irc, ircConfig, io
 	);
+	ircPasswords     = require("./main/ircPasswords")(
+		irc, appConfig, ircConfig
+	);
 	logs             = require("./main/logs")(
 		db, appConfig, ircConfig, nicknames
 	);
@@ -207,6 +211,7 @@ const finalizeStartup = function() {
 			}
 			else {
 				console.log("Configuration loaded");
+				ircPasswords.onStartUp();
 				irc.go();
 				web.go();
 			}
@@ -238,6 +243,7 @@ module.exports = {
 	ircConfig: () => ircConfig,
 	ircConnectionState,
 	ircControl: () => ircControl,
+	ircPasswords: () => ircPasswords,
 	lastSeen: () => lastSeen,
 	log: _log,
 	logs: () => logs,

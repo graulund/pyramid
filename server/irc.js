@@ -14,7 +14,8 @@ const channelUtils = require("./util/channels");
 
 module.exports = function(main) {
 
-	var clients = [], multiServerChannels = [], debug = false;
+	let clients = [], multiServerChannels = [], debug = false;
+	let clientsWaitingForPassword = [];
 
 	// "Multi server channels" are channel names that exist on more than one connection,
 	// and thus connection needs to be specified upon mention of this channel name,
@@ -360,7 +361,42 @@ module.exports = function(main) {
 
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
-			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+
+			let serverName = cf.name;
+			let strongEncryption = main.ircPasswords().isStrongEncryption();
+
+			var decryptedPassword;
+
+			if (cf.password) {
+				decryptedPassword = main.ircPasswords().
+					getDecryptedPasswordForServer(serverName);
+
+				if (!decryptedPassword) {
+
+					if (strongEncryption) {
+						main.warn(
+							"Cannot connect to " + serverName +
+							" before you log in using the web interface."
+						);
+
+						if (clientsWaitingForPassword.indexOf(serverName) < 0) {
+							clientsWaitingForPassword.push(serverName);
+						}
+
+					}
+
+					else {
+						main.warn(
+							"Could not decrypt the password for " +
+							serverName
+						);
+					}
+
+					return;
+				}
+			}
+
+			main.log(`Connecting to ${cf.hostname} as ${cf.nickname}`);
 			cf.username = cf.username || cf.nickname;
 
 			let appConfig = main.appConfig();
@@ -372,7 +408,7 @@ module.exports = function(main) {
 				port:        cf.port || 6667,
 				userName:    cf.username,
 				realName:    cf.realname || cf.nickname || cf.username,
-				password:    cf.password || "",
+				password:    decryptedPassword || "",
 				tls:         cf.secure || false,
 				rejectUnauthorized: !cf.selfSigned || !cf.certExpired || false,
 				auto_reconnect_max_retries: 999
@@ -385,7 +421,11 @@ module.exports = function(main) {
 			clients.push(client);
 			main.plugins().handleEvent("client", { client });
 			c.connect();
+
+			return client;
 		}
+
+		return null;
 	};
 
 	const go = () => {
@@ -432,6 +472,22 @@ module.exports = function(main) {
 		});
 	};
 
+	const connectOneClient = function(serverName) {
+		var client;
+
+		let ircConfig = main.ircConfig().currentIrcConfig();
+		ircConfig.forEach((config) => {
+			if (config && config.name === serverName) {
+				client = initiateClient(config);
+			}
+		});
+
+		if (client) {
+			calibrateMultiServerChannels();
+			setUpClient(client);
+		}
+	};
+
 	const joinChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
@@ -475,9 +531,19 @@ module.exports = function(main) {
 		}
 	};
 
+	const clientPasswordAvailable = function(serverName) {
+		if (clientsWaitingForPassword.indexOf(serverName) >= 0) {
+			clientsWaitingForPassword = _.without(
+				clientsWaitingForPassword, serverName
+			);
+			connectOneClient(serverName);
+		}
+	};
+
 	// Exported objects and methods
 	const output = {
 		calibrateMultiServerChannels,
+		clientPasswordAvailable,
 		clients: () => clients,
 		connectUnconnectedClients,
 		disconnectServer,

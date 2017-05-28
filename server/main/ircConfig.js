@@ -1,7 +1,8 @@
-const async  = require("async");
 const _ = require("lodash");
+const async = require("async");
 
 const channelUtils = require("../util/channels");
+const passwordUtils = require("../util/passwords");
 const stringUtils = require("../util/strings");
 
 module.exports = function(db) {
@@ -10,6 +11,8 @@ module.exports = function(db) {
 
 	var channelIdCache = {};
 	var serverIdCache = {};
+
+	var encryptionKey = null;
 
 	const getIrcConfig = function(callback) {
 		db.getIrcConfig(callback);
@@ -113,10 +116,27 @@ module.exports = function(db) {
 			return;
 		}
 
+		if (data.password && encryptionKey) {
+			data.password = JSON.stringify(
+				passwordUtils.encryptSecret(
+					data.password, encryptionKey
+				)
+			);
+		}
+
 		db.addServerToIrcConfig(data, callback);
 	};
 
 	const modifyServerInIrcConfig = function(serverName, details, callback) {
+
+		if (details.password && encryptionKey) {
+			details.password = JSON.stringify(
+				passwordUtils.encryptSecret(
+					details.password, encryptionKey
+				)
+			);
+		}
+
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
 			(data, callback) => db.modifyServerInIrcConfig(data.serverId, details, callback)
@@ -228,6 +248,7 @@ module.exports = function(db) {
 		removeChannelFromIrcConfig,
 		removeServerFromIrcConfig,
 		safeIrcConfigDict,
-		serverIdCache: () => serverIdCache
+		serverIdCache: () => serverIdCache,
+		setEncryptionKey: (k) => { encryptionKey = k; }
 	};
 };

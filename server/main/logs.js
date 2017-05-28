@@ -1,5 +1,5 @@
-const async  = require("async");
 const _ = require("lodash");
+const async = require("async");
 const moment = require("moment-timezone");
 
 const channelUtils = require("../util/channels");
