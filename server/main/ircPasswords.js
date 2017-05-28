@@ -43,7 +43,8 @@ module.exports = function(irc, appConfig, ircConfig) {
 		}
 
 		else if (!isStrongEncryption()) {
-			let config = ircConfig.currentIrcConfig()[serverName];
+			let config = ircConfig.currentIrcConfig()
+				.find((c) => c.name === serverName);
 
 			let decrypted = decryptIrcPassword(
 				config, softDecryptionKey

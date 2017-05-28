@@ -66,7 +66,7 @@ module.exports = function(db) {
 
 		var rawValue;
 
-		if (name === "webPassword" && !value) {
+		if (name === "webPassword") {
 			if (!value) {
 				// Do not allow the setting of an empty web password
 				callback(new Error("Empty web password"));
