@@ -71,18 +71,19 @@ function askForPreference (decryptedPassword) {
 		output: process.stdout
 	});
 
+	console.log("");
 	console.log("Until now, all IRC passwords in Pyramid have been stored in plain text.");
 
 	console.log("The newest version of Pyramid introduces a choice between two IRC password encryption modes.");
 	console.log("");
 
-	console.log("1. The secure mode, which relies on a key that is not present in the database, but requires that you log in to the Pyramid web interface at least once before it can connect to IRC networks requiring passwords for authentication.");
+	console.log("1. The secure mode, which relies on a key that is not present in the database, but requires that you log in to the Pyramid web interface at least once after starting it, before it can connect to IRC networks that require passwords for authentication.");
 	console.log("");
 
-	console.log("2. The less secure mode, which relies on a key that is easily findable for any person who would access your database (thus too easily decryptable to call anything other than a convenience encryption), but connects to IRC networks requiring passwords for authentication immediately upon startup.");
+	console.log("2. The insecure mode, which relies on a key that is easily findable for any person who can access your database (thus it is too easily decryptable to call it anything other than a convenience encryption). However, it connects to IRC networks requiring passwords for authentication immediately upon startup.");
 	console.log("");
 
-	console.log("Default value is the less secure mode, since that's the way Pyramid has worked so far, but it's not very recommendable.");
+	console.log("Default value is the insecure mode, since that's the way Pyramid has worked so far, but it's not very recommendable.");
 
 	rl.question("Do you wish to use the secure mode? [y/n]: ", (preference) => {
 		rl.close();
@@ -104,7 +105,7 @@ function handlePreference (preference, decryptedPassword) {
 		isStrong = false;
 	}
 	else {
-		console.log("Incorrect choice. Aborting.");
+		console.log("Please start over, and this time, type either y or n.");
 		return;
 	}
 
