@@ -131,6 +131,13 @@ function handlePreference (preference, decryptedPassword) {
 
 function encryptPasswords (isStrong, ircConfig, decryptedPassword) {
 	let ircConfigTools = require("../server/main/ircConfig")(db);
+
+	let encryptKey = isStrong
+		? decryptedPassword
+		: currentlyStoredWebPassword;
+
+	ircConfigTools.setEncryptionKey(encryptKey);
+
 	ircConfig.forEach((config) => {
 		if (config && config.name && config.password) {
 			var decodedData;
