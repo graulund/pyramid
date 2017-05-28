@@ -46,7 +46,7 @@ module.exports = function(main) {
 
 		res.end(
 			"That wasn't correct. Sorry.\n\n" +
-			"If you've recently updated Pyramid, be aware that passwords are stored differently now, and you are required to run the scripts/updatePasswords.js script from a command line before you can use Pyramid again. Sorry about that."
+			"If you've recently updated Pyramid, be aware that passwords are stored differently now, and you are required to run the scripts/setPasswordEncryptionMode.js script from a command line before you can use Pyramid again. Sorry about that."
 		);
 	}
 
