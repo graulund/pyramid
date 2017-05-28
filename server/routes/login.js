@@ -25,6 +25,8 @@ module.exports = function(main) {
 			passwordUtils.verifyPassword(req.body.password, passwordHash)
 		) {
 
+			main.ircPasswords().onDecryptionKey(req.body.password);
+
 			if (req.body.logOutOtherSessions) {
 				tokenUtils.clearAcceptedTokens();
 			}

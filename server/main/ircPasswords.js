@@ -107,7 +107,7 @@ module.exports = function(irc, appConfig, ircConfig) {
 	}
 
 	function onDecryptionKey(key) {
-		if (isStrongEncryption()) {
+		if (isStrongEncryption() && decryptionKey !== key) {
 
 			// Store
 			decryptionKey = key;
