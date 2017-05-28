@@ -238,12 +238,4 @@
 	strong {
 		color: #999;
 	}
-
-	&__empty {
-		display: none;
-	}
-
-	&--focus &__empty {
-		display: inline-block;
-	}
 }

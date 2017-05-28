@@ -23,9 +23,16 @@ class SettingsPasswordInput extends PureComponent {
 
 		this.state = {
 			dirty: false,
-			editing: false,
-			focus: false
+			editing: false
 		};
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		let { editing } = this.state;
+		if (editing && !prevState.editing) {
+			let { input } = this.els;
+			input.focus();
+		}
 	}
 
 	edit() {
@@ -53,8 +60,6 @@ class SettingsPasswordInput extends PureComponent {
 			input.value = PASSWORD_DEFAULT;
 		}
 
-		this.setState({ focus: false });
-
 		if (typeof this.props.onBlur === "function") {
 			this.props.onBlur(evt);
 		}
@@ -80,8 +85,6 @@ class SettingsPasswordInput extends PureComponent {
 			input.value = "";
 		}
 
-		this.setState({ focus: true });
-
 		if (typeof this.props.onFocus === "function") {
 			this.props.onFocus(evt);
 		}
@@ -97,7 +100,7 @@ class SettingsPasswordInput extends PureComponent {
 
 	render() {
 		const { defaultValue, emptiable, ...inputProps } = this.props;
-		const { editing, focus } = this.state;
+		const { editing } = this.state;
 		var displayValue = defaultValue;
 
 		if (displayValue === true) {
@@ -105,8 +108,7 @@ class SettingsPasswordInput extends PureComponent {
 		}
 
 		const className = block +
-			(editing ? ` ${block}--editing` : "") +
-			(focus ? ` ${block}--focus` : "");
+			(editing ? ` ${block}--editing` : "");
 
 		let hasValue = !!defaultValue;
 
