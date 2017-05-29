@@ -67,9 +67,10 @@ module.exports = function(
 
 		// Display name
 
-		const displayName = tags && tags["display-name"];
+		let displayName = tags && tags["display-name"];
 
 		if (serverName && username && displayName) {
+			tags["display-name"] = displayName = displayName.trim();
 			setUserCachedDisplayName(username, serverName, displayName);
 		}
 
