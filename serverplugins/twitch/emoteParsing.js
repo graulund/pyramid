@@ -1,0 +1,105 @@
+const _ = require("lodash");
+
+const util = require("./util");
+
+const EMOTE_PREFIX_REGEX = "(\\s|^)";
+const EMOTE_SUFFIX_REGEX = "(\\s|$)";
+
+const parseSingleEmoticonIndices = function(data) {
+	const seqs = data.split(":");
+
+	if (seqs.length > 1) {
+		const id = seqs[0], indicesString = seqs[1];
+		const indices = indicesString.split(",").map((nums) => {
+			const i = nums.split("-");
+			return {
+				first: parseInt(i[0], 10),
+				last: parseInt(i[1], 10)
+			};
+		});
+		return { id, indices };
+	}
+
+	return null;
+};
+
+const parseEmoticonIndices = function(dataString) {
+	const emoteDatas = dataString.split("/");
+	return emoteDatas.map(parseSingleEmoticonIndices)
+		.filter((em) => em !== null);
+};
+
+const generateEmoteRegex = function(code) {
+	return new RegExp(
+		EMOTE_PREFIX_REGEX +
+			"(" + code + ")" +
+			EMOTE_SUFFIX_REGEX,
+		"g"
+	);
+};
+
+const doNewIndicesOverlap = function(indices, emotes) {
+	if (emotes && emotes.length) {
+		for (var i = 0; i < emotes.length; i++) {
+			if (emotes[i] && emotes[i].indices) {
+				for (var j = 0; j < emotes[i].indices.length; j++) {
+					if (
+						util.rangesOverlap(
+							indices.first,
+							indices.last,
+							emotes[i].indices[j].first,
+							emotes[i].indices[j].last
+						)
+					) {
+						return true;
+					}
+				}
+
+			}
+		}
+	}
+
+	return false;
+};
+
+const generateEmoticonIndices = function(message, emoteData, emotes = []) {
+	// Expected emotedata: [ { id, code } ...]
+	if (message && message.length) {
+		const cleanedMessage = util.stringWithoutAstralSymbols(message);
+		emoteData.forEach((emote) => {
+			if (emote && emote.id && emote.code) {
+				const indices = [];
+				const rgx = generateEmoteRegex(emote.code);
+				var result;
+
+				while ((result = rgx.exec(cleanedMessage)) !== null) {
+
+					// Calculate indices for this occurrence
+					const prefix = result[1], code = result[2], suffix = result[3];
+					const firstIndex = result.index + prefix.length;
+					const lastIndex = firstIndex + code.length - 1;
+					const localIndices = { first: firstIndex, last: lastIndex };
+
+					if (!doNewIndicesOverlap(localIndices, emotes)) {
+						indices.push(localIndices);
+					}
+
+					// Don't include the space suffix when doing the next search
+					rgx.lastIndex -= suffix.length;
+				}
+
+				if (indices.length) {
+					emotes.push(
+						_.assign(_.omit(emote, ["code"]), { indices })
+					);
+				}
+			}
+		});
+	}
+	return emotes;
+};
+
+module.exports = {
+	generateEmoticonIndices,
+	parseEmoticonIndices
+};
