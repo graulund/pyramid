@@ -1,7 +1,10 @@
+const channelUtils = require("../../server/util/channels");
+const stringUtils = require("../../server/util/strings");
 const emoteParsing = require("./emoteParsing");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
 const twitchApiData = require("./twitchApiData");
+const users = require("./users");
 const util = require("./util");
 
 const EMOTE_RELOAD_INTERVAL_MS = 3600000;
@@ -130,6 +133,51 @@ module.exports = function(main) {
 		}
 	};
 
+	const updateUserChatInfo = function(client, username) {
+		if (!util.isTwitch(client)) {
+			return;
+		}
+
+		let appConfig = main.appConfig();
+		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
+		let serverName = client.config.name;
+		let channel = client.config.channels
+			.find((channel) => channel.name === username);
+
+		if (useDisplayNames && channel) {
+			users.requestTwitchUserInfo(username, function(err, data) {
+				if (!err && data && data.display_name) {
+					let displayName = stringUtils.clean(data.display_name);
+					let channelDisplayName = "#" + displayName;
+					if (
+						displayName &&
+						displayName !== username &&
+						channelDisplayName !== channel.displayName
+					) {
+						main.ircConfig().modifyChannelInIrcConfig(
+							serverName,
+							username,
+							{ displayName: channelDisplayName },
+							() => main.ircConfig().loadIrcConfig()
+						);
+					}
+				}
+			});
+		}
+	};
+
+	const updateUserChatInfoForClient = function(client) {
+		if (!util.isTwitch(client)) {
+			return;
+		}
+
+		client.config.channels.forEach((channel) => {
+			if (channel.name && channel.name[0] !== "_") {
+				updateUserChatInfo(client, channel.name);
+			}
+		});
+	};
+
 	// Events
 
 	const onClient = (data) => {
@@ -148,8 +196,16 @@ module.exports = function(main) {
 
 	const onJoin = function(data) {
 		const { client, channel, username } = data;
-		if (util.isTwitch(client) && username === client.irc.user.nick) {
+		if (
+			util.isTwitch(client) &&
+			username === client.irc.user.nick
+		) {
 			loadExternalEmotesForChannel(channel);
+
+			let channelName = channelUtils.channelNameFromUrl(channel);
+			if (channelName && channelName[0] !== "_") {
+				updateUserChatInfo(client, channelName);
+			}
 		}
 	};
 
@@ -244,11 +300,12 @@ module.exports = function(main) {
 		}
 	};
 
-	const updateGroupChatInfoForAllClients = function() {
+	const updateChatInfoForAllClients = function() {
 		const clients = main.ircControl().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => updateGroupChatInfo(client));
+			clients.forEach((client) => updateUserChatInfoForClient(client));
 		}
 	};
 
@@ -265,7 +322,7 @@ module.exports = function(main) {
 	);
 
 	setInterval(
-		updateGroupChatInfoForAllClients,
+		updateChatInfoForAllClients,
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 

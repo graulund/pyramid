@@ -1,3 +1,4 @@
+const stringUtils = require("../../server/util/strings");
 const twitchApi = require("./twitchApi");
 
 var warn = console.warn;
@@ -18,7 +19,7 @@ const requestGroupChatInfo = function(client, callback) {
 						if (membership.is_confirmed) {
 							groupChats.push({
 								name: room.irc_channel,
-								displayName: room.display_name
+								displayName: stringUtils.clean(room.display_name)
 							});
 						}
 					});

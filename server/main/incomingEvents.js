@@ -306,25 +306,6 @@ module.exports = function(
 			displayNameCache[serverName] = {};
 		}
 		displayNameCache[serverName][username] = displayName;
-
-		// Try to update this user's channel display name if it's in our list
-		// TODO: Move this to Twitch only
-		// TODO: Use API instead: https://api.twitch.tv/kraken/users?login=username&api_version=5&oauth_token=oauthtoken
-		let config = ircConfig.currentIrcConfig()
-			.find((c) => c.name === serverName);
-		if (username.charAt(0) !== "_" && config) {
-			let channel = config.channels.find((channel) => channel.name === username);
-			let channelDisplayName = "#" + displayName;
-			if (channel && channel.displayName !== channelDisplayName) {
-				channel.displayName = channelDisplayName;
-				ircConfig.modifyChannelInIrcConfig(
-					serverName,
-					username,
-					{ displayName: channelDisplayName },
-					() => ircConfig.loadIrcConfig()
-				);
-			}
-		}
 	};
 
 	const convertIrcUserList = function(channelUserList, serverName) {
