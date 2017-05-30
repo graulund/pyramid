@@ -4,6 +4,7 @@ const constants = require("../constants");
 const log = require("../log");
 const channelUtils = require("../util/channels");
 const relationshipUtils = require("../util/relationships");
+const stringUtils = require("../util/strings");
 
 module.exports = function(
 	io,
@@ -70,7 +71,7 @@ module.exports = function(
 		let displayName = tags && tags["display-name"];
 
 		if (serverName && username && displayName) {
-			tags["display-name"] = displayName = displayName.trim();
+			tags["display-name"] = displayName = stringUtils.clean(displayName);
 			setUserCachedDisplayName(username, serverName, displayName);
 		}
 
