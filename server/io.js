@@ -218,10 +218,10 @@ module.exports = function(main) {
 		);
 	};
 
-	const emitEventToChannel = function(channelUri, eventName, eventData) {
+	const emitEventToChannel = function(channelUri, eventData) {
 		emitEventToRecipients(
 			main.recipients().getChannelRecipients(channelUri),
-			eventName,
+			"channelEvent",
 			eventData
 		);
 	};

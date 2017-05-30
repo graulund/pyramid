@@ -63,7 +63,7 @@ module.exports = function(
 		// Send to users
 
 		if (io) {
-			io.emitEventToChannel(channelUri, data.type, data);
+			io.emitEventToChannel(channelUri, data);
 		}
 	};
 
@@ -223,7 +223,7 @@ module.exports = function(
 					replaceLastCacheItem(channelUri, bunch);
 
 					if (io) {
-						io.emitEventToChannel(channelUri, bunch.type, bunch);
+						io.emitEventToChannel(channelUri, bunch);
 					}
 					return;
 				}

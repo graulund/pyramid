@@ -281,7 +281,7 @@ export function initializeIo() {
 			setGlobalConnectionStatus(status);
 		});
 
-		const onChatEvent = (details) => {
+		socket.on("channelEvent", (details) => {
 			const { channel, highlight, relationship, type, username } = details;
 
 			// Only add chat messages to store if we're actually viewing
@@ -316,20 +316,7 @@ export function initializeIo() {
 					item: details
 				}));
 			}
-		};
-
-		socket.on("msg", onChatEvent);
-		socket.on("action", onChatEvent);
-		socket.on("notice", onChatEvent);
-		socket.on("join", onChatEvent);
-		socket.on("part", onChatEvent);
-		socket.on("quit", onChatEvent);
-		socket.on("kick", onChatEvent);
-		socket.on("kill", onChatEvent);
-		socket.on("events", onChatEvent);
-		socket.on("mode", onChatEvent);
-		socket.on("log", onChatEvent);
-		socket.on("connectionEvent", onChatEvent);
+		});
 
 		socket.on("channelUserList", (details) => {
 			if (details && details.channel && details.list) {
