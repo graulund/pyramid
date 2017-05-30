@@ -11,7 +11,6 @@ const defaultLastSeenData = { time: "" };
 class ChannelList extends PureComponent {
 	render() {
 		const {
-			enableTwitchChannelDisplayNames,
 			hideOldChannels = false,
 			ircConfigs,
 			lastSeenChannels,
@@ -30,9 +29,7 @@ class ChannelList extends PureComponent {
 				if (channelNames && channelNames.length) {
 					ircChannels = ircChannels.concat(channelNames.map((channelName) => {
 						if (channelName) {
-							let displayName =
-								enableTwitchChannelDisplayNames &&
-								info.channels[channelName].displayName;
+							let displayName = info.channels[channelName].displayName;
 							return {
 								channel: channelUrlFromNames(irc, channelName),
 								channelName,
@@ -128,7 +125,6 @@ class ChannelList extends PureComponent {
 }
 
 ChannelList.propTypes = {
-	enableTwitchChannelDisplayNames: PropTypes.bool,
 	hideOldChannels: PropTypes.bool,
 	ircConfigs: PropTypes.object,
 	lastSeenChannels: PropTypes.object,
@@ -137,11 +133,10 @@ ChannelList.propTypes = {
 };
 
 export default connect(({
-	appConfig: { enableTwitchChannelDisplayNames, hideOldChannels },
+	appConfig: { hideOldChannels },
 	ircConfigs,
 	lastSeenChannels
 }) => ({
-	enableTwitchChannelDisplayNames,
 	hideOldChannels,
 	ircConfigs,
 	lastSeenChannels
