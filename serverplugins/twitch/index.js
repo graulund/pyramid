@@ -260,7 +260,7 @@ module.exports = function(main) {
 	};
 
 	const onCustomMessage = function(data) {
-		const { channel, client, message, serverName } = data;
+		const { channel, client, message, serverName, time } = data;
 		if (message && message.command && util.isTwitch(client)) {
 			switch(message.command) {
 				case "USERSTATE":
@@ -285,6 +285,30 @@ module.exports = function(main) {
 						twitchApiData.setRoomState(channel, message.tags);
 						// TODO: Notify main
 					}
+					break;
+				case "USERNOTICE":
+					let username = message.tags && message.tags.login;
+					let messageText = message.params[1] || "";
+
+					let tagsInfo = {
+						client,
+						channel,
+						message: messageText,
+						postedLocally: false,
+						serverName,
+						tags: message.tags,
+						username
+					};
+
+					onMessageTags(tagsInfo);
+
+					main.incomingEvents().handleIncomingCustomEvent(
+						channel, serverName, username,
+						time, "usernotice", messageText, message.tags, null,
+						"", true
+					);
+					break;
+				case "CLEARCHAT":
 					break;
 			}
 		}

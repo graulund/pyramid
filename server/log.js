@@ -10,6 +10,7 @@ const mkdirp = require("mkdirp");
 const moment = require("moment-timezone");
 
 const constants = require("./constants");
+const channelUtils = require("./util/channels");
 const timeUtils = require("./util/time");
 
 const LOG_ROOT = constants.LOG_ROOT;
@@ -276,7 +277,8 @@ const getLogLineFromData = function(type, data) {
 	return "";
 };
 
-const channelPrefix = function(line, channelName) {
+const channelPrefix = function(line, channel) {
+	let channelName = channelUtils.channelNameFromUrl(channel, "#");
 	return `[${channelName}] ${line}`;
 };
 
@@ -561,12 +563,8 @@ const loadLastSeenUsers = function() {
 
 // Logging
 
-const logChannelLine = function(channelUri, channelName, line, d) {
+const logChannelLine = function(channelUri, line, d) {
 	line = timeUtils.hmsPrefix(line, d);
-
-	if (constants.DEBUG) {
-		console.log(channelPrefix(line, channelName));
-	}
 
 	const dirName = path.join(
 		constants.LOG_ROOT, pathChannelUri(channelUri), timeUtils.ym(d)
@@ -575,9 +573,9 @@ const logChannelLine = function(channelUri, channelName, line, d) {
 	logLine(line, dirName, timeUtils.ymd(d));
 };
 
-const logCategoryLine = function(categoryName, channelUri, channelName, line, d) {
+const logCategoryLine = function(categoryName, channelUri, line, d) {
 	line = timeUtils.ymdhmsPrefix(line, d);
-	line = channelPrefix(line, channelName);
+	line = channelPrefix(line, channelUri);
 
 	const dirName = path.join(constants.LOG_ROOT, "_global", timeUtils.ym(d));
 

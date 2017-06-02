@@ -9,6 +9,7 @@ import ChatContextView from "./ChatContextView.jsx";
 import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
 import ChatMessageLine from "./ChatMessageLine.jsx";
 import ChatUserEventLine from "./ChatUserEventLine.jsx";
+import ChatUserNoticeLine from "./ChatUserNoticeLine.jsx";
 import LogLine from "./LogLine.jsx";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import { prepareBunchedEvents } from "../lib/chatEvents";
@@ -43,9 +44,10 @@ class ChatLine extends PureComponent {
 		const datestamp = dateStamp(d);
 
 		const isHighlight = !!(highlight && highlight.length);
+		const isNotice = type === "notice" || type === "usernotice";
 		const className = block +
 			(isHighlight ? ` ${block}--highlight` : "") +
-			(type === "notice" ? ` ${block}--notice` : "") +
+			(isNotice ? ` ${block}--notice` : "") +
 			(type === "connectionEvent" ? ` ${block}--connection` : "");
 
 		var content = null;
@@ -63,6 +65,9 @@ class ChatLine extends PureComponent {
 			case "kill":
 			case "mode":
 				content = <ChatUserEventLine {...this.props} key="content" />;
+				break;
+			case "usernotice":
+				content = <ChatUserNoticeLine {...this.props} key="content" />;
 				break;
 			case "events":
 				var { collapseJoinParts, ...bunchedProps } = this.props;

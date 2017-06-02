@@ -251,6 +251,19 @@
 		}
 	}
 
+	.usernotice {
+		> span,
+		> em {
+			display: block;
+			font-style: normal;
+		}
+
+		> em {
+			opacity: .75;
+			font-size: .75rem;
+		}
+	}
+
 	&__input, &__pagination {
 		position: fixed;
 		bottom: 0;

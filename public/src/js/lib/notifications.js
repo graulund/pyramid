@@ -1,3 +1,5 @@
+import { channelNameFromUrl } from "./channelNames";
+import { combinedDisplayName } from "./pageTitles";
 import store from "../store";
 
 const icon = "/img/touchicon.png";
@@ -31,7 +33,12 @@ function sendNotification(title, body) {
 
 export function sendMessageNotification(msg) {
 	if (msg) {
-		sendNotification(`${msg.username} in ${msg.channelName}`, msg.message);
+		let channelName = channelNameFromUrl(msg.channel);
+		let name = combinedDisplayName(
+			msg.username,
+			msg.tags && msg.tags["display-name"]
+		);
+		sendNotification(`${name} in ${channelName}`, msg.message);
 	}
 }
 

@@ -20,49 +20,61 @@ module.exports = function(
 
 	const userListEmissionMethods = {};
 
-	const handleIncomingMessage = function(
-		channelUri, channelName, serverName, username,
-		time, type, message, tags, meUsername
+	const handleIncomingMessageEvent = function(
+		channelUri, serverName, username,
+		time, type, message, tags, meUsername,
+		logLine, isSeenActivity = true
 	) {
-
 		const symbol = userLists.getUserCurrentSymbol(channelUri, username);
-		const line = log.lineFormats[type].build(symbol, username, message);
 
 		// Log
 
-		if (appConfig.configValue("logLinesFile")) {
-			log.logChannelLine(channelUri, channelName, line, time);
-		}
-		else if (appConfig.configValue("debug")) {
-			console.log(`[${channelName}] ${line}`);
+		if (logLine) {
+			if (appConfig.configValue("logLinesFile")) {
+				log.logChannelLine(channelUri, logLine, time);
+			}
+			else if (appConfig.configValue("debug")) {
+				let channelName = channelUtils.channelNameFromUrl(channel, "#");
+				console.log(`[${channelName}] ${logLine}`);
+			}
 		}
 
 		// Is this from a person among our friends? Note down "last seen" time.
 
-		const relationship = relationshipUtils.getRelationship(
-			username, friends.currentFriendsList()
-		);
+		var relationship = null;
 
-		if (
-			relationship >= constants.RELATIONSHIP_FRIEND &&
-			appConfig.configValue("logLinesFile")
-		) {
-			// Add to specific logs
-			log.logCategoryLine(username.toLowerCase(), channelUri, channelName, line, time);
+		if (isSeenActivity) {
+			relationship = relationshipUtils.getRelationship(
+				username, friends.currentFriendsList()
+			);
+
+			if (
+				logLine &&
+				relationship >= constants.RELATIONSHIP_FRIEND &&
+				appConfig.configValue("logLinesFile")
+			) {
+				// Add to specific logs
+				log.logCategoryLine(username.toLowerCase(), channelUri, logLine, time);
+			}
 		}
 
 		// Highlighted? Add to specific logs
 
 		var highlightStrings = [];
-		if (!username || username.toLowerCase() !== meUsername.toLowerCase()) {
+
+		if (
+			meUsername &&
+			(
+				!username ||
+				username.toLowerCase() !== meUsername.toLowerCase()
+			)
+		) {
 			highlightStrings = nicknames.getHighlightStringsForMessage(
 				message, channelUri, meUsername
 			);
 
-			if (highlightStrings.length) {
-				if (appConfig.configValue("logLinesFile")) {
-					log.logCategoryLine("mentions", channelUri, channelName, line, time);
-				}
+			if (highlightStrings.length && appConfig.configValue("logLinesFile")) {
+				log.logCategoryLine("mentions", channelUri, logLine, time);
 			}
 		}
 
@@ -77,17 +89,33 @@ module.exports = function(
 
 		// Store!
 
-		lastSeen.updateLastSeen(
-			channelUri, username, time, relationship, displayName
-		);
+		if (isSeenActivity) {
+			lastSeen.updateLastSeen(
+				channelUri, username, time, relationship, displayName
+			);
+		}
+
 		messageCaches.cacheMessage(
-			channelUri, channelName, serverName, username, symbol,
+			channelUri, serverName, username, symbol,
 			time, type, message, tags, relationship, highlightStrings
+		);
+	}
+
+	const handleIncomingMessage = function(
+		channelUri, serverName, username,
+		time, type, message, tags, meUsername
+	) {
+		const symbol = userLists.getUserCurrentSymbol(channelUri, username);
+		const line = log.lineFormats[type].build(symbol, username, message);
+
+		handleIncomingMessageEvent(
+			channelUri, serverName, username, time, type, message, tags,
+			meUsername, line
 		);
 	};
 
 	const handleIncomingEvent = function(
-		channelUri, channelName, serverName, type, data, time, ircClient
+		channelUri, serverName, type, data, time, ircClient
 	) {
 
 		let username = data && data.username || "";
@@ -101,7 +129,7 @@ module.exports = function(
 		const line = log.getLogLineFromData(type, data);
 
 		if (line && appConfig.configValue("logLinesFile")) {
-			log.logChannelLine(channelUri, channelName, line, time);
+			log.logChannelLine(channelUri, line, time);
 		}
 
 		// Channel user lists
@@ -162,7 +190,6 @@ module.exports = function(
 
 		const metadata = messageCaches.withUuid({
 			channel: channelUri,
-			channelName,
 			relationship: username &&
 				relationshipUtils.getRelationship(username, friends.currentFriendsList()),
 			server: serverName,
@@ -191,7 +218,6 @@ module.exports = function(
 				channels.forEach((channelUri) => {
 					handleIncomingEvent(
 						channelUri,
-						"#" + channelUtils.channelNameFromUrl(channelUri),
 						serverName,
 						"part",
 						data,
@@ -277,14 +303,25 @@ module.exports = function(
 		const channelList = ircConfig.getConfigChannelsInServer(serverName);
 		if (channelList && channelList.length) {
 			channelList.forEach((channel) => {
-				let channelName = channelUtils.channelNameFromUrl(channel, "#");
 				let type = "connectionEvent";
 				let data = { server: serverName, status };
 				handleIncomingEvent(
-					channel, channelName, serverName, type, data, time
+					channel, serverName, type, data, time
 				);
 			});
 		}
+	};
+
+	const handleIncomingCustomEvent = function(
+		channelUri, serverName, username,
+		time, type, message, tags, meUsername,
+		logLine, isSeenActivity = true
+	) {
+		handleIncomingMessageEvent(
+			channelUri, serverName, username,
+			time, type, message, tags, meUsername,
+			logLine, isSeenActivity
+		);
 	};
 
 	// Display names
@@ -322,6 +359,7 @@ module.exports = function(
 	};
 
 	return {
+		handleIncomingCustomEvent,
 		handleIncomingEvent,
 		handleIncomingGlobalEvent,
 		handleIncomingMessage,
