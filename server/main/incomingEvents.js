@@ -90,8 +90,11 @@ module.exports = function(
 		// Store!
 
 		if (isSeenActivity) {
+			let channelIdCache = ircConfig.channelIdCache();
+			let friendIdCache = friends.friendIdCache();
 			lastSeen.updateLastSeen(
-				channelUri, username, time, relationship, displayName
+				channelUri, username, time, relationship, displayName,
+				friendIdCache, channelIdCache
 			);
 		}
 
