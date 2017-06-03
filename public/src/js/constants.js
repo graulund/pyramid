@@ -33,7 +33,8 @@ export const SETTINGS_PAGE_NAMES = {
 	general: "General",
 	friends: "Friends",
 	irc: "IRC",
-	nicknames: "Nicknames"
+	nicknames: "Nicknames",
+	twitch: "Twitch"
 };
 
 export const CHANGE_DEBOUNCE_MS = 1300;
