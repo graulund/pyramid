@@ -98,13 +98,14 @@ class ChatInput extends Component {
 
 	currentUserNames() {
 		const { channel, channelCaches, channelUserLists } = this.props;
-		let cache = channelCaches[channel], userList = channelUserLists[channel];
+		let cacheData = channelCaches[channel];
+		let userList = channelUserLists[channel];
 		var users = [], userNames = [], displayNames = [];
 
 		// Add most recently talking people first
-		if (cache && cache.length) {
+		if (cacheData && cacheData.cache && cacheData.cache.length) {
 			let now = Date.now();
-			let reversedCache = [...cache].reverse();
+			let reversedCache = [...cacheData.cache].reverse();
 			reversedCache.forEach((evt) => {
 				if (evt && evt.username && evt.time) {
 					if (
