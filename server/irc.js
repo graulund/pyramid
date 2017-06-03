@@ -256,7 +256,7 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("unknown command", function(message) {
-			console.log("unknown command", message);
+			console.log(new Date(), "unknown command", message);
 			handleIncomingUnhandledMessage(client, message);
 		});
 

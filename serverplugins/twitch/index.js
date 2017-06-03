@@ -1,5 +1,7 @@
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
+
+const chatClears = require("./chatClears");
 const emoteParsing = require("./emoteParsing");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
@@ -286,7 +288,7 @@ module.exports = function(main) {
 						// TODO: Notify main
 					}
 					break;
-				case "USERNOTICE":
+				case "USERNOTICE": {
 					let username = message.tags && message.tags.login;
 					let messageText = message.params[1] || "";
 
@@ -308,8 +310,33 @@ module.exports = function(main) {
 						"", true
 					);
 					break;
-				case "CLEARCHAT":
+				}
+				case "CLEARCHAT": {
+					let duration = message.tags && message.tags["ban-duration"];
+					let reason = message.tags && message.tags["ban-reason"];
+					let clearedUsername = message.params[1] || "";
+
+					if (!clearedUsername) {
+						// No user
+						break;
+					}
+
+					let announcement = duration && duration > 0
+						? `${clearedUsername} has been timed out for ${duration} ` +
+							stringUtils.pluralize(duration, "second", "s")
+						: `${clearedUsername} has been banned`;
+
+					let line = reason
+						? announcement + ": " + reason
+						: announcement + ".";
+
+					main.incomingEvents().handleIncomingCustomEvent(
+						channel, serverName, clearedUsername,
+						time, "clearchat", line, message.tags, null,
+						"** " + line, true
+					);
 					break;
+				}
 			}
 		}
 	};

@@ -9,7 +9,8 @@ export const categoryCaches = {
 
 export const channelCaches = {
 	"UPDATE": "channelCaches/UPDATE",
-	"APPEND": "channelCaches/APPEND"
+	"APPEND": "channelCaches/APPEND",
+	"CLEARUSER": "channelCaches/CLEARUSER"
 };
 
 export const channelUserLists = {

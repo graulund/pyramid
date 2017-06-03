@@ -12,6 +12,30 @@ const emojiImageUrl = function(codepoints) {
 };
 
 class ChatMessageLine extends PureComponent {
+	constructor(props) {
+		super(props);
+
+		this.unhide = this.unhide.bind(this);
+
+		this.state = {
+			unhidden: false
+		};
+	}
+
+	unhide() {
+		this.setState({ unhidden: true });
+	}
+
+	renderCleared() {
+		return (
+			<button
+				className="unhide"
+				key="unhide"
+				onClick={this.unhide}>
+				Show deleted message
+			</button>
+		);
+	}
 
 	renderText(token) {
 		return token.text;
@@ -79,10 +103,21 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, ircConfigs, server, symbol = "",
-			tags, type, username
+			cleared = false,
+			color,
+			displayUsername,
+			enableTwitch,
+			enableTwitchColors,
+			enableUsernameColors,
+			ircConfigs,
+			server,
+			symbol = "",
+			tags,
+			type,
+			username
 		} = this.props;
+
+		const { unhidden } = this.state;
 
 		const className = "msg" +
 			(type !== "msg" ? ` msg--${type}` : "");
@@ -92,9 +127,17 @@ class ChatMessageLine extends PureComponent {
 
 		const tokens = tokenizeChatLine(this.props, useTwitch);
 
-		const messageContent = tokens.map(
-			(token, index) => this.renderToken(token, index)
-		);
+		var messageContent;
+
+		if (cleared && !unhidden) {
+			// TODO: Add "Hide cleared messages" setting (if false, skips this)
+			messageContent = this.renderCleared();
+		}
+		else {
+			messageContent = tokens.map(
+				(token, index) => this.renderToken(token, index)
+			);
+		}
 
 		var authorClassName = "msg__author";
 		var authorColor = null;
@@ -144,6 +187,7 @@ class ChatMessageLine extends PureComponent {
 ChatMessageLine.propTypes = {
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
+	cleared: PropTypes.bool,
 	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,

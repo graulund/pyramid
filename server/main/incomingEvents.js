@@ -34,7 +34,7 @@ module.exports = function(
 				log.logChannelLine(channelUri, logLine, time);
 			}
 			else if (appConfig.configValue("debug")) {
-				let channelName = channelUtils.channelNameFromUrl(channel, "#");
+				let channelName = channelUtils.channelNameFromUrl(channelUri, "#");
 				console.log(`[${channelName}] ${logLine}`);
 			}
 		}
@@ -99,7 +99,7 @@ module.exports = function(
 			channelUri, serverName, username, symbol,
 			time, type, message, tags, relationship, highlightStrings
 		);
-	}
+	};
 
 	const handleIncomingMessage = function(
 		channelUri, serverName, username,

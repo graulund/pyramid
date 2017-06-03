@@ -167,6 +167,31 @@
 		}
 	}
 
+	.line--cleared {
+		text-decoration: line-through;
+
+		&, a {
+			text-decoration-color: #000;
+		}
+	}
+
+	.unhide {
+		appearance: none;
+		font-family: inherit;
+		font-size: inherit;
+		border: none;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		background-color: transparent;
+		color: #999;
+		text-decoration: line-through;
+
+		&:hover {
+			text-decoration: underline line-through;
+		}
+	}
+
 	.userevent, .bunchedevents, .connectionevent {
 		color: #999;
 

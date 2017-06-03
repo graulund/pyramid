@@ -45,7 +45,8 @@ body.darkmode {
 		.line time,
 		.line .prefix,
 		.userevent,
-		.bunchedevents {
+		.bunchedevents,
+		.unhide {
 			color: #777;
 		}
 
@@ -63,6 +64,12 @@ body.darkmode {
 
 			> span {
 				background-color: #111;
+			}
+		}
+
+		.line--cleared {
+			&, a {
+				text-decoration-color: #ccc;
 			}
 		}
 

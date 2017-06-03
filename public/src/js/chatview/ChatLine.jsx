@@ -92,6 +92,11 @@ class ChatLine extends PureComponent {
 			case "connectionEvent":
 				content = <ChatConnectionEventLine {...this.props} key="content" />;
 				break;
+			case "clearchat":
+				content = null;
+				// TODO: Add "Display time out notices" setting
+				// (Should add to prefix, with empty content)
+				break;
 			default:
 				content = (
 					<em key="placeholder">
