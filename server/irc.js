@@ -155,7 +155,7 @@ module.exports = function(main) {
 		});
 
 		main.incomingEvents().handleIncomingMessage(
-			channelUri, channelName, serverName, username,
+			channelUri, serverName, username,
 			time, type, message, parsedTags, meUsername
 		);
 	};
@@ -165,7 +165,7 @@ module.exports = function(main) {
 		const time = new Date();
 
 		main.incomingEvents().handleIncomingEvent(
-			getChannelUri(chobj), getChannelFullName(chobj), chobj.server,
+			getChannelUri(chobj), chobj.server,
 			type, data, time, client.irc
 		);
 	};
@@ -191,6 +191,7 @@ module.exports = function(main) {
 			client,
 			message,
 			serverName,
+			time: new Date(),
 			username
 		});
 	};
@@ -255,6 +256,7 @@ module.exports = function(main) {
 		});
 
 		client.irc.on("unknown command", function(message) {
+			console.log(new Date(), "unknown command", message);
 			handleIncomingUnhandledMessage(client, message);
 		});
 

@@ -179,7 +179,6 @@ module.exports = function(
 
 					bunch = {
 						channel: lastItem.channel,
-						channelName: lastItem.channelName,
 						events: [lastItem, data],
 						firstTime: lastItem.time,
 						joinCount: isJoin + lastIsJoin,
@@ -207,7 +206,6 @@ module.exports = function(
 
 					bunch = {
 						channel: lastItem.channel,
-						channelName: lastItem.channelName,
 						events,
 						firstTime: lastItem.firstTime,
 						joinCount: lastItem.joinCount + isJoin,
@@ -235,12 +233,11 @@ module.exports = function(
 	};
 
 	const cacheMessage = function(
-		channelUri, channelName, serverName, username, symbol,
+		channelUri, serverName, username, symbol,
 		time, type, message, tags, relationship, highlightStrings
 	) {
 		const msg = {
 			channel: channelUri,
-			channelName: channelName,
 			color: usernameUtils.getUserColorNumber(username),
 			highlight: highlightStrings,
 			lineId: uuid.v4(),

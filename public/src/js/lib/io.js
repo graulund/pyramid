@@ -462,6 +462,14 @@ export function initializeIo() {
 			}
 		});
 
+		socket.on("channelData", (details) => {
+			if (details && details.channelUri) {
+				store.dispatch(actions.channelData.update(
+					details.channelUri, details.data
+				));
+			}
+		});
+
 		// Data store refreshes
 
 		socket.on("appConfig", (details) => {

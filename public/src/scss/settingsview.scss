@@ -14,10 +14,7 @@
 		}
 	}
 
-	&--general &__tabs a.general,
-	&--friends &__tabs a.friends,
-	&--irc &__tabs a.irc,
-	&--nicknames &__tabs a.nicknames {
+	&__tabs a.selected {
 		font-weight: bold;
 	}
 

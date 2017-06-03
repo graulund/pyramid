@@ -106,6 +106,11 @@
 		white-space: nowrap;
 	}
 
+	.line .prefix {
+		color: #999;
+		margin: 2px 0;
+	}
+
 	.msg__author a,
 	.userevent__target,
 	.userevent__target a,
@@ -120,6 +125,19 @@
 
 	.msg--action time {
 		font-style: normal;
+	}
+
+	.msg--cleared {
+		opacity: .5;
+		text-decoration: line-through;
+
+		&, a {
+			text-decoration-color: #000;
+		}
+
+		&:hover {
+			text-decoration: none;
+		}
 	}
 
 	.line--highlight {
@@ -162,6 +180,23 @@
 		}
 	}
 
+	.unhide {
+		appearance: none;
+		font-family: inherit;
+		font-size: inherit;
+		border: none;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		background-color: transparent;
+		color: #999;
+		text-decoration: line-through;
+
+		&:hover {
+			text-decoration: underline line-through;
+		}
+	}
+
 	.userevent, .bunchedevents, .connectionevent {
 		color: #999;
 
@@ -182,6 +217,10 @@
 	.userevent--strong {
 		color: #000;
 		font-weight: bold;
+
+		&:before {
+			background-color: #000;
+		}
 	}
 
 	.connectionevent {
@@ -321,6 +360,28 @@
 		color: #666;
 	}
 
+	&__channel-flags {
+		position: absolute;
+		bottom: 10px;
+		left: 20px;
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+		font-size: .75rem;
+		line-height: 1em;
+		color: #999;
+		text-transform: uppercase;
+
+		li {
+			display: inline;
+			margin: 0 .8em 0 0;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 
@@ -354,6 +415,11 @@
 					}
 				}
 			}
+		}
+
+		&__channel-flags {
+			// TODO: Support for channel flags on mobile
+			display: none;
 		}
 
 		.line {

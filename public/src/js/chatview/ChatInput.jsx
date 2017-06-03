@@ -1,7 +1,8 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
+import forOwn from "lodash/forOwn";
 
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem, sendMessage } from "../lib/io";
@@ -17,6 +18,14 @@ const TAB_COMPLETE_CLEAN_REGEX = new RegExp(
 	"(" + escapeRegExp(TAB_COMPLETE_INITIAL_SUFFIX) + "|" +
 	escapeRegExp(TAB_COMPLETE_DEFAULT_SUFFIX) + ")$"
 );
+
+const TWITCH_CHANNEL_FLAGS_LABELS = {
+	"emote-only": "emote",
+	"followers-only": "follow",
+	"r9k": "r9k",
+	"slow": "slow",
+	"subs-only": "sub"
+};
 
 const isModifiedEvent = (evt) =>
 	!!(evt.metaKey || evt.altKey || evt.ctrlKey || evt.shiftKey);
@@ -45,7 +54,7 @@ const matchesSubstring = function(value, subString) {
 
 var inputHistory = {}, currentInput = "", currentHistoryIndex = -1;
 
-class ChatInput extends Component {
+class ChatInput extends PureComponent {
 
 	constructor(props) {
 		super(props);
@@ -65,20 +74,21 @@ class ChatInput extends Component {
 	}
 
 	shouldComponentUpdate(newProps) {
-		if (newProps) {
-			if (newProps.channel !== this.props.channel) {
-				return true;
-			}
+		// Only the following props are relevant to the view
+		if (
+			newProps.channel !== this.props.channel ||
+			newProps.channelData !== this.props.channelData ||
+			newProps.enableTwitch !== this.props.enableTwitch
+		) {
+			return true;
 		}
 
 		return false;
 	}
 
 	componentWillReceiveProps(newProps) {
-		if (newProps) {
-			if (newProps.channel !== this.props.channel) {
-				this.resetCurrentHistory();
-			}
+		if (newProps && newProps.channel !== this.props.channel) {
+			this.resetCurrentHistory();
 		}
 	}
 
@@ -97,14 +107,17 @@ class ChatInput extends Component {
 	}
 
 	currentUserNames() {
-		const { channel, channelCaches, channelUserLists } = this.props;
-		let cache = channelCaches[channel], userList = channelUserLists[channel];
+		let { channelCache, channelUserList } = this.props;
 		var users = [], userNames = [], displayNames = [];
 
 		// Add most recently talking people first
-		if (cache && cache.length) {
+		if (
+			channelCache &&
+			channelCache.cache &&
+			channelCache.cache.length
+		) {
 			let now = Date.now();
-			let reversedCache = [...cache].reverse();
+			let reversedCache = [...channelCache.cache].reverse();
 			reversedCache.forEach((evt) => {
 				if (evt && evt.username && evt.time) {
 					if (
@@ -124,12 +137,12 @@ class ChatInput extends Component {
 		displayNames = getCombinedDisplayNames(users);
 
 		// Append from user list those that aren't already there
-		if (userList) {
-			let listUsers = Object.keys(userList)
+		if (channelUserList) {
+			let listUsers = Object.keys(channelUserList)
 				.filter((username) => userNames.indexOf(username) < 0)
 				.map((username) =>
 					({
-						displayName: userList[username].displayName,
+						displayName: channelUserList[username].displayName,
 						username
 					})
 				);
@@ -385,7 +398,56 @@ class ChatInput extends Component {
 		}
 	}
 
+	renderTwitchChannelFlags() {
+		let { channelData } = this.props;
+
+		if (channelData) {
+
+			let flags = [], added = false;
+
+			forOwn(TWITCH_CHANNEL_FLAGS_LABELS, (label, prop) => {
+				let value = parseInt(channelData[prop], 10);
+				if (value && !isNaN(value)) {
+					var tooltip = "";
+
+					if (prop === "slow") {
+						tooltip = `${value} seconds`;
+					}
+					else if (prop === "followers-only") {
+						tooltip = `${value} minutes`;
+					}
+
+					flags.push({ label, tooltip });
+					added = true;
+				}
+			});
+
+			if (added) {
+				return (
+					<ul className="chatview__channel-flags" key="flags">
+						{ flags.map(({ label, tooltip }) => (
+							<li
+								key={label}
+								title={tooltip}>
+								{ label }
+							</li>
+						)) }
+					</ul>
+				);
+			}
+		}
+
+		return null;
+	}
+
 	render() {
+		let { enableTwitch } = this.props;
+		var channelFlags = null;
+
+		if (enableTwitch) {
+			channelFlags = this.renderTwitchChannelFlags();
+		}
+
 		return (
 			<form onSubmit={this.submit} className="chatview__input" key="main">
 				<input
@@ -399,27 +461,42 @@ class ChatInput extends Component {
 					autoComplete="off"
 					/>
 				<input type="submit" />
+				{ channelFlags }
 			</form>
 		);
 	}
 }
 
 ChatInput.propTypes = {
-	channelCaches: PropTypes.object,
-	channelUserLists: PropTypes.object,
 	channel: PropTypes.string,
+	channelCache: PropTypes.object,
+	channelData: PropTypes.object,
+	channelUserList: PropTypes.object,
 	enableEmojiCodes: PropTypes.bool,
+	enableTwitch: PropTypes.bool,
 	isTouchDevice: PropTypes.bool
 };
 
-export default connect(({
-	appConfig: { enableEmojiCodes },
-	deviceState: { isTouchDevice },
-	channelCaches,
-	channelUserLists
-}) => ({
-	channelCaches,
-	channelUserLists,
-	enableEmojiCodes,
-	isTouchDevice
-}))(ChatInput);
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let { channelCaches, channelData, channelUserLists } = state;
+
+	var channelCache, channelUserList, thisChannelData;
+
+	if (channel) {
+		channelCache = channelCaches[channel];
+		channelUserList = channelUserLists[channel];
+		thisChannelData = channelData[channel];
+	}
+
+	return {
+		channelCache,
+		channelData: thisChannelData,
+		channelUserList,
+		enableEmojiCodes: state.appConfig.enableEmojiCodes,
+		enableTwitch: state.appConfig.enableTwitch,
+		isTouchDevice: state.deviceState.isTouchDevice
+	};
+};
+
+export default connect(mapStateToProps)(ChatInput);

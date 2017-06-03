@@ -3,6 +3,7 @@ import { combineReducers } from "redux";
 import appConfig from "./appConfig";
 import categoryCaches from "./categoryCaches";
 import channelCaches from "./channelCaches";
+import channelData from "./channelData";
 import channelUserLists from "./channelUserLists";
 import connectionStatus from "./connectionStatus";
 import deviceState from "./deviceState";
@@ -26,6 +27,7 @@ export default combineReducers({
 	appConfig,
 	categoryCaches,
 	channelCaches,
+	channelData,
 	channelUserLists,
 	connectionStatus,
 	deviceState,

@@ -5,6 +5,33 @@ import { cacheItem, clearReplacedIdsFromCache } from "../lib/io";
 
 const channelCachesInitialState = {};
 
+function clearUserHandler(username, time) {
+	let d = new Date(time);
+	return function(item) {
+		if (
+			// By this user...
+			item.username === username &&
+			// Not already cleared...
+			!item.cleared &&
+			// Messages only...
+			(
+				item.type === "msg" ||
+				item.type === "action" ||
+				item.type === "notice"
+			) &&
+			// With timestamps...
+			item.time &&
+			// ...that are before the ban time.
+			new Date(item.time) <= d
+		) {
+			// The message is cleared!
+			return { ...item, cleared: true };
+		}
+
+		return item;
+	};
+}
+
 export default function (state = channelCachesInitialState, action) {
 
 	switch (action.type) {
@@ -36,6 +63,19 @@ export default function (state = channelCachesInitialState, action) {
 			);
 
 			return s;
+		}
+
+		case actionTypes.channelCaches.CLEARUSER: {
+			let { channel, time, username } = action;
+			let channelItem = state[channel] || {};
+			let cacheList = channelItem.cache || [];
+			return {
+				...state,
+				[channel]: {
+					cache: cacheList.map(clearUserHandler(username, time)),
+					lastReload: channelItem.lastReload
+				}
+			};
 		}
 	}
 

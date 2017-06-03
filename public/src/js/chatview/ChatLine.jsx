@@ -3,13 +3,14 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChannelLink from "../components/ChannelLink.jsx";
-import ChatBunchedEventsLine from "./ChatBunchedEventsLine.jsx";
-import ChatConnectionEventLine from "./ChatConnectionEventLine.jsx";
+import ChatBunchedEventsLine from "./chatline/ChatBunchedEventsLine.jsx";
+import ChatConnectionEventLine from "./chatline/ChatConnectionEventLine.jsx";
 import ChatContextView from "./ChatContextView.jsx";
-import ChatHighlightedLine from "./ChatHighlightedLine.jsx";
-import ChatMessageLine from "./ChatMessageLine.jsx";
-import ChatUserEventLine from "./ChatUserEventLine.jsx";
-import LogLine from "./LogLine.jsx";
+import ChatHighlightedLine from "./chatline/ChatHighlightedLine.jsx";
+import ChatMessageLine from "./chatline/ChatMessageLine.jsx";
+import ChatUserEventLine from "./chatline/ChatUserEventLine.jsx";
+import ChatUserNoticeLinePrefix from "./chatline/ChatUserNoticeLinePrefix.jsx";
+import LogLine from "./chatline/LogLine.jsx";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
@@ -29,6 +30,8 @@ class ChatLine extends PureComponent {
 			displayChannel,
 			highlight,
 			lineId,
+			message,
+			showTwitchClearChats,
 			time,
 			type
 		} = this.props;
@@ -43,27 +46,43 @@ class ChatLine extends PureComponent {
 		const datestamp = dateStamp(d);
 
 		const isHighlight = !!(highlight && highlight.length);
+		const isNotice = type === "notice" || type === "usernotice";
 		const className = block +
 			(isHighlight ? ` ${block}--highlight` : "") +
-			(type === "notice" ? ` ${block}--notice` : "") +
+			(isNotice ? ` ${block}--notice` : "") +
 			(type === "connectionEvent" ? ` ${block}--connection` : "");
 
-		var content = null;
+		var content = null, prefix = null;
 
 		switch (type) {
+
 			case "msg":
 			case "action":
 			case "notice":
-				content = <ChatMessageLine {...this.props} key="content" />;
+			case "usernotice":
+				if (message) {
+					content = <ChatMessageLine
+						{...this.props}
+						key="content" />;
+				}
+				if (type === "usernotice") {
+					prefix = <ChatUserNoticeLinePrefix
+						{...this.props}
+						key="prefix" />;
+				}
 				break;
+
 			case "join":
 			case "part":
 			case "quit":
 			case "kick":
 			case "kill":
 			case "mode":
-				content = <ChatUserEventLine {...this.props} key="content" />;
+				content = <ChatUserEventLine
+					{...this.props}
+					key="content" />;
 				break;
+
 			case "events":
 				var { collapseJoinParts, ...bunchedProps } = this.props;
 				var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
@@ -77,12 +96,27 @@ class ChatLine extends PureComponent {
 						key="content" />;
 				}
 				break;
+
 			case "log":
-				content = <LogLine {...this.props} key="content" />;
+				content = <LogLine
+					{...this.props}
+					key="content" />;
 				break;
+
 			case "connectionEvent":
-				content = <ChatConnectionEventLine {...this.props} key="content" />;
+				content = <ChatConnectionEventLine
+					{...this.props}
+					key="content" />;
 				break;
+
+			case "clearchat":
+				if (showTwitchClearChats) {
+					content = <ChatUserEventLine
+						{...this.props}
+						key="content" />;
+				}
+				break;
+
 			default:
 				content = (
 					<em key="placeholder">
@@ -92,7 +126,7 @@ class ChatLine extends PureComponent {
 				break;
 		}
 
-		if (!content) {
+		if (!content && !prefix) {
 			return null;
 		}
 
@@ -119,12 +153,23 @@ class ChatLine extends PureComponent {
 			</time>
 		);
 
-		const outerContent = [
-			channelEl,
-			timeStampEl,
-			" ",
-			content
-		];
+		var outerContent;
+
+		if (content) {
+			outerContent = [
+				prefix,
+				channelEl,
+				timeStampEl,
+				" ",
+				content
+			];
+		}
+		else {
+			outerContent = [
+				prefix
+			];
+		}
+
 
 		const itemProps = {
 			className,
@@ -164,6 +209,7 @@ ChatLine.propTypes = {
 	onEmoteLoad: PropTypes.func,
 	reason: PropTypes.string,
 	server: PropTypes.string,
+	showTwitchClearChats: PropTypes.bool,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,
@@ -175,7 +221,10 @@ const mapStateToProps = function(state, ownProps) {
 	let { channel } = ownProps;
 	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
 
-	return { channelDisplayName };
+	return {
+		channelDisplayName,
+		showTwitchClearChats: state.appConfig.showTwitchClearChats
+	};
 };
 
 export default connect(mapStateToProps)(ChatLine);

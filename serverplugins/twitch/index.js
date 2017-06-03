@@ -1,5 +1,6 @@
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
+
 const emoteParsing = require("./emoteParsing");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
@@ -260,7 +261,7 @@ module.exports = function(main) {
 	};
 
 	const onCustomMessage = function(data) {
-		const { channel, client, message, serverName } = data;
+		const { channel, client, message, serverName, time } = data;
 		if (message && message.command && util.isTwitch(client)) {
 			switch(message.command) {
 				case "USERSTATE":
@@ -282,10 +283,59 @@ module.exports = function(main) {
 					break;
 				case "ROOMSTATE":
 					if (message.tags) {
-						twitchApiData.setRoomState(channel, message.tags);
-						// TODO: Notify main
+						//twitchApiData.setRoomState(channel, message.tags);
+						main.channelData().setChannelData(channel, message.tags);
 					}
 					break;
+				case "USERNOTICE": {
+					let username = message.tags && message.tags.login;
+					let messageText = message.params[1] || "";
+
+					let tagsInfo = {
+						client,
+						channel,
+						message: messageText,
+						postedLocally: false,
+						serverName,
+						tags: message.tags,
+						username
+					};
+
+					onMessageTags(tagsInfo);
+
+					main.incomingEvents().handleIncomingCustomEvent(
+						channel, serverName, username,
+						time, "usernotice", messageText, message.tags, null,
+						"", true
+					);
+					break;
+				}
+				case "CLEARCHAT": {
+					let duration = message.tags && message.tags["ban-duration"];
+					let reason = message.tags && message.tags["ban-reason"];
+					let clearedUsername = message.params[1] || "";
+
+					if (!clearedUsername) {
+						// No user
+						break;
+					}
+
+					let announcement = duration && duration > 0
+						? `has been timed out for ${duration} ` +
+							stringUtils.pluralize(duration, "second", "s")
+						: "has been banned";
+
+					let line = reason
+						? announcement + ": " + reason
+						: announcement + ".";
+
+					main.incomingEvents().handleIncomingCustomEvent(
+						channel, serverName, clearedUsername,
+						time, "clearchat", line, message.tags, null,
+						`** ${clearedUsername} ${line}`, true
+					);
+					break;
+				}
 			}
 		}
 	};

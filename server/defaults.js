@@ -27,10 +27,14 @@ module.exports = {
 	enableDarkMode: false,
 	enableEmojiCodes: true,
 	enableEmojiImages: true,
+
+	// Twitch
 	enableTwitch: true,
 	enableTwitchColors: true,
 	enableTwitchChannelDisplayNames: true,
 	enableTwitchUserDisplayNames: 1,
+	showTwitchDeletedMessages: false,
+	showTwitchClearChats: false,
 	enableFfzEmoticons: true,
 	enableFfzGlobalEmoticons: true,
 	enableFfzChannelEmoticons: true,

@@ -37,6 +37,23 @@ export default {
 				channel,
 				cache
 			};
+		},
+		clearUser(channel, username, time) {
+			return {
+				type: actionTypes.channelCaches.CLEARUSER,
+				channel,
+				time,
+				username
+			};
+		}
+	},
+	channelData: {
+		update(channel, data) {
+			return {
+				type: actionTypes.channelData.UPDATE,
+				channel,
+				data
+			};
 		}
 	},
 	channelUserLists: {

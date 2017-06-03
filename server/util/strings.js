@@ -1,3 +1,5 @@
+// Sanitizing
+
 const normalise = function(s) {
 	if (s && s.replace) {
 		return s.replace(/\s+/g, " ");
@@ -47,10 +49,23 @@ const lowerClean = function(s) {
 	return "";
 };
 
+// Misc
+
+const pluralize = function(value, base, addition) {
+	// Example: 8, "banana", "s", returns either "banana" or "bananas"
+
+	if (value === 1) {
+		return base;
+	}
+
+	return base + addition;
+};
+
 module.exports = {
 	clean,
 	formatUriName,
 	lowerClean,
 	normalise,
-	oneWord
+	oneWord,
+	pluralize
 };

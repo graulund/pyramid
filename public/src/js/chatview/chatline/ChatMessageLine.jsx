@@ -3,15 +3,41 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
-import TwitchEmoticon from "../twitch/TwitchEmoticon.jsx";
-import { isTwitch } from "../lib/ircConfigs";
-import { TOKEN_TYPES, tokenizeChatLine } from "../lib/tokenizer";
+import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
+import { isTwitch } from "../../lib/ircConfigs";
+import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
+
+const block = "msg";
 
 const emojiImageUrl = function(codepoints) {
 	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
 };
 
 class ChatMessageLine extends PureComponent {
+	constructor(props) {
+		super(props);
+
+		this.unhide = this.unhide.bind(this);
+
+		this.state = {
+			unhidden: false
+		};
+	}
+
+	unhide() {
+		this.setState({ unhidden: true });
+	}
+
+	renderCleared() {
+		return (
+			<button
+				className="unhide"
+				key="unhide"
+				onClick={this.unhide}>
+				Show deleted message
+			</button>
+		);
+	}
 
 	renderText(token) {
 		return token.text;
@@ -79,24 +105,44 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
-			color, displayUsername, enableTwitch, enableTwitchColors,
-			enableUsernameColors, ircConfigs, server, symbol = "",
-			tags, type, username
+			cleared = false,
+			color,
+			displayUsername,
+			enableTwitch,
+			enableTwitchColors,
+			enableUsernameColors,
+			ircConfigs,
+			showTwitchDeletedMessages,
+			server,
+			symbol = "",
+			tags,
+			type,
+			username
 		} = this.props;
 
-		const className = "msg" +
-			(type !== "msg" ? ` msg--${type}` : "");
+		const { unhidden } = this.state;
+
+		const className = block +
+			(type !== "msg" ? ` ${block}--${type}` : "") +
+			(cleared && showTwitchDeletedMessages ? ` ${block}--cleared` : "");
 
 		const useTwitch = enableTwitch && server &&
 			ircConfigs && isTwitch(ircConfigs[server]);
 
 		const tokens = tokenizeChatLine(this.props, useTwitch);
 
-		const messageContent = tokens.map(
-			(token, index) => this.renderToken(token, index)
-		);
+		var messageContent;
 
-		var authorClassName = "msg__author";
+		if (cleared && !unhidden && !showTwitchDeletedMessages) {
+			messageContent = this.renderCleared();
+		}
+		else {
+			messageContent = tokens.map(
+				(token, index) => this.renderToken(token, index)
+			);
+		}
+
+		var authorClassName = `${block}__author`;
 		var authorColor = null;
 		var authorDisplayName = null;
 		var authorUserId = null;
@@ -144,6 +190,7 @@ class ChatMessageLine extends PureComponent {
 ChatMessageLine.propTypes = {
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
+	cleared: PropTypes.bool,
 	color: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
@@ -158,6 +205,7 @@ ChatMessageLine.propTypes = {
 	observer: PropTypes.object,
 	onEmoteLoad: PropTypes.func,
 	server: PropTypes.string,
+	showTwitchDeletedMessages: PropTypes.bool,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,
@@ -170,7 +218,8 @@ export default connect(({
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
-		enableUsernameColors
+		enableUsernameColors,
+		showTwitchDeletedMessages
 	},
 	ircConfigs
 }) => ({
@@ -178,5 +227,6 @@ export default connect(({
 	enableTwitch,
 	enableTwitchColors,
 	enableUsernameColors,
-	ircConfigs
+	ircConfigs,
+	showTwitchDeletedMessages
 }))(ChatMessageLine);

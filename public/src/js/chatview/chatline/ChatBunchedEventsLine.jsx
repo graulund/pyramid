@@ -1,9 +1,9 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 
-import UserLink from "../components/UserLink.jsx";
-import { humanDateStamp, timeStamp } from "../lib/formatting";
-import { combinedDisplayName } from "../lib/pageTitles";
+import UserLink from "../../components/UserLink.jsx";
+import { humanDateStamp, timeStamp } from "../../lib/formatting";
+import { combinedDisplayName } from "../../lib/pageTitles";
 
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;

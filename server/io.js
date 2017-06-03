@@ -190,6 +190,13 @@ module.exports = function(main) {
 		});
 	};
 
+	const emitChannelData = function(socket, channelUri) {
+		let data = main.channelData().getChannelData(channelUri);
+		if (data) {
+			socket.emit("channelData", { channelUri, data });
+		}
+	};
+
 	// Overall list emissions
 
 	const emitEventToRecipients = function(list, eventName, eventData) {
@@ -223,6 +230,14 @@ module.exports = function(main) {
 			main.recipients().getChannelRecipients(channelUri),
 			"channelEvent",
 			eventData
+		);
+	};
+
+	const emitDataToChannel = function(channelUri, data) {
+		emitEventToRecipients(
+			main.recipients().getChannelRecipients(channelUri),
+			"channelData",
+			data
 		);
 	};
 
@@ -361,6 +376,7 @@ module.exports = function(main) {
 					main.recipients().addChannelRecipient(details.channel, socket);
 					emitChannelCache(socket, details.channel);
 					emitChannelUserList(socket, details.channel);
+					emitChannelData(socket, details.channel);
 				}
 				else if (details && details.username) {
 					main.recipients().addUserRecipient(details.username, socket);
@@ -784,6 +800,7 @@ module.exports = function(main) {
 		emit,
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
+		emitDataToChannel,
 		emitEventToChannel,
 		emitIrcConfig,
 		emitIrcConnectionStatus,

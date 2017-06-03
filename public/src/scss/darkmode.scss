@@ -8,7 +8,8 @@ body.darkmode {
 	.chatview__controls,
 	.channeluserlist,
 	.chatview .contextview__main,
-	.sidebar__system-menu {
+	.sidebar__system-menu,
+	.switcher a {
 		background-color: #111;
 		color: #ccc;
 
@@ -43,8 +44,11 @@ body.darkmode {
 		.line__channel,
 		.line__channel a,
 		.line time,
+		.line .prefix,
 		.userevent,
-		.bunchedevents {
+		.bunchedevents,
+		.unhide,
+		&__channel-flags {
 			color: #777;
 		}
 
@@ -55,6 +59,13 @@ body.darkmode {
 			}
 		}
 
+		.userevent--strong {
+			color: #ccc;
+			&:before {
+				background-color: #ccc;
+			}
+		}
+
 		.line--connection {
 			&:after {
 				background-color: #444;
@@ -62,6 +73,12 @@ body.darkmode {
 
 			> span {
 				background-color: #111;
+			}
+		}
+
+		.msg--cleared {
+			&, a {
+				text-decoration-color: #ccc;
 			}
 		}
 
