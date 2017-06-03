@@ -281,6 +281,7 @@ const mapStateToProps = function(state, ownProps) {
 	const logDetails = state.logDetails[subject];
 
 	return {
+		channelData: state.channelData[pageQuery],
 		collapseJoinParts: state.appConfig.collapseJoinParts,
 		displayName,
 		inFocus: state.deviceState.inFocus,

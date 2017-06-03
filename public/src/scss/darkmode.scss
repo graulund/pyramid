@@ -47,7 +47,8 @@ body.darkmode {
 		.line .prefix,
 		.userevent,
 		.bunchedevents,
-		.unhide {
+		.unhide,
+		&__channel-flags {
 			color: #777;
 		}
 

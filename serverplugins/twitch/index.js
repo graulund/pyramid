@@ -1,7 +1,6 @@
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
 
-const chatClears = require("./chatClears");
 const emoteParsing = require("./emoteParsing");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
@@ -284,8 +283,8 @@ module.exports = function(main) {
 					break;
 				case "ROOMSTATE":
 					if (message.tags) {
-						twitchApiData.setRoomState(channel, message.tags);
-						// TODO: Notify main
+						//twitchApiData.setRoomState(channel, message.tags);
+						main.channelData().setChannelData(channel, message.tags);
 					}
 					break;
 				case "USERNOTICE": {

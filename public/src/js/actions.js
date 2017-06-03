@@ -47,6 +47,15 @@ export default {
 			};
 		}
 	},
+	channelData: {
+		update(channel, data) {
+			return {
+				type: actionTypes.channelData.UPDATE,
+				channel,
+				data
+			};
+		}
+	},
 	channelUserLists: {
 		update(data) {
 			return {

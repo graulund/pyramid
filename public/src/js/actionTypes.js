@@ -13,6 +13,10 @@ export const channelCaches = {
 	"CLEARUSER": "channelCaches/CLEARUSER"
 };
 
+export const channelData = {
+	"UPDATE": "channelData/UPDATE"
+};
+
 export const channelUserLists = {
 	"UPDATE": "channelUserLists/UPDATE"
 };

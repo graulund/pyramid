@@ -360,6 +360,28 @@
 		color: #666;
 	}
 
+	&__channel-flags {
+		position: absolute;
+		bottom: 10px;
+		left: 20px;
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+		font-size: .75rem;
+		line-height: 1em;
+		color: #999;
+		text-transform: uppercase;
+
+		li {
+			display: inline;
+			margin: 0 .8em 0 0;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 
@@ -393,6 +415,11 @@
 					}
 				}
 			}
+		}
+
+		&__channel-flags {
+			// TODO: Support for channel flags on mobile
+			display: none;
 		}
 
 		.line {

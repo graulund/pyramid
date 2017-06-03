@@ -11,6 +11,7 @@ const viewState = require("./main/viewState");
 // Sub model objects requiring state (delayed initialization)
 
 var appConfig;
+var channelData;
 var friends;
 var incomingEvents;
 var ircConfig;
@@ -155,6 +156,7 @@ const initDependencies = function() {
 
 const initStartup = function() {
 	appConfig        = require("./main/appConfig")(db);
+	channelData      = require("./main/channelData")(io);
 	friends          = require("./main/friends")(db);
 	ircConfig        = require("./main/ircConfig")(db);
 	lastSeen         = require("./main/lastSeen")(db);
@@ -238,6 +240,7 @@ onDb((err) => {
 
 module.exports = {
 	appConfig: () => appConfig,
+	channelData: () => channelData,
 	friends: () => friends,
 	incomingEvents: () => incomingEvents,
 	ircConfig: () => ircConfig,
