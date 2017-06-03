@@ -43,12 +43,10 @@ class SettingsView extends PureComponent {
 				page = <SettingsGeneralView />;
 		}
 
-		const className = "mainview settingsview settingsview--" + pageName;
-
 		const items = Object.keys(SETTINGS_PAGE_NAMES);
 
 		return (
-			<div className={className}>
+			<div className="mainview settingsview">
 				<div className="mainview__top settingsview__top">
 					<div className="mainview__top__main settingsview__top__main">
 						<h2>Settings</h2>
