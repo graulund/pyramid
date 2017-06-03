@@ -2,9 +2,9 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
-import { fixColorContrast } from "../lib/color";
+import { fixColorContrast } from "../../lib/color";
 
-import UserLink from "../components/UserLink.jsx";
+import UserLink from "../../components/UserLink.jsx";
 
 class ChatUsername extends PureComponent {
 	render() {

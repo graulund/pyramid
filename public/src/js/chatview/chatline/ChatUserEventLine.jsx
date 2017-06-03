@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 
-import UserLink from "../components/UserLink.jsx";
+import UserLink from "../../components/UserLink.jsx";
 
 const block = "userevent";
 

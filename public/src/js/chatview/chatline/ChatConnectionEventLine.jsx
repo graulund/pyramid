@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 
-import { STATUS } from "../lib/connectionStatus";
+import { STATUS } from "../../lib/connectionStatus";
 
 const block = "connectionevent";
 

@@ -3,9 +3,9 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
-import TwitchEmoticon from "../twitch/TwitchEmoticon.jsx";
-import { isTwitch } from "../lib/ircConfigs";
-import { TOKEN_TYPES, tokenizeChatLine } from "../lib/tokenizer";
+import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
+import { isTwitch } from "../../lib/ircConfigs";
+import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
 
 const emojiImageUrl = function(codepoints) {
 	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
