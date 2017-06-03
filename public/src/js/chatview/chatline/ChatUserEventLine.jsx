@@ -12,6 +12,7 @@ class ChatUserEventLine extends PureComponent {
 			by,
 			displayName,
 			displayUsername,
+			message,
 			mode,
 			reason,
 			type,
@@ -43,6 +44,9 @@ class ChatUserEventLine extends PureComponent {
 			case "mode":
 				eventDescription = "sets mode: " + mode +
 					(argument ? " " + argument : "");
+				break;
+			case "clearchat":
+				eventDescription = message;
 				break;
 		}
 

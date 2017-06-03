@@ -322,9 +322,9 @@ module.exports = function(main) {
 					}
 
 					let announcement = duration && duration > 0
-						? `${clearedUsername} has been timed out for ${duration} ` +
+						? `has been timed out for ${duration} ` +
 							stringUtils.pluralize(duration, "second", "s")
-						: `${clearedUsername} has been banned`;
+						: "has been banned";
 
 					let line = reason
 						? announcement + ": " + reason
@@ -333,7 +333,7 @@ module.exports = function(main) {
 					main.incomingEvents().handleIncomingCustomEvent(
 						channel, serverName, clearedUsername,
 						time, "clearchat", line, message.tags, null,
-						"** " + line, true
+						`** ${clearedUsername} ${line}`, true
 					);
 					break;
 				}

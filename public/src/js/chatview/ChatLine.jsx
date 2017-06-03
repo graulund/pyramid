@@ -31,6 +31,7 @@ class ChatLine extends PureComponent {
 			highlight,
 			lineId,
 			message,
+			showTwitchClearChats,
 			time,
 			type
 		} = this.props;
@@ -54,25 +55,34 @@ class ChatLine extends PureComponent {
 		var content = null, prefix = null;
 
 		switch (type) {
+
 			case "msg":
 			case "action":
 			case "notice":
 			case "usernotice":
 				if (message) {
-					content = <ChatMessageLine {...this.props} key="content" />;
+					content = <ChatMessageLine
+						{...this.props}
+						key="content" />;
 				}
 				if (type === "usernotice") {
-					prefix = <ChatUserNoticeLinePrefix {...this.props} key="prefix" />;
+					prefix = <ChatUserNoticeLinePrefix
+						{...this.props}
+						key="prefix" />;
 				}
 				break;
+
 			case "join":
 			case "part":
 			case "quit":
 			case "kick":
 			case "kill":
 			case "mode":
-				content = <ChatUserEventLine {...this.props} key="content" />;
+				content = <ChatUserEventLine
+					{...this.props}
+					key="content" />;
 				break;
+
 			case "events":
 				var { collapseJoinParts, ...bunchedProps } = this.props;
 				var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
@@ -86,17 +96,27 @@ class ChatLine extends PureComponent {
 						key="content" />;
 				}
 				break;
+
 			case "log":
-				content = <LogLine {...this.props} key="content" />;
+				content = <LogLine
+					{...this.props}
+					key="content" />;
 				break;
+
 			case "connectionEvent":
-				content = <ChatConnectionEventLine {...this.props} key="content" />;
+				content = <ChatConnectionEventLine
+					{...this.props}
+					key="content" />;
 				break;
+
 			case "clearchat":
-				content = null;
-				// TODO: Add "Display time out notices" setting
-				// (Should add to prefix, with empty content)
+				if (showTwitchClearChats) {
+					content = <ChatUserEventLine
+						{...this.props}
+						key="content" />;
+				}
 				break;
+
 			default:
 				content = (
 					<em key="placeholder">
@@ -189,6 +209,7 @@ ChatLine.propTypes = {
 	onEmoteLoad: PropTypes.func,
 	reason: PropTypes.string,
 	server: PropTypes.string,
+	showTwitchClearChats: PropTypes.bool,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,
@@ -200,7 +221,10 @@ const mapStateToProps = function(state, ownProps) {
 	let { channel } = ownProps;
 	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
 
-	return { channelDisplayName };
+	return {
+		channelDisplayName,
+		showTwitchClearChats: state.appConfig.showTwitchClearChats
+	};
 };
 
 export default connect(mapStateToProps)(ChatLine);

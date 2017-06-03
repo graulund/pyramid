@@ -127,6 +127,19 @@
 		font-style: normal;
 	}
 
+	.msg--cleared {
+		opacity: .5;
+		text-decoration: line-through;
+
+		&, a {
+			text-decoration-color: #000;
+		}
+
+		&:hover {
+			text-decoration: none;
+		}
+	}
+
 	.line--highlight {
 		background-color: #fff0aa;
 		transition: 1s background-color;
@@ -167,14 +180,6 @@
 		}
 	}
 
-	.line--cleared {
-		text-decoration: line-through;
-
-		&, a {
-			text-decoration-color: #000;
-		}
-	}
-
 	.unhide {
 		appearance: none;
 		font-family: inherit;
@@ -212,6 +217,10 @@
 	.userevent--strong {
 		color: #000;
 		font-weight: bold;
+
+		&:before {
+			background-color: #000;
+		}
 	}
 
 	.connectionevent {

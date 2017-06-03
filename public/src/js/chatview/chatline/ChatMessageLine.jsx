@@ -7,6 +7,8 @@ import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
 import { isTwitch } from "../../lib/ircConfigs";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
 
+const block = "msg";
+
 const emojiImageUrl = function(codepoints) {
 	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
 };
@@ -110,6 +112,7 @@ class ChatMessageLine extends PureComponent {
 			enableTwitchColors,
 			enableUsernameColors,
 			ircConfigs,
+			showTwitchDeletedMessages,
 			server,
 			symbol = "",
 			tags,
@@ -119,8 +122,9 @@ class ChatMessageLine extends PureComponent {
 
 		const { unhidden } = this.state;
 
-		const className = "msg" +
-			(type !== "msg" ? ` msg--${type}` : "");
+		const className = block +
+			(type !== "msg" ? ` ${block}--${type}` : "") +
+			(cleared && showTwitchDeletedMessages ? ` ${block}--cleared` : "");
 
 		const useTwitch = enableTwitch && server &&
 			ircConfigs && isTwitch(ircConfigs[server]);
@@ -129,8 +133,7 @@ class ChatMessageLine extends PureComponent {
 
 		var messageContent;
 
-		if (cleared && !unhidden) {
-			// TODO: Add "Hide cleared messages" setting (if false, skips this)
+		if (cleared && !unhidden && !showTwitchDeletedMessages) {
 			messageContent = this.renderCleared();
 		}
 		else {
@@ -139,7 +142,7 @@ class ChatMessageLine extends PureComponent {
 			);
 		}
 
-		var authorClassName = "msg__author";
+		var authorClassName = `${block}__author`;
 		var authorColor = null;
 		var authorDisplayName = null;
 		var authorUserId = null;
@@ -202,6 +205,7 @@ ChatMessageLine.propTypes = {
 	observer: PropTypes.object,
 	onEmoteLoad: PropTypes.func,
 	server: PropTypes.string,
+	showTwitchDeletedMessages: PropTypes.bool,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,
@@ -214,7 +218,8 @@ export default connect(({
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
-		enableUsernameColors
+		enableUsernameColors,
+		showTwitchDeletedMessages
 	},
 	ircConfigs
 }) => ({
@@ -222,5 +227,6 @@ export default connect(({
 	enableTwitch,
 	enableTwitchColors,
 	enableUsernameColors,
-	ircConfigs
+	ircConfigs,
+	showTwitchDeletedMessages
 }))(ChatMessageLine);

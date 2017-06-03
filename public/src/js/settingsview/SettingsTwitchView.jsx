@@ -42,6 +42,20 @@ const settings = {
 				"Case changes only",
 				"All display names"
 			]
+		},
+		{
+			name: "showTwitchDeletedMessages",
+			readableName: "Show deleted messages",
+			type: "bool",
+			description: "Show the contents of deleted messages in Twitch chats",
+			requires: ["enableTwitch"]
+		},
+		{
+			name: "showTwitchClearChats",
+			readableName: "Show ban/timeout events",
+			type: "bool",
+			description: "Show ban events (including reasons) in Twitch chats",
+			requires: ["enableTwitch"]
 		}
 	],
 
