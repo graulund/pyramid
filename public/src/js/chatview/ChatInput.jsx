@@ -448,6 +448,10 @@ class ChatInput extends PureComponent {
 			channelFlags = this.renderTwitchChannelFlags();
 		}
 
+		let autoComplete = navigator.userAgent.indexOf("Android") >= 0
+			? undefined
+			: "off";
+
 		return (
 			<form onSubmit={this.submit} className="chatview__input" key="main">
 				<input
@@ -458,7 +462,7 @@ class ChatInput extends PureComponent {
 					onKeyUp={this.onKeyUp}
 					tabIndex={1}
 					placeholder="Send a message"
-					autoComplete="off"
+					autoComplete={autoComplete}
 					/>
 				<input type="submit" />
 				{ channelFlags }
