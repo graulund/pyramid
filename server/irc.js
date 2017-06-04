@@ -99,32 +99,44 @@ module.exports = function(main) {
 	// Send message
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
-		const serverName  = channelUtils.channelServerNameFromUrl(channelUri);
-		const channelName = channelUtils.channelNameFromUrl(channelUri, "#");
+		let serverName  = channelUtils.channelServerNameFromUrl(channelUri);
+		let channelName = channelUtils.channelNameFromUrl(channelUri, "#");
+
 		if (serverName && channelName) {
-			const client = findClientByServerName(serverName);
+			let client = findClientByServerName(serverName);
+
 			if (client) {
 
-				const meRegex = /^\/me\s+/;
+				// TODO: Proper /command handling in a different layer
+				let meRegex = /^\/me\s+/;
+
 				if (!isAction && meRegex.test(message)) {
 					isAction = true;
 					message = message.replace(meRegex, "");
 				}
 
-				const type = isAction ? "action" : "msg";
+				let type = isAction ? "action" : "msg";
+				let method = isAction ? "action" : "say";
 
-				if (isAction) {
-					client.irc.action(channelName, message);
-				} else {
-					client.irc.say(channelName, message);
+				let blocks = client.irc[method](channelName, message);
+
+				if (!blocks || !blocks.length) {
+					blocks = [message];
 				}
 
 				// Handle our own message as if it's incoming
-				handleIncomingMessage(
-					client, client.irc.user.nick,
-					channelName, type, message, {},
-					true
-				);
+
+				// Detect if the message was split up into blocks,
+				// and handle each separately
+
+				blocks.forEach((m) => {
+					handleIncomingMessage(
+						client, client.irc.user.nick,
+						channelName, type, m, {},
+						true
+					);
+				});
+
 				return true;
 			}
 		}
