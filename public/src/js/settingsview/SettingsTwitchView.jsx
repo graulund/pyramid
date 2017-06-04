@@ -25,6 +25,20 @@ const settings = {
 			requires: ["enableTwitch"]
 		},
 		{
+			name: "colorBlindness",
+			readableName: "Twitch colors colorblindness compensation",
+			type: "enum",
+			description: "Adapt the username colors to match a type of colorblindness",
+			notice: "You might have to reload for this to take effect",
+			requires: ["enableTwitch"],
+			valueNames: [
+				"None",
+				"Protanope: Reds are greatly reduced (1% of men)",
+				"Deuteranope: Greens are greatly reduced (1% of men)",
+				"Tritanope: Blues are greatly reduced (0.003% of population)"
+			]
+		},
+		{
 			name: "enableTwitchChannelDisplayNames",
 			readableName: "Enable Twitch channel display names",
 			type: "bool",

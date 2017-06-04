@@ -32,6 +32,7 @@ module.exports = {
 	enableTwitch: true,
 	enableTwitchColors: true,
 	enableTwitchChannelDisplayNames: true,
+	colorBlindness: 0,
 	enableTwitchUserDisplayNames: 1,
 	showTwitchDeletedMessages: false,
 	showTwitchClearChats: false,

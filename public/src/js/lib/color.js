@@ -1,24 +1,29 @@
 // Big thanks to FrankerFaceZ
 
+import { COLOR_BLINDNESS } from "../constants";
+
 // Settings
 
 const DEFAULT_BG_COLOR = "#ffffff";
 const DEFAULT_DARKMODE_BG_COLOR = "#111111";
 
-var luv_contrast = 4.5;
+const luv_contrast = 4.5;
 
-var CVDMatrix = {
-	protanope: [ // reds are greatly reduced (1% men)
+const CVDMatrix = {
+	[COLOR_BLINDNESS.PROTANOPE]: [
+		// reds are greatly reduced (1% men)
 		0.0, 2.02344, -2.52581,
 		0.0, 1.0,      0.0,
 		0.0, 0.0,      1.0
 	],
-	deuteranope: [ // greens are greatly reduced (1% men)
+	[COLOR_BLINDNESS.DEUTERANOPE]: [
+		// greens are greatly reduced (1% men)
 		1.0,      0.0, 0.0,
 		0.494207, 0.0, 1.24827,
 		0.0,      0.0, 1.0
 	],
-	tritanope: [ // blues are greatly reduced (0.003% population)
+	[COLOR_BLINDNESS.TRITANOPE]: [
+		// blues are greatly reduced (0.003% population)
 		1.0,       0.0,      0.0,
 		0.0,       1.0,      0.0,
 		-0.395913, 0.801109, 0.0
@@ -142,7 +147,7 @@ export class RGBAColor {
 	daltonize(type) {
 		var cvd;
 
-		if (typeof type === "string") {
+		if (typeof type === "number" || typeof type === "string") {
 			if (CVDMatrix.hasOwnProperty(type)) {
 				cvd = CVDMatrix[type];
 			}

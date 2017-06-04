@@ -47,3 +47,10 @@ export const TWITCH_DISPLAY_NAMES = {
 	CASE_CHANGES_ONLY: 1,
 	ALL: 2
 };
+
+export const COLOR_BLINDNESS = {
+	OFF: 0,
+	PROTANOPE: 1,
+	DEUTERANOPE: 2,
+	TRITANOPE: 3
+};

@@ -11,6 +11,7 @@ class ChatUsername extends PureComponent {
 		const {
 			className: givenClassName = "",
 			color,
+			colorBlindness,
 			displayName,
 			enableDarkMode,
 			symbol = "",
@@ -30,7 +31,7 @@ class ChatUsername extends PureComponent {
 		// String color
 
 		if (color && typeof color === "string") {
-			const fixedColor = fixColorContrast(color);
+			let fixedColor = fixColorContrast(color, colorBlindness);
 			styles.color = enableDarkMode ? fixedColor.dark : fixedColor.light;
 		}
 
@@ -45,6 +46,7 @@ class ChatUsername extends PureComponent {
 
 ChatUsername.propTypes = {
 	color: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+	colorBlindness: PropTypes.number,
 	className: PropTypes.string,
 	displayName: PropTypes.string,
 	enableDarkMode: PropTypes.bool,
@@ -53,7 +55,8 @@ ChatUsername.propTypes = {
 };
 
 export default connect(({
-	appConfig: { enableDarkMode }
+	appConfig: { colorBlindness, enableDarkMode }
 }) => ({
+	colorBlindness,
 	enableDarkMode
 }))(ChatUsername);
