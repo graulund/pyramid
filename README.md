@@ -36,5 +36,17 @@ Then, when you want to update your version, simply run `git pull` in a terminal 
 
 Warning: Development builds can obviously fail more often than the master build.
 
+### Installing on Windows
+
+Node.js projects often require a little more effort to be installed on Windows, and this is also the case with this project. Pyramid uses a few dependencies that require the compiling of C++ code, so in order to get the project up and running, you will have to run the following command in a PowerShell opened as an admin:
+
+```
+npm install --global --production windows-build-tools
+```
+
+This command [installs build tools](https://www.npmjs.com/package/windows-build-tools) required to set up Pyramid on Windows.
+
+Other than the above command in particular, I would generally recommend using something like [Git Bash](https://git-scm.org/) to run your commands in on Windows.
+
 ## License
 [MIT License](LICENSE)
