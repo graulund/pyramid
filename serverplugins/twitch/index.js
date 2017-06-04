@@ -181,6 +181,14 @@ module.exports = function(main) {
 
 	// Events
 
+	const onIrcFrameworkConfig = (data) => {
+		let { config } = data;
+		if (config && util.isTwitchHostname(config.host)) {
+			// Longer message max length than normal IRC networks
+			config.message_max_length = 500;
+		}
+	};
+
 	const onClient = (data) => {
 		let { client } = data;
 		if (util.isTwitch(client)) {
@@ -398,6 +406,7 @@ module.exports = function(main) {
 	return {
 		onClient,
 		onCustomMessage,
+		onIrcFrameworkConfig,
 		onJoin,
 		onMessageTags,
 		onPart

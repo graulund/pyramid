@@ -416,7 +416,7 @@ module.exports = function(main) {
 			let appConfig = main.appConfig();
 			debug = appConfig.configValue("debug") || false;
 
-			let c = new irc.Client({
+			let frameworkConfig = {
 				host:        cf.hostname,
 				nick:        cf.nickname,
 				port:        cf.port || 6667,
@@ -426,15 +426,22 @@ module.exports = function(main) {
 				tls:         cf.secure || false,
 				rejectUnauthorized: !cf.selfSigned || !cf.certExpired || false,
 				auto_reconnect_max_retries: 999
-			});
+			};
+
+			main.plugins().handleEvent(
+				"ircFrameworkConfig",
+				{ config: frameworkConfig }
+			);
+
 			let client = {
-				irc: c,
+				irc: new irc.Client(frameworkConfig),
 				config: cf,
 				joinedChannels: []
 			};
+
 			clients.push(client);
 			main.plugins().handleEvent("client", { client });
-			c.connect();
+			client.irc.connect();
 
 			return client;
 		}

@@ -2,10 +2,14 @@ const ASTRAL_SYMBOLS_REGEX = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
 
 const isTwitch = function(client) {
 	if (client && client.config) {
-		return /irc\.(chat\.)?twitch\.tv/.test(client.config.hostname);
+		return isTwitchHostname(client.config.hostname);
 	}
 
 	return false;
+};
+
+const isTwitchHostname = function(hostname) {
+	return /twitch\.tv$/.test(hostname);
 };
 
 const rangesOverlap = function (x1, x2, y1, y2) {
@@ -48,6 +52,7 @@ const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 module.exports = {
 	getEnabledExternalEmoticonTypes,
 	isTwitch,
+	isTwitchHostname,
 	rangesOverlap,
 	stringWithoutAstralSymbols
 };
