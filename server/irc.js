@@ -265,6 +265,7 @@ module.exports = function(main) {
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.FAILED
 			);
+			abortClient(client);
 		});
 
 		client.irc.on("unknown command", function(message) {

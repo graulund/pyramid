@@ -21,6 +21,9 @@ class ChatConnectionEventLine extends PureComponent {
 			case STATUS.FAILED:
 				by = "to connect to";
 				break;
+			case STATUS.ABORTED:
+				by = "connecting to";
+				break;
 		}
 
 		const className = block +
