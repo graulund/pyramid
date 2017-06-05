@@ -6,9 +6,15 @@ import { Link } from "react-router-dom";
 import { CATEGORY_NAMES } from "../constants";
 import { categoryUrl } from "../lib/routeHelpers";
 
+const block = "highlightslink";
+
 class HighlightsLink extends PureComponent {
 	render() {
-		const { unseenHighlights } = this.props;
+		const {
+			className: givenClassName,
+			noText = false,
+			unseenHighlights
+		} = this.props;
 
 		var badge = null;
 
@@ -20,11 +26,24 @@ class HighlightsLink extends PureComponent {
 			);
 		}
 
-		const className = "sidebar__menu-link" +
-			(badge ? " sidebar__menu-link--highlighted" : "");
+		let className = block +
+			(badge ? ` ${block}--highlighted` : "") +
+			(givenClassName ? " " + givenClassName : "");
+
+		if (noText) {
+			if (badge) {
+				return (
+					<Link to={categoryUrl("highlights")} className={className}>
+						{ badge }
+					</Link>
+				);
+			}
+
+			return null;
+		}
 
 		return (
-			<Link to={categoryUrl("highlights")} className={className} key="main">
+			<Link to={categoryUrl("highlights")} className={className}>
 				<span key="text">{ CATEGORY_NAMES.highlights }</span>
 				{ badge }
 			</Link>
@@ -33,7 +52,13 @@ class HighlightsLink extends PureComponent {
 }
 
 HighlightsLink.propTypes = {
+	className: PropTypes.string,
+	noText: PropTypes.bool,
 	unseenHighlights: PropTypes.array
 };
 
-export default connect(({ unseenHighlights }) => ({ unseenHighlights }))(HighlightsLink);
+export default connect(({
+	unseenHighlights
+}) => ({
+	unseenHighlights
+}))(HighlightsLink);

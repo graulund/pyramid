@@ -192,7 +192,7 @@ class Sidebar extends PureComponent {
 				</div>
 				<ul className="sidebar__menu" key="menu">
 					<li key="highlights">
-						<HighlightsLink />
+						<HighlightsLink className="sidebar__menu-link" />
 					</li>
 					<li key="allfriends">
 						<Link to={categoryUrl("allfriends")} className="sidebar__menu-link">

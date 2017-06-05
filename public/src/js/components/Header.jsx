@@ -1,5 +1,6 @@
 import React from "react";
 
+import HighlightsLink from "./HighlightsLink.jsx";
 import store from "../store";
 import actions from "../actions";
 
@@ -16,6 +17,7 @@ const Header = function() {
 				onClick={openSidebar}>
 				<img src="/img/menu.svg" width="16" height="16" alt="Sidebar" />
 			</a>
+			<HighlightsLink noText />
 		</div>
 	);
 };
