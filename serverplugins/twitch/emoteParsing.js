@@ -64,7 +64,7 @@ const doNewIndicesOverlap = function(indices, emotes) {
 
 const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 	// Expected emotedata: [ { id, code } ...]
-	if (message && message.length) {
+	if (message && message.length && emoteData && emoteData.length) {
 		const cleanedMessage = util.stringWithoutAstralSymbols(message);
 		emoteData.forEach((emote) => {
 			if (emote && emote.id && emote.code) {
