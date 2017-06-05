@@ -12,31 +12,34 @@ class TimedUserItem extends PureComponent {
 
 	render() {
 		const {
-			channel,
 			channelDisplayName,
-			channelName,
 			contextChannel,
-			displayName,
 			displayOnline = false,
 			friendsList = {},
+			lastSeenData = {},
 			onlineFriends = [],
 			skipOld = true,
 			symbol = "",
-			time,
 			userName,
 			visible
 		} = this.props;
+
+		let { displayName, time } = lastSeenData;
 
 		var classNames = [];
 
 		if (
 			friendsList[RELATIONSHIP_BEST_FRIEND] &&
-			friendsList[RELATIONSHIP_BEST_FRIEND].indexOf(userName.toLowerCase()) >= 0
+			friendsList[RELATIONSHIP_BEST_FRIEND]
+				.indexOf(userName.toLowerCase()) >= 0
 		) {
 			classNames.push("bestfriend");
 		}
 
-		if (displayOnline && onlineFriends.indexOf(userName.toLowerCase()) >= 0) {
+		if (
+			displayOnline &&
+			onlineFriends.indexOf(userName.toLowerCase()) >= 0
+		) {
 			classNames.push("online");
 		}
 
@@ -54,7 +57,8 @@ class TimedUserItem extends PureComponent {
 
 		var suffix = null;
 
-		if (channel) {
+		if (lastSeenData && lastSeenData.channel) {
+			let { channel, channelName } = lastSeenData;
 			const channelEl = contextChannel === channel
 				? "here"
 				: [
@@ -83,23 +87,21 @@ class TimedUserItem extends PureComponent {
 }
 
 TimedUserItem.propTypes = {
-	channel: PropTypes.string,
 	channelDisplayName: PropTypes.string,
-	channelName: PropTypes.string,
 	contextChannel: PropTypes.string,
-	displayName: PropTypes.string,
 	displayOnline: PropTypes.bool,
 	friendsList: PropTypes.object,
+	lastSeenData: PropTypes.object,
 	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
-	time: PropTypes.string,
 	userName: PropTypes.string,
 	visible: PropTypes.bool
 };
 
 const mapStateToProps = function(state, ownProps) {
-	let { channel } = ownProps;
+	let { lastSeenData = {} } = ownProps;
+	let { channel } = lastSeenData;
 	let { friendsList, onlineFriends } = state;
 
 	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
