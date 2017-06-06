@@ -78,7 +78,8 @@ class ChatInput extends PureComponent {
 		if (
 			newProps.channel !== this.props.channel ||
 			newProps.channelData !== this.props.channelData ||
-			newProps.enableTwitch !== this.props.enableTwitch
+			newProps.enableTwitch !== this.props.enableTwitch ||
+			newProps.isTouchDevice !== this.props.isTouchDevice
 		) {
 			return true;
 		}
@@ -441,16 +442,14 @@ class ChatInput extends PureComponent {
 	}
 
 	render() {
-		let { enableTwitch } = this.props;
+		let { enableTwitch, isTouchDevice } = this.props;
 		var channelFlags = null;
 
 		if (enableTwitch) {
 			channelFlags = this.renderTwitchChannelFlags();
 		}
 
-		let autoComplete = navigator.userAgent.indexOf("Android") >= 0
-			? undefined
-			: "off";
+		let autoComplete = isTouchDevice ? undefined : "off";
 
 		return (
 			<form onSubmit={this.submit} className="chatview__input" key="main">
