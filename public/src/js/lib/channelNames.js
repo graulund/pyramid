@@ -1,3 +1,29 @@
+const CHANNEL_URI_SEPARATOR = "/";
+
+export function getChannelUri(channelName, serverName) {
+	serverName = "" + serverName;
+	channelName = "" + channelName;
+
+	return serverName.replace(/\//g, "") +
+		CHANNEL_URI_SEPARATOR +
+		channelName;
+}
+
+export function parseChannelUri(channelUri) {
+	let separatorLocation = channelUri.indexOf(CHANNEL_URI_SEPARATOR);
+
+	if (separatorLocation < 0) {
+		return null;
+	}
+
+	let server = channelUri.substr(0, separatorLocation);
+	let channel = channelUri.substr(
+		separatorLocation + CHANNEL_URI_SEPARATOR.length
+	);
+
+	return { channel, server };
+}
+
 export function channelNameFromUrl(url) {
 	if (url && url.replace) {
 		return url.replace(/^[^\/]+\//, "#");
@@ -16,7 +42,7 @@ export function channelServerNameFromUrl(url) {
 }
 
 export function channelUrlFromNames(server, channel) {
-	return server + "/" + channel.replace(/^#/, "");
+	return server + "/" + channel;
 }
 
 export function getChannelDisplayNameFromState(state, channel) {

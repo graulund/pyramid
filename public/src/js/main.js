@@ -104,17 +104,17 @@ if (main) {
 						<Route exact path={routes.homeUrl} component={NoChatView} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName", ":logDate"
+								":serverName/:channelName", ":logDate", 0, false
 							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName", ":logDate"
+								":serverName/:channelName", ":logDate", 0, false
 							)}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName"
+								":serverName/:channelName", "", 0, false
 							)}
 							component={ChatViewWrapper} />
 						<Route
