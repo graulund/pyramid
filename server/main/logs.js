@@ -117,7 +117,14 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 
 		async.waterfall([
 			(callback) => db.getChannelId(serverName, channelName, callback),
-			(data, callback) => db.getDateLineCountForChannel(data.channelId, date, callback)
+			(data, callback) => {
+				if (data) {
+					db.getDateLineCountForChannel(data.channelId, date, callback);
+				}
+				else {
+					callback(new Error("No such channel"));
+				}
+			}
 		], callback);
 	};
 
@@ -127,7 +134,14 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 
 		async.waterfall([
 			(callback) => db.getChannelId(serverName, channelName, callback),
-			(data, callback) => db.getDateLinesForChannel(data.channelId, date, options, callback),
+			(data, callback) => {
+				if (data) {
+					db.getDateLinesForChannel(data.channelId, date, options, callback);
+				}
+				else {
+					callback(new Error("No such channel"));
+				}
+			},
 			(lines, callback) => parseDbLines(lines, callback)
 		], callback);
 	};

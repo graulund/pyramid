@@ -139,14 +139,28 @@ module.exports = function(db) {
 
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
-			(data, callback) => db.modifyServerInIrcConfig(data.serverId, details, callback)
+			(data, callback) => {
+				if (data) {
+					db.modifyServerInIrcConfig(data.serverId, details, callback);
+				}
+				else {
+					callback(new Error("No such server"));
+				}
+			}
 		], callback);
 	};
 
 	const removeServerFromIrcConfig = function(serverName, callback) {
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
-			(data, callback) => db.removeServerFromIrcConfig(data.serverId, callback)
+			(data, callback) => {
+				if (data) {
+					db.removeServerFromIrcConfig(data.serverId, callback);
+				}
+				else {
+					callback(new Error("No such server"));
+				}
+			}
 		], callback);
 	};
 
@@ -154,7 +168,14 @@ module.exports = function(db) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
-			(data, callback) => db.addChannelToIrcConfig(data.serverId, name, data, callback)
+			(data, callback) => {
+				if (data) {
+					db.addChannelToIrcConfig(data.serverId, name, data, callback);
+				}
+				else {
+					callback(new Error("No such server"));
+				}
+			}
 		], callback);
 	};
 
@@ -177,7 +198,14 @@ module.exports = function(db) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
 			(callback) => db.getChannelId(serverName, name, callback),
-			(data, callback) => db.removeChannelFromIrcConfig(data.channelId, callback)
+			(data, callback) => {
+				if (data) {
+					db.removeChannelFromIrcConfig(data.channelId, callback);
+				}
+				else {
+					callback(new Error("No such channel"));
+				}
+			}
 		], callback);
 	};
 
