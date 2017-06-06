@@ -278,6 +278,11 @@ module.exports = function(main) {
 			//}
 		});
 
+		/*client.irc.on("raw", function(data) {
+			let { line, from_server } = data;
+			console.log((from_server ? "> " : "< ") + line);
+		});*/
+
 		client.irc.on("message", function (event) {
 			let { nick, message, tags, target, type } = event;
 			if (!nick || !target) { return; }
