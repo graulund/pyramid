@@ -27,6 +27,7 @@ module.exports = {
 	enableDarkMode: false,
 	enableEmojiCodes: true,
 	enableEmojiImages: true,
+	enableDesktopNotifications: true,
 
 	// Twitch
 	enableTwitch: true,

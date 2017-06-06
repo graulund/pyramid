@@ -5,7 +5,7 @@ import VersionNumber from "../components/VersionNumber.jsx";
 import { timeZoneFormattedList } from "../lib/timeZones";
 
 const settings = {
-	"Web": [
+	"Web server": [
 		{
 			name: "webPort",
 			readableName: "Web port",
@@ -44,6 +44,16 @@ const settings = {
 			readableName: "Log lines to text files",
 			type: "bool",
 			description: "Log all chat lines to separate text files for each channel and date; does not save meta data, but is saved in a universal human readable plain text format"
+		}
+	],
+
+	"Notifications": [
+		{
+			name: "enableDesktopNotifications",
+			readableName: "Desktop notifications",
+			type: "bool",
+			description: "Enable notifications in your browser whenever someone highlights you in chat",
+			notice: "You still need to grant notification privileges in your browser for these to show up"
 		}
 	],
 

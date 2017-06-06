@@ -60,9 +60,10 @@ export function askForNotificationsPermission() {
 export function startUpdatingNotificationsActiveState() {
 	store.subscribe(function() {
 		let state = store.getState();
-		let { deviceState } = state;
+		let { appConfig, deviceState } = state;
 
-		let active = !deviceState.visible || !deviceState.inFocus;
+		let active = appConfig.enableDesktopNotifications &&
+			(!deviceState.visible || !deviceState.inFocus);
 
 		if (active !== notificationsActive) {
 			notificationsActive = active;
