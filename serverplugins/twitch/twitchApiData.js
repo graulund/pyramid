@@ -58,7 +58,10 @@ const requestEmoticonImages = function(emotesets) {
 				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 			catch(e) {
-				warn("Error occurred trying to request emoticon images from the Twitch API.");
+				warn(
+					"Error occurred trying to request emoticon images from the Twitch API.",
+					e
+				);
 			}
 		}
 	);
