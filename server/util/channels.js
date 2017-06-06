@@ -1,23 +1,31 @@
+const CHANNEL_URI_SEPARATOR = "/";
+
 const getChannelUri = function(channelName, serverName) {
+	serverName = "" + serverName;
+	channelName = "" + channelName;
 
-	let safeString = function(str) {
-		if (!str) {
-			return "";
-		}
+	return serverName.replace(/\//g, "") +
+		CHANNEL_URI_SEPARATOR +
+		channelName.replace(/^#/, "");
+};
 
-		return str.replace(/[^a-zA-Z0-9_-]+/g, "");
-	};
+const parseChannelUri = function(channelUri) {
+	let separatorLocation = channelUri.indexOf(CHANNEL_URI_SEPARATOR);
 
-	let c = safeString(channelName);
-
-	if (serverName) {
-		return safeString(serverName) + "/" + c;
+	if (separatorLocation < 0) {
+		return null;
 	}
 
-	return c;
+	let server = channelUri.substr(0, separatorLocation);
+	let channel = channelUri.substr(
+		separatorLocation + CHANNEL_URI_SEPARATOR.length
+	);
+
+	return { channel, server };
 };
 
 const channelNameFromUrl = function(url, prefix = "") {
+	// Deprecated
 	if (url && url.replace) {
 		return url.replace(/^[^\/]+\//, prefix);
 	}
@@ -26,6 +34,7 @@ const channelNameFromUrl = function(url, prefix = "") {
 };
 
 const channelServerNameFromUrl = function(url) {
+	// Deprecated
 	var m;
 	if (url && url.match && (m = url.match(/^([^\/]+)\//)) && m[1]) {
 		return m[1];
@@ -35,16 +44,15 @@ const channelServerNameFromUrl = function(url) {
 };
 
 const channelUriFromNames = function(server, channel) {
-	// TODO: Deprecate
+	// Deprecated
 	return getChannelUri(channel, server);
 };
 
 const passesChannelWhiteBlacklist = function(target, channelUri) {
+	const uriData = parseChannelUri(channelUri);
 
-	const segs = channelUri.toLowerCase().split("/");
-	const server = segs[0], channel = segs[1];
-
-	if (target) {
+	if (uriData && target) {
+		let { channel, server } = uriData;
 
 		// If there is a white list, and we're not on it, return false
 		if (
@@ -89,5 +97,6 @@ module.exports = {
 	channelServerNameFromUrl,
 	channelUriFromNames,
 	getChannelUri,
+	parseChannelUri,
 	passesChannelWhiteBlacklist
 };

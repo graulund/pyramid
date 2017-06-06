@@ -1,4 +1,5 @@
 const fs = require("fs");
+const sanitize = require("sanitize-filename");
 
 const copyFile = function(source, target, cb) {
 	var cbCalled = false;
@@ -24,6 +25,11 @@ const copyFile = function(source, target, cb) {
 	}
 };
 
+const sanitizeFilename = function(str, replacement = "_") {
+	return sanitize(str, { replacement });
+};
+
 module.exports = {
-	copyFile
+	copyFile,
+	sanitizeFilename
 };

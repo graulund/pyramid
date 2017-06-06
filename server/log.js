@@ -11,6 +11,7 @@ const moment = require("moment-timezone");
 
 const constants = require("./constants");
 const channelUtils = require("./util/channels");
+const fileUtils = require("./util/files");
 const timeUtils = require("./util/time");
 
 const LOG_ROOT = constants.LOG_ROOT;
@@ -284,20 +285,23 @@ const channelPrefix = function(line, channel) {
 
 var getLastLinesFromUser = function(username, options, done) {
 
-	var limit = options.limit;
+	let limit = options.limit;
 
 	// Normal limit
 	if (typeof limit != "number") {
 		limit = 200;
 	}
 
-	// Sanitizing input
-	username = username.replace(/[^a-zA-Z0-9_-]+/g, "");
+	// Log dir and file name
+	let logDir = path.join(LOG_ROOT, "_global", timeUtils.ym(options.d));
+	let filename = fileUtils.sanitizeFilename(username.toLowerCase());
 
-	// Log dir
-	var logDir = path.join(LOG_ROOT, "_global", timeUtils.ym(options.d));
+	if (!filename) {
+		done(new Error("Incorrect username"));
+		return;
+	}
 
-	fs.readFile(path.join(logDir, username.toLowerCase() + ".txt"), function(err, data) {
+	fs.readFile(path.join(logDir, filename + ".txt"), function(err, data) {
 
 		if (err) {
 			done(err);
@@ -306,7 +310,7 @@ var getLastLinesFromUser = function(username, options, done) {
 
 		data = data.toString(constants.FILE_ENCODING);
 
-		var lines = data.split("\n");
+		let lines = data.split("\n");
 
 		if (lines.length <= limit) {
 			done(null, data, lines.length-1);
@@ -333,8 +337,13 @@ var getLinesForFile = function(filePath, date, done) {
 var getChatroomLinesForDay = function(server, channel, date, done) {
 
 	// Sanitizing input
-	server = server.replace(/[^a-zA-Z0-9_-]+/g, "");
-	channel = channel.replace(/[^a-zA-Z0-9_-]+/g, "");
+	server = fileUtils.sanitizeFilename(server);
+	channel = fileUtils.sanitizeFilename(channel);
+
+	if (!server || !channel) {
+		done(new Error("Incorrect server or channel name"));
+		return;
+	}
 
 	// Log dir
 	var logDir = path.join(LOG_ROOT, server, channel, timeUtils.ym(date));
@@ -343,7 +352,14 @@ var getChatroomLinesForDay = function(server, channel, date, done) {
 };
 
 var getUserLinesForMonth = function(userName, date, done) {
-	return getLinesForFile(path.join(LOG_ROOT, userMonthPath(userName, date)), null, done);
+	let path = userMonthPath(userName, date);
+
+	if (!path) {
+		done(new Error("Incorrect username"));
+		return;
+	}
+
+	return getLinesForFile(path.join(LOG_ROOT, path), null, done);
 };
 
 var parseLogLine = function(line, date) {
@@ -472,37 +488,57 @@ var convertLogFileToLineObjects = function(data, date) {
 	return lines;
 };
 
-const pathHasAnyLogs = function(channelPath) {
+const pathHasAnyLogs = function(filePath) {
 	try {
 		// Throws on fail, does nothing otherwise
-		fs.accessSync(path.join(LOG_ROOT, channelPath), fs.constants.R_OK);
+		fs.accessSync(path.join(LOG_ROOT, filePath), fs.constants.R_OK);
 		return true;
 	} catch(e) {
 		return false;
 	}
 };
 
-const pathHasLogsForDay = function(channelPath, d) {
-	channelPath = channelPath.replace(/[^a-zA-Z0-9_\/-]+/g, "");
+const pathHasLogsForDay = function(channelUri, d) {
+	uriData = channelUtils.parseChannelUri(channelUri);
+
+	if (!uriData) {
+		return false;
+	}
+
+	let server = fileUtils.sanitizeFilename(uriData.server);
+	let channel = fileUtils.sanitizeFilename(uriData.channel);
+
 	return pathHasAnyLogs(path.join(
-		channelPath, timeUtils.ym(d), timeUtils.ymd(d) + ".txt"
+		server, channel, timeUtils.ym(d), timeUtils.ymd(d) + ".txt"
 	));
 };
 
 const userNameHasLogsForMonth = function(userName, d) {
-	return pathHasAnyLogs(userMonthPath(userName, d));
+	let path = userMonthPath(userName, d);
+
+	if (!path) {
+		done(new Error("Incorrect username"));
+		return;
+	}
+
+	return pathHasAnyLogs(path);
 };
 
-const pathHasLogsForToday = function(channelPath) {
-	return pathHasLogsForDay(channelPath, moment());
+const pathHasLogsForToday = function(channel) {
+	return pathHasLogsForDay(channel, moment());
 };
 
-const pathHasLogsForYesterday = function(channelPath) {
-	return pathHasLogsForDay(channelPath, moment().subtract(1, "day"));
+const pathHasLogsForYesterday = function(channel) {
+	return pathHasLogsForDay(channel, moment().subtract(1, "day"));
 };
 
 const userMonthPath = function(userName, d) {
-	userName = userName.replace(/[^a-zA-Z0-9_-]+/g, "");
+	userName = fileUtils.sanitizeFilename(userName);
+
+	if (!userName) {
+		return "";
+	}
+
 	return path.join(
 		"_global", timeUtils.ym(d), userName + ".txt"
 	);
