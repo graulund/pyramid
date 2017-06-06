@@ -2,13 +2,48 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
+import { TWITCH_DISPLAY_NAMES } from "../constants";
 import SortedItemList from "./SortedItemList.jsx";
 import TimedChannelItem from "./TimedChannelItem.jsx";
 import { channelUrlFromNames } from "../lib/channelNames";
 
-const sortableName = function(channel) {
-	let name = channel.displayName || channel.channelName;
-	return name.replace(/^#/, "").toLowerCase();
+const nameSorter = function(
+	enableTwitchChannelDisplayNames,
+	enableTwitchUserDisplayNames
+) {
+	return function(channel) {
+		let { channelName, displayName } = channel;
+		let displayedName = channelName;
+		let twitchChannelIsUser = channelName[0] !== "_";
+
+		// If displaying display name
+
+		if (
+			enableTwitchChannelDisplayNames &&
+			displayName &&
+			displayName !== channelName
+		) {
+			if (displayName.toLowerCase() !== channelName.toLowerCase()) {
+				// Totally different altogether
+				// Different behaviour if it's a user versus a group chat
+				if (
+					!twitchChannelIsUser ||
+					enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL
+				) {
+					displayedName = displayName;
+				}
+			}
+			else {
+				// Merely case changes
+				if (!twitchChannelIsUser || enableTwitchUserDisplayNames) {
+					displayedName = displayName;
+				}
+			}
+		}
+
+		// Sortable modification
+		return displayedName.replace(/^#*_*/, "").toLowerCase();
+	};
 };
 
 const getDataChannel = function(data) {
@@ -20,6 +55,22 @@ class ChannelList extends PureComponent {
 		super(props);
 
 		this.renderChannelItem = this.renderChannelItem.bind(this);
+		this.sortableName = nameSorter(true, 1);
+	}
+
+	componentWillReceiveProps(newProps) {
+		let {
+			enableTwitchChannelDisplayNames: oldTcdn,
+			enableTwitchUserDisplayNames: oldTudn,
+		} = this.props;
+		let {
+			enableTwitchChannelDisplayNames: newTcdn,
+			enableTwitchUserDisplayNames: newTudn,
+		} = newProps;
+
+		if (oldTcdn !== newTcdn || oldTudn !== newTudn) {
+			this.sortableName = nameSorter(newTcdn, newTudn);
+		}
 	}
 
 	renderChannelItem(data) {
@@ -89,12 +140,14 @@ class ChannelList extends PureComponent {
 			noItemsText="No channels :("
 			renderItem={this.renderChannelItem}
 			sort={sort}
-			sortableNameForItem={sortableName}
+			sortableNameForItem={this.sortableName}
 			/>;
 	}
 }
 
 ChannelList.propTypes = {
+	enableTwitchChannelDisplayNames: PropTypes.bool,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	hideOldChannels: PropTypes.bool,
 	ircConfigs: PropTypes.object,
 	lastSeenChannels: PropTypes.object,
@@ -103,10 +156,16 @@ ChannelList.propTypes = {
 };
 
 export default connect(({
-	appConfig: { hideOldChannels },
+	appConfig: {
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames,
+		hideOldChannels
+	},
 	ircConfigs,
 	lastSeenChannels
 }) => ({
+	enableTwitchChannelDisplayNames,
+	enableTwitchUserDisplayNames,
 	hideOldChannels,
 	ircConfigs,
 	lastSeenChannels
