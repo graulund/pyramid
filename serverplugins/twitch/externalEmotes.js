@@ -119,6 +119,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 						`Error occurred trying to get external global emoticons (${type})`,
 						e
 					);
+					log("Content was:", body);
 				}
 			}
 		});
@@ -183,6 +184,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 							`Error occurred trying to get external emoticons for ${channel} (${type})`,
 							e
 						);
+						log("Content was:", body);
 					}
 				}
 			});

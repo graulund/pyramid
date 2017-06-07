@@ -23,6 +23,7 @@ const requestTwitchUserInfo = function(username, callback) {
 						"Error occurred trying to get user info",
 						e
 					);
+					log("Content was:", body);
 
 					callback(e);
 				}
