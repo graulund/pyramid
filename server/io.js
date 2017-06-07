@@ -241,6 +241,18 @@ module.exports = function(main) {
 		);
 	};
 
+	const emitChannelUserListToRecipients = function(channelUri) {
+		emitEventToRecipients(
+			main.recipients().getChannelRecipients(channelUri),
+			"channelUserList",
+			{
+				channel: channelUri,
+				list: main.userLists().getChannelUserList(channelUri),
+				type: "userlist"
+			}
+		);
+	};
+
 	const emitUnseenHighlights = function(socket) {
 		socket = socket || io;
 		if (socket) {
@@ -266,14 +278,6 @@ module.exports = function(main) {
 			if (!err) {
 				socket.emit("lineInfo", { line });
 			}
-		});
-	};
-
-	const emitChannelUserListToRecipients = function(channelUri) {
-		emitEventToChannel(channelUri, "channelUserList", {
-			channel: channelUri,
-			list: main.userLists().getChannelUserList(channelUri),
-			type: "userlist"
 		});
 	};
 
