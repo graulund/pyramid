@@ -31,6 +31,7 @@ const requestGroupChatInfo = function(client, callback) {
 						"Error occurred trying to get group chat info",
 						e
 					);
+					log("Content was:", body);
 
 					callback(e);
 				}
