@@ -35,10 +35,10 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelCache = function(socket, channelUri) {
+	const emitChannelCache = function(socket, channel) {
 		socket.emit("channelCache", {
-			channelUri,
-			cache: main.messageCaches().getChannelCache(channelUri)
+			channel,
+			cache: main.messageCaches().getChannelCache(channel)
 		});
 	};
 
@@ -56,11 +56,11 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelLogDetails = function(socket, channelUri, time) {
-		main.logs().getChannelLogDetails(channelUri, time, (err, details) => {
+	const emitChannelLogDetails = function(socket, channel, time) {
+		main.logs().getChannelLogDetails(channel, time, (err, details) => {
 			if (!err) {
 				socket.emit("channelLogDetails", {
-					channelUri,
+					channel,
 					details
 				});
 			}
@@ -78,22 +78,22 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelUserList = function(socket, channelUri) {
+	const emitChannelUserList = function(socket, channel) {
 		socket.emit("channelUserList", {
-			channel: channelUri,
-			list: main.userLists().getChannelUserList(channelUri)
+			channel,
+			list: main.userLists().getChannelUserList(channel)
 		});
 	};
 
-	const emitChannelLogFile = function(socket, channelUri, time, pageNumber) {
+	const emitChannelLogFile = function(socket, channel, time, pageNumber) {
 		const ymd = timeUtils.ymd(time);
 		pageNumber = +pageNumber || 1;
 		if (ymd) {
 			const options = { pageNumber };
-			main.logs().getDateLinesForChannel(channelUri, ymd, options, (err, file) => {
+			main.logs().getDateLinesForChannel(channel, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("channelLogFile", {
-						channelUri,
+						channel,
 						file,
 						time: ymd
 					});
@@ -190,10 +190,10 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelData = function(socket, channelUri) {
-		let data = main.channelData().getChannelData(channelUri);
+	const emitChannelData = function(socket, channel) {
+		let data = main.channelData().getChannelData(channel);
 		if (data) {
-			socket.emit("channelData", { channelUri, data });
+			socket.emit("channelData", { channel, data });
 		}
 	};
 
@@ -225,29 +225,29 @@ module.exports = function(main) {
 		);
 	};
 
-	const emitEventToChannel = function(channelUri, eventData) {
+	const emitEventToChannel = function(channel, eventData) {
 		emitEventToRecipients(
-			main.recipients().getChannelRecipients(channelUri),
+			main.recipients().getChannelRecipients(channel),
 			"channelEvent",
 			eventData
 		);
 	};
 
-	const emitDataToChannel = function(channelUri, data) {
+	const emitDataToChannel = function(channel, data) {
 		emitEventToRecipients(
-			main.recipients().getChannelRecipients(channelUri),
+			main.recipients().getChannelRecipients(channel),
 			"channelData",
 			data
 		);
 	};
 
-	const emitChannelUserListToRecipients = function(channelUri) {
+	const emitChannelUserListToRecipients = function(channel) {
 		emitEventToRecipients(
-			main.recipients().getChannelRecipients(channelUri),
+			main.recipients().getChannelRecipients(channel),
 			"channelUserList",
 			{
-				channel: channelUri,
-				list: main.userLists().getChannelUserList(channelUri),
+				channel,
+				list: main.userLists().getChannelUserList(channel),
 				type: "userlist"
 			}
 		);
@@ -351,10 +351,10 @@ module.exports = function(main) {
 
 			// Respond to requests for cache
 
-			socket.on("requestChannelCache", (channelUri) => {
+			socket.on("requestChannelCache", (channel) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
-				if (typeof channelUri === "string") {
-					emitChannelCache(socket, channelUri);
+				if (typeof channel === "string") {
+					emitChannelCache(socket, channel);
 				}
 			});
 
@@ -416,8 +416,8 @@ module.exports = function(main) {
 
 			socket.on("requestChannelLogDetails", (details) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
-				if (details && typeof details.channelUri === "string") {
-					emitChannelLogDetails(socket, details.channelUri, details.time);
+				if (details && typeof details.channel === "string") {
+					emitChannelLogDetails(socket, details.channel, details.time);
 				}
 			});
 
@@ -438,11 +438,11 @@ module.exports = function(main) {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
-					typeof details.channelUri === "string" &&
+					typeof details.channel === "string" &&
 					typeof details.time === "string"
 				) {
 					emitChannelLogFile(
-						socket, details.channelUri, details.time, details.pageNumber
+						socket, details.channel, details.time, details.pageNumber
 					);
 				}
 			});

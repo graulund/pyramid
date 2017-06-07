@@ -1,4 +1,4 @@
-import { channelNameFromUrl } from "./channelNames";
+import { channelNameFromUri } from "./channelNames";
 import { combinedDisplayName } from "./pageTitles";
 import store from "../store";
 
@@ -33,7 +33,7 @@ function sendNotification(title, body) {
 
 export function sendMessageNotification(msg) {
 	if (msg) {
-		let channelName = channelNameFromUrl(msg.channel);
+		let channelName = channelNameFromUri(msg.channel);
 		let name = combinedDisplayName(
 			msg.username,
 			msg.tags && msg.tags["display-name"]

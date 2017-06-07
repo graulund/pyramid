@@ -119,16 +119,16 @@ if (main) {
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":userName", ":logDate"
+								":username", ":logDate"
 							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":userName", ":logDate"
+								":username", ":logDate"
 							)}
 							component={ChatViewWrapper} />
 						<Route
-							path={routes.userUrl(":userName")}
+							path={routes.userUrl(":username")}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.settingsPattern}

@@ -109,7 +109,7 @@ class ChatInput extends PureComponent {
 
 	currentUserNames() {
 		let { channelCache, channelUserList } = this.props;
-		var users = [], userNames = [], displayNames = [];
+		var users = [], usernames = [], displayNames = [];
 
 		// Add most recently talking people first
 		if (
@@ -123,13 +123,13 @@ class ChatInput extends PureComponent {
 				if (evt && evt.username && evt.time) {
 					if (
 						now - new Date(evt.time) <= YOUNG_MESSAGE_MS &&
-						userNames.indexOf(evt.username) < 0
+						usernames.indexOf(evt.username) < 0
 					) {
 						users.push({
 							displayName: getEventDisplayName(evt),
 							username: evt.username
 						});
-						userNames.push(evt.username);
+						usernames.push(evt.username);
 					}
 				}
 			});
@@ -140,7 +140,7 @@ class ChatInput extends PureComponent {
 		// Append from user list those that aren't already there
 		if (channelUserList) {
 			let listUsers = Object.keys(channelUserList)
-				.filter((username) => userNames.indexOf(username) < 0)
+				.filter((username) => usernames.indexOf(username) < 0)
 				.map((username) =>
 					({
 						displayName: channelUserList[username].displayName,

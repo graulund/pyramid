@@ -20,7 +20,7 @@ class TimedUserItem extends PureComponent {
 			onlineFriends = [],
 			skipOld = true,
 			symbol = "",
-			userName,
+			username,
 			visible
 		} = this.props;
 
@@ -31,14 +31,14 @@ class TimedUserItem extends PureComponent {
 		if (
 			friendsList[RELATIONSHIP_BEST_FRIEND] &&
 			friendsList[RELATIONSHIP_BEST_FRIEND]
-				.indexOf(userName.toLowerCase()) >= 0
+				.indexOf(username.toLowerCase()) >= 0
 		) {
 			classNames.push("bestfriend");
 		}
 
 		if (
 			displayOnline &&
-			onlineFriends.indexOf(userName.toLowerCase()) >= 0
+			onlineFriends.indexOf(username.toLowerCase()) >= 0
 		) {
 			classNames.push("online");
 		}
@@ -49,9 +49,9 @@ class TimedUserItem extends PureComponent {
 			<strong>
 				{ symbol }
 				<UserLink
-					userName={userName}
+					username={username}
 					displayName={displayName}
-					key={userName} />
+					key={username} />
 			</strong>
 		);
 
@@ -95,7 +95,7 @@ TimedUserItem.propTypes = {
 	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
 	symbol: PropTypes.string,
-	userName: PropTypes.string,
+	username: PropTypes.string,
 	visible: PropTypes.bool
 };
 

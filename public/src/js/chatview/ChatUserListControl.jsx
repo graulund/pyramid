@@ -26,9 +26,9 @@ class ChatUserListControl extends PureComponent {
 		var numUsers = 0, numFriends = 0;
 
 		if (userList) {
-			const userNames = Object.keys(userList);
-			if (userNames && userNames.length) {
-				numUsers = userNames.length;
+			const usernames = Object.keys(userList);
+			if (usernames && usernames.length) {
+				numUsers = usernames.length;
 
 				if (friendsList && friendsList[RELATIONSHIP_FRIEND]) {
 					var allFriends = friendsList[RELATIONSHIP_FRIEND];
@@ -38,8 +38,8 @@ class ChatUserListControl extends PureComponent {
 						);
 					}
 
-					userNames.forEach((userName) => {
-						if (allFriends.indexOf(userName.toLowerCase()) >= 0) {
+					usernames.forEach((username) => {
+						if (allFriends.indexOf(username.toLowerCase()) >= 0) {
 							numFriends++;
 						}
 					});

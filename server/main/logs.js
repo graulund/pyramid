@@ -20,7 +20,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			// Channel and server names
 
 			if (l.channelName && l.serverName) {
-				l.channel = channelUtils.getChannelUri(l.channelName, l.serverName);
+				l.channel = channelUtils.getChannelUri(l.serverName, l.channelName);
 			}
 
 			if (l.channelName) {
@@ -111,12 +111,18 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		return outLines;
 	};
 
-	const getDateLineCountForChannel = function(channelUri, date, callback) {
-		const serverName = channelUtils.channelServerNameFromUrl(channelUri);
-		const channelName = channelUtils.channelNameFromUrl(channelUri);
+	const getDateLineCountForChannel = function(channel, date, callback) {
+		let uriData = channelUtils.parseChannelUri(channel);
+
+		if (!uriData) {
+			callback(new Error("Invalid channel"));
+			return;
+		}
+
+		let { channel: channelName, server } = uriData;
 
 		async.waterfall([
-			(callback) => db.getChannelId(serverName, channelName, callback),
+			(callback) => db.getChannelId(server, channelName, callback),
 			(data, callback) => {
 				if (data) {
 					db.getDateLineCountForChannel(data.channelId, date, callback);
@@ -128,12 +134,18 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
-	const getDateLinesForChannel = function(channelUri, date, options, callback) {
-		const serverName = channelUtils.channelServerNameFromUrl(channelUri);
-		const channelName = channelUtils.channelNameFromUrl(channelUri);
+	const getDateLinesForChannel = function(channel, date, options, callback) {
+		let uriData = channelUtils.parseChannelUri(channel);
+
+		if (!uriData) {
+			callback(new Error("Invalid channel"));
+			return;
+		}
+
+		let { channel: channelName, server } = uriData;
 
 		async.waterfall([
-			(callback) => db.getChannelId(serverName, channelName, callback),
+			(callback) => db.getChannelId(server, channelName, callback),
 			(data, callback) => {
 				if (data) {
 					db.getDateLinesForChannel(data.channelId, date, options, callback);
@@ -164,18 +176,18 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
-	const getChannelLogDetails = function(channelUri, date, callback) {
+	const getChannelLogDetails = function(channel, date, callback) {
 		const today = timeUtils.ymd(localMoment());
 		const yesterday = timeUtils.ymd(localMoment().subtract(1, "day"));
 
 		const calls = [
-			(callback) => getDateLineCountForChannel(channelUri, today, callback),
-			(callback) => getDateLineCountForChannel(channelUri, yesterday, callback)
+			(callback) => getDateLineCountForChannel(channel, today, callback),
+			(callback) => getDateLineCountForChannel(channel, yesterday, callback)
 		];
 
 		if (date && date !== today && date !== yesterday) {
 			calls.push(
-				(callback) => getDateLineCountForChannel(channelUri, date, callback)
+				(callback) => getDateLineCountForChannel(channel, date, callback)
 			);
 		}
 

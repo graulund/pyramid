@@ -61,7 +61,7 @@ module.exports = function(main) {
 	};
 
 	const getChannelUri = function(chobj) {
-		return channelUtils.getChannelUri(chobj.channel, chobj.server);
+		return channelUtils.getChannelUri(chobj.server, chobj.channel);
 	};
 
 	const getChannelFullName = function(chobj) {
@@ -99,11 +99,12 @@ module.exports = function(main) {
 	// Send message
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
-		let serverName  = channelUtils.channelServerNameFromUrl(channelUri);
-		let channelName = channelUtils.channelNameFromUrl(channelUri, "#");
+		let uriData = channelUtils.parseChannelUri(channelUri);
 
-		if (serverName && channelName) {
-			let client = findClientByServerName(serverName);
+		if (uriData && uriData.server && uriData.channel) {
+			let { channel, server } = uriData;
+			let client = findClientByServerName(server);
+			let channelName = "#" + channel;
 
 			if (client) {
 

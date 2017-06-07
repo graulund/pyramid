@@ -38,7 +38,7 @@ class ChatUsername extends PureComponent {
 		return (
 			<strong className={className} style={styles}>
 				{ symbol }
-				<UserLink userName={username} displayName={displayName} key={username} />
+				<UserLink username={username} displayName={displayName} key={username} />
 			</strong>
 		);
 	}

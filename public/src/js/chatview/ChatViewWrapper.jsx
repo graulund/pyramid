@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import { CATEGORY_NAMES } from "../constants";
-import { channelUrlFromNames } from "../lib/channelNames";
+import { getChannelUri } from "../lib/channelNames";
 import { parseLineIdHash } from "../lib/routeHelpers";
 
 const VALID_CATEGORIES = Object.keys(CATEGORY_NAMES);
@@ -17,13 +17,13 @@ class ChatViewWrapper extends PureComponent {
 
 		if (params.channelName && params.serverName) {
 			pageType = "channel";
-			pageQuery = channelUrlFromNames(
+			pageQuery = getChannelUri(
 				params.serverName, params.channelName
 			);
 		}
-		else if (params.userName) {
+		else if (params.username) {
 			pageType = "user";
-			pageQuery = params.userName;
+			pageQuery = params.username;
 		}
 		else if (
 			params.categoryName &&

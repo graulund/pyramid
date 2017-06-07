@@ -330,12 +330,17 @@ const mainMethods = function(main, db) {
 					callback(err);
 				}
 				else {
-					const serverId = row.serverId;
-					db.get(
-						sq("ircChannels", ["channelId"], ["name", "serverId"]),
-						dollarize({ name: channelName, serverId }),
-						dbCallback(callback)
-					);
+					if (row) {
+						const serverId = row.serverId;
+						db.get(
+							sq("ircChannels", ["channelId"], ["name", "serverId"]),
+							dollarize({ name: channelName, serverId }),
+							dbCallback(callback)
+						);
+					}
+					else {
+						callback(null, null);
+					}
 				}
 			}
 		);
@@ -605,8 +610,8 @@ const mainMethods = function(main, db) {
 							displayName,
 							time: lastSeenTime,
 							channel: channelUtils.getChannelUri(
-								friend.channelName,
-								friend.serverName
+								friend.serverName,
+								friend.channelName
 							)
 						};
 					}

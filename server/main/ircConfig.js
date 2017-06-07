@@ -47,7 +47,7 @@ module.exports = function(db) {
 						server.channels.forEach((channel) => {
 							if (channel && channel.channelId && channel.name) {
 								const channelUri = channelUtils.getChannelUri(
-									channel.name, server.name
+									server.name, channel.name
 								);
 								channelIds[channelUri] = channel.channelId;
 							}
@@ -99,7 +99,7 @@ module.exports = function(db) {
 		const s = getIrcConfigByName(serverName, ircConfig);
 		if (s) {
 			return s.channels.map(
-				(val) => channelUtils.getChannelUri(val.name, serverName)
+				(val) => channelUtils.getChannelUri(serverName, val.name)
 			);
 		}
 

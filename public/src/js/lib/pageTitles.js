@@ -1,5 +1,5 @@
 import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES, TWITCH_DISPLAY_NAMES } from "../constants";
-import { channelNameFromUrl } from "./channelNames";
+import { channelNameFromUri } from "./channelNames";
 import * as route from "./routeHelpers";
 import store from "../store";
 
@@ -44,7 +44,7 @@ export function combinedDisplayName(name, displayName) {
 function channelPageTitle(channelInfo) {
 	return siteTitle(
 		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUrl(channelInfo.channel)
+		channelNameFromUri(channelInfo.channel)
 	);
 }
 
@@ -56,7 +56,7 @@ function channelPageLogTitle(channelInfo, date) {
 	return siteTitle(logTitle(
 		date,
 		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUrl(channelInfo.channel)
+		channelNameFromUri(channelInfo.channel)
 	));
 }
 

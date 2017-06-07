@@ -211,7 +211,7 @@ module.exports = function(main) {
 		) {
 			loadExternalEmotesForChannel(channel);
 
-			let channelName = channelUtils.channelNameFromUrl(channel);
+			let channelName = channelUtils.channelNameFromUri(channel);
 			if (channelName && channelName[0] !== "_") {
 				updateUserChatInfo(client, channelName);
 			}

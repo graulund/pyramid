@@ -27,7 +27,7 @@ class UserList extends PureComponent {
 			let { username, lastSeen = {} } = data;
 			return <TimedUserItem
 				displayOnline
-				userName={username}
+				username={username}
 				lastSeenData={lastSeen}
 				skipOld={hideOldUsers}
 				visible={visible}

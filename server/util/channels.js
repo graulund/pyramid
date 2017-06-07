@@ -1,12 +1,11 @@
 const CHANNEL_URI_SEPARATOR = "/";
 
-const getChannelUri = function(channelName, serverName) {
-	serverName = "" + serverName;
-	channelName = "" + channelName;
-
-	return serverName.replace(/\//g, "") +
+const getChannelUri = function(server, channel) {
+	return server.replace(/\//g, "") +
 		CHANNEL_URI_SEPARATOR +
-		channelName.replace(/^#/, "");
+		channel.replace(/^#/, "");
+
+	// TODO: Stripping the # character should happen another place, to prevent it from happening more than once
 };
 
 const parseChannelUri = function(channelUri) {
@@ -24,28 +23,24 @@ const parseChannelUri = function(channelUri) {
 	return { channel, server };
 };
 
-const channelNameFromUrl = function(url, prefix = "") {
-	// Deprecated
-	if (url && url.replace) {
-		return url.replace(/^[^\/]+\//, prefix);
+const channelNameFromUri = function(channelUri, prefix = "") {
+	let uriData = parseChannelUri(channelUri);
+
+	if (uriData && uriData.channel) {
+		return prefix + uriData.channel;
 	}
 
 	return null;
 };
 
-const channelServerNameFromUrl = function(url) {
-	// Deprecated
-	var m;
-	if (url && url.match && (m = url.match(/^([^\/]+)\//)) && m[1]) {
-		return m[1];
+const serverNameFromChannelUri = function(channelUri) {
+	let uriData = parseChannelUri(channelUri);
+
+	if (uriData && uriData.server) {
+		return uriData.server;
 	}
 
 	return null;
-};
-
-const channelUriFromNames = function(server, channel) {
-	// Deprecated
-	return getChannelUri(channel, server);
 };
 
 const passesChannelWhiteBlacklist = function(target, channelUri) {
@@ -93,9 +88,8 @@ const passesChannelWhiteBlacklist = function(target, channelUri) {
 };
 
 module.exports = {
-	channelNameFromUrl,
-	channelServerNameFromUrl,
-	channelUriFromNames,
+	channelNameFromUri,
+	serverNameFromChannelUri,
 	getChannelUri,
 	parseChannelUri,
 	passesChannelWhiteBlacklist

@@ -23,11 +23,11 @@ module.exports = function(
 	var lineIdsToDelete = new Set();
 
 	const storeLine = function(
-		channelUri, line, callback = function(){},
+		channel, line, callback = function(){},
 		channelIdCache = {}
 	) {
-		if (channelIdCache[channelUri]) {
-			db.storeLine(channelIdCache[channelUri], line, callback);
+		if (channelIdCache[channel]) {
+			db.storeLine(channelIdCache[channel], line, callback);
 		}
 	};
 
@@ -45,25 +45,25 @@ module.exports = function(
 		}
 	};
 
-	const cacheChannelEvent = function(channelUri, data) {
+	const cacheChannelEvent = function(channel, data) {
 
 		// Add to local cache
 
-		if (!channelCaches[channelUri]) {
-			channelCaches[channelUri] = [];
+		if (!channelCaches[channel]) {
+			channelCaches[channel] = [];
 		}
-		cacheItem(channelCaches[channelUri], data);
+		cacheItem(channelCaches[channel], data);
 
 		// Add to db
 
 		if (appConfig.configValue("logLinesDb")) {
-			storeLine(channelUri, data);
+			storeLine(channel, data);
 		}
 
 		// Send to users
 
 		if (io) {
-			io.emitEventToChannel(channelUri, data);
+			io.emitEventToChannel(channel, data);
 		}
 	};
 
@@ -95,16 +95,16 @@ module.exports = function(
 	};
 
 
-	const createCurrentHighlightContext = function(channelUri, highlightMsg) {
-		if (!currentHighlightContexts[channelUri]) {
-			currentHighlightContexts[channelUri] = [];
+	const createCurrentHighlightContext = function(channel, highlightMsg) {
+		if (!currentHighlightContexts[channel]) {
+			currentHighlightContexts[channel] = [];
 		}
 
-		currentHighlightContexts[channelUri].push(highlightMsg);
+		currentHighlightContexts[channel].push(highlightMsg);
 	};
 
-	const addToCurrentHighlightContext = function(channelUri, msg) {
-		const highlights = currentHighlightContexts[channelUri];
+	const addToCurrentHighlightContext = function(channel, msg) {
+		const highlights = currentHighlightContexts[channel];
 
 		if (highlights && highlights.length) {
 			const survivingHighlights = [];
@@ -119,40 +119,40 @@ module.exports = function(
 				// TODO: Should not survive if it's too old...
 			});
 
-			currentHighlightContexts[channelUri] = survivingHighlights;
+			currentHighlightContexts[channel] = survivingHighlights;
 			recipients.emitCategoryCacheToRecipients("highlights");
 		}
 	};
 
-	const replaceLastCacheItem = function(channelUri, data) {
+	const replaceLastCacheItem = function(channel, data) {
 
 		// Replace in cache
 
-		const cache = channelCaches[channelUri];
+		const cache = channelCaches[channel];
 		if (cache && cache.length) {
 			cache[cache.length-1] = data;
 		}
 
 		// Add to db, but remove old ids
 
-		storeBunchableLine(channelUri, data);
+		storeBunchableLine(channel, data);
 
 		if (data.prevIds && data.prevIds.length) {
 			deleteLinesWithLineIds(data.prevIds);
 		}
 	};
 
-	const storeBunchableLine = function(channelUri, data) {
+	const storeBunchableLine = function(channel, data) {
 		// Store them in a cache...
 		if (appConfig.configValue("logLinesDb") && data && data.lineId) {
-			bunchableLinesToInsert[data.lineId] = { channelUri, data };
+			bunchableLinesToInsert[data.lineId] = { channel, data };
 		}
 	};
 
 	const _scheduledBunchableStore = function() {
 		_.forOwn(bunchableLinesToInsert, (line, key) => {
-			if (line && line.channelUri && line.data) {
-				storeLine(line.channelUri, line.data);
+			if (line && line.channel && line.data) {
+				storeLine(line.channel, line.data);
 			}
 			delete bunchableLinesToInsert[key];
 		});
@@ -161,8 +161,8 @@ module.exports = function(
 	// ...And insert them all regularly
 	setInterval(_scheduledBunchableStore, 10000);
 
-	const cacheBunchableChannelEvent = function(channelUri, data) {
-		const cache = channelCaches[channelUri];
+	const cacheBunchableChannelEvent = function(channel, data) {
+		const cache = channelCaches[channel];
 		if (cache && cache.length) {
 			const lastItem = cache[cache.length-1];
 			if (lastItem) {
@@ -218,10 +218,10 @@ module.exports = function(
 					};
 				}
 				if (bunch) {
-					replaceLastCacheItem(channelUri, bunch);
+					replaceLastCacheItem(channel, bunch);
 
 					if (io) {
-						io.emitEventToChannel(channelUri, bunch);
+						io.emitEventToChannel(channel, bunch);
 					}
 					return;
 				}
@@ -229,7 +229,7 @@ module.exports = function(
 		}
 
 		// Otherwise, just a normal addition to the list
-		cacheChannelEvent(channelUri, data);
+		cacheChannelEvent(channel, data);
 	};
 
 	const cacheMessage = function(
@@ -313,7 +313,7 @@ module.exports = function(
 		cacheMessage,
 		cacheUserMessage,
 		getCategoryCache: (categoryName) => categoryCaches[categoryName],
-		getChannelCache: (channelUri) => channelCaches[channelUri],
+		getChannelCache: (channel) => channelCaches[channel],
 		getUserCache: (username) => userCaches[username],
 		withUuid
 	};

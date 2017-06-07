@@ -68,11 +68,11 @@ export function unsubscribeFromSubject(subject) {
 	_handleSubscription(subject, true);
 }
 
-export function sendMessage(channelUri, message) {
-	if (socket && channelUri && message) {
+export function sendMessage(channel, message) {
+	if (socket && channel && message) {
 		const state = store.getState();
 		const data = {
-			channel: channelUri,
+			channel,
 			message,
 			token: state && state.token
 		};
@@ -114,8 +114,8 @@ export function clearReplacedIdsFromCache(cache, prevIds) {
 	return cache;
 }
 
-export function requestLogDetailsForChannel(channelUri, time) {
-	emit("requestChannelLogDetails", { channelUri, time });
+export function requestLogDetailsForChannel(channel, time) {
+	emit("requestChannelLogDetails", { channel, time });
 }
 
 export function requestLogDetailsForUsername(username, time) {
@@ -132,8 +132,8 @@ export function requestLogDetails(subject, time) {
 	}
 }
 
-export function requestLogFileForChannel(channelUri, time, pageNumber) {
-	emit("requestChannelLogFile", { channelUri, pageNumber, time });
+export function requestLogFileForChannel(channel, time, pageNumber) {
+	emit("requestChannelLogFile", { channel, pageNumber, time });
 }
 
 export function requestLogFileForUsername(username, time, pageNumber) {
@@ -368,9 +368,9 @@ export function initializeIo() {
 
 		socket.on("channelCache", (details) => {
 			let cache = details && details.cache || [];
-			if (details && details.channelUri) {
+			if (details && details.channel) {
 				store.dispatch(actions.channelCaches.update(
-					details.channelUri, cache
+					details.channel, cache
 				));
 			}
 		});
@@ -394,8 +394,8 @@ export function initializeIo() {
 		});
 
 		socket.on("channelLogDetails", (details) => {
-			if (details && details.channelUri && details.details) {
-				let subject = subjectName("channel", details.channelUri);
+			if (details && details.channel && details.details) {
+				let subject = subjectName("channel", details.channel);
 				store.dispatch(actions.logDetails.update({
 					[subject]: details.details
 				}));
@@ -412,8 +412,8 @@ export function initializeIo() {
 		});
 
 		socket.on("channelLogFile", (details) => {
-			if (details && details.channelUri && details.file && details.time) {
-				let subject = subjectName("channel", details.channelUri);
+			if (details && details.channel && details.file && details.time) {
+				let subject = subjectName("channel", details.channel);
 				store.dispatch(actions.logFiles.update(
 					subject,
 					details.time,
@@ -463,9 +463,9 @@ export function initializeIo() {
 		});
 
 		socket.on("channelData", (details) => {
-			if (details && details.channelUri) {
+			if (details && details.channel) {
 				store.dispatch(actions.channelData.update(
-					details.channelUri, details.data
+					details.channel, details.data
 				));
 			}
 		});

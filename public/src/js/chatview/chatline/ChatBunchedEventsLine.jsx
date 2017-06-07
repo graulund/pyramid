@@ -93,7 +93,7 @@ class ChatBunchedEventsLine extends PureComponent {
 						content.push(
 							<strong key={`${category}-${index}`}>
 								<UserLink
-									userName={username}
+									username={username}
 									displayName={displayName}
 									key={username} />
 							</strong>

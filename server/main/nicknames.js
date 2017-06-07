@@ -45,7 +45,7 @@ module.exports = function(db) {
 		db.removeNickname(nickname, callback);
 	};
 
-	const getHighlightStringsForMessage = function(message, channelUri, meUsername) {
+	const getHighlightStringsForMessage = function(message, channel, meUsername) {
 		var highlightStrings = [];
 
 		const meRegex = new RegExp("\\b" + meUsername + "\\b", "i");
@@ -57,7 +57,7 @@ module.exports = function(db) {
 			const nickRegex = new RegExp("\\b" + nickname.nickname + "\\b", "i");
 			if (
 				nickRegex.test(message) &&
-				channelUtils.passesChannelWhiteBlacklist(nickname, channelUri)
+				channelUtils.passesChannelWhiteBlacklist(nickname, channel)
 			) {
 				highlightStrings.push(nickname.nickname);
 			}

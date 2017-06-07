@@ -48,8 +48,8 @@ module.exports = function(irc, ircConfig, io) {
 		irc.partChannel(serverName, channelName);
 	};
 
-	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
-		irc.sendOutgoingMessage(channelUri, message, isAction);
+	const sendOutgoingMessage = function(channel, message, isAction = false) {
+		irc.sendOutgoingMessage(channel, message, isAction);
 	};
 
 	const currentIrcClients = function() {

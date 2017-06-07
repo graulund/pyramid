@@ -34,7 +34,7 @@ module.exports = function(
 				log.logChannelLine(channelUri, logLine, time);
 			}
 			else if (appConfig.configValue("debug")) {
-				let channelName = channelUtils.channelNameFromUrl(channelUri, "#");
+				let channelName = channelUtils.channelNameFromUri(channelUri, "#");
 				console.log(`[${channelName}] ${logLine}`);
 			}
 		}

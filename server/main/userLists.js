@@ -9,9 +9,9 @@ module.exports = function(io, friends) {
 	var channelUserLists = {};
 	var currentOnlineFriends = [];
 
-	const setChannelUserList = function(channelUri, userList, ircClient) {
-		if (channelUri) {
-			channelUserLists[channelUri] = _.mapValues(
+	const setChannelUserList = function(channel, userList, ircClient) {
+		if (channel) {
+			channelUserLists[channel] = _.mapValues(
 				userList || {},
 				(user) => addUserSymbol(user, ircClient)
 			);
@@ -20,13 +20,13 @@ module.exports = function(io, friends) {
 	};
 
 	const addUserToUserList = function(
-		channelUri, username, ident = "", hostname = "", modes = [], ircClient = null
+		channel, username, ident = "", hostname = "", modes = [], ircClient = null
 	) {
-		if (!channelUserLists[channelUri]) {
-			channelUserLists[channelUri] = {};
+		if (!channelUserLists[channel]) {
+			channelUserLists[channel] = {};
 		}
 
-		channelUserLists[channelUri][username] = addUserSymbol({
+		channelUserLists[channel][username] = addUserSymbol({
 			nick: username,
 			ident,
 			hostname,
@@ -34,39 +34,39 @@ module.exports = function(io, friends) {
 		}, ircClient);
 	};
 
-	const updateUserInUserList = function(channelUri, username, data = {}) {
-		if (!channelUserLists[channelUri]) {
-			channelUserLists[channelUri] = {};
+	const updateUserInUserList = function(channel, username, data = {}) {
+		if (!channelUserLists[channel]) {
+			channelUserLists[channel] = {};
 		}
 
-		channelUserLists[channelUri][username] = _.assign(
+		channelUserLists[channel][username] = _.assign(
 			{},
-			channelUserLists[channelUri][username] || {},
+			channelUserLists[channel][username] || {},
 			data
 		);
 	};
 
-	const changeNickInUserList = function(channelUri, prevName, newName) {
+	const changeNickInUserList = function(channel, prevName, newName) {
 		if (
-			channelUserLists[channelUri] &&
-			channelUserLists[channelUri][prevName]
+			channelUserLists[channel] &&
+			channelUserLists[channel][prevName]
 		) {
-			channelUserLists[channelUri][newName] = channelUserLists[channelUri][prevName];
-			delete channelUserLists[channelUri][prevName];
+			channelUserLists[channel][newName] = channelUserLists[channel][prevName];
+			delete channelUserLists[channel][prevName];
 		}
 	};
 
-	const addModesInUserList = function(channelUri, username, modes, ircClient) {
-		if (channelUserLists[channelUri] && modes) {
+	const addModesInUserList = function(channel, username, modes, ircClient) {
+		if (channelUserLists[channel] && modes) {
 			if (!(modes instanceof Array)) {
 				modes = [modes];
 			}
 
-			let userData = channelUserLists[channelUri][username];
+			let userData = channelUserLists[channel][username];
 
 			if (userData) {
 				let newModes = (userData.modes || []).concat(modes);
-				updateUserInUserList(channelUri, username, {
+				updateUserInUserList(channel, username, {
 					modes: newModes,
 					symbol: userSymbol(newModes, ircClient)
 				});
@@ -74,20 +74,20 @@ module.exports = function(io, friends) {
 		}
 	};
 
-	const removeModesFromUserList = function(channelUri, username, modes, ircClient) {
-		if (channelUserLists[channelUri] && modes) {
+	const removeModesFromUserList = function(channel, username, modes, ircClient) {
+		if (channelUserLists[channel] && modes) {
 			if (!(modes instanceof Array)) {
 				modes = [modes];
 			}
 
-			let userData = channelUserLists[channelUri][username];
+			let userData = channelUserLists[channel][username];
 
 			if (userData) {
 				let { modes: userModes } = userData;
 
 				if (userModes && userModes.length) {
 					let newModes = _.without(userModes, ...modes);
-					updateUserInUserList(channelUri, username, {
+					updateUserInUserList(channel, username, {
 						modes: newModes,
 						symbol: userSymbol(newModes, ircClient)
 					});
@@ -96,36 +96,36 @@ module.exports = function(io, friends) {
 		}
 	};
 
-	const deleteUserFromUserList = function(channelUri, username) {
-		if (channelUserLists[channelUri]) {
-			delete channelUserLists[channelUri][username];
+	const deleteUserFromUserList = function(channel, username) {
+		if (channelUserLists[channel]) {
+			delete channelUserLists[channel][username];
 		}
 	};
 
 	const deleteUserFromAllUserLists = function(serverName, username) {
 		let channels = [];
 
-		Object.keys(channelUserLists).forEach((channelUri) => {
-			let sName = channelUtils.channelServerNameFromUrl(channelUri);
+		Object.keys(channelUserLists).forEach((channel) => {
+			let sName = channelUtils.serverNameFromChannelUri(channel);
 			if (
 				sName === serverName &&
-				channelUserLists[channelUri][username]
+				channelUserLists[channel][username]
 			) {
-				delete channelUserLists[channelUri][username];
-				channels.push(channelUri);
+				delete channelUserLists[channel][username];
+				channels.push(channel);
 			}
 		});
 
 		return channels;
 	};
 
-	const getUserCurrentSymbol = function(channelUri, userName) {
+	const getUserCurrentSymbol = function(channel, username) {
 		if (
-			channelUri &&
-			channelUserLists[channelUri] &&
-			channelUserLists[channelUri][userName]
+			channel &&
+			channelUserLists[channel] &&
+			channelUserLists[channel][username]
 		) {
-			return channelUserLists[channelUri][userName].symbol || "";
+			return channelUserLists[channel][username].symbol || "";
 		}
 
 		return "";
@@ -189,7 +189,7 @@ module.exports = function(io, friends) {
 		currentOnlineFriends: () => currentOnlineFriends,
 		deleteUserFromAllUserLists,
 		deleteUserFromUserList,
-		getChannelUserList: (channelUri) => channelUserLists[channelUri],
+		getChannelUserList: (channel) => channelUserLists[channel],
 		getUserCurrentSymbol,
 		reloadOnlineFriends,
 		removeModesFromUserList,

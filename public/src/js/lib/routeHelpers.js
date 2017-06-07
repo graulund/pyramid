@@ -7,26 +7,26 @@ export function internalUrl(url) {
 
 export const homeUrl = ROOT_PATHNAME + "/";
 
-export function userUrl(userName, logDate, pageNumber) {
+export function userUrl(username, logDate, pageNumber) {
 	return internalUrl(
-		"/user/" + userName +
+		"/user/" + username +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
 }
 
-export function channelUrl(channelUri, logDate, pageNumber, encode = true) {
+export function channelUrl(channel, logDate, pageNumber, encode = true) {
 	if (encode) {
-		let uriData = parseChannelUri(channelUri);
+		let uriData = parseChannelUri(channel);
 
 		if (uriData) {
-			channelUri = encodeURIComponent(uriData.server) + "/" +
+			channel = encodeURIComponent(uriData.server) + "/" +
 				encodeURIComponent(uriData.channel);
 		}
 	}
 
 	return internalUrl(
-		"/channel/" + channelUri +
+		"/channel/" + channel +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);

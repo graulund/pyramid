@@ -25,12 +25,12 @@ module.exports = function(io) {
 		}
 	};
 
-	const addChannelRecipient = function(channelUri, socket) {
-		addRecipient(channelRecipients, channelUri, socket);
+	const addChannelRecipient = function(channel, socket) {
+		addRecipient(channelRecipients, channel, socket);
 	};
 
-	const removeChannelRecipient = function(channelUri, socket) {
-		removeRecipient(channelRecipients, channelUri, socket);
+	const removeChannelRecipient = function(channel, socket) {
+		removeRecipient(channelRecipients, channel, socket);
 	};
 
 	const addUserRecipient = function(username, socket) {
@@ -54,8 +54,8 @@ module.exports = function(io) {
 	};
 
 	const removeRecipientEverywhere = function(socket) {
-		_.forOwn(channelRecipients, (list, channelUri) => {
-			removeChannelRecipient(channelUri, socket);
+		_.forOwn(channelRecipients, (list, channel) => {
+			removeChannelRecipient(channel, socket);
 		});
 		_.forOwn(userRecipients, (list, username) => {
 			removeUserRecipient(username, socket);
@@ -93,7 +93,7 @@ module.exports = function(io) {
 		emitCategoryCacheToRecipients,
 		emitToCategoryRecipients,
 		emitToUserRecipients,
-		getChannelRecipients: (channelUri) => channelRecipients[channelUri],
+		getChannelRecipients: (channel) => channelRecipients[channel],
 		getUserRecipients: (username) => userRecipients[username],
 		removeCategoryRecipient,
 		removeChannelRecipient,

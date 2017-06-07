@@ -60,7 +60,7 @@ class ChatUserEventLine extends PureComponent {
 						<strong className={`${block}__target`}>
 							<UserLink
 								displayName={displayName}
-								userName={username}
+								username={username}
 								key={username} />
 							{" "}
 						</strong>

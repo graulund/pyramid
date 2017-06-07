@@ -140,7 +140,7 @@ class ChatViewHeader extends PureComponent {
 			case PAGE_TYPES.USER:
 				heading = <UserLink
 					noLink
-					userName={pageQuery}
+					username={pageQuery}
 					displayName={displayName}
 					key={pageQuery} />;
 		}

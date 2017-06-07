@@ -1,12 +1,9 @@
 const CHANNEL_URI_SEPARATOR = "/";
 
-export function getChannelUri(channelName, serverName) {
-	serverName = "" + serverName;
-	channelName = "" + channelName;
-
-	return serverName.replace(/\//g, "") +
+export function getChannelUri(server, channel) {
+	return server.replace(/\//g, "") +
 		CHANNEL_URI_SEPARATOR +
-		channelName;
+		channel;
 }
 
 export function parseChannelUri(channelUri) {
@@ -24,39 +21,44 @@ export function parseChannelUri(channelUri) {
 	return { channel, server };
 }
 
-export function channelNameFromUrl(url) {
-	if (url && url.replace) {
-		return url.replace(/^[^\/]+\//, "#");
+export function channelNameFromUri(channelUri, prefix = "") {
+	let uriData = parseChannelUri(channelUri);
+
+	if (uriData && uriData.channel) {
+		return prefix + uriData.channel;
 	}
 
 	return null;
 }
 
-export function channelServerNameFromUrl(url) {
-	var m;
-	if (url && url.match && (m = url.match(/^([^\/]+)\//)) && m[1]) {
-		return m[1];
+export function serverNameFromChannelUri(channelUri) {
+	let uriData = parseChannelUri(channelUri);
+
+	if (uriData && uriData.server) {
+		return uriData.server;
 	}
 
 	return null;
 }
 
-export function channelUrlFromNames(server, channel) {
-	return server + "/" + channel;
-}
-
-export function getChannelDisplayNameFromState(state, channel) {
-
+export function getChannelDisplayNameFromState(state, channelUri) {
 	if (!channel) {
-		return;
+		return "";
 	}
 
-	let [ serverName, channelName ] = channel.split(/\//);
-	let config = state.ircConfigs[serverName];
+	let uriData = parseChannelUri(channelUri);
+
+	if (!uriData) {
+		return "";
+	}
+
+	let { channel, server } = uriData;
+
+	let config = state.ircConfigs[server];
 	let setting = state.appConfig.enableTwitchChannelDisplayNames;
 
 	if (setting && config) {
-		let channelConfig = config.channels[channelName];
+		let channelConfig = config.channels[channel];
 		if (channelConfig) {
 			return channelConfig.displayName;
 		}

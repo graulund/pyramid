@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import { TWITCH_DISPLAY_NAMES } from "../constants";
 import SortedItemList from "./SortedItemList.jsx";
 import TimedChannelItem from "./TimedChannelItem.jsx";
-import { channelUrlFromNames } from "../lib/channelNames";
+import { getChannelUri } from "../lib/channelNames";
 
 const nameSorter = function(
 	enableTwitchChannelDisplayNames,
@@ -95,8 +95,8 @@ class ChannelList extends PureComponent {
 
 		var ircChannels = [];
 
-		for (var irc in ircConfigs) {
-			var info = ircConfigs[irc];
+		for (var server in ircConfigs) {
+			var info = ircConfigs[server];
 			if (info && info.channels) {
 				let channelNames = Object.keys(info.channels);
 				if (channelNames && channelNames.length) {
@@ -104,10 +104,10 @@ class ChannelList extends PureComponent {
 						if (channelName) {
 							let displayName = info.channels[channelName].displayName;
 							return {
-								channel: channelUrlFromNames(irc, channelName),
+								channel: getChannelUri(server, channelName),
 								channelName,
 								displayName,
-								server: irc
+								server
 							};
 						}
 

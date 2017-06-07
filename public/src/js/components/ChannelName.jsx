@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import { TWITCH_DISPLAY_NAMES } from "../constants";
-import { channelNameFromUrl, channelServerNameFromUrl } from "../lib/channelNames";
+import { parseChannelUri } from "../lib/channelNames";
 
 class ChannelName extends Component {
 	render() {
@@ -20,11 +20,13 @@ class ChannelName extends Component {
 			return null;
 		}
 
+		let uriData = parseChannelUri(channel);
+
 		// If the server argument is supplied, we assume this is already split up
 		let channelName = (
 			server
 				? channel.replace(/^#*/, "#")
-				: channelNameFromUrl(channel)
+				: uriData && "#" + uriData.channel
 		);
 
 		let displayedName = channelName;
@@ -64,7 +66,7 @@ class ChannelName extends Component {
 			}
 		}
 
-		server = server || channelServerNameFromUrl(channel);
+		server = server || uriData && uriData.server;
 
 		if (
 			!displayServer &&

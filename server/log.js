@@ -279,7 +279,7 @@ const getLogLineFromData = function(type, data) {
 };
 
 const channelPrefix = function(line, channel) {
-	let channelName = channelUtils.channelNameFromUrl(channel, "#");
+	let channelName = channelUtils.channelNameFromUri(channel, "#");
 	return `[${channelName}] ${line}`;
 };
 
@@ -351,8 +351,8 @@ var getChatroomLinesForDay = function(server, channel, date, done) {
 	return getLinesForFile(path.join(logDir, timeUtils.ymd(date) + ".txt"), date, done);
 };
 
-var getUserLinesForMonth = function(userName, date, done) {
-	let path = userMonthPath(userName, date);
+var getUserLinesForMonth = function(username, date, done) {
+	let path = userMonthPath(username, date);
 
 	if (!path) {
 		done(new Error("Incorrect username"));
@@ -498,23 +498,23 @@ const pathHasAnyLogs = function(filePath) {
 	}
 };
 
-const pathHasLogsForDay = function(channelUri, d) {
-	uriData = channelUtils.parseChannelUri(channelUri);
+const pathHasLogsForDay = function(channel, d) {
+	uriData = channelUtils.parseChannelUri(channel);
 
 	if (!uriData) {
 		return false;
 	}
 
 	let server = fileUtils.sanitizeFilename(uriData.server);
-	let channel = fileUtils.sanitizeFilename(uriData.channel);
+	let channelName = fileUtils.sanitizeFilename(uriData.channel);
 
 	return pathHasAnyLogs(path.join(
-		server, channel, timeUtils.ym(d), timeUtils.ymd(d) + ".txt"
+		server, channelName, timeUtils.ym(d), timeUtils.ymd(d) + ".txt"
 	));
 };
 
-const userNameHasLogsForMonth = function(userName, d) {
-	let path = userMonthPath(userName, d);
+const usernameHasLogsForMonth = function(username, d) {
+	let path = userMonthPath(username, d);
 
 	if (!path) {
 		done(new Error("Incorrect username"));
@@ -532,15 +532,15 @@ const pathHasLogsForYesterday = function(channel) {
 	return pathHasLogsForDay(channel, moment().subtract(1, "day"));
 };
 
-const userMonthPath = function(userName, d) {
-	userName = fileUtils.sanitizeFilename(userName);
+const userMonthPath = function(username, d) {
+	username = fileUtils.sanitizeFilename(username);
 
-	if (!userName) {
+	if (!username) {
 		return "";
 	}
 
 	return path.join(
-		"_global", timeUtils.ym(d), userName + ".txt"
+		"_global", timeUtils.ym(d), username + ".txt"
 	);
 };
 
@@ -554,10 +554,10 @@ const getChannelLogDetails = function(channel) {
 	};
 };
 
-const getUserLogDetails = function(userName) {
+const getUserLogDetails = function(username) {
 	const today = timeUtils.ym(moment());
 	return {
-		[today]: userNameHasLogsForMonth(userName, moment())
+		[today]: usernameHasLogsForMonth(username, moment())
 	};
 };
 
@@ -599,19 +599,19 @@ const loadLastSeenUsers = function() {
 
 // Logging
 
-const logChannelLine = function(channelUri, line, d) {
+const logChannelLine = function(channel, line, d) {
 	line = timeUtils.hmsPrefix(line, d);
 
 	const dirName = path.join(
-		constants.LOG_ROOT, pathChannelUri(channelUri), timeUtils.ym(d)
+		constants.LOG_ROOT, pathChannelUri(channel), timeUtils.ym(d)
 	);
 
 	logLine(line, dirName, timeUtils.ymd(d));
 };
 
-const logCategoryLine = function(categoryName, channelUri, line, d) {
+const logCategoryLine = function(categoryName, channel, line, d) {
 	line = timeUtils.ymdhmsPrefix(line, d);
-	line = channelPrefix(line, channelUri);
+	line = channelPrefix(line, channel);
 
 	const dirName = path.join(constants.LOG_ROOT, "_global", timeUtils.ym(d));
 

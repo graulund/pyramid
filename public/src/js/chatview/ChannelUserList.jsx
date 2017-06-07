@@ -44,21 +44,21 @@ class ChannelUserList extends PureComponent {
 	groupUserList (userList) {
 		var output = {};
 
-		forOwn(userList, (data, userName) => {
+		forOwn(userList, (data, username) => {
 			let { symbol } = data;
 
 			if (!output[symbol]) {
 				output[symbol] = [];
 			}
 
-			output[symbol].push({ userName, ...data });
+			output[symbol].push({ username, ...data });
 		});
 
 		forOwn(output, (list) => {
 			list.sort(function(a, b) {
 				if (a && b) {
-					return a.userName.toLowerCase()
-						.localeCompare(b.userName.toLowerCase());
+					return a.username.toLowerCase()
+						.localeCompare(b.username.toLowerCase());
 				}
 				return -1;
 			});
@@ -107,11 +107,11 @@ class ChannelUserList extends PureComponent {
 			const sortedList = this.sortedUserList(userList);
 			userListNodes = sortedList.map((data) => {
 				if (data) {
-					let { displayName, userName, symbol } = data;
-					let userData = lastSeenUsers[userName];
+					let { displayName, username, symbol } = data;
+					let userData = lastSeenUsers[username];
 
 					if (userData) {
-						this.monitoredUserNames.push(userName);
+						this.monitoredUserNames.push(username);
 					}
 
 					return <TimedUserItem
@@ -119,10 +119,10 @@ class ChannelUserList extends PureComponent {
 						displayName={displayName}
 						skipOld={false}
 						symbol={symbol}
-						userName={userName}
+						username={username}
 						visible={true}
 						{...userData}
-						key={userName} />;
+						key={username} />;
 				}
 			});
 		}
