@@ -15,6 +15,7 @@
   },
   "scripts": {
     "start": "node pyramid.js",
+    "dev": "npm run webpack:dev",
     "prod": "node scripts/bumpBuildNumber.js && npm run webpack:prod",
     "webpack:dev": "webpack --config webpack.dev.config.js --watch",
     "webpack:prod": "webpack --config webpack.prod.config.js",
