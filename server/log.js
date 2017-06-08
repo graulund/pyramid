@@ -499,7 +499,7 @@ const pathHasAnyLogs = function(filePath) {
 };
 
 const pathHasLogsForDay = function(channel, d) {
-	uriData = channelUtils.parseChannelUri(channel);
+	let uriData = channelUtils.parseChannelUri(channel);
 
 	if (!uriData) {
 		return false;
@@ -517,8 +517,7 @@ const usernameHasLogsForMonth = function(username, d) {
 	let path = userMonthPath(username, d);
 
 	if (!path) {
-		done(new Error("Incorrect username"));
-		return;
+		return false;
 	}
 
 	return pathHasAnyLogs(path);
