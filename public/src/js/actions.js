@@ -188,6 +188,21 @@ export default {
 			};
 		}
 	},
+	serverData: {
+		set(data) {
+			return {
+				type: actionTypes.serverData.SET,
+				data
+			};
+		},
+		update(server, data) {
+			return {
+				type: actionTypes.serverData.UPDATE,
+				server,
+				data
+			};
+		}
+	},
 	systemInfo: {
 		update(data) {
 			return {

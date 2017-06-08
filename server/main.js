@@ -22,6 +22,7 @@ var logs;
 var messageCaches;
 var nicknames;
 var recipients;
+var serverData;
 var unseenHighlights;
 var userLists;
 
@@ -162,6 +163,7 @@ const initStartup = function() {
 	lastSeen         = require("./main/lastSeen")(db);
 	nicknames        = require("./main/nicknames")(db);
 	recipients       = require("./main/recipients")(io);
+	serverData       = require("./main/serverData")(io);
 	unseenHighlights = require("./main/unseenHighlights")(io);
 	userLists        = require("./main/userLists")(io, friends);
 	ircControl       = require("./main/ircControl")(
@@ -254,6 +256,7 @@ module.exports = {
 	nicknames: () => nicknames,
 	plugins: () => plugins,
 	recipients: () => recipients,
+	serverData: () => serverData,
 	setDb,
 	setIo,
 	setIrc,

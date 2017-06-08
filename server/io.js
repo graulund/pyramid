@@ -197,6 +197,14 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitServerData = function(socket, server) {
+		socket = socket || io;
+		let data = main.serverData().getServerData(server);
+		if (data) {
+			socket.emit("serverData", { server, data });
+		}
+	};
+
 	// Overall list emissions
 
 	const emitEventToRecipients = function(list, eventName, eventData) {
@@ -811,6 +819,7 @@ module.exports = function(main) {
 		emitMessageToRecipients,
 		emitNewHighlight,
 		emitOnlineFriends,
+		emitServerData,
 		emitUnseenHighlights,
 		setServer
 	};

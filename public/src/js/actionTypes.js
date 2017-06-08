@@ -73,6 +73,11 @@ export const onlineFriends = {
 	"SET": "onlineFriends/SET"
 };
 
+export const serverData = {
+	"SET": "serverData/SET",
+	"UPDATE": "serverData/UPDATE"
+};
+
 export const systemInfo = {
 	"UPDATE": "systemInfo/UPDATE"
 };

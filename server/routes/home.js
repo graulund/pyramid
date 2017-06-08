@@ -14,6 +14,7 @@ module.exports = function(main) {
 			let ircConn = main.ircConnectionState;
 			let lastSeen = main.lastSeen();
 			let nicknames = main.nicknames();
+			let serverData = main.serverData();
 			let unseenHighlights = main.unseenHighlights();
 			let userLists = main.userLists();
 			let viewState = main.viewState;
@@ -47,6 +48,7 @@ module.exports = function(main) {
 					lastSeenUsers: lastSeen.lastSeenUsers(),
 					nicknames: nicknames.nicknamesDict(),
 					onlineFriends: userLists.currentOnlineFriends(),
+					serverData: serverData.getAllServerData(),
 					token: routeUtils.getUsedToken(req),
 					unseenHighlights: Array.from(unseenHighlights.unseenHighlightIds()),
 					viewState: viewState.currentViewState(),

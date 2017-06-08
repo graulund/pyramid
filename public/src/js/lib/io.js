@@ -470,6 +470,14 @@ export function initializeIo() {
 			}
 		});
 
+		socket.on("serverData", (details) => {
+			if (details && details.server) {
+				store.dispatch(actions.serverData.update(
+					details.server, details.data
+				));
+			}
+		});
+
 		// Data store refreshes
 
 		socket.on("appConfig", (details) => {

@@ -198,6 +198,8 @@ module.exports = function(main) {
 				"twitch.tv/tags"
 			]);
 
+			// TODO: Re-evaluate this property on modify server
+			main.serverData().setServerData(client.config.name, { isTwitch: true });
 			loadExternalEmotesForClient(client);
 			updateGroupChatInfo(client);
 		}
