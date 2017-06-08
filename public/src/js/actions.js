@@ -1,6 +1,7 @@
 import * as actionTypes from "./actionTypes";
 
 export default {
+
 	appConfig: {
 		update(data) {
 			return {
@@ -9,6 +10,7 @@ export default {
 			};
 		}
 	},
+
 	categoryCaches: {
 		append(data) {
 			return {
@@ -16,6 +18,7 @@ export default {
 				data
 			};
 		},
+
 		update(categoryName, cache) {
 			return {
 				type: actionTypes.categoryCaches.UPDATE,
@@ -24,6 +27,7 @@ export default {
 			};
 		}
 	},
+
 	channelCaches: {
 		append(data) {
 			return {
@@ -31,6 +35,7 @@ export default {
 				data
 			};
 		},
+
 		update(channel, cache) {
 			return {
 				type: actionTypes.channelCaches.UPDATE,
@@ -38,6 +43,7 @@ export default {
 				cache
 			};
 		},
+
 		clearUser(channel, username, time) {
 			return {
 				type: actionTypes.channelCaches.CLEARUSER,
@@ -47,6 +53,7 @@ export default {
 			};
 		}
 	},
+
 	channelData: {
 		update(channel, data) {
 			return {
@@ -56,6 +63,7 @@ export default {
 			};
 		}
 	},
+
 	channelUserLists: {
 		update(data) {
 			return {
@@ -64,6 +72,7 @@ export default {
 			};
 		}
 	},
+
 	connectionStatus: {
 		update(data) {
 			return {
@@ -72,6 +81,7 @@ export default {
 			};
 		}
 	},
+
 	deviceState: {
 		update(data) {
 			return {
@@ -80,6 +90,7 @@ export default {
 			};
 		}
 	},
+
 	friendsList: {
 		set(data) {
 			return {
@@ -87,6 +98,7 @@ export default {
 				data
 			};
 		},
+
 		update(level, data) {
 			return {
 				type: actionTypes.friendsList.UPDATE,
@@ -95,6 +107,7 @@ export default {
 			};
 		}
 	},
+
 	ircConfigs: {
 		set(data) {
 			return {
@@ -109,6 +122,7 @@ export default {
 			};
 		}
 	},
+
 	lastSeenChannels: {
 		update(data) {
 			return {
@@ -117,6 +131,7 @@ export default {
 			};
 		}
 	},
+
 	lastSeenUsers: {
 		update(data) {
 			return {
@@ -125,6 +140,7 @@ export default {
 			};
 		}
 	},
+
 	lineInfo: {
 		update(data) {
 			return {
@@ -133,6 +149,7 @@ export default {
 			};
 		}
 	},
+
 	logDetails: {
 		update(data) {
 			return {
@@ -141,6 +158,7 @@ export default {
 			};
 		}
 	},
+
 	logFiles: {
 		clear(channel, date) {
 			return {
@@ -149,6 +167,7 @@ export default {
 				date
 			};
 		},
+
 		update(subjectName, date, lines) {
 			return {
 				type: actionTypes.logFiles.UPDATE,
@@ -158,6 +177,7 @@ export default {
 			};
 		}
 	},
+
 	multiServerChannels: {
 		set(data) {
 			return {
@@ -166,6 +186,7 @@ export default {
 			};
 		}
 	},
+
 	nicknames: {
 		set(data) {
 			return {
@@ -173,6 +194,7 @@ export default {
 				data
 			};
 		},
+
 		update(data) {
 			return {
 				type: actionTypes.nicknames.UPDATE,
@@ -180,6 +202,7 @@ export default {
 			};
 		}
 	},
+
 	onlineFriends: {
 		set(data) {
 			return {
@@ -188,6 +211,7 @@ export default {
 			};
 		}
 	},
+
 	serverData: {
 		set(data) {
 			return {
@@ -195,6 +219,7 @@ export default {
 				data
 			};
 		},
+
 		update(server, data) {
 			return {
 				type: actionTypes.serverData.UPDATE,
@@ -203,6 +228,7 @@ export default {
 			};
 		}
 	},
+
 	systemInfo: {
 		update(data) {
 			return {
@@ -211,6 +237,7 @@ export default {
 			};
 		}
 	},
+
 	token: {
 		set(data) {
 			return {
@@ -219,6 +246,7 @@ export default {
 			};
 		}
 	},
+
 	unseenHighlights: {
 		set(data) {
 			return {
@@ -227,6 +255,7 @@ export default {
 			};
 		}
 	},
+
 	userCaches: {
 		append(data) {
 			return {
@@ -234,6 +263,7 @@ export default {
 				data
 			};
 		},
+
 		update(username, cache) {
 			return {
 				type: actionTypes.userCaches.UPDATE,
@@ -242,6 +272,7 @@ export default {
 			};
 		}
 	},
+
 	viewState: {
 		update(data) {
 			return {
