@@ -199,9 +199,11 @@ module.exports = function(main) {
 
 	const emitServerData = function(socket, server) {
 		socket = socket || io;
-		let data = main.serverData().getServerData(server);
-		if (data) {
-			socket.emit("serverData", { server, data });
+		if (socket) {
+			let data = main.serverData().getServerData(server);
+			if (data) {
+				socket.emit("serverData", { server, data });
+			}
 		}
 	};
 
