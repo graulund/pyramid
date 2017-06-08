@@ -62,6 +62,7 @@ const requestEmoticonImages = function(emotesets) {
 					"Error occurred trying to request emoticon images from the Twitch API.",
 					e
 				);
+				log("Content was:", body);
 			}
 		}
 	);
