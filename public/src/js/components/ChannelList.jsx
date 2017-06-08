@@ -2,10 +2,10 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
-import { TWITCH_DISPLAY_NAMES } from "../constants";
 import SortedItemList from "./SortedItemList.jsx";
 import TimedChannelItem from "./TimedChannelItem.jsx";
 import { getChannelUri } from "../lib/channelNames";
+import { getTwitchChannelDisplayNameString } from "../lib/displayNames";
 
 const nameSorter = function(
 	enableTwitchChannelDisplayNames,
@@ -13,33 +13,14 @@ const nameSorter = function(
 ) {
 	return function(channel) {
 		let { channelName, displayName } = channel;
-		let displayedName = channelName;
-		let twitchChannelIsUser = channelName[0] !== "_";
 
-		// If displaying display name
-
-		if (
-			enableTwitchChannelDisplayNames &&
-			displayName &&
-			displayName !== channelName
-		) {
-			if (displayName.toLowerCase() !== channelName.toLowerCase()) {
-				// Totally different altogether
-				// Different behaviour if it's a user versus a group chat
-				if (
-					!twitchChannelIsUser ||
-					enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL
-				) {
-					displayedName = displayName;
-				}
-			}
-			else {
-				// Merely case changes
-				if (!twitchChannelIsUser || enableTwitchUserDisplayNames) {
-					displayedName = displayName;
-				}
-			}
-		}
+		// TODO: Only do this for channels in servers where isTwitch is true
+		let displayedName = getTwitchChannelDisplayNameString(
+			channelName,
+			displayName,
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames
+		);
 
 		// Sortable modification
 		return displayedName.replace(/^#*_*/, "").toLowerCase();

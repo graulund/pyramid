@@ -213,6 +213,7 @@ class ChatView extends PureComponent {
 					key="chat" />
 
 				<ChatViewFooter
+					displayName={displayName}
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}

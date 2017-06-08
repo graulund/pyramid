@@ -1,5 +1,7 @@
-import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES, TWITCH_DISPLAY_NAMES } from "../constants";
+import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
 import { channelNameFromUri } from "./channelNames";
+import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
+import { getChannelInfo } from "./ircConfigs";
 import * as route from "./routeHelpers";
 import store from "../store";
 
@@ -24,45 +26,49 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-export function combinedDisplayName(name, displayName) {
-	if (userDisplayNameSetting && displayName && displayName !== name) {
-		if (displayName.toLowerCase() !== name.toLowerCase()) {
-			// Totally different altogether
-			if (userDisplayNameSetting === TWITCH_DISPLAY_NAMES.ALL) {
-				return `${displayName} (${name})`;
-			}
-		}
-		else {
-			// Merely case changes
-			return displayName;
-		}
-	}
+function channelDisplayNameString(name, displayName) {
+	return getTwitchChannelDisplayNameString(
+		name,
+		displayName,
+		channelDisplayNameSetting,
+		userDisplayNameSetting
+	);
+}
 
-	return name;
+function userDisplayNameString(name, displayName) {
+	return getTwitchUserDisplayNameString(
+		name,
+		displayName,
+		userDisplayNameSetting
+	);
 }
 
 function channelPageTitle(channelInfo) {
 	return siteTitle(
-		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUri(channelInfo.channel)
+		channelDisplayNameString(
+			channelNameFromUri(channelInfo.channel),
+			channelInfo.displayName
+		)
 	);
 }
 
 function userPageTitle(user) {
-	return siteTitle(combinedDisplayName(user.username, user.displayName));
+	return siteTitle(userDisplayNameString(user.username, user.displayName));
 }
 
 function channelPageLogTitle(channelInfo, date) {
 	return siteTitle(logTitle(
 		date,
-		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUri(channelInfo.channel)
+		channelDisplayNameString(
+			channelNameFromUri(channelInfo.channel),
+			channelInfo.displayName
+		)
 	));
 }
 
 function userPageLogTitle(user, date) {
 	return siteTitle(logTitle(
-		date, combinedDisplayName(user.username, user.displayName)
+		date, userDisplayNameString(user.username, user.displayName)
 	));
 }
 
@@ -105,21 +111,6 @@ function commitTitle() {
 function getUserInfo(username) {
 	let state = store.getState();
 	return { username, ...state.lastSeenUsers[username] };
-}
-
-function getChannelInfo(channel) {
-	let state = store.getState();
-	let [ serverName, channelName ] = channel.split(/\//);
-	let config = state.ircConfigs[serverName];
-	let setting = state.appConfig.enableTwitchChannelDisplayNames;
-
-	var channelConfig = {};
-
-	if (setting && config) {
-		channelConfig = config.channels[channelName];
-	}
-
-	return { channel, ...channelConfig };
 }
 
 function handleLocationChange(location) {

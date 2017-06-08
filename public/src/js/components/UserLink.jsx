@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { TWITCH_DISPLAY_NAMES } from "../constants";
+import { getTwitchUserDisplayNameData } from "../lib/displayNames";
 import { userUrl } from "../lib/routeHelpers";
 
 class UserLink extends PureComponent {
@@ -24,21 +24,20 @@ class UserLink extends PureComponent {
 		var content = username;
 
 		// If displaying display name
+		let displayNameData = getTwitchUserDisplayNameData(
+			username, displayName, enableTwitchUserDisplayNames
+		);
 
-		if (enableTwitchUserDisplayNames && displayName && displayName !== username) {
-			if (displayName.toLowerCase() !== username.toLowerCase()) {
-				// Totally different altogether
-				if (enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
-					content = [
-						displayName + " ",
-						<em key="origName">({ username })</em>
-					];
-				}
-			}
-			else {
-				// Merely case changes
-				content = displayName;
-			}
+		let { primary, secondary, tooltip } = displayNameData;
+
+		if (secondary) {
+			content = [
+				primary + " ",
+				<em key="secondary">({ secondary })</em>
+			];
+		}
+		else {
+			content = primary;
 		}
 
 		// Does this user exist in the friends list?
@@ -66,6 +65,7 @@ class UserLink extends PureComponent {
 			<Link
 				className={className}
 				to={userUrl(username)}
+				title={tooltip}
 				key="main">
 				{ content }
 			</Link>

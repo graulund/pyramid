@@ -1,10 +1,13 @@
 import { channelNameFromUri } from "./channelNames";
-import { combinedDisplayName } from "./pageTitles";
+import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
+import { getChannelInfo } from "./ircConfigs";
 import store from "../store";
 
 const icon = "/img/touchicon.png";
 
 var notificationsActive = true;
+var userDisplayNameSetting = 0;
+var channelDisplayNameSetting = false;
 
 function closeNotificationAfterTimeout(n) {
 	setTimeout(n.close.bind(n), 5000);
@@ -33,12 +36,19 @@ function sendNotification(title, body) {
 
 export function sendMessageNotification(msg) {
 	if (msg) {
-		let channelName = channelNameFromUri(msg.channel);
-		let name = combinedDisplayName(
-			msg.username,
-			msg.tags && msg.tags["display-name"]
+		let channelInfo = getChannelInfo(msg.channel);
+		let channelString = getTwitchChannelDisplayNameString(
+			channelNameFromUri(msg.channel),
+			channelInfo.displayName,
+			channelDisplayNameSetting,
+			userDisplayNameSetting
 		);
-		sendNotification(`${name} in ${channelName}`, msg.message);
+		let name = getTwitchUserDisplayNameString(
+			msg.username,
+			msg.tags && msg.tags["display-name"],
+			userDisplayNameSetting
+		);
+		sendNotification(`${name} in ${channelString}`, msg.message);
 	}
 }
 
@@ -67,6 +77,19 @@ export function startUpdatingNotificationsActiveState() {
 
 		if (active !== notificationsActive) {
 			notificationsActive = active;
+		}
+
+		let {
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames
+		} = appConfig;
+
+		if (channelDisplayNameSetting !== enableTwitchChannelDisplayNames) {
+			channelDisplayNameSetting = enableTwitchChannelDisplayNames;
+		}
+
+		if (userDisplayNameSetting !== enableTwitchUserDisplayNames) {
+			userDisplayNameSetting = enableTwitchUserDisplayNames;
 		}
 	});
 }

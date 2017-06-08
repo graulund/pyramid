@@ -1,5 +1,6 @@
 import store from "../store";
 import actions from "../actions";
+import { parseChannelUri } from "./channelNames";
 
 export function calibrateMultiServerChannels(ircConfigs) {
 	let multiServerChannels = [];
@@ -33,4 +34,23 @@ export function isTwitch(ircConfig) {
 	}
 
 	return false;
+}
+
+export function getChannelInfo(channel) {
+	var channelConfig = {};
+	let state = store.getState();
+	let uriData = parseChannelUri(channel);
+
+	if (uriData) {
+		let { channel: channelName, server } = uriData;
+
+		let config = state.ircConfigs[server];
+		let setting = state.appConfig.enableTwitchChannelDisplayNames;
+
+		if (setting && config) {
+			channelConfig = config.channels[channelName];
+		}
+	}
+
+	return { channel, ...channelConfig };
 }

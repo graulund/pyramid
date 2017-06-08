@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
-import { TWITCH_DISPLAY_NAMES } from "../constants";
+import { getTwitchChannelDisplayNameData } from "../lib/displayNames";
 import { parseChannelUri } from "../lib/channelNames";
 
 class ChannelName extends Component {
@@ -12,7 +12,8 @@ class ChannelName extends Component {
 			displayName,
 			enableTwitchChannelDisplayNames,
 			enableTwitchUserDisplayNames,
-			multiServerChannels
+			multiServerChannels,
+			serverData
 		} = this.props;
 		var { displayServer = false, server, strong } = this.props;
 
@@ -33,36 +34,22 @@ class ChannelName extends Component {
 		let title = undefined;
 		let suffix = null;
 
-		let twitchChannelIsUser = channelName.substr(0,2) !== "#_";
+		// If displaying Twitch display names
 
-		// If displaying display name
+		if (serverData && serverData.isTwitch) {
+			let displayNameData = getTwitchChannelDisplayNameData(
+				channelName,
+				displayName,
+				enableTwitchChannelDisplayNames,
+				enableTwitchUserDisplayNames
+			);
 
-		if (
-			enableTwitchChannelDisplayNames &&
-			displayName &&
-			displayName !== channelName
-		) {
-			if (displayName.toLowerCase() !== channelName.toLowerCase()) {
-				// Totally different altogether
-				// Different behaviour if it's a user versus a group chat
-				if (!twitchChannelIsUser) {
-					displayedName = displayName;
-					title = channelName;
-				}
-				else if (enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
-					displayedName = displayName;
-					title = channelName;
-					suffix = [
-						" ",
-						<em key="origName">({ channelName })</em>
-					];
-				}
-			}
-			else {
-				// Merely case changes
-				if (!twitchChannelIsUser || enableTwitchUserDisplayNames) {
-					displayedName = displayName;
-				}
+			let { primary, secondary, tooltip } = displayNameData;
+			displayedName = primary;
+			title = tooltip;
+
+			if (secondary) {
+				suffix = <em key="secondary">({ secondary })</em>;
 			}
 		}
 
@@ -95,17 +82,36 @@ ChannelName.propTypes = {
 	enableTwitchUserDisplayNames: PropTypes.number,
 	multiServerChannels: PropTypes.array,
 	server: PropTypes.string,
+	serverData: PropTypes.object,
 	strong: PropTypes.bool
 };
 
-export default connect(({
-	appConfig: {
+const mapStateToProps = function(state, ownProps) {
+	let {
+		appConfig: {
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames
+		},
+		multiServerChannels,
+		serverData
+	} = state;
+
+	var server;
+
+	if (ownProps.server) {
+		server = ownProps.server;
+	}
+	else {
+		let uriData = parseChannelUri(ownProps.channel);
+		server = uriData && uriData.server;
+	}
+
+	return {
 		enableTwitchChannelDisplayNames,
-		enableTwitchUserDisplayNames
-	},
-	multiServerChannels
-}) => ({
-	enableTwitchChannelDisplayNames,
-	enableTwitchUserDisplayNames,
-	multiServerChannels
-}))(ChannelName);
+		enableTwitchUserDisplayNames,
+		multiServerChannels,
+		serverData: server && serverData[server]
+	};
+};
+
+export default connect(mapStateToProps)(ChannelName);

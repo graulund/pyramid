@@ -4,9 +4,10 @@ import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
 import forOwn from "lodash/forOwn";
 
+import { parseChannelUri } from "../lib/channelNames";
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem, sendMessage } from "../lib/io";
-import { combinedDisplayName } from "../lib/pageTitles";
+import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "../lib/displayNames";
 import { refElSetter } from "../lib/refEls";
 
 const YOUNG_MESSAGE_MS = 1800000;
@@ -35,17 +36,6 @@ const isBlockingModifiedEvent = (evt) =>
 
 const getEventDisplayName = function(evt) {
 	return evt.displayName || evt.tags && evt.tags["display-name"];
-};
-
-const getCombinedDisplayNames = function(list) {
-	return list.map(
-		({ displayName, username }) =>
-		({
-			displayName,
-			username,
-			outName: combinedDisplayName(username, displayName)
-		})
-	);
 };
 
 const matchesSubstring = function(value, subString) {
@@ -79,6 +69,10 @@ class ChatInput extends PureComponent {
 			newProps.channel !== this.props.channel ||
 			newProps.channelData !== this.props.channelData ||
 			newProps.enableTwitch !== this.props.enableTwitch ||
+			newProps.enableTwitchChannelDisplayNames !==
+				this.props.enableTwitchChannelDisplayNames ||
+			newProps.enableTwitchUserDisplayNames !==
+				this.props.enableTwitchUserDisplayNames ||
 			newProps.isTouchDevice !== this.props.isTouchDevice
 		) {
 			return true;
@@ -135,7 +129,7 @@ class ChatInput extends PureComponent {
 			});
 		}
 
-		displayNames = getCombinedDisplayNames(users);
+		displayNames = this.getUserDisplayNames(users);
 
 		// Append from user list those that aren't already there
 		if (channelUserList) {
@@ -148,7 +142,7 @@ class ChatInput extends PureComponent {
 					})
 				);
 
-			let listDisplayNames = getCombinedDisplayNames(listUsers);
+			let listDisplayNames = this.getUserDisplayNames(listUsers);
 			listDisplayNames.sort((a, b) => {
 				return a.outName.toLowerCase().localeCompare(b.outName.toLowerCase());
 			});
@@ -166,6 +160,21 @@ class ChatInput extends PureComponent {
 		if (inputEl && !isTouchDevice) {
 			inputEl.focus();
 		}
+	}
+
+	getUserDisplayNames(userList) {
+		let { enableTwitchUserDisplayNames } = this.props;
+
+		return userList.map(
+			({ displayName, username }) =>
+			({
+				displayName,
+				username,
+				outName: getTwitchUserDisplayNameString(
+					username, displayName, enableTwitchUserDisplayNames
+				)
+			})
+		);
 	}
 
 	handleHistoryKey(direction, origHistory) {
@@ -442,14 +451,34 @@ class ChatInput extends PureComponent {
 	}
 
 	render() {
-		let { enableTwitch, isTouchDevice } = this.props;
-		var channelFlags = null;
+		let {
+			channel,
+			displayName,
+			enableTwitch,
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames,
+			isTouchDevice
+		} = this.props;
+		var channelFlags = null, placeholder = "Send a message";
 
 		if (enableTwitch) {
 			channelFlags = this.renderTwitchChannelFlags();
 		}
 
 		let autoComplete = isTouchDevice ? undefined : "off";
+
+		let uriData = parseChannelUri(channel);
+
+		if (uriData) {
+			let displayNameString = getTwitchChannelDisplayNameString(
+				uriData.channel,
+				displayName,
+				enableTwitchChannelDisplayNames,
+				enableTwitchUserDisplayNames
+			);
+
+			placeholder = "Message " + displayNameString;
+		}
 
 		return (
 			<form onSubmit={this.submit} className="chatview__input" key="main">
@@ -460,7 +489,7 @@ class ChatInput extends PureComponent {
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
 					tabIndex={1}
-					placeholder="Send a message"
+					placeholder={placeholder}
 					autoComplete={autoComplete}
 					/>
 				<input type="submit" />
@@ -475,14 +504,29 @@ ChatInput.propTypes = {
 	channelCache: PropTypes.object,
 	channelData: PropTypes.object,
 	channelUserList: PropTypes.object,
+	displayName: PropTypes.string,
 	enableEmojiCodes: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
+	enableTwitchChannelDisplayNames: PropTypes.bool,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	isTouchDevice: PropTypes.bool
 };
 
 const mapStateToProps = function(state, ownProps) {
 	let { channel } = ownProps;
-	let { channelCaches, channelData, channelUserLists } = state;
+	let {
+		appConfig,
+		channelCaches,
+		channelData,
+		channelUserLists,
+		deviceState
+	} = state;
+	let {
+		enableEmojiCodes,
+		enableTwitch,
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames
+	} = appConfig;
 
 	var channelCache, channelUserList, thisChannelData;
 
@@ -496,9 +540,11 @@ const mapStateToProps = function(state, ownProps) {
 		channelCache,
 		channelData: thisChannelData,
 		channelUserList,
-		enableEmojiCodes: state.appConfig.enableEmojiCodes,
-		enableTwitch: state.appConfig.enableTwitch,
-		isTouchDevice: state.deviceState.isTouchDevice
+		enableEmojiCodes,
+		enableTwitch,
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames,
+		isTouchDevice: deviceState.isTouchDevice
 	};
 };
 

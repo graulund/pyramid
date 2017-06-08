@@ -1,9 +1,10 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
 import UserLink from "../../components/UserLink.jsx";
+import { getTwitchUserDisplayNameString } from "../../lib/displayNames";
 import { humanDateStamp, timeStamp } from "../../lib/formatting";
-import { combinedDisplayName } from "../../lib/pageTitles";
 
 const MAX_USERNAMES = 5;
 const MAX_TIME_DIFFERENCE_MS = 15*60*1000;
@@ -29,6 +30,7 @@ class ChatBunchedEventsLine extends PureComponent {
 	render() {
 
 		const {
+			enableTwitchUserDisplayNames,
 			eventOrder = [],
 			joinCount,
 			joins = [],
@@ -69,7 +71,11 @@ class ChatBunchedEventsLine extends PureComponent {
 				if (users.length > MAX_USERNAMES && !expanded) {
 					let usernames = users.map(
 						({ displayName, username }) =>
-							combinedDisplayName(username, displayName)
+							getTwitchUserDisplayNameString(
+								username,
+								displayName,
+								enableTwitchUserDisplayNames
+							)
 					);
 
 					content.push(
@@ -162,6 +168,7 @@ ChatBunchedEventsLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	earliestTime: PropTypes.string,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	eventOrder: PropTypes.array,
 	events: PropTypes.array,
 	highlight: PropTypes.array,
@@ -181,4 +188,9 @@ ChatBunchedEventsLine.propTypes = {
 	username: PropTypes.string
 };
 
-export default ChatBunchedEventsLine;
+export default connect(({
+	appConfig: { enableTwitchUserDisplayNames }
+}) => ({
+	enableTwitchUserDisplayNames
+}))(ChatBunchedEventsLine);
+
