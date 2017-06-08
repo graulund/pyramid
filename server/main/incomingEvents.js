@@ -89,8 +89,9 @@ module.exports = function(
 
 		// Store!
 
+		let channelIdCache = ircConfig.channelIdCache();
+
 		if (isSeenActivity) {
-			let channelIdCache = ircConfig.channelIdCache();
 			let friendIdCache = friends.friendIdCache();
 			lastSeen.updateLastSeen(
 				channelUri, username, time, relationship, displayName,
@@ -98,6 +99,7 @@ module.exports = function(
 			);
 		}
 
+		messageCaches.setChannelIdCache(channelIdCache);
 		messageCaches.cacheMessage(
 			channelUri, serverName, username, symbol,
 			time, type, message, tags, relationship, highlightStrings
@@ -201,6 +203,8 @@ module.exports = function(
 		});
 
 		const event = _.assign(metadata, data, extraData);
+
+		messageCaches.setChannelIdCache(ircConfig.channelIdCache());
 
 		if (constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0) {
 			messageCaches.cacheBunchableChannelEvent(channelUri, event);

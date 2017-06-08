@@ -16,6 +16,7 @@ module.exports = function(
 	var channelCaches = {};
 	var userCaches = {};
 	var categoryCaches = { highlights: [], allfriends: [], system: [] };
+	var channelIdCache = {};
 
 	var currentHighlightContexts = {};
 	var bunchableLinesToInsert = {};
@@ -23,8 +24,7 @@ module.exports = function(
 	var lineIdsToDelete = new Set();
 
 	const storeLine = function(
-		channel, line, callback = function(){},
-		channelIdCache = {}
+		channel, line, callback = function(){}
 	) {
 		if (channelIdCache[channel]) {
 			db.storeLine(channelIdCache[channel], line, callback);
@@ -306,6 +306,10 @@ module.exports = function(
 		return _.assign({}, data, { lineId: uuid.v4() });
 	};
 
+	const setChannelIdCache = function(cache) {
+		channelIdCache = cache;
+	};
+
 	return {
 		cacheBunchableChannelEvent,
 		cacheCategoryMessage,
@@ -315,6 +319,7 @@ module.exports = function(
 		getCategoryCache: (categoryName) => categoryCaches[categoryName],
 		getChannelCache: (channel) => channelCaches[channel],
 		getUserCache: (username) => userCaches[username],
+		setChannelIdCache,
 		withUuid
 	};
 };

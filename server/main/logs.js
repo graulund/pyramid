@@ -253,6 +253,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		getDateLinesForChannel,
 		getDateLinesForUsername,
 		getLineByLineId,
-		getUserLogDetails
+		getUserLogDetails,
+		localMoment
 	};
 };
