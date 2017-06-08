@@ -42,7 +42,7 @@ export function serverNameFromChannelUri(channelUri) {
 }
 
 export function getChannelDisplayNameFromState(state, channelUri) {
-	if (!channel) {
+	if (!channelUri) {
 		return "";
 	}
 
