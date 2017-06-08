@@ -2,7 +2,7 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import debounce from "lodash/debounce";
-import without from "lodash/without";
+import omit from "lodash/omit";
 
 import SettingsList from "./SettingsList.jsx";
 import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
@@ -26,7 +26,7 @@ class SettingsIrcView extends PureComponent {
 		this.setAddForm = refElSetter("addForm").bind(this);
 
 		this.state = {
-			newServer: { channels: [] },
+			newServer: { channels: {} },
 			newServerName: null,
 			showingAddForm: false
 		};
@@ -115,12 +115,13 @@ class SettingsIrcView extends PureComponent {
 	onAddChannel(serverName, channel) {
 		console.log("Tried to add channel", serverName, channel);
 		const channelName = channel.name || channel;
+		const channelObj = typeof channel === "string" ? { name: channel } : channel;
 		if (serverName) {
 			io.addIrcChannel(serverName, channelName);
 		}
 		else {
 			const { newServer } = this.state;
-			const channels = [...newServer.channels, channelName];
+			const channels = { ...newServer.channels, [channelName]: channelObj };
 			this.setState({ newServer: { ...newServer, channels } });
 		}
 	}
@@ -134,7 +135,7 @@ class SettingsIrcView extends PureComponent {
 			}
 			else {
 				const { newServer } = this.state;
-				const channels = without(newServer.channels, channelName);
+				const channels = omit(newServer.channels, channelName);
 				this.setState({ newServer: { ...newServer, channels } });
 			}
 		}
@@ -158,7 +159,7 @@ class SettingsIrcView extends PureComponent {
 		console.log("Tried to add server", newServerName, newServer);
 		io.addIrcServer(newServerName, newServer);
 		this.setState({
-			newServer: { channels: [] },
+			newServer: { channels: {} },
 			newServerName: null,
 			showingAddForm: false
 		});

@@ -224,15 +224,20 @@ module.exports = function(db) {
 					}
 					else {
 						// Add all channels
-						if (data.channels && data.channels.length) {
+						if (data.channels) {
 							const channelNames = [];
-							data.channels.forEach((channel) => {
+							const channelList = Array.isArray(data.channels)
+								? data.channels
+								: Object.keys(data.channels);
+
+							channelList.forEach((channel) => {
 								const channelName = channel.name || channel;
 
 								if (typeof channelName === "string" && channelName) {
 									channelNames.push(stringUtils.formatUriName(channelName));
 								}
 							});
+
 							if (channelNames.length) {
 								async.parallel(
 									channelNames.map((channelName) =>
