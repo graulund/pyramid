@@ -27,15 +27,15 @@ const requestGroupChatInfo = function(client, callback) {
 					callback(null, groupChats);
 				}
 				catch(e) {
-					warn(
-						"Error occurred trying to get group chat info",
-						e
-					);
-					log("Content was:", body);
-
-					callback(e);
+					error = e;
 				}
-			} else {
+			}
+
+			if (error) {
+				warn(
+					"Error occurred trying to get group chat info",
+					error
+				);
 				callback(error);
 			}
 		}

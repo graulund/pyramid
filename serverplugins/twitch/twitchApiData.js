@@ -50,19 +50,24 @@ const requestEmoticonImages = function(emotesets) {
 		"chat/emoticon_images",
 		{ emotesets },
 		(error, response, body) => {
-			try {
-				const data = JSON.parse(body);
-				emoticonImages[emotesets] =
-					twitchApi.flattenEmoticonImagesData(data);
+			if (!error && response.statusCode === 200) {
+				try {
+					const data = JSON.parse(body);
+					emoticonImages[emotesets] =
+						twitchApi.flattenEmoticonImagesData(data);
 
-				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
+					log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
+				}
+				catch(e) {
+					error = e;
+				}
 			}
-			catch(e) {
+
+			if (error) {
 				warn(
 					"Error occurred trying to request emoticon images from the Twitch API.",
-					e
+					error
 				);
-				log("Content was:", body);
 			}
 		}
 	);

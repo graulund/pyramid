@@ -115,12 +115,15 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 					}
 				}
 				catch(e) {
-					warn(
-						`Error occurred trying to get external global emoticons (${type})`,
-						e
-					);
-					log("Content was:", body);
+					error = e;
 				}
+			}
+
+			if (error) {
+				warn(
+					`Error occurred trying to get external global emoticons (${type})`,
+					error
+				);
 			}
 		});
 	});
@@ -180,12 +183,15 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 						}
 					}
 					catch(e) {
-						warn(
-							`Error occurred trying to get external emoticons for ${channel} (${type})`,
-							e
-						);
-						log("Content was:", body);
+						error = e;
 					}
+				}
+
+				if (error) {
+					warn(
+						`Error occurred trying to get external emoticons for ${channel} (${type})`,
+						error
+					);
 				}
 			});
 		});

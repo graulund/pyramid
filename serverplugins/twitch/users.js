@@ -19,15 +19,15 @@ const requestTwitchUserInfo = function(username, callback) {
 					}
 				}
 				catch(e) {
-					warn(
-						"Error occurred trying to get user info",
-						e
-					);
-					log("Content was:", body);
-
-					callback(e);
+					error = e;
 				}
-			} else {
+			}
+
+			if (error) {
+				warn(
+					"Error occurred trying to get user info",
+					error
+				);
 				callback(error);
 			}
 		}
