@@ -54,6 +54,8 @@ const lowerClean = function(s) {
 const pluralize = function(value, base, addition) {
 	// Example: 8, "banana", "s", returns either "banana" or "bananas"
 
+	value = parseInt(value, 10);
+
 	if (value === 1) {
 		return base;
 	}
