@@ -85,7 +85,7 @@ module.exports = function(db) {
 			(err) => {
 				if (err) {
 					if (typeof callback === "function") {
-						callback(err);
+						callback(err, value);
 					}
 				}
 				else {
@@ -100,7 +100,7 @@ module.exports = function(db) {
 					}
 
 					if (typeof callback === "function") {
-						callback(null);
+						callback(null, value);
 					}
 				}
 			}

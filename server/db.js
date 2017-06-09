@@ -32,6 +32,7 @@ const createDatabaseFromEmpty = function(callback) {
 					callback(err);
 				}
 				else {
+					console.log("Created a new database from empty template");
 					fileUtils.copyFile(source, target, callback);
 				}
 			});
