@@ -49,6 +49,7 @@ function handleGivenPassword (givenPassword, storedPassword) {
 			}
 			else {
 				// Continue
+				currentlyStoredWebPassword = passwordHash;
 				askForPreference(givenPassword);
 			}
 		});
