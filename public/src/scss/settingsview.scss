@@ -133,6 +133,7 @@
 	}
 
 	&__add {
+		position: relative;
 		border: 2px solid #ccc;
 		border-radius: 6px;
 		padding: 20px;
@@ -140,6 +141,13 @@
 
 		h3 {
 			margin-top: 0;
+			margin-right: 35px;
+		}
+
+		&__close {
+			position: absolute;
+			top: 20px;
+			right: 20px;
 		}
 	}
 
@@ -195,7 +203,7 @@
 		padding: 10px 15px;
 
 		h3 {
-			margin: 0;
+			margin-bottom: 0;
 		}
 
 		p {

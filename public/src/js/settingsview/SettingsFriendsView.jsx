@@ -60,6 +60,7 @@ class SettingsFriendsView extends PureComponent {
 		return <SettingsList
 			extraColumn={this.renderLevelSelector}
 			extraColumnName="level"
+			extraColumnDefaultValue={1}
 			itemKindName="friend"
 			list={allFriends}
 			onAdd={this.handleAdd}

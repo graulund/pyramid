@@ -9,8 +9,11 @@ class SettingsList extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.hideAddForms = this.hideAddForms.bind(this);
+		this.onBatchSubmit = this.onBatchSubmit.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 		this.showAddForm = this.showAddForm.bind(this);
+		this.showBatchAddForm = this.showBatchAddForm.bind(this);
 
 		this.eventHandlers = new Map();
 
@@ -18,10 +21,11 @@ class SettingsList extends PureComponent {
 		this.setAddExtraContainer = refElSetter("addExtraContainer").bind(this);
 		this.setAddForm = refElSetter("addForm").bind(this);
 		this.setAddName = refElSetter("addName").bind(this);
+		this.setBatchAddNames = refElSetter("batchAddNames").bind(this);
 
 		this.state = {
 			selectedItem: null,
-			showingAddForm: false
+			showingAddForm: null
 		};
 	}
 
@@ -75,7 +79,15 @@ class SettingsList extends PureComponent {
 	}
 
 	showAddForm() {
-		this.setState({ showingAddForm: true });
+		this.setState({ showingAddForm: "one" });
+	}
+
+	showBatchAddForm() {
+		this.setState({ showingAddForm: "batch" });
+	}
+
+	hideAddForms() {
+		this.setState({ showingAddForm: null });
 	}
 
 	onSubmit(evt) {
@@ -97,15 +109,72 @@ class SettingsList extends PureComponent {
 			onAdd({ name });
 		}
 
-		this.setState({ showingAddForm: false });
+		this.setState({ showingAddForm: null });
 	}
 
-	renderAddButton() {
-		const { itemKindName } = this.props;
+	onBatchSubmit(evt) {
+		evt.preventDefault();
+
+		const { extraColumnDefaultValue, extraColumnName, onAdd } = this.props;
+		const { batchAddNames } = this.els;
+
+		var names = batchAddNames.value.split("\n");
+
+		if (names && names.length) {
+			var base = {};
+
+			if (extraColumnName) {
+				if (extraColumnDefaultValue) {
+					base[extraColumnName] = extraColumnDefaultValue;
+				}
+				else {
+					console.warn("Could not batch add: No default value for extra column");
+					return;
+				}
+			}
+
+			names.forEach((name) => {
+				onAdd({ ...base, name });
+			});
+		}
+
+		this.setState({ showingAddForm: null });
+	}
+
+	renderAddButtons() {
+		const { extraColumn, extraColumnDefaultValue, itemKindName } = this.props;
+		const oneButton = (
+			<button onClick={this.showAddForm}>
+				Add { itemKindName }
+			</button>
+		);
+
+		var batchButton = null;
+
+		if (!extraColumn || (extraColumn && extraColumnDefaultValue)) {
+			batchButton = (
+				<button onClick={this.showBatchAddForm}>
+					Add multiple { itemKindName + "s" }
+				</button>
+			);
+		}
+
 		return (
 			<div className="settings__list-buttons">
-				<button onClick={this.showAddForm}>Add { itemKindName }</button>
+				{ oneButton } {" "}
+				{ batchButton }
 			</div>
+		);
+	}
+
+	renderAddClose() {
+		return (
+			<a
+				className="settings__add__close"
+				href="javascript://"
+				onClick={this.hideAddForms}>
+				<img src="/img/close.svg" width="16" height="16" alt="Close" />
+			</a>
 		);
 	}
 
@@ -129,6 +198,24 @@ class SettingsList extends PureComponent {
 					: null
 				}
 				<input type="submit" />
+				{ this.renderAddClose() }
+			</form>
+		);
+	}
+
+	renderBatchAddForm() {
+		const { itemKindName } = this.props;
+		return (
+			<form className="settings__add" onSubmit={this.onBatchSubmit} key="add" ref={this.setAddForm}>
+				<h3>Add { itemKindName + "s" }</h3>
+				<p className="ta">
+					<label htmlFor="names">Type names here, one per line</label>
+					<textarea
+						name="names"
+						ref={this.setBatchAddNames} />
+				</p>
+				<input type="submit" />
+				{ this.renderAddClose() }
 			</form>
 		);
 	}
@@ -173,9 +260,17 @@ class SettingsList extends PureComponent {
 		const { list, onAdd, onSelect } = this.props;
 		const { showingAddForm } = this.state;
 
-		const adder = showingAddForm
-					? this.renderAddForm()
-					: this.renderAddButton();
+		var adder = null;
+
+		if (showingAddForm === "one") {
+			adder = this.renderAddForm();
+		}
+		else if (showingAddForm === "batch") {
+			adder = this.renderBatchAddForm();
+		}
+		else {
+			adder = this.renderAddButtons();
+		}
 
 		const className = "settings__list" + (
 			onSelect ? " settings__list--selectable" : ""
@@ -195,6 +290,9 @@ class SettingsList extends PureComponent {
 SettingsList.propTypes = {
 	extraColumn: PropTypes.func,
 	extraColumnName: PropTypes.string,
+	extraColumnDefaultValue: PropTypes.oneOfType([
+		PropTypes.string, PropTypes.number
+	]),
 	itemKindName: PropTypes.string,
 	list: PropTypes.array,
 	onAdd: PropTypes.func,
