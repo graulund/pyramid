@@ -49,7 +49,25 @@ const getEnabledExternalEmoticonTypes = function(ffzEnabled, bttvEnabled) {
 	return enabledTypes;
 };
 
+const acceptRequest = function(callback) {
+	return function(error, response, data) {
+		if (!error) {
+			if (response && response.statusCode === 200) {
+				callback(null, data);
+			}
+			else {
+				error = new Error(`Response status code ${response.statusCode}`);
+			}
+		}
+
+		if (error) {
+			callback(error);
+		}
+	};
+};
+
 module.exports = {
+	acceptRequest,
 	getEnabledExternalEmoticonTypes,
 	isTwitch,
 	isTwitchHostname,

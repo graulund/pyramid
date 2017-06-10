@@ -12,7 +12,8 @@ const clientIdRequest = function(url, callback, extraOptions = {}) {
 			url,
 			headers: {
 				"Client-ID": CLIENT_ID
-			}
+			},
+			json: true
 		},
 		extraOptions
 	);

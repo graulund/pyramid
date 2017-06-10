@@ -2,6 +2,7 @@ const _ = require("lodash");
 
 const emoteParsing = require("./emoteParsing");
 const twitchApi = require("./twitchApi");
+const util = require("./util");
 
 const USER_STATE_MESSAGE_FIELDS = [
 	"badges", "color", "display-name", "mod", "subscriber", "turbo",
@@ -49,27 +50,21 @@ const requestEmoticonImages = function(emotesets) {
 	twitchApi.krakenGetRequest(
 		"chat/emoticon_images",
 		{ emotesets },
-		(error, response, body) => {
-			if (!error && response.statusCode === 200) {
-				try {
-					const data = JSON.parse(body);
-					emoticonImages[emotesets] =
-						twitchApi.flattenEmoticonImagesData(data);
+		util.acceptRequest((error, data) => {
+			if (!error) {
+				emoticonImages[emotesets] =
+					twitchApi.flattenEmoticonImagesData(data);
 
-					log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
-				}
-				catch(e) {
-					error = e;
-				}
+				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 
-			if (error) {
+			else {
 				warn(
-					"Error occurred trying to request emoticon images from the Twitch API.",
+					"Error occurred trying to request emoticon images from the Twitch API\n",
 					error
 				);
 			}
-		}
+		})
 	);
 };
 

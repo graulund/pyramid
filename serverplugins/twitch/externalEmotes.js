@@ -1,6 +1,8 @@
 const _ = require("lodash");
 const request = require("request");
 
+const util = require("./util");
+
 const EXTERNAL_GLOBAL_EMOTE_ENDPOINTS = [
 	{ type: "ffz", url: "https://api.frankerfacez.com/v1/set/global" },
 	{ type: "bttv", url: "https://api.betterttv.net/2/emotes" }
@@ -87,45 +89,39 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 			return;
 		}
 
-		request(url, (error, response, body) => {
-			if (!error && response.statusCode === 200) {
-				try {
-					const data = JSON.parse(body);
-					if (uncleared) {
-						uncleared = false;
-						externalGlobalEmotes = [];
-					}
-					if (data.default_sets && data.sets) {
-						// FFZ
-						data.default_sets.forEach((setId) => {
-							if (data.sets[setId]) {
-								externalGlobalEmotes = storeExternalEmotes(
-									type, externalGlobalEmotes, data.sets[setId].emoticons
-								);
-								log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
-							}
-						});
-					}
-					else if (data.emotes) {
-						// BTTV
-						externalGlobalEmotes = storeExternalEmotes(
-							type, externalGlobalEmotes, data.emotes
-						);
-						log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
-					}
+		request({ url, json: true }, util.acceptRequest((error, data) => {
+			if (!error) {
+				if (uncleared) {
+					uncleared = false;
+					externalGlobalEmotes = [];
 				}
-				catch(e) {
-					error = e;
+				if (data.default_sets && data.sets) {
+					// FFZ
+					data.default_sets.forEach((setId) => {
+						if (data.sets[setId]) {
+							externalGlobalEmotes = storeExternalEmotes(
+								type, externalGlobalEmotes, data.sets[setId].emoticons
+							);
+							log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+						}
+					});
+				}
+				else if (data.emotes) {
+					// BTTV
+					externalGlobalEmotes = storeExternalEmotes(
+						type, externalGlobalEmotes, data.emotes
+					);
+					log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 				}
 			}
 
-			if (error) {
+			else {
 				warn(
-					`Error occurred trying to get external global emoticons (${type})`,
+					`Error occurred trying to get external global emoticons (${type})\n`,
 					error
 				);
 			}
-		});
+		}));
 	});
 };
 
@@ -152,48 +148,49 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 				return;
 			}
 
-			request(prefix + channelName, (error, response, body) => {
-				if (!error && response.statusCode === 200) {
-					try {
-						const data = JSON.parse(body);
+			let url = prefix + channelName;
 
-						// Clear it if it wasn't already cleared
-						if (uncleared) {
-							uncleared = false;
-							externalChannelEmotes[channel] = [];
-						}
-
-						if (data.sets) {
-							// FFZ
-							_.forOwn(data.sets, (set) => {
-								externalChannelEmotes[channel] = storeExternalEmotes(
-									type, externalChannelEmotes[channel], set.emoticons
-								);
-							});
-
-							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
-						}
-						else if (data.emotes) {
-							// BTTV
-							externalChannelEmotes[channel] = storeExternalEmotes(
-								type, externalChannelEmotes[channel], data.emotes
-							);
-
-							log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
-						}
+			request({ url, json: true }, util.acceptRequest((error, data) => {
+				if (!error) {
+					// Clear it if it wasn't already cleared
+					if (uncleared) {
+						uncleared = false;
+						externalChannelEmotes[channel] = [];
 					}
-					catch(e) {
-						error = e;
+
+					if (data.sets) {
+						// FFZ
+						_.forOwn(data.sets, (set) => {
+							externalChannelEmotes[channel] = storeExternalEmotes(
+								type, externalChannelEmotes[channel], set.emoticons
+							);
+						});
+
+						log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
+					}
+					else if (data.emotes) {
+						// BTTV
+						externalChannelEmotes[channel] = storeExternalEmotes(
+							type, externalChannelEmotes[channel], data.emotes
+						);
+
+						log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 					}
 				}
 
-				if (error) {
+				else {
+
+					if (error.message.indexOf("404") >= 0) {
+						// We don't care about 404s for channels, fail silently
+						return;
+					}
+
 					warn(
-						`Error occurred trying to get external emoticons for ${channel} (${type})`,
+						`Error occurred trying to get external emoticons for ${channel} (${type})\n`,
 						error
 					);
 				}
-			});
+			}));
 		});
 	}
 };

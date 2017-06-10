@@ -1,5 +1,6 @@
 const stringUtils = require("../../server/util/strings");
 const twitchApi = require("./twitchApi");
+const util = require("./util");
 
 var warn = console.warn;
 
@@ -8,37 +9,30 @@ const requestGroupChatInfo = function(client, callback) {
 		"room_memberships",
 		client.config.password,
 		{},
-		function(error, response, body) {
-			if (!error && response.statusCode === 200) {
-				try {
-					const data = JSON.parse(body);
-					const memberships = data.memberships;
-					const groupChats = [];
-					memberships.forEach((membership) => {
-						let { room } = membership;
-						if (membership.is_confirmed) {
-							groupChats.push({
-								name: room.irc_channel,
-								displayName: stringUtils.clean(room.display_name)
-							});
-						}
-					});
+		util.acceptRequest(function(error, data) {
+			if (!error) {
+				const memberships = data.memberships;
+				const groupChats = [];
+				memberships.forEach((membership) => {
+					let { room } = membership;
+					if (membership.is_confirmed) {
+						groupChats.push({
+							name: room.irc_channel,
+							displayName: stringUtils.clean(room.display_name)
+						});
+					}
+				});
 
-					callback(null, groupChats);
-				}
-				catch(e) {
-					error = e;
-				}
+				callback(null, groupChats);
 			}
-
-			if (error) {
+			else {
 				warn(
-					"Error occurred trying to get group chat info",
+					"Error occurred trying to get group chat info\n",
 					error
 				);
 				callback(error);
 			}
-		}
+		})
 	);
 };
 
