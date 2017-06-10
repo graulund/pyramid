@@ -23,7 +23,7 @@ module.exports = function(
 	const handleIncomingMessageEvent = function(
 		channelUri, serverName, username,
 		time, type, message, tags, meUsername,
-		logLine, isSeenActivity = true
+		logLine, isSeenActivity = true, customCols = null
 	) {
 		const symbol = userLists.getUserCurrentSymbol(channelUri, username);
 
@@ -102,7 +102,8 @@ module.exports = function(
 		messageCaches.setChannelIdCache(channelIdCache);
 		messageCaches.cacheMessage(
 			channelUri, serverName, username, symbol,
-			time, type, message, tags, relationship, highlightStrings
+			time, type, message, tags, relationship, highlightStrings,
+			customCols
 		);
 	};
 
@@ -322,12 +323,12 @@ module.exports = function(
 	const handleIncomingCustomEvent = function(
 		channelUri, serverName, username,
 		time, type, message, tags, meUsername,
-		logLine, isSeenActivity = true
+		logLine, isSeenActivity = true, customCols = null
 	) {
 		handleIncomingMessageEvent(
 			channelUri, serverName, username,
 			time, type, message, tags, meUsername,
-			logLine, isSeenActivity
+			logLine, isSeenActivity, customCols
 		);
 	};
 
@@ -366,6 +367,7 @@ module.exports = function(
 	};
 
 	return {
+		getUserCachedDisplayName,
 		handleIncomingCustomEvent,
 		handleIncomingEvent,
 		handleIncomingGlobalEvent,

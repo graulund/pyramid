@@ -347,10 +347,18 @@ module.exports = function(main) {
 						? announcement + ": " + reason
 						: announcement + ".";
 
+					let extraData = null;
+					let displayName = main.incomingEvents()
+						.getUserCachedDisplayName(clearedUsername, serverName);
+
+					if (displayName) {
+						extraData = { displayName };
+					}
+
 					main.incomingEvents().handleIncomingCustomEvent(
 						channel, serverName, clearedUsername,
 						time, "clearchat", line, message.tags, null,
-						`** ${clearedUsername} ${line}`, true
+						`** ${clearedUsername} ${line}`, true, extraData
 					);
 					break;
 				}

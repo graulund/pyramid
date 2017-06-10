@@ -234,9 +234,10 @@ module.exports = function(
 
 	const cacheMessage = function(
 		channelUri, serverName, username, symbol,
-		time, type, message, tags, relationship, highlightStrings
+		time, type, message, tags, relationship, highlightStrings,
+		customCols = null
 	) {
-		const msg = {
+		let msg = {
 			channel: channelUri,
 			color: usernameUtils.getUserColorNumber(username),
 			highlight: highlightStrings,
@@ -251,9 +252,13 @@ module.exports = function(
 			username
 		};
 
+		if (customCols) {
+			msg = _.assign(msg, customCols);
+		}
+
 		// Record context if highlight
-		const isHighlight = highlightStrings && highlightStrings.length;
-		var contextMessages = [], highlightMsg = null;
+		let isHighlight = highlightStrings && highlightStrings.length;
+		let contextMessages = [], highlightMsg = null;
 
 		if (isHighlight) {
 			const currentCache = (channelCaches[channelUri] || []);
