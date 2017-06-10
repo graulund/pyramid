@@ -11,7 +11,7 @@ const util = require("./util");
 const EMOTE_RELOAD_INTERVAL_MS = 3600000;
 
 var log = console.log;
-//var warn = console.warn;
+var warn = console.warn;
 
 module.exports = function(main) {
 
