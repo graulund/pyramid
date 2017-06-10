@@ -19,7 +19,7 @@
     "prod": "node scripts/bumpBuildNumber.js && npm run webpack:prod",
     "webpack:dev": "webpack --config webpack.dev.config.js --watch",
     "webpack:prod": "webpack --config webpack.prod.config.js",
-    "lint:server": "./node_modules/.bin/eslint -c .eslintrc.server.js pyramid.js server/ serverplugins/ scripts/; exit 0",
+    "lint:server": "eslint -c .eslintrc.server.js pyramid.js server/ serverplugins/ scripts/; exit 0",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
