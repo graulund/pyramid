@@ -46,6 +46,7 @@
     "uuid": "^3.0.1"
   },
   "devDependencies": {
+    "autoprefixer": "^7.1.1",
     "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "babel-loader": "^7.0.0",
@@ -69,6 +70,7 @@
     "intersection-observer": "^0.2.1",
     "linkify-it": "^2.0.3",
     "node-sass": "^4.5.3",
+    "postcss-loader": "^2.0.5",
     "prop-types": "^15.5.10",
     "react": "^15.5.4",
     "react-addons-perf": "^15.4.2",
