@@ -225,6 +225,10 @@ body.darkmode {
 		color: #000;
 	}
 
+	.settings__list-item:nth-child(even) {
+		background-color: #191919;
+	}
+
 	.sidebar__system-menu {
 		&, .sep {
 			border-color: #666;

@@ -68,6 +68,9 @@
 	}
 
 	&__list {
+		max-width: 600px;
+		margin: 0 auto;
+
 		ul {
 			border: 1px solid #ccc;
 			list-style-type: none;
@@ -79,6 +82,12 @@
 			display: flex;
 			border-bottom: 1px solid #ccc;
 			padding: 3px 0;
+
+			overflow-x: auto;
+
+			&:nth-child(even) {
+				background-color: #f6f6f6;
+			}
 
 			&:last-child {
 				border-bottom: none;
