@@ -94,43 +94,51 @@ module.exports = function(main) {
 		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
 		let serverName = client.config.name;
 
+		let token = main.ircPasswords().getDecryptedPasswordForServer(serverName);
+
 		if (autoJoin || useDisplayNames) {
-			log("Updating Twitch group chat info...");
-			groupChats.requestGroupChatInfo(client, function(error, channels) {
-				if (!error && channels) {
-					channels.forEach((channel) => {
-						let { name, displayName } = channel;
-						main.ircConfig().modifyChannelInIrcConfig(
-							serverName,
-							name,
-							{ displayName }
-						);
-					});
+			if (token) {
+				log("Updating Twitch group chat info...");
+				groupChats.requestGroupChatInfo(token, function(error, channels) {
+					if (!error && channels) {
+						channels.forEach((channel) => {
+							let { name, displayName } = channel;
+							main.ircConfig().modifyChannelInIrcConfig(
+								serverName,
+								name,
+								{ displayName }
+							);
+						});
 
-					if (autoJoin) {
-						let ircConfigs = main.ircConfig().safeIrcConfigDict();
-						let config = ircConfigs[serverName];
+						if (autoJoin) {
+							let ircConfigs = main.ircConfig().safeIrcConfigDict();
+							let config = ircConfigs[serverName];
 
-						if (config && config.channels) {
-							let configChannels = Object.keys(config.channels);
-							channels.forEach((channel) => {
-								let { name, displayName } = channel;
-								if (name && configChannels.indexOf(name) < 0) {
-									log(
-										"Found and added Twitch group chat: " +
-										name
-									);
-									main.ircControl().addAndJoinChannel(
-										serverName,
-										name,
-										{ displayName }
-									);
-								}
-							});
+							if (config && config.channels) {
+								let configChannels = Object.keys(config.channels);
+								channels.forEach((channel) => {
+									let { name, displayName } = channel;
+									if (name && configChannels.indexOf(name) < 0) {
+										log(
+											"Found and added Twitch group chat: " +
+											name
+										);
+										main.ircControl().addAndJoinChannel(
+											serverName,
+											name,
+											{ displayName }
+										);
+									}
+								});
+							}
 						}
 					}
-				}
-			});
+				});
+			}
+
+			else {
+				warn("Tried to update Twitch group chat info, but couldn't find your oauth token");
+			}
 		}
 	};
 

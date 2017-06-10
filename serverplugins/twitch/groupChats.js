@@ -4,10 +4,10 @@ const util = require("./util");
 
 var warn = console.warn;
 
-const requestGroupChatInfo = function(client, callback) {
+const requestGroupChatInfo = function(oauthToken, callback) {
 	twitchApi.chatdepotGetRequest(
 		"room_memberships",
-		client.config.password,
+		oauthToken,
 		{},
 		util.acceptRequest(function(error, data) {
 			if (!error) {

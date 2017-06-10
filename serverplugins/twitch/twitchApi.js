@@ -34,11 +34,8 @@ const krakenGetRequest = function(commandName, query, callback) {
 const chatdepotGetRequest = function(commandName, password, query, callback) {
 	const oauthId = password.replace(/^oauth:/, "");
 	const queryString = qs.stringify(_.extend({ oauth_token: oauthId }, query));
-	return request(
-		CHATDEPOT_BASE_URI + commandName +
-		"?" + queryString,
-		callback
-	);
+	const url = CHATDEPOT_BASE_URI + commandName + "?" + queryString;
+	return request({ url, json: true }, callback);
 };
 
 const flattenEmoticonImagesData = function(data) {
