@@ -219,8 +219,14 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitMessageToRecipients = function(list, msg) {
-		emitEventToRecipients(list, "msg", msg);
+	const emitListEventToRecipients = function(
+		recipients, listType, listName, event
+	) {
+		emitEventToRecipients(
+			recipients,
+			"listEvent",
+			{ event, listName, listType }
+		);
 	};
 
 	const emitCategoryCacheToRecipients = function(list, categoryName) {
@@ -818,7 +824,7 @@ module.exports = function(main) {
 		emitEventToChannel,
 		emitIrcConfig,
 		emitIrcConnectionStatus,
-		emitMessageToRecipients,
+		emitListEventToRecipients,
 		emitNewHighlight,
 		emitOnlineFriends,
 		emitServerData,

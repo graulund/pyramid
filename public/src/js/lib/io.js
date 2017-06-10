@@ -6,9 +6,7 @@ import without from "lodash/without";
 import { CACHE_LINES, PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
-import {
-	categoryUrl, channelUrl, parseSubjectName, subjectName, userUrl
-} from "./routeHelpers";
+import { parseSubjectName, subjectName } from "./routeHelpers";
 
 var io;
 var socket;
@@ -282,38 +280,20 @@ export function initializeIo() {
 		});
 
 		socket.on("channelEvent", (details) => {
-			const { channel, highlight, relationship, type, username } = details;
+			store.dispatch(actions.channelCaches.append(details));
+		});
 
-			// Only add chat messages to store if we're actually viewing
-			// their respective stores, otherwise we'll get the whole
-			// thing when we request subscription, so it doesn't really matter
+		socket.on("listEvent", (details) => {
+			let { event, listName, listType } = details;
 
-			if (location.pathname === channelUrl(channel)) {
-				store.dispatch(actions.channelCaches.append(details));
+			if (listType === PAGE_TYPES.USER) {
+				store.dispatch(actions.userCaches.append(event));
 			}
 
-			if (
-				location.pathname === categoryUrl("highlights") &&
-				highlight && highlight.length
-			) {
+			else if (listType === PAGE_TYPES.CATEGORY) {
 				store.dispatch(actions.categoryCaches.append({
-					categoryName: "highlights",
-					item: details
-				}));
-			}
-
-			if (!relationship || (type !== "msg" && type !== "action")) {
-				return;
-			}
-
-			if (location.pathname === userUrl(username)) {
-				store.dispatch(actions.userCaches.append(details));
-			}
-
-			if (location.pathname === categoryUrl("allfriends")) {
-				store.dispatch(actions.categoryCaches.append({
-					categoryName: "allfriends",
-					item: details
+					categoryName: listName,
+					item: event
 				}));
 			}
 		});

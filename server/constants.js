@@ -37,6 +37,12 @@ module.exports = {
 	TOKEN_COOKIE_NAME: "token",
 	TOKEN_COOKIE_SECONDS: 86400 * 365,
 
+	PAGE_TYPES: {
+		CATEGORY: "category",
+		CHANNEL: "channel",
+		USER: "user"
+	},
+
 	CONNECTION_STATUS: {
 		ABORTED: "aborted",
 		CONNECTED: "connected",

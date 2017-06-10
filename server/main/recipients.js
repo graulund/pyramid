@@ -67,13 +67,23 @@ module.exports = function(io) {
 
 	const emitToUserRecipients = function(username, msg) {
 		if (io) {
-			io.emitMessageToRecipients(userRecipients[username], msg);
+			io.emitListEventToRecipients(
+				userRecipients[username],
+				constants.PAGE_TYPES.USER,
+				username,
+				msg
+			);
 		}
 	};
 
 	const emitToCategoryRecipients = function(categoryName, msg) {
 		if (io) {
-			io.emitMessageToRecipients(categoryRecipients[categoryName], msg);
+			io.emitListEventToRecipients(
+				categoryRecipients[categoryName],
+				constants.PAGE_TYPES.CATEGORY,
+				categoryName,
+				msg
+			);
 		}
 	};
 
