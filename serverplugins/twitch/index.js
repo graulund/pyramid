@@ -20,7 +20,7 @@ var twitchChannelCache = [];
 module.exports = function(main) {
 
 	log = main.log;
-	//warn = main.warn;
+	warn = main.warn;
 
 	// Utility
 
