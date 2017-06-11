@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
 
@@ -12,6 +14,8 @@ const EMOTE_RELOAD_INTERVAL_MS = 3600000;
 
 var log = console.log;
 var warn = console.warn;
+
+var twitchChannelCache = [];
 
 module.exports = function(main) {
 
@@ -225,6 +229,8 @@ module.exports = function(main) {
 			if (channelName && channelName[0] !== "_") {
 				updateUserChatInfo(client, channelName);
 			}
+
+			twitchChannelCache = _.uniq(twitchChannelCache.concat([channel]));
 		}
 	};
 
@@ -235,6 +241,7 @@ module.exports = function(main) {
 			username === client.irc.user.nick
 		) {
 			externalEmotes.clearExternalEmotesForChannel(channel);
+			twitchChannelCache = _.without(twitchChannelCache, channel);
 		}
 	};
 
@@ -366,14 +373,27 @@ module.exports = function(main) {
 		}
 	};
 
-	const loadExternalEmotesForAllClients = () => {
-		log("Reloading emotes for all clients...");
+	const loadGlobalExternalEmotesForAllClients = function() {
+		log("Reloading global external emotes for all clients...");
 
 		const clients = main.ircControl().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => loadExternalEmotesForClient(client));
 		}
+	};
+
+	const loadExternalEmotesForAllChannels = function() {
+		log("Reloading external emotes for all channels...");
+
+		twitchChannelCache.forEach(
+			(channel) => loadExternalEmotesForChannel(channel)
+		);
+	};
+
+	const reloadAllExternalEmotes = function() {
+		loadGlobalExternalEmotesForAllClients();
+		loadExternalEmotesForAllChannels();
 	};
 
 	const updateChatInfoForAllClients = function() {
@@ -393,7 +413,7 @@ module.exports = function(main) {
 	);
 
 	setInterval(
-		loadExternalEmotesForAllClients,
+		reloadAllExternalEmotes,
 		EMOTE_RELOAD_INTERVAL_MS
 	);
 
@@ -415,7 +435,7 @@ module.exports = function(main) {
 				"enableBttvAnimatedEmoticons",
 				"enableBttvPersonalEmoticons"
 			],
-			loadExternalEmotesForAllClients
+			reloadAllExternalEmotes
 		);
 	}, 10000);
 
