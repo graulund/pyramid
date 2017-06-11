@@ -20,6 +20,7 @@ class TwitchChannelFlags extends PureComponent {
 		if (channelData) {
 
 			let flags = [], added = false;
+			let roomId = parseInt(channelData["room-id"], 10);
 
 			forOwn(TWITCH_CHANNEL_FLAGS_LABELS, (label, prop) => {
 				let value = parseInt(channelData[prop], 10);
@@ -34,11 +35,20 @@ class TwitchChannelFlags extends PureComponent {
 				if (value && !isNaN(value)) {
 					var tooltip;
 
+					// Slow mode
 					if (prop === "slow") {
 						let seconds = pluralize(value, "second", "s");
 						tooltip = `${value} ${seconds} between messages`;
 					}
+
+					// Followers only mode
 					else if (prop === "followers-only") {
+
+						// Abort if no room id
+						if (isNaN(roomId) || roomId <= 0) {
+							return;
+						}
+
 						if (value > 0) {
 							let minutes = pluralize(value, "minute", "s");
 							tooltip = `Chat after following for ${value} ${minutes}`;
