@@ -71,7 +71,7 @@ class ChatOfflineResendButton extends PureComponent {
 		if (
 			visible &&
 			globalConnectionStatus &&
-			globalConnectionStatus.status !== STATUS.CONNECTED
+			globalConnectionStatus.status === STATUS.CONNECTED
 		) {
 			return (
 				<a
