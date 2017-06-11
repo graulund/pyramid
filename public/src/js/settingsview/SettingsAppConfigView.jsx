@@ -46,6 +46,11 @@ class SettingsAppConfigView extends PureComponent {
 			return;
 		}
 
+		if (typeof value === "number" && isNaN(value)) {
+			console.warn("Denied setting a numeric value setting to NaN");
+			return;
+		}
+
 		io.setAppConfigValue(name, value);
 	}
 
@@ -124,14 +129,18 @@ class SettingsAppConfigView extends PureComponent {
 					/>;
 				break;
 
-			default:
+			default: {
+				let handler = type === "number"
+					? changeHandler.number
+					: changeHandler.string;
 				mainInput = <input
 					type={type}
 					id={name}
 					defaultValue={appConfig[name] || ""}
-					onChange={changeHandler.string}
+					onChange={handler}
 					disabled={isDisabled}
 					key="input" />;
+			}
 		}
 
 		// Class name
