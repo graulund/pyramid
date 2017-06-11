@@ -44,8 +44,6 @@ module.exports = function(
 	const cacheItem = function(cache, data) {
 		const cacheLinesSetting = getCacheLinesSetting();
 
-		console.log("Caching with setting: " + cacheLinesSetting);
-
 		// Add it
 		cache.push(data);
 
