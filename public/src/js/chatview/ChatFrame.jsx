@@ -8,7 +8,9 @@ import "intersection-observer";
 import ChatLines from "./ChatLines.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { reportHighlightAsSeen } from "../lib/io";
-import { areWeScrolledToTheBottom, scrollToTheBottom } from "../lib/visualBehavior";
+import {
+	areWeScrolledToTheBottom, scrollToTheBottom, scrollToTheTop
+} from "../lib/visualBehavior";
 
 const FLASHING_LINE_CLASS_NAME = "flashing";
 
@@ -90,25 +92,24 @@ class ChatFrame extends PureComponent {
 
 		// Page changed
 
-		if (
+		let pageChanged = (
 			pageQuery !== oldQuery ||
 			pageType !== oldType ||
 			logDate !== oldLogDate
-		) {
+		);
+
+		if (pageChanged) {
 			this.clearObserver();
 		}
 
 		// Lines changed
 
 		if (lines !== oldLines) {
-			if (
-				(this.atBottom && !logDate) ||
-				(oldLogDate && !logDate)
-			) {
-				scrollToTheBottom();
+			if (logDate) {
+				scrollToTheTop();
 			}
-			else if (logDate) {
-				window.scrollTo(0, 0);
+			else if (this.atBottom || pageChanged) {
+				scrollToTheBottom();
 			}
 		}
 

@@ -5,6 +5,10 @@ export function isMobile() {
 	return window.innerWidth < 768;
 }
 
+export function scrollToTheTop() {
+	window.scrollTo(0, 0);
+}
+
 export function areWeScrolledToTheBottom() {
 	let contentHeight = document.getElementById("container").clientHeight;
 	let windowHeight = window.innerHeight;
