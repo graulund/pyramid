@@ -34,6 +34,7 @@ class ChatLine extends PureComponent {
 			message,
 			offline,
 			showTwitchClearChats,
+			status,
 			time,
 			type
 		} = this.props;
@@ -107,9 +108,11 @@ class ChatLine extends PureComponent {
 				break;
 
 			case "connectionEvent":
-				content = <ChatConnectionEventLine
-					{...this.props}
-					key="content" />;
+				if (status) {
+					content = <ChatConnectionEventLine
+						{...this.props}
+						key="content" />;
+				}
 				break;
 
 			case "clearchat":
@@ -225,6 +228,7 @@ ChatLine.propTypes = {
 	onEmoteLoad: PropTypes.func,
 	reason: PropTypes.string,
 	server: PropTypes.string,
+	status: PropTypes.string,
 	showTwitchClearChats: PropTypes.bool,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,

@@ -73,9 +73,9 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 				try {
 					l.eventData = JSON.parse(l.eventData);
 
+					// Pipe the event data attributes into the main object
 					if (l.eventData) {
-						l.events  = l.eventData.events;
-						l.prevIds = l.eventData.prevIds;
+						l = _.assign(l, l.eventData);
 					}
 
 				} catch(e) {

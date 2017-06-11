@@ -731,6 +731,10 @@ const mainMethods = function(main, db) {
 			eventData = { events: line.events, prevIds: line.prevIds };
 		}
 
+		else if (line.status) {
+			eventData = { status: line.status };
+		}
+
 		db.run(
 			iq("lines", [
 				"lineId",
