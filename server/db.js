@@ -143,6 +143,12 @@ const dq = (table, whereCols) => {
 	return `DELETE FROM ${table} WHERE ${where}`;
 };
 
+const initializeDb = function(db) {
+	// Set up SQLite settings
+	db.run("PRAGMA journal_mode=WAL");
+	db.run("PRAGMA synchronous=NORMAL");
+};
+
 const mainMethods = function(main, db) {
 
 	const getLocalDatestampFromTime = (time) => {
@@ -880,6 +886,7 @@ module.exports = function(main, callback) {
 		else {
 			// Open database
 			var db = new sqlite.Database(DB_FILENAME);
+			initializeDb(db);
 			mainMethods(main, db);
 
 			if (typeof callback === "function") {
