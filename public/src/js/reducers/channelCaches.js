@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 
 import * as actionTypes from "../actionTypes";
-import { cacheItem, clearReplacedIdsFromCache } from "../lib/io";
+import { cacheMessageItem, clearReplacedIdsFromCache } from "../lib/messageCaches";
 
 const channelCachesInitialState = {};
 
@@ -57,7 +57,7 @@ export default function (state = channelCachesInitialState, action) {
 
 			// Clear any replaced ids, and then append to cache
 
-			s[d.channel].cache = cacheItem(
+			s[d.channel].cache = cacheMessageItem(
 				clearReplacedIdsFromCache(s[d.channel].cache, d.prevIds),
 				d
 			);

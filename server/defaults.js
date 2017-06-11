@@ -17,11 +17,13 @@ module.exports = {
 	timeZone: "UTC",
 	webPort: 54335,
 
-	// Encryption settings
+	// Encryption mode
 	strongIrcPasswordEncryption: false,
 
-	// App config
-	automaticallyJoinTwitchGroupChats: true,
+	// Scrollback ("cache") length
+	cacheLines: 150,
+
+	// Appearance
 	collapseJoinParts: true,
 	enableUsernameColors: true,
 	enableDarkMode: false,
@@ -30,6 +32,7 @@ module.exports = {
 	enableDesktopNotifications: true,
 
 	// Twitch
+	automaticallyJoinTwitchGroupChats: true,
 	enableTwitch: true,
 	enableTwitchColors: true,
 	enableTwitchChannelDisplayNames: true,

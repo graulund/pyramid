@@ -101,6 +101,13 @@ const settings = {
 			readableName: "Collapse join/part events",
 			type: "bool",
 			description: "If someone joins and immediately leaves, don't display anything"
+		},
+		{
+			name: "cacheLines",
+			readableName: "Live scrollback length",
+			type: "number",
+			description: "Number of lines you can see in a live chat view",
+			notice: "Must be between 20 and 500. Default value is 150"
 		}
 	],
 

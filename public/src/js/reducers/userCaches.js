@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 
 import * as actionTypes from "../actionTypes";
-import { cacheItem } from "../lib/io";
+import { cacheMessageItem } from "../lib/messageCaches";
 
 const userCachesInitialState = {};
 
@@ -31,7 +31,7 @@ export default function (state = userCachesInitialState, action) {
 			// Simpler append logic than channelCaches,
 			// due to this stream only including message events
 
-			s[d.username].cache = cacheItem(s[d.username].cache, d);
+			s[d.username].cache = cacheMessageItem(s[d.username].cache, d);
 			return s;
 		}
 	}

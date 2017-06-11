@@ -12,6 +12,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
+import { initializeMessageCaches } from "./lib/messageCaches";
 import setUpPageTitles from "./lib/pageTitles";
 import { startUpdatingNotificationsActiveState } from "./lib/notifications";
 import * as routes from "./lib/routeHelpers";
@@ -91,6 +92,10 @@ if (window.pyramid_unseenHighlights) {
 // Sockets
 
 initializeIo();
+
+// Caches
+
+initializeMessageCaches();
 
 // View
 

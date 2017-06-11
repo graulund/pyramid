@@ -1,9 +1,8 @@
 import actions from "../actions";
 import store from "../store";
-import pull from "lodash/pull";
 import without from "lodash/without";
 
-import { CACHE_LINES, PAGE_TYPES } from "../constants";
+import { PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
 import { parseSubjectName, subjectName } from "./routeHelpers";
@@ -78,39 +77,6 @@ export function sendMessage(channel, message, messageToken) {
 
 		emit("sendMessage", data);
 	}
-}
-
-export function cacheItem(cache, item) {
-	// Add it, or them
-	if (item) {
-		if (item instanceof Array) {
-			cache = cache.concat(item);
-		} else {
-			cache = [ ...cache, item ];
-		}
-	}
-
-	// And make sure we only have the maximum amount
-	if (cache.length > CACHE_LINES) {
-		cache = cache.slice(cache.length - CACHE_LINES);
-	}
-
-	return cache;
-}
-
-export function clearReplacedIdsFromCache(cache, prevIds) {
-	if (cache && cache.length && prevIds && prevIds.length) {
-		const itemsWithPrevIds = cache.filter(
-			(item) => prevIds.indexOf(item.lineId) >= 0
-		);
-		return pull(cache, ...itemsWithPrevIds);
-
-		// NOTE: We are modifiying in place to prevent too many change handlers from
-		// occuring. We are expecting the caller to create a new array with an added
-		// item immediately after having called this method.
-	}
-
-	return cache;
 }
 
 export function requestLogDetailsForChannel(channel, time) {

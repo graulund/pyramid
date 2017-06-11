@@ -23,6 +23,16 @@ module.exports = function(
 
 	var lineIdsToDelete = new Set();
 
+	const getCacheLinesSetting = function() {
+		const valueFromConfig = parseInt(appConfig.configValue("cacheLines"), 10);
+
+		if (!isNaN(valueFromConfig) && valueFromConfig >= 20 && valueFromConfig <= 500) {
+			return valueFromConfig;
+		}
+
+		return constants.CACHE_LINES;
+	};
+
 	const storeLine = function(
 		channel, line, callback = function(){}
 	) {
@@ -32,15 +42,19 @@ module.exports = function(
 	};
 
 	const cacheItem = function(cache, data) {
+		const cacheLinesSetting = getCacheLinesSetting();
+
+		console.log("Caching with setting: " + cacheLinesSetting);
+
 		// Add it
 		cache.push(data);
 
 		// And make sure we only have the maximum amount
-		if (cache.length > constants.CACHE_LINES) {
-			if (cache.length === constants.CACHE_LINES + 1) {
+		if (cache.length > cacheLinesSetting) {
+			if (cache.length === cacheLinesSetting + 1) {
 				cache.shift();
 			} else {
-				cache = cache.slice(cache.length - constants.CACHE_LINES);
+				cache = cache.slice(cache.length - cacheLinesSetting);
 			}
 		}
 	};
