@@ -55,6 +55,8 @@ module.exports = function(
 				cache = cache.slice(cache.length - cacheLinesSetting);
 			}
 		}
+
+		return cache;
 	};
 
 	const cacheChannelEvent = function(channel, data) {
@@ -64,7 +66,7 @@ module.exports = function(
 		if (!channelCaches[channel]) {
 			channelCaches[channel] = [];
 		}
-		cacheItem(channelCaches[channel], data);
+		channelCaches[channel] = cacheItem(channelCaches[channel], data);
 
 		// Add to db
 
@@ -83,7 +85,7 @@ module.exports = function(
 		if (!userCaches[username]) {
 			userCaches[username] = [];
 		}
-		cacheItem(userCaches[username], msg);
+		userCaches[username] = cacheItem(userCaches[username], msg);
 		recipients.emitToUserRecipients(username, msg);
 	};
 
@@ -92,7 +94,7 @@ module.exports = function(
 			categoryCaches[categoryName] = [];
 		}
 
-		cacheItem(categoryCaches[categoryName], msg);
+		categoryCaches[categoryName] = cacheItem(categoryCaches[categoryName], msg);
 		recipients.emitToCategoryRecipients(categoryName, msg);
 
 		if (categoryName === "highlights" && msg.lineId) {
