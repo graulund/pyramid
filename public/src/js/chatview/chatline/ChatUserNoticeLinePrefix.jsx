@@ -13,7 +13,7 @@ class ChatUserNoticeLinePrefix extends PureComponent {
 }
 
 ChatUserNoticeLinePrefix.propTypes = {
-	tags: PropTypes.object
+	tags: PropTypes.object.isRequired
 };
 
 export default ChatUserNoticeLinePrefix;

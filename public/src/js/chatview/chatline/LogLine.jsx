@@ -43,7 +43,7 @@ class LogLine extends PureComponent {
 LogLine.propTypes = {
 	level: PropTypes.string,
 	lineId: PropTypes.string,
-	message: PropTypes.string,
+	message: PropTypes.string.isRequired,
 	server: PropTypes.string,
 	time: PropTypes.string,
 	type: PropTypes.string

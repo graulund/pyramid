@@ -89,10 +89,10 @@ class ChatOfflineResendButton extends PureComponent {
 }
 
 ChatOfflineResendButton.propTypes = {
-	channel: PropTypes.string,
+	channel: PropTypes.string.isRequired,
 	globalConnectionStatus: PropTypes.object,
-	messageToken: PropTypes.string,
-	time: PropTypes.string
+	messageToken: PropTypes.string.isRequired,
+	time: PropTypes.string.isRequired
 };
 
 export default connect(({

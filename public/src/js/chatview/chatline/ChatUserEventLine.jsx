@@ -88,8 +88,8 @@ ChatUserEventLine.propTypes = {
 	reason: PropTypes.string,
 	server: PropTypes.string,
 	time: PropTypes.string,
-	type: PropTypes.string,
-	username: PropTypes.string
+	type: PropTypes.string.isRequired,
+	username: PropTypes.string.isRequired
 };
 
 export default ChatUserEventLine;

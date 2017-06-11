@@ -44,8 +44,8 @@ ChatConnectionEventLine.propTypes = {
 	channel: PropTypes.string,
 	channelName: PropTypes.string,
 	lineId: PropTypes.string,
-	server: PropTypes.string,
-	status: PropTypes.string,
+	server: PropTypes.string.isRequired,
+	status: PropTypes.string.isRequired,
 	time: PropTypes.string,
 	type: PropTypes.string
 };

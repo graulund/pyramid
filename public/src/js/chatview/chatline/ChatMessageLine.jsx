@@ -126,6 +126,7 @@ class ChatMessageLine extends PureComponent {
 			(type !== "msg" ? ` ${block}--${type}` : "") +
 			(cleared && showTwitchDeletedMessages ? ` ${block}--cleared` : "");
 
+		// DEPRECATE: Use serverData
 		const useTwitch = enableTwitch && server &&
 			ircConfigs && isTwitch(ircConfigs[server]);
 
@@ -201,7 +202,7 @@ ChatMessageLine.propTypes = {
 	highlight: PropTypes.array,
 	ircConfigs: PropTypes.object,
 	lineId: PropTypes.string,
-	message: PropTypes.string,
+	message: PropTypes.string.isRequired,
 	observer: PropTypes.object,
 	onEmoteLoad: PropTypes.func,
 	server: PropTypes.string,

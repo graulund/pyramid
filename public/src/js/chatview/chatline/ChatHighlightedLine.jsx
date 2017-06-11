@@ -108,7 +108,7 @@ ChatHighlightedLine.propTypes = {
 	children: PropTypes.node.isRequired,
 	id: PropTypes.string,
 	lineId: PropTypes.string.isRequired,
-	observer: PropTypes.object,
+	observer: PropTypes.object.isRequired,
 	unseenHighlights: PropTypes.array
 };
 
