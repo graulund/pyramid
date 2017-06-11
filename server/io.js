@@ -253,7 +253,7 @@ module.exports = function(main) {
 		emitEventToRecipients(
 			main.recipients().getChannelRecipients(channel),
 			"channelData",
-			data
+			{ channel, data }
 		);
 	};
 
