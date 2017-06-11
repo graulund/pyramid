@@ -42,6 +42,18 @@ export function ucfirst(str) {
 	return f + str.substr(1);
 }
 
+export function pluralize(value, base, addition) {
+	// Example: 8, "banana", "s", returns either "banana" or "bananas"
+
+	value = parseInt(value, 10);
+
+	if (value === 1) {
+		return base;
+	}
+
+	return base + addition;
+}
+
 // Time
 
 export function formatTime(milliseconds) {

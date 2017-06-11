@@ -2,8 +2,8 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
-import forOwn from "lodash/forOwn";
 
+import TwitchChannelFlags from "../twitch/TwitchChannelFlags.jsx";
 import { parseChannelUri } from "../lib/channelNames";
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem } from "../lib/io";
@@ -20,14 +20,6 @@ const TAB_COMPLETE_CLEAN_REGEX = new RegExp(
 	"(" + escapeRegExp(TAB_COMPLETE_INITIAL_SUFFIX) + "|" +
 	escapeRegExp(TAB_COMPLETE_DEFAULT_SUFFIX) + ")$"
 );
-
-const TWITCH_CHANNEL_FLAGS_LABELS = {
-	"emote-only": "emote",
-	"followers-only": "follow",
-	"r9k": "r9k",
-	"slow": "slow",
-	"subs-only": "sub"
-};
 
 const isModifiedEvent = (evt) =>
 	!!(evt.metaKey || evt.altKey || evt.ctrlKey || evt.shiftKey);
@@ -409,51 +401,10 @@ class ChatInput extends PureComponent {
 		}
 	}
 
-	renderTwitchChannelFlags() {
-		let { channelData } = this.props;
-
-		if (channelData) {
-
-			let flags = [], added = false;
-
-			forOwn(TWITCH_CHANNEL_FLAGS_LABELS, (label, prop) => {
-				let value = parseInt(channelData[prop], 10);
-				if (value && !isNaN(value)) {
-					var tooltip = "";
-
-					if (prop === "slow") {
-						tooltip = `${value} seconds`;
-					}
-					else if (prop === "followers-only") {
-						tooltip = `${value} minutes`;
-					}
-
-					flags.push({ label, tooltip });
-					added = true;
-				}
-			});
-
-			if (added) {
-				return (
-					<ul className="chatview__channel-flags" key="flags">
-						{ flags.map(({ label, tooltip }) => (
-							<li
-								key={label}
-								title={tooltip}>
-								{ label }
-							</li>
-						)) }
-					</ul>
-				);
-			}
-		}
-
-		return null;
-	}
-
 	render() {
 		let {
 			channel,
+			channelData,
 			displayName,
 			enableTwitch,
 			enableTwitchChannelDisplayNames,
@@ -463,7 +414,9 @@ class ChatInput extends PureComponent {
 		var channelFlags = null, placeholder = "Send a message";
 
 		if (enableTwitch) {
-			channelFlags = this.renderTwitchChannelFlags();
+			channelFlags = <TwitchChannelFlags
+				channelData={channelData}
+				key="channel-flags" />;
 		}
 
 		let autoComplete = isTouchDevice ? undefined : "off";
