@@ -212,6 +212,25 @@ export default {
 		}
 	},
 
+	offlineMessages: {
+		add(channel, messageToken, message) {
+			return {
+				type: actionTypes.offlineMessages.ADD,
+				channel,
+				message,
+				messageToken
+			};
+		},
+
+		remove(channel, messageToken) {
+			return {
+				type: actionTypes.offlineMessages.REMOVE,
+				channel,
+				messageToken
+			};
+		}
+	},
+
 	serverData: {
 		set(data) {
 			return {

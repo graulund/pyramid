@@ -1,6 +1,6 @@
 import store from "../store";
 import actions from "../actions";
-import { parseChannelUri } from "./channelNames";
+import { parseChannelUri, serverNameFromChannelUri } from "./channelNames";
 
 export function calibrateMultiServerChannels(ircConfigs) {
 	let multiServerChannels = [];
@@ -53,4 +53,15 @@ export function getChannelInfo(channel) {
 	}
 
 	return { channel, ...channelConfig };
+}
+
+export function getMyNickname(channel) {
+	let state = store.getState();
+	let serverName = serverNameFromChannelUri(channel);
+
+	if (serverName && state.ircConfigs[serverName]) {
+		return state.ircConfigs[serverName].nickname;
+	}
+
+	return "";
 }

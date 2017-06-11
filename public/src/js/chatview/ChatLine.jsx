@@ -8,6 +8,7 @@ import ChatConnectionEventLine from "./chatline/ChatConnectionEventLine.jsx";
 import ChatContextView from "./ChatContextView.jsx";
 import ChatHighlightedLine from "./chatline/ChatHighlightedLine.jsx";
 import ChatMessageLine from "./chatline/ChatMessageLine.jsx";
+import ChatOfflineResendButton from "./chatline/ChatOfflineResendButton.jsx";
 import ChatUserEventLine from "./chatline/ChatUserEventLine.jsx";
 import ChatUserNoticeLinePrefix from "./chatline/ChatUserNoticeLinePrefix.jsx";
 import LogLine from "./chatline/LogLine.jsx";
@@ -31,6 +32,7 @@ class ChatLine extends PureComponent {
 			highlight,
 			lineId,
 			message,
+			offline,
 			showTwitchClearChats,
 			time,
 			type
@@ -50,7 +52,8 @@ class ChatLine extends PureComponent {
 		const className = block +
 			(isHighlight ? ` ${block}--highlight` : "") +
 			(isNotice ? ` ${block}--notice` : "") +
-			(type === "connectionEvent" ? ` ${block}--connection` : "");
+			(type === "connectionEvent" ? ` ${block}--connection` : "") +
+			(offline ? ` ${block}--offline` : "");
 
 		var content = null, prefix = null;
 
@@ -163,6 +166,18 @@ class ChatLine extends PureComponent {
 				" ",
 				content
 			];
+
+			if (offline) {
+				let { messageToken } = this.props;
+				outerContent.push(" ");
+				outerContent.push(
+					<ChatOfflineResendButton
+						channel={channel}
+						messageToken={messageToken}
+						time={time}
+						key="offline-resend" />
+				);
+			}
 		}
 		else {
 			outerContent = [
@@ -170,10 +185,9 @@ class ChatLine extends PureComponent {
 			];
 		}
 
-
 		const itemProps = {
 			className,
-			id: `line-${lineId}`
+			id: lineId && `line-${lineId}`
 		};
 
 		if (isHighlight) {
@@ -204,8 +218,10 @@ ChatLine.propTypes = {
 	highlight: PropTypes.array,
 	lineId: PropTypes.string,
 	message: PropTypes.string,
+	messageToken: PropTypes.string,
 	mode: PropTypes.string,
 	observer: PropTypes.object,
+	offline: PropTypes.bool,
 	onEmoteLoad: PropTypes.func,
 	reason: PropTypes.string,
 	server: PropTypes.string,

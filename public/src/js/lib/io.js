@@ -66,12 +66,13 @@ export function unsubscribeFromSubject(subject) {
 	_handleSubscription(subject, true);
 }
 
-export function sendMessage(channel, message) {
+export function sendMessage(channel, message, messageToken) {
 	if (socket && channel && message) {
 		const state = store.getState();
 		const data = {
 			channel,
 			message,
+			messageToken,
 			token: state && state.token
 		};
 
@@ -296,6 +297,11 @@ export function initializeIo() {
 					item: event
 				}));
 			}
+		});
+
+		socket.on("messagePosted", (details) => {
+			let { channel, messageToken } = details;
+			store.dispatch(actions.offlineMessages.remove(channel, messageToken));
 		});
 
 		socket.on("channelUserList", (details) => {

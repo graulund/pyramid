@@ -6,8 +6,9 @@ import forOwn from "lodash/forOwn";
 
 import { parseChannelUri } from "../lib/channelNames";
 import { convertCodesToEmojis } from "../lib/emojis";
-import { cacheItem, sendMessage } from "../lib/io";
+import { cacheItem } from "../lib/io";
 import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "../lib/displayNames";
+import { postMessage } from "../lib/posting";
 import { refElSetter } from "../lib/refEls";
 
 const YOUNG_MESSAGE_MS = 1800000;
@@ -400,7 +401,7 @@ class ChatInput extends PureComponent {
 			this.resetCurrentHistory();
 
 			// Send and store
-			sendMessage(channel, message);
+			postMessage(channel, message);
 			inputHistory[channel] = cacheItem(
 				inputHistory[channel] || [],
 				message

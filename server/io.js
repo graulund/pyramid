@@ -343,6 +343,12 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitMessagePosted = function(socket, channel, messageToken) {
+		if (socket) {
+			socket.emit("messagePosted", { channel, messageToken });
+		}
+	};
+
 	// Deferred server availability
 	const setServer = (_server) => {
 		server = _server;
@@ -496,6 +502,11 @@ module.exports = function(main) {
 					// if the command itself includes an accepted token
 
 					if (tokenUtils.isAnAcceptedToken(details.token)) {
+
+						if (details.messageToken) {
+							emitMessagePosted(socket, details.channel, details.messageToken);
+						}
+
 						const message = stringUtils.normalise(details.message);
 						main.ircControl().sendOutgoingMessage(details.channel, message);
 					}

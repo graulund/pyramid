@@ -17,7 +17,7 @@ const clearAcceptedTokens = function() {
 const generateToken = function(length = 60) {
 	const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	var output = "";
-	for(var i = 0; i < length; i++) {
+	for (var i = 0; i < length; i++) {
 		output += alpha[Math.round((alpha.length-1)*Math.random())];
 	}
 	return output;

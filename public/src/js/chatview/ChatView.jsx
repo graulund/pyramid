@@ -151,6 +151,7 @@ class ChatView extends PureComponent {
 			logBrowserOpen,
 			logDate,
 			logDetails,
+			offlineMessages,
 			pageNumber,
 			pageQuery,
 			pageType,
@@ -206,6 +207,7 @@ class ChatView extends PureComponent {
 					loading={loading}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
+					offlineMessages={offlineMessages}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					selectedLine={selectedLine}
@@ -240,6 +242,7 @@ ChatView.propTypes = {
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
+	offlineMessages: PropTypes.object,
 	pageNumber: PropTypes.number,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
@@ -264,7 +267,7 @@ const mapStateToProps = function(state, ownProps) {
 	const { lineId, logDate, pageQuery, pageType } = ownProps;
 	const subject = subjectName(pageType, pageQuery);
 
-	var lines, lastReload;
+	var lines, lastReload, offlineMessages;
 
 	if (logDate) {
 		const logCache = state.logFiles[subject];
@@ -275,6 +278,10 @@ const mapStateToProps = function(state, ownProps) {
 		const cacheData = state[cacheName][pageQuery];
 		lines = cacheData && cacheData.cache;
 		lastReload = cacheData && cacheData.lastReload;
+
+		if (pageType === PAGE_TYPES.CHANNEL) {
+			offlineMessages = state.offlineMessages[pageQuery];
+		}
 	}
 
 	const displayName = getDisplayName(state, pageType, pageQuery);
@@ -289,6 +296,7 @@ const mapStateToProps = function(state, ownProps) {
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,
 		logDetails,
+		offlineMessages,
 		selectedLine,
 		userListOpen: state.viewState.userListOpen
 	};

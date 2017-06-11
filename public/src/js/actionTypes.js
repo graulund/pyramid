@@ -73,6 +73,11 @@ export const onlineFriends = {
 	"SET": "onlineFriends/SET"
 };
 
+export const offlineMessages = {
+	"ADD": "offlineMessages/ADD",
+	"REMOVE": "offlineMessages/REMOVE"
+};
+
 export const serverData = {
 	"SET": "serverData/SET",
 	"UPDATE": "serverData/UPDATE"

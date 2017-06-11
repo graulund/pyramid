@@ -2,6 +2,7 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { findDOMNode } from "react-dom";
 import remove from "lodash/remove";
+import values from "lodash/values";
 import "intersection-observer";
 
 import ChatLines from "./ChatLines.jsx";
@@ -303,7 +304,14 @@ class ChatFrame extends PureComponent {
 	// Render
 
 	render() {
-		const { collapseJoinParts, lines, loading, pageQuery, pageType } = this.props;
+		const {
+			collapseJoinParts,
+			lines,
+			loading,
+			offlineMessages,
+			pageQuery,
+			pageType
+		} = this.props;
 
 		const displayChannel = pageType !== PAGE_TYPES.CHANNEL;
 		const displayContextLink =
@@ -311,13 +319,26 @@ class ChatFrame extends PureComponent {
 			pageQuery === "highlights";
 		const displayUsername = pageType !== PAGE_TYPES.USER;
 
+		var allLines = lines;
+
+		// Add any offline messages at the bottom
+
+		if (offlineMessages) {
+			const offlineLines = values(offlineMessages);
+
+			if (offlineLines.length) {
+				offlineLines.sort((a,b) => a.time > b.time);
+				allLines = lines.concat(offlineLines);
+			}
+		}
+
 		const content = <ChatLines
 			collapseJoinParts={collapseJoinParts}
 			displayChannel={displayChannel}
 			displayContextLink={displayContextLink}
 			displayUsername={displayUsername}
 			loading={loading}
-			messages={lines}
+			messages={allLines}
 			observer={this.observerHandlers}
 			key="main" />;
 
@@ -333,6 +354,7 @@ ChatFrame.propTypes = {
 	loading: PropTypes.bool,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
+	offlineMessages: PropTypes.object,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	selectedLine: PropTypes.object,
