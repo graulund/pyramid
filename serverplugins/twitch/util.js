@@ -12,6 +12,10 @@ const isTwitchHostname = function(hostname) {
 	return /twitch\.tv$/.test(hostname);
 };
 
+const channelIsGroupChat = function(channelName) {
+	return channelName && channelName[0] === "_";
+};
+
 const rangesOverlap = function (x1, x2, y1, y2) {
 	var low1, low2, high1, high2;
 	if (x1 <= y1) {
@@ -68,6 +72,7 @@ const acceptRequest = function(callback) {
 
 module.exports = {
 	acceptRequest,
+	channelIsGroupChat,
 	getEnabledExternalEmoticonTypes,
 	isTwitch,
 	isTwitchHostname,

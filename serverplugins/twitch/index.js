@@ -11,11 +11,13 @@ const users = require("./users");
 const util = require("./util");
 
 const EMOTE_RELOAD_INTERVAL_MS = 3600000;
+const MIN_TIME_BETWEEN_GROUP_CHAT_CALLS_MS = 10000;
 
 var log = console.log;
 var warn = console.warn;
 
 var twitchChannelCache = [];
+var lastGroupChatCallTimes = {};
 
 module.exports = function(main) {
 
@@ -93,10 +95,20 @@ module.exports = function(main) {
 			return;
 		}
 
+		let serverName = client.config.name;
+
+		if (
+			lastGroupChatCallTimes[serverName] &&
+			new Date() - lastGroupChatCallTimes[serverName] <
+				MIN_TIME_BETWEEN_GROUP_CHAT_CALLS_MS
+		) {
+			// Don't call so fast
+			return;
+		}
+
 		let appConfig = main.appConfig();
 		let autoJoin = appConfig.configValue("automaticallyJoinTwitchGroupChats");
 		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
-		let serverName = client.config.name;
 
 		let token = main.ircPasswords().getDecryptedPasswordForServer(serverName);
 
@@ -110,7 +122,8 @@ module.exports = function(main) {
 							main.ircConfig().modifyChannelInIrcConfig(
 								serverName,
 								name,
-								{ displayName }
+								{ displayName },
+								() => main.ircConfig().loadAndEmitIrcConfig()
 							);
 						});
 
@@ -144,6 +157,8 @@ module.exports = function(main) {
 				warn("Tried to update Twitch group chat info, but couldn't find your oauth token");
 			}
 		}
+
+		lastGroupChatCallTimes[serverName] = new Date();
 	};
 
 	const updateUserChatInfo = function(client, username) {
@@ -157,7 +172,9 @@ module.exports = function(main) {
 		let channel = client.config.channels
 			.find((channel) => channel.name === username);
 
-		if (useDisplayNames && channel) {
+		if (useDisplayNames) {
+			log(`Updating Twitch user info for ${username}...`);
+
 			users.requestTwitchUserInfo(username, function(err, data) {
 				if (!err && data && data.display_name) {
 					let displayName = stringUtils.clean(data.display_name);
@@ -165,13 +182,16 @@ module.exports = function(main) {
 					if (
 						displayName &&
 						displayName !== username &&
-						channelDisplayName !== channel.displayName
+						(
+							!channel ||
+							channelDisplayName !== channel.displayName
+						)
 					) {
 						main.ircConfig().modifyChannelInIrcConfig(
 							serverName,
 							username,
 							{ displayName: channelDisplayName },
-							() => main.ircConfig().loadIrcConfig()
+							() => main.ircConfig().loadAndEmitIrcConfig()
 						);
 					}
 				}
@@ -185,10 +205,29 @@ module.exports = function(main) {
 		}
 
 		client.config.channels.forEach((channel) => {
-			if (channel.name && channel.name[0] !== "_") {
+			if (channel.name && !util.channelIsGroupChat(channel.name)) {
 				updateUserChatInfo(client, channel.name);
 			}
 		});
+	};
+
+	const updateChatInfoForJoinedChannel = function(client, channel) {
+		if (!util.isTwitch(client)) {
+			return;
+		}
+
+		let channelName = channelUtils.channelNameFromUri(channel);
+		if (channelName) {
+			if (!util.channelIsGroupChat(channelName)) {
+				// Load just this user info
+				updateUserChatInfo(client, channelName);
+			}
+
+			else {
+				// Reload all group chat info if we can
+				updateGroupChatInfo(client);
+			}
+		}
 	};
 
 	// Events
@@ -223,14 +262,9 @@ module.exports = function(main) {
 			util.isTwitch(client) &&
 			username === client.irc.user.nick
 		) {
-			loadExternalEmotesForChannel(channel);
-
-			let channelName = channelUtils.channelNameFromUri(channel);
-			if (channelName && channelName[0] !== "_") {
-				updateUserChatInfo(client, channelName);
-			}
-
 			twitchChannelCache = _.uniq(twitchChannelCache.concat([channel]));
+			loadExternalEmotesForChannel(channel);
+			updateChatInfoForJoinedChannel(client, channel);
 		}
 	};
 

@@ -5,7 +5,7 @@ const channelUtils = require("../util/channels");
 const passwordUtils = require("../util/passwords");
 const stringUtils = require("../util/strings");
 
-module.exports = function(db) {
+module.exports = function(db, io) {
 
 	var currentIrcConfig = [];
 
@@ -33,6 +33,11 @@ module.exports = function(db) {
 				}
 			}
 		});
+	};
+
+	const loadAndEmitIrcConfig = function(callback) {
+		// Will call above
+		io.emitIrcConfig(null, callback);
 	};
 
 	const generateIrcConfigCaches = function(config = currentIrcConfig) {
@@ -276,6 +281,7 @@ module.exports = function(db) {
 		getIrcConfig,
 		getIrcConfigByName,
 		loadIrcConfig,
+		loadAndEmitIrcConfig,
 		modifyChannelInIrcConfig,
 		modifyServerInIrcConfig,
 		removeChannelFromIrcConfig,

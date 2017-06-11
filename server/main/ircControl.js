@@ -19,7 +19,7 @@ module.exports = function(irc, ircConfig, io) {
 	};
 
 	const loadAndConnectUnconnectedIrcs = function(callback) {
-		ircConfig.loadIrcConfig(() => {
+		ircConfig.loadAndEmitIrcConfig(() => {
 			connectUnconnectedIrcs();
 
 			if (typeof callback === "function") {
