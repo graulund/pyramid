@@ -107,7 +107,7 @@ module.exports = function(main) {
 				() => main.ircConfig().loadAndEmitIrcConfig()
 			);
 		}
-	}
+	};
 
 	const updateGroupChatInfo = function(client) {
 
