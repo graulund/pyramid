@@ -1,6 +1,6 @@
 const _ = require("lodash");
-const request = require("request");
 
+const { queueRequest } = require("./httpRequests");
 const util = require("./util");
 
 const EXTERNAL_GLOBAL_EMOTE_ENDPOINTS = [
@@ -89,7 +89,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 			return;
 		}
 
-		request({ url, json: true }, util.acceptRequest((error, data) => {
+		queueRequest({ url, json: true }, util.acceptRequest((error, data) => {
 			if (!error) {
 				if (uncleared) {
 					uncleared = false;
@@ -150,7 +150,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 
 			let url = prefix + channelName;
 
-			request({ url, json: true }, util.acceptRequest((error, data) => {
+			queueRequest({ url, json: true }, util.acceptRequest((error, data) => {
 				if (!error) {
 					// Clear it if it wasn't already cleared
 					if (uncleared) {

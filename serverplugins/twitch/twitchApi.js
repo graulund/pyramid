@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const qs = require("querystring");
-const request = require("request");
+
+const { queueRequest } = require("./httpRequests");
 
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
@@ -18,7 +19,7 @@ const clientIdRequest = function(url, callback, extraOptions = {}) {
 		extraOptions
 	);
 
-	return request(options, callback);
+	return queueRequest(options, callback);
 };
 
 const krakenGetRequest = function(commandName, query, callback) {
@@ -35,7 +36,7 @@ const chatdepotGetRequest = function(commandName, password, query, callback) {
 	const oauthId = password.replace(/^oauth:/, "");
 	const queryString = qs.stringify(_.extend({ oauth_token: oauthId }, query));
 	const url = CHATDEPOT_BASE_URI + commandName + "?" + queryString;
-	return request({ url, json: true }, callback);
+	return queueRequest({ url, json: true }, callback);
 };
 
 const flattenEmoticonImagesData = function(data) {
