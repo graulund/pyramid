@@ -89,6 +89,26 @@ module.exports = function(main) {
 		return g.concat(c);
 	};
 
+	const updateChatDisplayName = function(
+		serverName, channelName, channelInfo, evalDisplayName, setDisplayName
+	) {
+		if (
+			evalDisplayName &&
+			evalDisplayName !== channelName &&
+			(
+				!channelInfo ||
+				setDisplayName !== channelInfo.displayName
+			)
+		) {
+			main.ircConfig().modifyChannelInIrcConfig(
+				serverName,
+				channelName,
+				{ displayName: setDisplayName },
+				() => main.ircConfig().loadAndEmitIrcConfig()
+			);
+		}
+	}
+
 	const updateGroupChatInfo = function(client) {
 
 		if (!util.isTwitch(client)) {
@@ -111,6 +131,7 @@ module.exports = function(main) {
 		let useDisplayNames = appConfig.configValue("enableTwitchChannelDisplayNames");
 
 		let token = main.ircPasswords().getDecryptedPasswordForServer(serverName);
+		let configChannels = client.config.channels;
 
 		if (autoJoin || useDisplayNames) {
 			if (token) {
@@ -119,11 +140,15 @@ module.exports = function(main) {
 					if (!error && channels) {
 						channels.forEach((channel) => {
 							let { name, displayName } = channel;
-							main.ircConfig().modifyChannelInIrcConfig(
+							let configChannel = configChannels
+								.find((c) => c.name === name);
+
+							updateChatDisplayName(
 								serverName,
 								name,
-								{ displayName },
-								() => main.ircConfig().loadAndEmitIrcConfig()
+								configChannel,
+								displayName,
+								displayName
 							);
 						});
 
@@ -154,7 +179,10 @@ module.exports = function(main) {
 			}
 
 			else {
-				warn("Tried to update Twitch group chat info, but couldn't find your oauth token");
+				warn(
+					"Tried to update Twitch group chat info, " +
+					"but couldn't find your oauth token"
+				);
 			}
 		}
 
@@ -179,21 +207,14 @@ module.exports = function(main) {
 				if (!err && data && data.display_name) {
 					let displayName = stringUtils.clean(data.display_name);
 					let channelDisplayName = "#" + displayName;
-					if (
-						displayName &&
-						displayName !== username &&
-						(
-							!channel ||
-							channelDisplayName !== channel.displayName
-						)
-					) {
-						main.ircConfig().modifyChannelInIrcConfig(
-							serverName,
-							username,
-							{ displayName: channelDisplayName },
-							() => main.ircConfig().loadAndEmitIrcConfig()
-						);
-					}
+
+					updateChatDisplayName(
+						serverName,
+						username,
+						channel,
+						displayName,
+						channelDisplayName
+					);
 				}
 			});
 		}
