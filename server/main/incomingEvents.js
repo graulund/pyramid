@@ -177,6 +177,7 @@ module.exports = function(
 					userListEmissionMethods[channelUri] =
 						_.debounce(function() {
 							io.emitChannelUserListToRecipients(channelUri);
+							userLists.reloadOnlineFriends();
 						}, 500);
 				}
 
