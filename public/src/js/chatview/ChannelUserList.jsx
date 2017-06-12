@@ -11,37 +11,7 @@ const USER_SYMBOL_ORDER = ["~", "&", "@", "%", "+"];
 class ChannelUserList extends PureComponent {
 	// TODO: Change into a wrapper of <UserList />?
 
-	shouldComponentUpdate(newProps) {
-		if (newProps) {
-			const { channel, channelUserLists, lastSeenUsers } = this.props;
-
-			// Only look at changes in the relevant user list, not all of them
-			var oldUserList = channelUserLists && channelUserLists[channel];
-			var newUserList = newProps.channelUserLists &&
-			newProps.channelUserLists[newProps.channel];
-
-			if (oldUserList !== newUserList) {
-				return true;
-			}
-
-			// Look at the usernames amongst our friends
-			if (this.monitoredUserNames && this.monitoredUserNames.length) {
-				const mu = this.monitoredUserNames;
-				for(var i = 0; i < mu.length; i++) {
-					if (
-						lastSeenUsers && newProps.lastSeenUsers &&
-						lastSeenUsers[mu[i]] !== newProps.lastSeenUsers[mu[i]]
-					) {
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	groupUserList (userList) {
+	groupUserList(userList) {
 		var output = {};
 
 		forOwn(userList, (data, username) => {
@@ -67,7 +37,7 @@ class ChannelUserList extends PureComponent {
 		return output;
 	}
 
-	sortedUserList (userList) {
+	sortedUserList(userList) {
 		var output = [];
 		const grouped = this.groupUserList(userList);
 		const groups = Object.keys(grouped);
@@ -97,31 +67,25 @@ class ChannelUserList extends PureComponent {
 	}
 
 	render() {
-		const { channel, channelUserLists, lastSeenUsers } = this.props;
+		const { channel, lastSeenUsers, userList } = this.props;
 
-		var userList = channelUserLists[channel], userListNodes = null;
-
-		this.monitoredUserNames = [];
+		var userListNodes = null;
 
 		if (userList) {
 			const sortedList = this.sortedUserList(userList);
 			userListNodes = sortedList.map((data) => {
 				if (data) {
 					let { displayName, username, symbol } = data;
-					let userData = lastSeenUsers[username];
-
-					if (userData) {
-						this.monitoredUserNames.push(username);
-					}
+					let lastSeen = lastSeenUsers[username];
 
 					return <TimedUserItem
 						contextChannel={channel}
 						displayName={displayName}
+						lastSeenData={lastSeen}
 						skipOld={false}
 						symbol={symbol}
 						username={username}
 						visible={true}
-						{...userData}
 						key={username} />;
 				}
 			});
@@ -134,15 +98,19 @@ class ChannelUserList extends PureComponent {
 }
 
 ChannelUserList.propTypes = {
-	channelUserLists: PropTypes.object,
 	channel: PropTypes.string,
-	lastSeenUsers: PropTypes.object
+	lastSeenUsers: PropTypes.object,
+	userList: PropTypes.object
 };
 
-export default connect(({
-	channelUserLists,
-	lastSeenUsers
-}) => ({
-	channelUserLists,
-	lastSeenUsers
-}))(ChannelUserList);
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let { channelUserLists, lastSeenUsers } = state;
+
+	return {
+		lastSeenUsers,
+		userList: channelUserLists[channel]
+	};
+};
+
+export default connect(mapStateToProps)(ChannelUserList);
