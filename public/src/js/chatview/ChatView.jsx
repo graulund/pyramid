@@ -1,6 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import shallowEqual from "fbjs/lib/shallowEqual";
 
 import ChannelUserList from "./ChannelUserList.jsx";
 import ChatFrame from "./ChatFrame.jsx";
@@ -35,6 +36,18 @@ class ChatView extends PureComponent {
 
 	componentWillMount() {
 		this.requestDataIfNeeded(this.props);
+	}
+
+	shouldComponentUpdate(nextProps, nextState) {
+
+		// Lock updates if window is not visible anyway
+		if (!nextProps.isVisible) {
+			return false;
+		}
+
+		// Default PureComponent behaviour
+		return !shallowEqual(this.props, nextProps) ||
+			!shallowEqual(this.state, nextState);
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -236,6 +249,7 @@ ChatView.propTypes = {
 	collapseJoinParts: PropTypes.bool,
 	displayName: PropTypes.string,
 	inFocus: PropTypes.bool,
+	isVisible: PropTypes.bool,
 	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
@@ -292,6 +306,7 @@ const mapStateToProps = function(state, ownProps) {
 		collapseJoinParts: state.appConfig.collapseJoinParts,
 		displayName,
 		inFocus: state.deviceState.inFocus,
+		isVisible: state.deviceState.visible,
 		lastReload,
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,

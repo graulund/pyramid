@@ -7,6 +7,29 @@ import { humanDateStamp } from "../lib/formatting";
 const block = "chatlines";
 
 class ChatLines extends PureComponent {
+
+	renderDateHeader(dateString) {
+		if (!this.dateHeaderCache) {
+			this.dateHeaderCache = {};
+		}
+
+		let cachedEl = this.dateHeaderCache[dateString];
+
+		if (cachedEl) {
+			return cachedEl;
+		}
+
+		let out = (
+			<li className="date-header" key={dateString}>
+				<span>{ dateString }</span>
+			</li>
+		);
+
+		this.dateHeaderCache[dateString] = out;
+
+		return out;
+	}
+
 	render() {
 		const {
 			collapseJoinParts,
@@ -25,7 +48,9 @@ class ChatLines extends PureComponent {
 		if (messages && messages.length) {
 			var lastDateString = "";
 
-			content = messages.map((msg, index) => {
+			content = [];
+
+			messages.forEach((msg, index) => {
 				if (msg) {
 					var dateString = humanDateStamp(new Date(msg.time), true, true);
 					var line = <ChatLine {...msg}
@@ -37,27 +62,27 @@ class ChatLines extends PureComponent {
 						onEmoteLoad={onEmoteLoad}
 						key={msg.lineId || index} />;
 
+					// Detect date change
 					if (dateString !== lastDateString) {
+
+						// Insert date header
 						if (displayFirstDate || lastDateString !== "") {
 							lastDateString = dateString;
-							return [
-								(<li className="date-header" key={dateString}>
-									<span>{ dateString }</span>
-								</li>),
-								line
-							];
+							content.push(
+								this.renderDateHeader(dateString)
+							);
 						}
+
 						else {
 							lastDateString = dateString;
 						}
 					}
 
-					return line;
+					content.push(line);
 				}
-
-				return null;
 			});
 		}
+
 		else if (!loading) {
 			content = <li className={`${block}__empty`} key="empty">Nothing here :(</li>;
 		}
