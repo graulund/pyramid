@@ -218,6 +218,8 @@ const lineFormats = {
 			var by = "by";
 			if (status === "connected") { by = "to"; }
 			if (status === "disconnected") { by = "from"; }
+			if (status === "failed") { by = "to connect to"; }
+			if (status === "aborted") { by = "connecting to"; }
 
 			return `*** ${status} ${by} ${server}`;
 		},
