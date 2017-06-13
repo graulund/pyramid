@@ -1,11 +1,12 @@
 const constants = require("../constants");
-const routeUtils = require("../routeUtils");
-const util = require("../util");
+const passwordUtils = require("../util/passwords");
+const routeUtils = require("../util/routing");
+const tokenUtils = require("../util/tokens");
 
 module.exports = function(main) {
 
 	function get(req, res) {
-		const config = main.currentAppConfig();
+		const config = main.appConfig().currentAppConfig();
 		if (!config || !config.webPassword) {
 			res.redirect("/welcome");
 		}
@@ -18,13 +19,19 @@ module.exports = function(main) {
 	}
 
 	function post(req, res) {
-		if (req.body && req.body.password === main.currentAppConfig().webPassword) {
+		let passwordHash = main.appConfig().currentAppConfig().webPassword;
+		if (
+			req.body &&
+			passwordUtils.verifyPassword(req.body.password, passwordHash)
+		) {
+
+			main.ircPasswords().onDecryptionKey(req.body.password);
 
 			if (req.body.logOutOtherSessions) {
-				util.clearAcceptedTokens();
+				tokenUtils.clearAcceptedTokens();
 			}
 
-			const token = util.generateAcceptedToken();
+			const token = tokenUtils.generateAcceptedToken();
 			routeUtils.setTokenCookie(
 				res,
 				token,
@@ -37,7 +44,10 @@ module.exports = function(main) {
 			routeUtils.redirectBack(req, res);
 		}
 
-		res.end("That wasn't correct. Sorry.");
+		res.end(
+			"That wasn't correct. Sorry.\n\n" +
+			"If you've recently updated Pyramid, be aware that passwords are stored differently now, and you are required to run the scripts/setPasswordEncryptionMode.js script from a command line before you can use Pyramid again. Sorry about that."
+		);
 	}
 
 	return { get, post };

@@ -33,7 +33,8 @@ export const SETTINGS_PAGE_NAMES = {
 	general: "General",
 	friends: "Friends",
 	irc: "IRC",
-	nicknames: "Nicknames"
+	nicknames: "Nicknames",
+	twitch: "Twitch"
 };
 
 export const CHANGE_DEBOUNCE_MS = 1300;
@@ -45,4 +46,11 @@ export const TWITCH_DISPLAY_NAMES = {
 	OFF: 0,
 	CASE_CHANGES_ONLY: 1,
 	ALL: 2
+};
+
+export const COLOR_BLINDNESS = {
+	OFF: 0,
+	PROTANOPE: 1,
+	DEUTERANOPE: 2,
+	TRITANOPE: 3
 };

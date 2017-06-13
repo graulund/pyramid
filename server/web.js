@@ -3,14 +3,11 @@
 
 const fs = require("fs");
 const path = require("path");
+
 const bodyParser = require("body-parser");
 const express = require("express");
 //const favicon = require("serve-favicon");
 const partials = require("express-partials");
-
-const constants = require("./constants");
-const log = require("./log");
-const util = require("./util");
 
 module.exports = function(main, io) {
 
@@ -53,6 +50,7 @@ module.exports = function(main, io) {
 		// Development error handler
 		// (Will print stacktrace)
 		if (app.get("env") === "development") {
+			// eslint-disable-next-line no-unused-vars
 			app.use(function(err, req, res, next) {
 				res.status(err.status || 500);
 				res.render("error", {
@@ -66,6 +64,8 @@ module.exports = function(main, io) {
 
 		// Production error handler
 		// (No stacktraces leaked to user)
+
+		// eslint-disable-next-line no-unused-vars
 		app.use(function(err, req, res, next) {
 			res.status(err.status || 500);
 			res.render("error", {
@@ -82,11 +82,11 @@ module.exports = function(main, io) {
 
 		var server;
 
-		var config = main.configValue;
+		var config = main.appConfig().configValue;
 
 		if (config("sslKeyPath") && config("sslCertPath")){
 			// Secure HTTPS server
-			var https = require("https")
+			var https = require("https");
 			server = https.createServer({
 				key: fs.readFileSync(path.join(__dirname, "..", config("sslKeyPath"))),
 				cert: fs.readFileSync(path.join(__dirname, "..", config("sslCertPath")))
@@ -104,7 +104,7 @@ module.exports = function(main, io) {
 		io.setServer(app.server);
 
 		return app;
-	}
+	};
 
 	const output = {
 		go

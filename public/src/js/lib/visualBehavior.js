@@ -5,6 +5,10 @@ export function isMobile() {
 	return window.innerWidth < 768;
 }
 
+export function scrollToTheTop() {
+	window.scrollTo(0, 0);
+}
+
 export function areWeScrolledToTheBottom() {
 	let contentHeight = document.getElementById("container").clientHeight;
 	let windowHeight = window.innerHeight;
@@ -110,4 +114,15 @@ function initFocusHandler() {
 	window.addEventListener("visibilitychange", visibilityChangeHandler);
 	window.addEventListener("focus", focusHandler);
 	window.addEventListener("blur", blurHandler);
+}
+
+export function setDarkModeStatus(status) {
+	let list = document.body.classList;
+	let name = "darkmode";
+	if (status && !list.contains(name)) {
+		list.add(name);
+	}
+	else if (!status && list.contains(name)) {
+		list.remove(name);
+	}
 }

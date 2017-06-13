@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import throttle from "lodash/throttle";
 
 import ChatLines from "./ChatLines.jsx";
+import { refElSetter } from "../lib/refEls";
 import { createLineIdHash } from "../lib/routeHelpers";
 
 const block = "contextview";
@@ -16,6 +17,9 @@ class ChatContextView extends PureComponent {
 		this.handleScroll = throttle(this.handleScroll.bind(this), 50);
 		this.initializeExpandedView = this.initializeExpandedView.bind(this);
 		this.toggleContext = this.toggleContext.bind(this);
+
+		this.els = {};
+		this.setMain = refElSetter("main").bind(this);
 
 		this.state = {
 			scrolled: false,
@@ -43,7 +47,7 @@ class ChatContextView extends PureComponent {
 	initializeExpandedView() {
 		const { lineId } = this.props;
 		const { scrolled } = this.state;
-		const { main } = this.refs;
+		const { main } = this.els;
 
 		if (main && !scrolled) {
 			const line = main.querySelector(createLineIdHash(lineId));
@@ -149,7 +153,7 @@ class ChatContextView extends PureComponent {
 			);
 
 			const context = (
-				<div className={`${block}__main`} key="main" ref="main">
+				<div className={`${block}__main`} key="main" ref={this.setMain}>
 					<ChatLines
 						messages={allMessages}
 						observer={observer}

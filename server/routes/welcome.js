@@ -1,7 +1,7 @@
+const _ = require("lodash");
 const async = require("async");
-const lodash = require("lodash");
 
-const util = require("../util");
+const stringUtils = require("../util/strings");
 
 module.exports = function(main) {
 
@@ -22,7 +22,7 @@ module.exports = function(main) {
 	};
 
 	const showWelcomePage = function (res, error = null, reqBody = {}) {
-		main.loadAppConfig((err, appConfig) => {
+		main.appConfig().loadAppConfig((err, appConfig) => {
 
 			if (appConfig && appConfig.webPassword) {
 				// It's already set up; no longer showing welcome page
@@ -36,8 +36,20 @@ module.exports = function(main) {
 				}
 			}
 			else {
+				let shown = "display: block";
+				let hidden = "display: none";
+				let networkType = reqBody && reqBody.networkType;
+
+				let ircTypeDisplay = networkType !== "twitch" ? shown : hidden;
+				let twitchTypeDisplay = networkType === "twitch" ? shown : hidden;
+
+				let ircTypeClass = "irc" + (networkType !== "twitch" ? " selected" : "");
+				let twitchTypeClass = "twitch" + (networkType === "twitch" ? " selected" : "");
+
 				res.render("welcome", {
-					appConfig, enableScripts: false, error, reqBody
+					appConfig, enableScripts: false, error, reqBody,
+					ircTypeDisplay, twitchTypeDisplay,
+					ircTypeClass, twitchTypeClass
 				});
 			}
 		});
@@ -50,7 +62,7 @@ module.exports = function(main) {
 	const post = function(req, res) {
 		var error = null;
 
-		const config = main.currentAppConfig();
+		const config = main.appConfig().currentAppConfig();
 		if (config && config.webPassword) {
 			// It's already set up; no longer showing welcome page
 			res.redirect("/");
@@ -58,103 +70,173 @@ module.exports = function(main) {
 			return;
 		}
 
+		const onError = function() {
+			// Show form again, pre-filled
+			showWelcomePage(res, error, reqBody);
+		};
+
 		const reqBody = req.body;
+
+		var ircData;
 
 		if (
 			!reqBody.webPassword ||
-			!reqBody.ircName ||
-			!reqBody.ircHostname ||
-			!reqBody.ircPort ||
-			!reqBody.ircNickname ||
+			!reqBody.networkType ||
 			!reqBody.ircChannels
 		) {
 			error = "You have not filled in all required fields.";
+			onError();
+			return;
 		}
 
-		if (!error) {
+		// Preparing data
 
-			// Preparing data
+		const channels = _.uniq(splitByLineBreak(reqBody.ircChannels));
 
-			const ircData = {
-				name: reqBody.ircName,
-				data: {
-					hostname: reqBody.ircHostname,
-					port: reqBody.ircPort,
-					nickname: reqBody.ircNickname,
-					username: reqBody.ircUsername,
-					password: reqBody.ircPassword,
-					secure: !!reqBody.ircSecure,
-					selfSigned: !!reqBody.ircSelfSigned,
-					certExpired: !!reqBody.ircCertExpired,
-					channels: lodash.uniq(splitByLineBreak(reqBody.ircChannels))
-				}
-			};
-
-			const friends = lodash.uniq(splitByLineBreak(reqBody.friends));
-
-			const friendActions = friends.map((friendName) => {
-				return (callback) => main.addToFriends(
-					0, util.formatUriName(friendName), false, callback
-				);
-			});
-
-			// Submitting
-
-			async.parallel([
-				(callback) => {
-					if (reqBody.timeZone) {
-						return main.storeConfigValue(
-							"timeZone", reqBody.timeZone, callback
-						);
+		if (reqBody.networkType === "irc") {
+			if (
+				!reqBody.ircName ||
+				!reqBody.ircHostname ||
+				!reqBody.ircPort ||
+				!reqBody.ircNickname
+			) {
+				error = "You have not filled in all required fields.";
+				onError();
+				return;
+			}
+			else {
+				ircData = {
+					name: reqBody.ircName,
+					data: {
+						hostname: reqBody.ircHostname,
+						port: reqBody.ircPort,
+						nickname: reqBody.ircNickname,
+						username: reqBody.ircUsername,
+						password: reqBody.ircPassword,
+						secure: !!reqBody.ircSecure,
+						selfSigned: !!reqBody.ircSelfSigned,
+						certExpired: !!reqBody.ircCertExpired,
+						channels
 					}
-					callback();
-				},
-				(callback) => {
-					if (reqBody.webPort) {
-						return main.storeConfigValue(
-							"webPort", reqBody.webPort, callback
-						);
+				};
+			}
+		}
+
+		else if (reqBody.networkType === "twitch") {
+			if (
+				!reqBody.twitchUsername ||
+				!reqBody.twitchPassword
+			) {
+				error = "You have not filled in all required fields.";
+				onError();
+				return;
+			}
+
+			else {
+				ircData = {
+					name: "twitch",
+					data: {
+						hostname: "irc.chat.twitch.tv",
+						port: "6697",
+						nickname: reqBody.twitchUsername,
+						username: reqBody.twitchUsername,
+						password: reqBody.twitchPassword,
+						secure: true,
+						channels
 					}
-					callback();
-				},
-				(callback) =>
-					main.storeConfigValue(
-						"webPassword", reqBody.webPassword, callback
-					),
-				(callback) => {
-					main.addIrcServerFromDetails(ircData, (err) => {
-						if (err) {
-							callback(err);
-						}
-						else {
-							main.loadAndConnectUnconnectedIrcs(callback);
-						}
-					});
-				},
-				...friendActions
-			], (err, results) => {
+				};
+			}
+		}
+
+		else {
+			error = "Invalid network type.";
+			onError();
+			return;
+		}
+
+		const friends = _.uniq(splitByLineBreak(reqBody.friends));
+
+		const friendActions = friends.map((friendName) => {
+			return (callback) => main.friends().addToFriends(
+				0, stringUtils.formatUriName(friendName), false, callback
+			);
+		});
+
+		const strongEncryption = !!reqBody.strongEncryptionMode;
+
+		if (strongEncryption) {
+			main.ircPasswords().onDecryptionKey(reqBody.webPassword);
+		}
+
+		// Submitting
+
+		main.appConfig().storeConfigValue(
+			"webPassword", reqBody.webPassword,
+			function(err, hashedPassword) {
+
 				if (err) {
 					// Show error
 					showWelcomePage(res, err, reqBody);
 					res.end();
+					return;
 				}
-				else {
-					// Reload data after success
-					async.parallel([
-						main.loadAppConfig,
-						main.loadFriendsList
-					], () => {
-						// Ready to go!!
-						res.redirect("/login");
+
+				let encryptKey = strongEncryption
+					? reqBody.webPassword
+					: hashedPassword;
+
+				main.ircConfig().setEncryptionKey(encryptKey);
+
+				async.parallel([
+					(callback) => {
+						if (reqBody.timeZone) {
+							return main.appConfig().storeConfigValue(
+								"timeZone", reqBody.timeZone, callback
+							);
+						}
+						callback();
+					},
+					(callback) => {
+						if (reqBody.webPort) {
+							return main.appConfig().storeConfigValue(
+								"webPort", reqBody.webPort, callback
+							);
+						}
+						callback();
+					},
+					(callback) => {
+						if (strongEncryption) {
+							return main.appConfig().storeConfigValue(
+								"strongIrcPasswordEncryption", true, callback
+							);
+						}
+						callback();
+					},
+					(callback) => {
+						main.ircConfig().addIrcServerFromDetails(ircData, callback);
+					},
+					...friendActions
+				], (err) => {
+					if (err) {
+						// Show error
+						showWelcomePage(res, err, reqBody);
 						res.end();
-					});
-				}
-			})
-		}
-		else {
-			// Show form again, pre-filled
-			showWelcomePage(res, error, reqBody);
-		}
+					}
+					else {
+						// Reload data after success
+						async.parallel([
+							main.appConfig().loadAppConfig,
+							main.friends().loadFriendsList
+						], () => {
+							// Ready to go!!
+							main.ircControl().loadAndConnectUnconnectedIrcs();
+							res.redirect("/login");
+							res.end();
+						});
+					}
+				});
+			}
+		);
 	};
 
 	return { get, post };

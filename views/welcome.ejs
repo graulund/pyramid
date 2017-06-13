@@ -34,6 +34,11 @@
 				value="<%= reqBody.webPassword || "" %>">
 			<p>The password required to log in to use the client (does not have to be the same as any IRC passwords)</p>
 		</div>
+
+		<div class="settings__setting">
+			<h3><input type="checkbox" name="strongEncryptionMode" id="strongEncryptionMode"> <label for="strongEncryptionMode">Encrypt IRC passwords</label></h3>
+			<p>Requires that you log in to Pyramid before it can connect to IRC networks that require passwords, but it means that your passwords cannot be stolen.</p>
+		</div>
 	</div>
 
 	<div class="settings__section" id="irc">
@@ -42,57 +47,87 @@
 
 		<div class="settings__section">
 			<h2>Meta data</h2>
-			<p class="l">
-				<label for="ircName">Network name </label>
-				<input type="text" id="ircName" name="ircName"
-					value="<%= reqBody.ircName || "" %>">  <em>(only for own identification; required)</em>
-			</p>
-			<p class="l">
-				<label for="ircHostname">Hostname </label>
-				<input type="text" id="ircHostname" name="ircHostname"
-					value="<%= reqBody.ircHostname || "" %>">  <em>(required)</em>
-			</p>
-			<p class="l">
-				<label for="ircPort">Port </label>
-				<input type="number" id="ircPort" name="ircPort"
-					value="<%= reqBody.ircPort || "6667" %>"> <em>(required)</em>
-			</p>
-			<p class="l">
-				<label for="ircNickname">Nickname </label>
-				<input type="text" id="ircNickname" name="ircNickname"
-					value="<%= reqBody.ircNickname || "" %>"> <em>(required)</em>
-			</p>
-			<p class="l">
-				<label for="ircUsername">Username </label>
-				<input type="text" id="ircUsername" name="ircUsername"
-					value="<%= reqBody.ircUsername || "" %>">
-			</p>
-			<p class="l">
-				<label for="ircPassword">Password </label>
-				<input type="password" id="ircPassword" name="ircPassword"
-					value="<%= reqBody.ircPassword || "" %>">
-			</p>
-			<p class="l">
-				<label for="ircRealname">Real name </label>
-				<input type="text" id="ircRealname" name="ircRealname"
-					value="<%= reqBody.ircRealname || "" %>">
-			</p>
-			<p>
-				<input type="checkbox" id="ircSecure" name="ircSecure"
-					<%= reqBody.ircSecure ? " checked" : "" %>>
-				<label for="ircSecure">Connect securely</label>
-			</p>
-			<p>
-				<input type="checkbox" id="ircSelfSigned" name="ircSelfSigned"
-					<%= reqBody.ircSelfSigned ? " checked" : "" %>>
-				<label for="ircSelfSigned">Accept self-signed certificate</label>
-			</p>
-			<p>
-				<input type="checkbox" id="ircCertExpired" name="ircCertExpired"
-					<%= reqBody.ircCertExpired ? " checked" : "" %>>
-				<label for="ircCertExpired">Accept expired certificate</label>
-			</p>
-			<p><strong>For Twitch</strong>, use <code>irc.chat.twitch.tv</code> as hostname, <em>66<strong>9</strong>7</em> as port, type your Twitch username in both the <em>nickname</em> and <em>username</em> fields, use <a href="https://twitchapps.com/tmi/" target="_blank">an OAuth code</a> as password, and check the &#8220;Connect securely&#8221; box. You could choose to give this IRC network the name <em>twitch</em>.</p>
+
+			<div class="network-type-selector">
+				<div class="network-type-selector__head">
+					<p>Select network type:</p>
+
+					<ul class="settingsview__tabs switcher network-type-selector__switcher">
+						<li><a class="<%= ircTypeClass %>" href="javascript://">Normal IRC</a></li>
+						<li><a class="<%= twitchTypeClass %>" href="javascript://">Twitch</a></li>
+					</ul>
+				</div>
+
+				<input type="hidden" class="network-type-selector__value" name="networkType" value="<%= reqBody.networkType || "irc" %>" />
+
+				<div class="network-type-selector__main network-type-selector__irc" style="<%= ircTypeDisplay %>">
+					<p class="l">
+						<label for="ircName">Network name </label>
+						<input type="text" id="ircName" name="ircName"
+							value="<%= reqBody.ircName || "" %>">  <em>(only for own identification; required)</em>
+					</p>
+					<p class="l">
+						<label for="ircHostname">Hostname </label>
+						<input type="text" id="ircHostname" name="ircHostname"
+							value="<%= reqBody.ircHostname || "" %>">  <em>(required)</em>
+					</p>
+					<p class="l">
+						<label for="ircPort">Port </label>
+						<input type="number" id="ircPort" name="ircPort"
+							value="<%= reqBody.ircPort || "6667" %>"> <em>(required)</em>
+					</p>
+					<p class="l">
+						<label for="ircNickname">Nickname </label>
+						<input type="text" id="ircNickname" name="ircNickname"
+							value="<%= reqBody.ircNickname || "" %>"> <em>(required)</em>
+					</p>
+					<p class="l">
+						<label for="ircUsername">Username </label>
+						<input type="text" id="ircUsername" name="ircUsername"
+							value="<%= reqBody.ircUsername || "" %>">
+					</p>
+					<p class="l">
+						<label for="ircPassword">Password </label>
+						<input type="password" id="ircPassword" name="ircPassword"
+							value="<%= reqBody.ircPassword || "" %>">
+					</p>
+					<p class="l">
+						<label for="ircRealname">Real name </label>
+						<input type="text" id="ircRealname" name="ircRealname"
+							value="<%= reqBody.ircRealname || "" %>">
+					</p>
+					<p>
+						<input type="checkbox" id="ircSecure" name="ircSecure"
+							<%= reqBody.ircSecure ? " checked" : "" %>>
+						<label for="ircSecure">Connect securely</label>
+					</p>
+					<p>
+						<input type="checkbox" id="ircSelfSigned" name="ircSelfSigned"
+							<%= reqBody.ircSelfSigned ? " checked" : "" %>>
+						<label for="ircSelfSigned">Accept self-signed certificate</label>
+					</p>
+					<p>
+						<input type="checkbox" id="ircCertExpired" name="ircCertExpired"
+							<%= reqBody.ircCertExpired ? " checked" : "" %>>
+						<label for="ircCertExpired">Accept expired certificate</label>
+					</p>
+				</div>
+
+				<div class="network-type-selector__main network-type-selector__twitch" style="<%= twitchTypeDisplay %>">
+					<p class="l">
+						<label for="ircUsername">Twitch username </label>
+						<input type="text" id="twitchUsername" name="twitchUsername"
+							value="<%= reqBody.twitchUsername || "" %>">
+					</p>
+					<p class="l">
+						<label for="ircPassword">OAuth password </label>
+						<input type="password" id="twitchPassword" name="twitchPassword"
+							value="<%= reqBody.twitchPassword || "" %>">
+					</p>
+					<p>Use <a href="https://twitchapps.com/tmi/" target="_blank">an OAuth code</a> as password, not your Twitch password.</p>
+					<!-- // TODO: Get Twitch "Connect" button -->
+				</div>
+			</div>
 		</div>
 
 		<div class="settings__section">
@@ -115,3 +150,53 @@
 	<p>That&#8217;s it! You&#8217;re ready to go!</p>
 	<p class="welcome__end"><input type="submit"></p>
 </form>
+
+<script>
+	(function() {
+		var block = "network-type-selector", types = ["irc", "twitch"];
+
+		var c = function(className) {
+			return document.getElementsByClassName(className)[0];
+		};
+
+		var sub = function(className) {
+			return c(block + "__" + className);
+		};
+
+		var valueEl = sub("value");
+		var typesEls = {};
+		types.forEach(function(type) {
+			typesEls[type] = sub(type);
+		});
+
+		var switcherEls = sub("switcher").querySelectorAll("a");
+
+		switcherEls.forEach(function(el) {
+			el.addEventListener("click", function(evt) {
+				var target = evt.target;
+				var selectedType;
+				target.classList.forEach(function(cn) {
+					if (types.indexOf(cn) >= 0) {
+						selectedType = cn;
+					}
+				});
+
+				if (selectedType) {
+					valueEl.value = selectedType;
+					switcherEls.forEach(function(el) {
+						el.classList.remove("selected");
+					});
+					target.classList.add("selected");
+					types.forEach(function(type) {
+						var typeEl = typesEls[type];
+						if (typeEl) {
+							typeEl.style.display =
+								(type === selectedType) ? "block" : "none";
+						}
+					});
+				}
+			});
+		});
+
+	})();
+</script>

@@ -1,19 +1,21 @@
+/*eslint no-unused-vars: 0*/
+// (above is temporary)
+
 // PYRAMID
 // IRC module
 
 // Prerequisites
-const irc    = require("irc");
-const fs     = require("fs");
-const path   = require("path");
-const lodash = require("lodash");
+
+const _ = require("lodash");
+const irc = require("irc-framework");
 
 const constants = require("./constants");
-const log = require("./log");
-const util = require("./util");
+const channelUtils = require("./util/channels");
 
 module.exports = function(main) {
 
-	var clients = [], i, multiServerChannels = [];
+	let clients = [], multiServerChannels = [], debug = false;
+	let clientsWaitingForPassword = [];
 
 	// "Multi server channels" are channel names that exist on more than one connection,
 	// and thus connection needs to be specified upon mention of this channel name,
@@ -22,30 +24,27 @@ module.exports = function(main) {
 	// This is usually only performed on startup, however, it is stored as a function,
 	// in case it needs to be done later.
 
-	var calibrateMultiServerChannels = function() {
+	const calibrateMultiServerChannels = function() {
 		multiServerChannels = [];
 
-		var namesSeen = [];
-		for (var i = 0; i < clients.length; i++) {
-			var c = clients[i];
-
-			for (var j = 0; j < c.opt.channels.length; j++) {
-				var ch = c.opt.channels[j];
-
-				if (namesSeen.indexOf(ch) >= 0) {
-					multiServerChannels.push(ch);
+		let namesSeen = [];
+		clients.forEach((client) => {
+			let channels = client.joinedChannels;
+			channels.forEach((channel) => {
+				if (namesSeen.indexOf(channel) >= 0) {
+					multiServerChannels.push(channel);
 				}
 
-				namesSeen.push(ch);
-			}
-		}
-	}
+				namesSeen.push(channel);
+			});
+		});
+	};
 
 	// Channel objects (chobj); helping easily identify sources of events
 
 	const clientServerName = function(client) {
-		if (client && client.extConfig) {
-			return client.extConfig.name;
+		if (client && client.config) {
+			return client.config.name;
 		}
 
 		return null;
@@ -58,11 +57,11 @@ module.exports = function(main) {
 			server: clientServerName(client),
 			channel: channel,
 			client: client
-		}
+		};
 	};
 
 	const getChannelUri = function(chobj) {
-		return util.getChannelUri(chobj.channel, chobj.server);
+		return channelUtils.getChannelUri(chobj.server, chobj.channel);
 	};
 
 	const getChannelFullName = function(chobj) {
@@ -76,7 +75,7 @@ module.exports = function(main) {
 
 	const findClientByServerName = function(serverName) {
 		for(var i = 0; i < clients.length; i++){
-			var c = clients[i]
+			var c = clients[i];
 			if (clientServerName(c) === serverName) {
 				return c;
 			}
@@ -100,32 +99,45 @@ module.exports = function(main) {
 	// Send message
 
 	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
-		const serverName  = util.channelServerNameFromUrl(channelUri);
-		const channelName = util.channelNameFromUrl(channelUri, "#");
-		if (serverName && channelName) {
-			const client = findClientByServerName(serverName);
+		let uriData = channelUtils.parseChannelUri(channelUri);
+
+		if (uriData && uriData.server && uriData.channel) {
+			let { channel, server } = uriData;
+			let client = findClientByServerName(server);
+			let channelName = "#" + channel;
+
 			if (client) {
 
-				const meRegex = /^\/me\s+/;
+				// TODO: Proper /command handling in a different layer
+				let meRegex = /^\/me\s+/;
+
 				if (!isAction && meRegex.test(message)) {
 					isAction = true;
 					message = message.replace(meRegex, "");
 				}
 
-				const type = isAction ? "action" : "msg";
+				let type = isAction ? "action" : "msg";
+				let method = isAction ? "action" : "say";
 
-				if (isAction) {
-					client.action(channelName, message);
-				} else {
-					client.say(channelName, message);
+				let blocks = client.irc[method](channelName, message);
+
+				if (!blocks || !blocks.length) {
+					blocks = [message];
 				}
 
 				// Handle our own message as if it's incoming
-				handleIncomingMessage(
-					client, client.nick,
-					channelName, type, message, {},
-					true
-				);
+
+				// Detect if the message was split up into blocks,
+				// and handle each separately
+
+				blocks.forEach((m) => {
+					handleIncomingMessage(
+						client, client.irc.user.nick,
+						channelName, type, m, {},
+						true
+					);
+				});
+
 				return true;
 			}
 		}
@@ -144,7 +156,7 @@ module.exports = function(main) {
 		const channelUri = getChannelUri(chobj);
 		const channelName = getChannelFullName(chobj);
 		const serverName = chobj.server;
-		const meUsername = client.nick;
+		const meUsername = client.irc.user.nick;
 
 		// Time
 		const time = new Date();
@@ -155,8 +167,8 @@ module.exports = function(main) {
 			postedLocally, serverName, tags, type, username
 		});
 
-		main.handleIncomingMessage(
-			channelUri, channelName, serverName, username,
+		main.incomingEvents().handleIncomingMessage(
+			channelUri, serverName, username,
 			time, type, message, parsedTags, meUsername
 		);
 	};
@@ -165,15 +177,24 @@ module.exports = function(main) {
 		const chobj = channelObject(client, channel);
 		const time = new Date();
 
-		main.handleIncomingEvent(
-			getChannelUri(chobj), getChannelFullName(chobj), chobj.server,
-			type, data, time, client.chans[channel].users
+		main.incomingEvents().handleIncomingEvent(
+			getChannelUri(chobj), chobj.server,
+			type, data, time, client.irc
+		);
+	};
+
+	const handleIncomingGlobalEvent = function(client, type, data) {
+		let time = new Date();
+		let serverName = clientServerName(client);
+
+		main.incomingEvents().handleIncomingGlobalEvent(
+			serverName, type, data, time
 		);
 	};
 
 	const handleIncomingUnhandledMessage = function(client, message) {
 		const username = message.nick;
-		const channel = message.args[0];
+		const channel = message.params[0];
 		const chobj = channelObject(client, channel);
 		const channelUri = getChannelUri(chobj);
 		const serverName = chobj.server;
@@ -183,6 +204,7 @@ module.exports = function(main) {
 			client,
 			message,
 			serverName,
+			time: new Date(),
 			username
 		});
 	};
@@ -195,18 +217,21 @@ module.exports = function(main) {
 		}
 
 		if (server) {
-			main.handleIrcConnectionStateChange(server, state);
+			main.incomingEvents().handleIrcConnectionStateChange(server, state);
 		}
 	};
 
 	const handleSystemLog = function(client, text, level) {
 		const serverName = clientServerName(client);
-		main.handleSystemLog(serverName, text, level);
+		main.incomingEvents().handleSystemLog(serverName, text, level);
 	};
 
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
-		main.setChannelUserList(getChannelUri(chobj), userList);
+		const serverName = clientServerName(client);
+		main.incomingEvents().handleIncomingUserList(
+			getChannelUri(chobj), serverName, userList, client.irc
+		);
 	};
 
 	const abortClient = function(client, status = constants.CONNECTION_STATUS.ABORTED) {
@@ -216,140 +241,133 @@ module.exports = function(main) {
 
 	const setUpClient = function(client) {
 
-		client.addListener("connect", function() {
+		client.irc.on("registered", function() {
+			let channels = convertChannelObjects(client.config.channels);
+
+			channels.forEach((channel) => {
+				client.irc.join(channel);
+			});
+
 			client._pyramidAborted = false;
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.CONNECTED
 			);
-			main.plugins().handleEvent("connect", { client });
-		});
-
-		client.addListener("registered", function() {
 			main.plugins().handleEvent("registered", { client });
 		});
 
-		client.addListener("close", function() {
+		client.irc.on("reconnecting", function() {
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.DISCONNECTED
 			);
 		});
 
-		client.addListener("end", function() {
-			handleConnectionStateChange(
-				client, constants.CONNECTION_STATUS.DISCONNECTED
-			);
-		});
-
-		client.addListener("abort", function() {
+		client.irc.on("close", function() {
 			// IRC library gave up reconnecting
 			handleConnectionStateChange(
 				client, constants.CONNECTION_STATUS.FAILED
 			);
+			abortClient(client);
 		});
 
-		client.addListener("netError", function(error) {
-			handleSystemLog(client, `Net error: ${error.message}`, "error");
-		});
-
-		client.addListener("unhandled", function(message) {
+		client.irc.on("unknown command", function(message) {
 			handleIncomingUnhandledMessage(client, message);
 		});
 
-		client.addListener("motd", function (message) {
-			// In a standard IRC network, prefix info should be non-empty by now
-			// Try to insert some very basic standrd info iff it's empty
-			try {
-				if (
-					client.prefixForMode && client.modeForPrefix
-				) {
-					const pfmKeys = Object.keys(client.prefixForMode);
-					const mfpKeys = Object.keys(client.modeForPrefix);
-
-					if (pfmKeys && mfpKeys && !pfmKeys.length && !mfpKeys.length) {
-						client.prefixForMode["o"] = "@";
-						client.modeForPrefix["@"] = "o";
-					}
-				}
-			}
-			catch(e) {}
+		client.irc.on("debug", function (msg) {
+			//if (debug) {
+				console.log(msg);
+			//}
 		});
 
-		client.addListener("message", function (username, channel, message, rawData) {
-			if (!username || !channel) { return; }
+		/*client.irc.on("raw", function(data) {
+			let { line, from_server } = data;
+			console.log((from_server ? "> " : "< ") + line);
+		});*/
+
+		client.irc.on("message", function (event) {
+			let { nick, message, tags, target, type } = event;
+			if (!nick || !target) { return; }
+			if (type === "privmsg") { type = "msg"; }
 			handleIncomingMessage(
-				client, username, channel, "msg", message, rawData.tags || {}
+				client, nick, target, type, message, tags
 			);
 		});
 
-		client.addListener("action", function (username, channel, message, rawData) {
-			if (!username || !channel) { return; }
-			handleIncomingMessage(
-				client, username, channel, "action", message, rawData.tags || {}
-			);
-		});
-
-		client.addListener("notice", function (username, channel, message, rawData) {
-			if (!channel) { return; }
-			handleIncomingMessage(
-				client, username, channel, "notice", message, rawData.tags || {}
-			);
-		});
-
-		client.addListener("error", function(message) {
-			const errString = message.commandType + ": " +
-				message.args.join(" ") +
+		client.irc.on("error", function(message) {
+			let errString = message.commandType + ": " +
+				message.params.join(" ") +
 				` (${message.command})`;
 			handleSystemLog(client, errString, message.commandType);
 		});
 
-		client.addListener("names", (channel, nicks) => {
-			setChannelUserList(client, channel, nicks);
+		client.irc.on("userlist", (event) => {
+			let { channel, users } = event;
+			setChannelUserList(client, channel, users);
 		});
 
-		client.addListener("join", (channel, username) => {
-			handleIncomingEvent(client, channel, "join", { username });
+		client.irc.on("join", (event) => {
+			let { channel, ident, hostname, nick } = event;
 
-			const channelUri = getChannelUri(channelObject(client, channel));
-			main.plugins().handleEvent("join", { client, channel: channelUri, username });
-		});
+			if (nick === client.irc.user.nick) {
+				client.joinedChannels.push(channel);
+			}
 
-		client.addListener("part", (channel, username, reason) => {
-			handleIncomingEvent(client, channel, "part", { username, reason });
-
-			const channelUri = getChannelUri(channelObject(client, channel));
-			main.plugins().handleEvent("part", { client, channel: channelUri, username });
-		});
-
-		client.addListener("quit", (username, reason, channels) => {
-			channels.forEach((channel) => {
-				handleIncomingEvent(
-					client, channel, "quit", { username, reason }
-				);
-			});
-		});
-
-		client.addListener("kick", (channel, username, by, reason) => {
-			handleIncomingEvent(client, channel, "kick", { username, by, reason });
-		});
-
-		client.addListener("+mode", (channel, username, mode, argument) => {
 			handleIncomingEvent(
-				client, channel, "+mode", { username, mode, argument }
+				client, channel, "join",
+				{ username: nick, ident, hostname }
+			);
+
+			let channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent(
+				"join",
+				{ client, channel: channelUri, username: nick, ident, hostname }
 			);
 		});
 
-		client.addListener("-mode", (channel, username, mode, argument) => {
-			handleIncomingEvent(
-				client, channel, "-mode", { username, mode, argument }
+		client.irc.on("part", (event) => {
+			let { channel, nick } = event;
+
+			if (nick === client.irc.user.nick) {
+				client.joinedChannels = _.without(client.joinedChannels, channel);
+			}
+
+			handleIncomingEvent(client, channel, "part", { username: nick });
+
+			let channelUri = getChannelUri(channelObject(client, channel));
+			main.plugins().handleEvent(
+				"part", { client, channel: channelUri, username: nick }
 			);
 		});
 
-		client.addListener("kill", (username, reason, channels) => {
-			channels.forEach((channel) => {
-				handleIncomingEvent(
-					client, channel, "kill", { username, reason }
-				);
-			});
+		client.irc.on("quit", (event) => {
+			let { nick, message } = event;
+
+			handleIncomingGlobalEvent(
+				client, "quit",
+				{ username: nick, reason: message }
+			);
+		});
+
+		client.irc.on("kick", (event) => {
+			let { kicked, nick, channel, message } = event;
+			handleIncomingEvent(
+				client, channel, "kick",
+				{ username: kicked, by: nick, reason: message }
+			);
+		});
+
+		client.irc.on("mode", (event) => {
+			let { modes, nick, target } = event;
+
+			if (modes && modes.length) {
+				modes.forEach((data) => {
+					let { mode, param } = data;
+					handleIncomingEvent(
+						client, target, "mode",
+						{ username: nick, mode, argument: param }
+					);
+				});
+			}
 		});
 	};
 
@@ -357,38 +375,88 @@ module.exports = function(main) {
 		return channels.map((channel) => {
 			return "#" + channel.name;
 		});
-	}
+	};
 
 	// Set up clients
 
 	const initiateClient = (cf) => {
 		if (cf && cf.hostname) {
-			main.log("Connecting to " + cf.hostname + " as " + cf.nickname);
+
+			let serverName = cf.name;
+			let strongEncryption = main.ircPasswords().isStrongEncryption();
+
+			var decryptedPassword;
+
+			if (cf.password) {
+				decryptedPassword = main.ircPasswords().
+					getDecryptedPasswordForServer(serverName);
+
+				if (!decryptedPassword) {
+
+					if (strongEncryption) {
+						main.warn(
+							"Cannot connect to " + serverName +
+							" before you log in using the web interface."
+						);
+
+						if (clientsWaitingForPassword.indexOf(serverName) < 0) {
+							clientsWaitingForPassword.push(serverName);
+						}
+
+					}
+
+					else {
+						main.warn(
+							"Could not decrypt the password for " +
+							serverName
+						);
+					}
+
+					return;
+				}
+			}
+
+			main.log(`Connecting to ${cf.hostname} as ${cf.nickname}`);
 			cf.username = cf.username || cf.nickname;
 
-			var c = new irc.Client(
-				cf.hostname, cf.nickname,
-				{
-					channels:    convertChannelObjects(cf.channels),
-					port:        cf.port || 6667,
-					userName:    cf.username,
-					realName:    cf.realname || cf.nickname || cf.username,
-					password:    cf.password || "",
-					secure:      cf.secure || false,
-					selfSigned:  cf.selfSigned || false,
-					certExpired: cf.certExpired || false,
-					debug:       main.configValue("debug") || false,
-					showErrors:  main.configValue("debug") || false,
-					retryCount:  999
-				}
+			let appConfig = main.appConfig();
+			debug = appConfig.configValue("debug") || false;
+
+			let frameworkConfig = {
+				host:        cf.hostname,
+				nick:        cf.nickname,
+				port:        cf.port || 6667,
+				username:    cf.username,
+				gecos:       cf.realname || cf.nickname || cf.username,
+				password:    decryptedPassword || "",
+				tls:         cf.secure || false,
+				rejectUnauthorized: !cf.selfSigned || !cf.certExpired || false,
+				auto_reconnect_max_retries: 999
+			};
+
+			main.plugins().handleEvent(
+				"ircFrameworkConfig",
+				{ config: frameworkConfig }
 			);
-			c.extConfig = cf;
-			clients.push(c);
+
+			let client = {
+				irc: new irc.Client(frameworkConfig),
+				config: cf,
+				joinedChannels: []
+			};
+
+			clients.push(client);
+			main.plugins().handleEvent("client", { client });
+			client.irc.connect();
+
+			return client;
 		}
-	}
+
+		return null;
+	};
 
 	const go = () => {
-		const ircConfig = main.currentIrcConfig();
+		const ircConfig = main.ircConfig().currentIrcConfig();
 		ircConfig.forEach((config) => {
 			if (config) {
 				initiateClient(config);
@@ -406,7 +474,7 @@ module.exports = function(main) {
 
 	const connectUnconnectedClients = () => {
 		const newNames = [];
-		const ircConfig = main.currentIrcConfig();
+		const ircConfig = main.ircConfig().currentIrcConfig();
 		ircConfig.forEach((config) => {
 			if (
 				config &&
@@ -431,24 +499,40 @@ module.exports = function(main) {
 		});
 	};
 
+	const connectOneClient = function(serverName) {
+		var client;
+
+		let ircConfig = main.ircConfig().currentIrcConfig();
+		ircConfig.forEach((config) => {
+			if (config && config.name === serverName) {
+				client = initiateClient(config);
+			}
+		});
+
+		if (client) {
+			calibrateMultiServerChannels();
+			setUpClient(client);
+		}
+	};
+
 	const joinChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.join(formatChannelName(channelName));
+			c.irc.join(formatChannelName(channelName));
 		}
 	};
 
 	const partChannel = function(serverName, channelName) {
 		const c = findClientByServerName(serverName);
 		if (c) {
-			c.part(formatChannelName(channelName));
+			c.irc.part(formatChannelName(channelName));
 		}
 	};
 
 	const reconnectServer = function(serverName) {
 		const c = findClientByServerName(serverName);
 		if (c && c._pyramidAborted) {
-			c.connect();
+			c.irc.connect();
 		}
 		else {
 			main.warn(
@@ -462,7 +546,7 @@ module.exports = function(main) {
 		const c = findClientByServerName(serverName);
 		if (c) {
 			abortClient(c);
-			c.disconnect();
+			c.irc.quit();
 		}
 	};
 
@@ -470,13 +554,23 @@ module.exports = function(main) {
 		const c = findClientByServerName(serverName);
 		if (c) {
 			disconnectServer(serverName);
-			clients = lodash.without(clients, c);
+			clients = _.without(clients, c);
+		}
+	};
+
+	const clientPasswordAvailable = function(serverName) {
+		if (clientsWaitingForPassword.indexOf(serverName) >= 0) {
+			clientsWaitingForPassword = _.without(
+				clientsWaitingForPassword, serverName
+			);
+			connectOneClient(serverName);
 		}
 	};
 
 	// Exported objects and methods
 	const output = {
 		calibrateMultiServerChannels,
+		clientPasswordAvailable,
 		clients: () => clients,
 		connectUnconnectedClients,
 		disconnectServer,
@@ -490,4 +584,4 @@ module.exports = function(main) {
 
 	main.setIrc(output);
 	return output;
-}
+};

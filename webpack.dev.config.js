@@ -67,6 +67,14 @@ config.module.rules.push({
 	use: extractSass.extract({
 		use: [
 			{ loader: "css-loader" },
+			{
+				loader: "postcss-loader",
+				options: {
+					plugins: [
+						require("autoprefixer")
+					]
+				}
+			},
 			{ loader: "sass-loader" }
 		]
 	})

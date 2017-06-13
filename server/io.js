@@ -3,14 +3,16 @@
 
 // Prerequisites
 
+const _ = require("lodash");
 const async = require("async");
-const lodash = require("lodash");
 const socketIo = require("socket.io");
 
 const constants = require("./constants");
 const configDefaults = require("./defaults");
 const log = require("./log");
-const util = require("./util");
+const timeUtils = require("./util/time");
+const stringUtils = require("./util/strings");
+const tokenUtils = require("./util/tokens");
 
 module.exports = function(main) {
 
@@ -20,7 +22,7 @@ module.exports = function(main) {
 	const emit = () => {
 		if (io) {
 			return io.emit.apply(io, arguments);
-		};
+		}
 
 		return null;
 	};
@@ -33,32 +35,32 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelCache = function(socket, channelUri) {
+	const emitChannelCache = function(socket, channel) {
 		socket.emit("channelCache", {
-			channelUri,
-			cache: main.getChannelCache(channelUri)
+			channel,
+			cache: main.messageCaches().getChannelCache(channel)
 		});
 	};
 
 	const emitUserCache = function(socket, username) {
 		socket.emit("userCache", {
 			username,
-			cache: main.getUserCache(username)
+			cache: main.messageCaches().getUserCache(username)
 		});
 	};
 
 	const emitCategoryCache = function(socket, categoryName) {
 		socket.emit("categoryCache", {
 			categoryName,
-			cache: main.getCategoryCache(categoryName)
+			cache: main.messageCaches().getCategoryCache(categoryName)
 		});
 	};
 
-	const emitChannelLogDetails = function(socket, channelUri, time) {
-		main.getChannelLogDetails(channelUri, time, (err, details) => {
+	const emitChannelLogDetails = function(socket, channel, time) {
+		main.logs().getChannelLogDetails(channel, time, (err, details) => {
 			if (!err) {
 				socket.emit("channelLogDetails", {
-					channelUri,
+					channel,
 					details
 				});
 			}
@@ -66,7 +68,7 @@ module.exports = function(main) {
 	};
 
 	const emitUserLogDetails = function(socket, username, time) {
-		main.getUserLogDetails(username, time, (err, details) => {
+		main.logs().getUserLogDetails(username, time, (err, details) => {
 			if (!err) {
 				socket.emit("userLogDetails", {
 					username,
@@ -76,22 +78,22 @@ module.exports = function(main) {
 		});
 	};
 
-	const emitChannelUserList = function(socket, channelUri) {
+	const emitChannelUserList = function(socket, channel) {
 		socket.emit("channelUserList", {
-			channel: channelUri,
-			list: main.getChannelUserList(channelUri)
+			channel,
+			list: main.userLists().getChannelUserList(channel)
 		});
 	};
 
-	const emitChannelLogFile = function(socket, channelUri, time, pageNumber) {
-		const ymd = util.ymd(time);
+	const emitChannelLogFile = function(socket, channel, time, pageNumber) {
+		const ymd = timeUtils.ymd(time);
 		pageNumber = +pageNumber || 1;
 		if (ymd) {
 			const options = { pageNumber };
-			main.getDateLinesForChannel(channelUri, ymd, options, (err, file) => {
+			main.logs().getDateLinesForChannel(channel, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("channelLogFile", {
-						channelUri,
+						channel,
 						file,
 						time: ymd
 					});
@@ -101,11 +103,11 @@ module.exports = function(main) {
 	};
 
 	const emitUserLogFile = function(socket, username, time, pageNumber) {
-		const ymd = util.ymd(time);
+		const ymd = timeUtils.ymd(time);
 		pageNumber = +pageNumber || 1;
 		if (ymd) {
 			const options = { pageNumber };
-			main.getDateLinesForUsername(username, ymd, options, (err, file) => {
+			main.logs().getDateLinesForUsername(username, ymd, options, (err, file) => {
 				if (!err) {
 					socket.emit("userLogFile", {
 						file,
@@ -118,16 +120,16 @@ module.exports = function(main) {
 	};
 
 	const emitAppConfig = function(socket) {
-		main.loadAppConfig((err, data) => {
+		main.appConfig().loadAppConfig((err, data) => {
 			if (!err) {
-				data = lodash.assign({}, configDefaults, data);
+				data = _.assign({}, configDefaults, data);
 				socket.emit("appConfig", { data });
 			}
 		});
 	};
 
 	const emitFriendsList = function(socket) {
-		main.loadFriendsList((err, data) => {
+		main.friends().loadFriendsList((err, data) => {
 			if (!err) {
 				socket.emit("friendsList", { data });
 			}
@@ -136,9 +138,9 @@ module.exports = function(main) {
 
 	const emitIrcConfig = function(socket, callback) {
 		socket = socket || io;
-		main.loadIrcConfig((err, data) => {
+		main.ircConfig().loadIrcConfig((err, data) => {
 			if (!err) {
-				data = main.safeIrcConfigDict(data);
+				data = main.ircConfig().safeIrcConfigDict(data);
 				socket.emit("ircConfig", { data });
 			}
 
@@ -149,8 +151,8 @@ module.exports = function(main) {
 	};
 
 	const emitIrcConnectionStatusAll = function(socket) {
-		const state = main.currentIrcConnectionState();
-		lodash.forOwn(state, (status, serverName) => {
+		const state = main.ircConnectionState.currentIrcConnectionState();
+		_.forOwn(state, (status, serverName) => {
 			emitIrcConnectionStatus(serverName, status, socket);
 		});
 	};
@@ -158,18 +160,18 @@ module.exports = function(main) {
 	const emitLastSeen = function(socket) {
 		async.parallel(
 			[
-				main.loadLastSeenUsers,
-				main.loadLastSeenChannels
+				main.lastSeen().loadLastSeenUsers,
+				main.lastSeen().loadLastSeenChannels
 			],
 			(err, results) => {
 				if (!err) {
 					const [ users = {}, channels = {} ] = results;
 					const instances = [];
 
-					lodash.forOwn(users, (data, username) => {
+					_.forOwn(users, (data, username) => {
 						instances.push({ username, data });
 					});
-					lodash.forOwn(channels, (data, channel) => {
+					_.forOwn(channels, (data, channel) => {
 						instances.push({ channel, data });
 					});
 
@@ -180,12 +182,29 @@ module.exports = function(main) {
 	};
 
 	const emitNicknames = function(socket) {
-		main.loadNicknames((err, data) => {
+		main.nicknames().loadNicknames((err, data) => {
 			if (!err) {
-				const dict = main.nicknamesDict(data);
+				const dict = main.nicknames().nicknamesDict(data);
 				socket.emit("nicknames", { data: dict });
 			}
 		});
+	};
+
+	const emitChannelData = function(socket, channel) {
+		let data = main.channelData().getChannelData(channel);
+		if (data) {
+			socket.emit("channelData", { channel, data });
+		}
+	};
+
+	const emitServerData = function(socket, server) {
+		socket = socket || io;
+		if (socket) {
+			let data = main.serverData().getServerData(server);
+			if (data) {
+				socket.emit("serverData", { server, data });
+			}
+		}
 	};
 
 	// Overall list emissions
@@ -200,8 +219,14 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitMessageToRecipients = function(list, msg) {
-		emitEventToRecipients(list, "msg", msg);
+	const emitListEventToRecipients = function(
+		recipients, listType, listName, event
+	) {
+		emitEventToRecipients(
+			recipients,
+			"listEvent",
+			{ event, listName, listType }
+		);
 	};
 
 	const emitCategoryCacheToRecipients = function(list, categoryName) {
@@ -211,16 +236,36 @@ module.exports = function(main) {
 			"categoryCache",
 			{
 				categoryName,
-				cache: main.getCategoryCache(categoryName)
+				cache: main.messageCaches().getCategoryCache(categoryName)
 			}
 		);
 	};
 
-	const emitEventToChannel = function(channelUri, eventName, eventData) {
+	const emitEventToChannel = function(channel, eventData) {
 		emitEventToRecipients(
-			main.getChannelRecipients(channelUri),
-			eventName,
+			main.recipients().getChannelRecipients(channel),
+			"channelEvent",
 			eventData
+		);
+	};
+
+	const emitDataToChannel = function(channel, data) {
+		emitEventToRecipients(
+			main.recipients().getChannelRecipients(channel),
+			"channelData",
+			{ channel, data }
+		);
+	};
+
+	const emitChannelUserListToRecipients = function(channel) {
+		emitEventToRecipients(
+			main.recipients().getChannelRecipients(channel),
+			"channelUserList",
+			{
+				channel,
+				list: main.userLists().getChannelUserList(channel),
+				type: "userlist"
+			}
 		);
 	};
 
@@ -229,7 +274,7 @@ module.exports = function(main) {
 		if (socket) {
 			socket.emit(
 				"unseenHighlights",
-				{ list: Array.from(main.unseenHighlightIds()) }
+				{ list: Array.from(main.unseenHighlights().unseenHighlightIds()) }
 			);
 		}
 	};
@@ -245,18 +290,10 @@ module.exports = function(main) {
 	};
 
 	const emitLineInfo = function(socket, lineId) {
-		main.getLineByLineId(lineId, (err, line) => {
+		main.logs().getLineByLineId(lineId, (err, line) => {
 			if (!err) {
 				socket.emit("lineInfo", { line });
 			}
-		});
-	};
-
-	const emitChannelUserListToRecipients = function(channelUri) {
-		emitEventToChannel(channelUri, "channelUserList", {
-			channel: channelUri,
-			list: main.getChannelUserList(channelUri),
-			type: "userlist"
 		});
 	};
 
@@ -274,7 +311,7 @@ module.exports = function(main) {
 		socket = socket || io;
 		if (socket) {
 			socket.emit("onlineFriends", {
-				data: main.currentOnlineFriends()
+				data: main.userLists().currentOnlineFriends()
 			});
 		}
 	};
@@ -283,7 +320,7 @@ module.exports = function(main) {
 		socket = socket || io;
 		if (socket) {
 			socket.emit("viewState", {
-				data: main.currentViewState()
+				data: main.viewState.currentViewState()
 			});
 		}
 	};
@@ -306,6 +343,12 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitMessagePosted = function(socket, channel, messageToken) {
+		if (socket) {
+			socket.emit("messagePosted", { channel, messageToken });
+		}
+	};
+
 	// Deferred server availability
 	const setServer = (_server) => {
 		server = _server;
@@ -316,36 +359,36 @@ module.exports = function(main) {
 			var connectionToken = null;
 
 			socket.on("disconnect", () => {
-				main.removeRecipientEverywhere(socket);
+				main.recipients().removeRecipientEverywhere(socket);
 			});
 
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
 					connectionToken = details.token;
 
-					const isAccepted = util.isAnAcceptedToken(connectionToken);
+					const isAccepted = tokenUtils.isAnAcceptedToken(connectionToken);
 					emitTokenStatus(socket, isAccepted);
 				}
 			});
 
 			// Respond to requests for cache
 
-			socket.on("requestChannelCache", (channelUri) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				if (typeof channelUri === "string") {
-					emitChannelCache(socket, channelUri);
+			socket.on("requestChannelCache", (channel) => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (typeof channel === "string") {
+					emitChannelCache(socket, channel);
 				}
 			});
 
 			socket.on("requestUserCache", (username) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
 					emitUserCache(socket, username);
 				}
 			});
 
 			socket.on("requestCategoryCache", (categoryName) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof categoryName === "string") {
 					emitCategoryCache(socket, categoryName);
 				}
@@ -354,53 +397,54 @@ module.exports = function(main) {
 			// Response to subscription requests
 
 			socket.on("subscribe", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
-					main.addChannelRecipient(details.channel, socket);
+					main.recipients().addChannelRecipient(details.channel, socket);
 					emitChannelCache(socket, details.channel);
 					emitChannelUserList(socket, details.channel);
+					emitChannelData(socket, details.channel);
 				}
 				else if (details && details.username) {
-					main.addUserRecipient(details.username, socket);
+					main.recipients().addUserRecipient(details.username, socket);
 					emitUserCache(socket, details.username);
 				}
 				else if (details && details.category) {
-					main.addCategoryRecipient(details.category, socket);
+					main.recipients().addCategoryRecipient(details.category, socket);
 					emitCategoryCache(socket, details.category);
 				}
 			});
 
 			socket.on("unsubscribe", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
-					main.removeChannelRecipient(details.channel, socket);
+					main.recipients().removeChannelRecipient(details.channel, socket);
 				}
 				else if (details && details.username) {
-					main.removeUserRecipient(details.username, socket);
+					main.recipients().removeUserRecipient(details.username, socket);
 				}
 				else if (details && details.category) {
-					main.removeCategoryRecipient(details.category, socket);
+					main.recipients().removeCategoryRecipient(details.category, socket);
 				}
 			});
 
 			// Response to log requests
 
 			socket.on("requestUserLogDetails", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.username === "string") {
 					emitUserLogDetails(socket, details.username, details.time);
 				}
 			});
 
 			socket.on("requestChannelLogDetails", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				if (details && typeof details.channelUri === "string") {
-					emitChannelLogDetails(socket, details.channelUri, details.time);
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (details && typeof details.channel === "string") {
+					emitChannelLogDetails(socket, details.channel, details.time);
 				}
 			});
 
 			socket.on("requestUserLogFile", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
 					typeof details.username === "string" &&
@@ -413,14 +457,14 @@ module.exports = function(main) {
 			});
 
 			socket.on("requestChannelLogFile", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
-					typeof details.channelUri === "string" &&
+					typeof details.channel === "string" &&
 					typeof details.time === "string"
 				) {
 					emitChannelLogFile(
-						socket, details.channelUri, details.time, details.pageNumber
+						socket, details.channel, details.time, details.pageNumber
 					);
 				}
 			});
@@ -428,38 +472,43 @@ module.exports = function(main) {
 			// See an unseen highlight
 
 			socket.on("reportHighlightAsSeen", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && typeof details.messageId === "string") {
-					main.reportHighlightAsSeen(details.messageId);
+					main.unseenHighlights().reportHighlightAsSeen(details.messageId);
 				}
 			});
 
 			socket.on("clearUnseenHighlights", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
-				main.clearUnseenHighlights();
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				main.unseenHighlights().clearUnseenHighlights();
 			});
 
 			// Storing view state
 
 			socket.on("storeViewState", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.viewState) {
-					main.storeViewState(details.viewState);
+					main.viewState.storeViewState(details.viewState);
 				}
 			});
 
 			// Sending messages
 
 			socket.on("sendMessage", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel && details.message && details.token) {
 
 					// Only allow this socket to send a message
 					// if the command itself includes an accepted token
 
-					if (util.isAnAcceptedToken(details.token)) {
-						const message = util.normalise(details.message);
-						main.sendOutgoingMessage(details.channel, message);
+					if (tokenUtils.isAnAcceptedToken(details.token)) {
+
+						if (details.messageToken) {
+							emitMessagePosted(socket, details.channel, details.messageToken);
+						}
+
+						const message = stringUtils.normalise(details.message);
+						main.ircControl().sendOutgoingMessage(details.channel, message);
 					}
 				}
 			});
@@ -467,7 +516,7 @@ module.exports = function(main) {
 			// Requesting line info
 
 			socket.on("requestLineInfo", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (
 					details &&
 					typeof details.lineId === "string"
@@ -479,18 +528,18 @@ module.exports = function(main) {
 			// Requesting base data
 
 			socket.on("reloadBaseData", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				emitBaseData(socket);
 			});
 
 			// Storing settings
 
 			socket.on("addNewFriend", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
-					main.addToFriends(
+					main.friends().addToFriends(
 						0,
 						username,
 						parseInt(details.level) === 2,
@@ -507,11 +556,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeFriendLevel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username && details.level) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
-					main.modifyFriend(
+					main.friends().modifyFriend(
 						0,
 						username,
 						{
@@ -531,11 +580,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeFriend", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.username) {
-					const username = util.formatUriName(details.username);
+					const username = stringUtils.formatUriName(details.username);
 
-					main.removeFromFriends(
+					main.friends().removeFromFriends(
 						0,
 						username,
 						(err) => {
@@ -551,9 +600,9 @@ module.exports = function(main) {
 			});
 
 			socket.on("setAppConfigValue", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.key) {
-					main.storeConfigValue(
+					main.appConfig().storeConfigValue(
 						details.key, details.value,
 						(err) => {
 							if (err) {
@@ -568,10 +617,10 @@ module.exports = function(main) {
 			});
 
 			socket.on("addIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 
 				if (details && details.name && details.data) {
-					main.addIrcServerFromDetails(details, (err) => {
+					main.ircConfig().addIrcServerFromDetails(details, (err) => {
 						if (err) {
 							// TODO: Proper error handler
 							console.warn("Error occurred adding irc server", err);
@@ -579,7 +628,7 @@ module.exports = function(main) {
 						else {
 							emitIrcConfig(
 								socket,
-								() => main.connectUnconnectedIrcs()
+								() => main.ircControl().connectUnconnectedIrcs()
 							);
 						}
 					});
@@ -587,11 +636,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name && details.data) {
-					const name = util.formatUriName(details.name);
+					const name = stringUtils.formatUriName(details.name);
 
-					main.modifyServerInIrcConfig(
+					main.ircConfig().modifyServerInIrcConfig(
 						name, details.data,
 						(err) => {
 							if (err) {
@@ -601,8 +650,9 @@ module.exports = function(main) {
 								emitIrcConfig(
 									socket,
 									() => {
-										main.disconnectAndRemoveIrcServer(name);
-										main.connectUnconnectedIrcs();
+										let ircControl = main.ircControl();
+										ircControl.disconnectAndRemoveIrcServer(name);
+										ircControl.connectUnconnectedIrcs();
 									}
 								);
 							}
@@ -612,11 +662,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
-					const name = util.formatUriName(details.name);
+					const name = stringUtils.formatUriName(details.name);
 
-					main.removeServerFromIrcConfig(
+					main.ircConfig().removeServerFromIrcConfig(
 						name,
 						(err) => {
 							if (err) {
@@ -625,7 +675,8 @@ module.exports = function(main) {
 							else {
 								emitIrcConfig(
 									socket,
-									() => main.disconnectAndRemoveIrcServer(name)
+									() => main.ircControl().
+										disconnectAndRemoveIrcServer(name)
 								);
 							}
 						}
@@ -634,43 +685,53 @@ module.exports = function(main) {
 			});
 
 			socket.on("addIrcChannel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
-					const serverName = util.formatUriName(details.serverName);
-					const name = util.formatUriName(details.name);
+					const serverName = stringUtils.formatUriName(details.serverName);
+					const name = stringUtils.formatUriName(details.name);
 
-					main.addChannelToIrcConfig(
+					main.ircConfig().addChannelToIrcConfig(
 						serverName, name, {},
 						(err) => {
-							main.joinIrcChannel(serverName, name);
-							emitIrcConfig(socket);
+							if (err) {
+								console.warn("Error occurred adding irc channel", err);
+							}
+							else {
+								main.ircControl().joinIrcChannel(serverName, name);
+								emitIrcConfig(socket);
+							}
 						}
 					);
 				}
 			});
 
 			socket.on("removeIrcChannel", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.serverName && details.name) {
-					const serverName = util.formatUriName(details.serverName);
-					const name = util.formatUriName(details.name);
+					const serverName = stringUtils.formatUriName(details.serverName);
+					const name = stringUtils.formatUriName(details.name);
 
-					main.removeChannelFromIrcConfig(
+					main.ircConfig().removeChannelFromIrcConfig(
 						serverName, name,
 						(err) => {
-							main.partIrcChannel(serverName, name);
-							emitIrcConfig(socket);
+							if (err) {
+								console.warn("Error occurred removing irc channel", err);
+							}
+							else {
+								main.ircControl().partIrcChannel(serverName, name);
+								emitIrcConfig(socket);
+							}
 						}
 					);
 				}
 			});
 
 			socket.on("addNickname", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.addNickname(
+					main.nicknames().addNickname(
 						nickname,
 						(err) => {
 							if (err) {
@@ -685,11 +746,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("changeNicknameValue", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname && details.key) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.modifyNickname(
+					main.nicknames().modifyNickname(
 						nickname,
 						{ [details.key]: details.value },
 						(err) => {
@@ -708,11 +769,11 @@ module.exports = function(main) {
 			});
 
 			socket.on("removeNickname", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname) {
-					const nickname = util.lowerClean(details.nickname);
+					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.removeNickname(
+					main.nicknames().removeNickname(
 						nickname,
 						(err) => {
 							if (err) {
@@ -727,15 +788,15 @@ module.exports = function(main) {
 			});
 
 			socket.on("reconnectToIrcServer", (details) => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
-					const name = util.formatUriName(details.name);
-					main.reconnectIrcServer(name);
+					const name = stringUtils.formatUriName(details.name);
+					main.ircControl().reconnectIrcServer(name);
 				}
 			});
 
 			socket.on("requestSystemInfo", () => {
-				if (!util.isAnAcceptedToken(connectionToken)) { return; }
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				log.getDatabaseSize((err, size) => {
 					if (!err) {
 						emitSystemInfo(socket, "databaseSize", size);
@@ -753,7 +814,7 @@ module.exports = function(main) {
 	// Send out updates to last seen
 	const broadcastLastSeenUpdates = function(){
 		if (io) {
-			const cachedLastSeens = main.flushCachedLastSeens();
+			const cachedLastSeens = main.lastSeen().flushCachedLastSeens();
 			if (cachedLastSeens) {
 				const values = Object.values(cachedLastSeens);
 				if (values && values.length) {
@@ -770,12 +831,14 @@ module.exports = function(main) {
 		emit,
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
+		emitDataToChannel,
 		emitEventToChannel,
 		emitIrcConfig,
 		emitIrcConnectionStatus,
-		emitMessageToRecipients,
+		emitListEventToRecipients,
 		emitNewHighlight,
 		emitOnlineFriends,
+		emitServerData,
 		emitUnseenHighlights,
 		setServer
 	};

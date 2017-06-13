@@ -1,6 +1,7 @@
 import { take } from "redux-saga/effects";
 
 import * as actionTypes from "../actionTypes";
+import { setDarkModeStatus } from "../lib/visualBehavior";
 
 export default function* () {
 	while (true) {
@@ -10,15 +11,8 @@ export default function* () {
 
 		// Add/remove dark mode
 		if (action.data && "enableDarkMode" in action.data) {
-			const classList = document.body.classList;
 			const { enableDarkMode } = action.data;
-			const className = "darkmode";
-			if (enableDarkMode && !classList.contains(className)) {
-				classList.add(className);
-			}
-			else if (!enableDarkMode && classList.contains(className)) {
-				classList.remove(className);
-			}
+			setDarkModeStatus(enableDarkMode);
 		}
 	}
 }

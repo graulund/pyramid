@@ -32,7 +32,7 @@ class TimedChannelItem extends PureComponent {
 			suffix = (
 				<span className="msg">
 					by <UserLink
-						userName={username}
+						username={username}
 						displayName={userDisplayName}
 						className="invisible"
 						key={username}

@@ -7,6 +7,7 @@ import ChatViewLogPagination from "./ChatViewLogPagination.jsx";
 class ChatViewFooter extends PureComponent {
 	render() {
 		const {
+			displayName,
 			isLiveChannel,
 			logDate,
 			logDetails,
@@ -17,6 +18,7 @@ class ChatViewFooter extends PureComponent {
 
 		if (isLiveChannel) {
 			return <ChatInput
+				displayName={displayName}
 				channel={pageQuery}
 				key="bottom" />;
 		}
@@ -34,6 +36,7 @@ class ChatViewFooter extends PureComponent {
 }
 
 ChatViewFooter.propTypes = {
+	displayName: PropTypes.string,
 	isLiveChannel: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,

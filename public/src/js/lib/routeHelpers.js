@@ -1,4 +1,5 @@
 import { CATEGORY_NAMES, ROOT_PATHNAME } from "../constants";
+import { parseChannelUri } from "./channelNames";
 
 export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
@@ -6,17 +7,26 @@ export function internalUrl(url) {
 
 export const homeUrl = ROOT_PATHNAME + "/";
 
-export function userUrl(userName, logDate, pageNumber) {
+export function userUrl(username, logDate, pageNumber) {
 	return internalUrl(
-		"/user/" + userName +
+		"/user/" + username +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
 }
 
-export function channelUrl(channelUri, logDate, pageNumber) {
+export function channelUrl(channel, logDate, pageNumber, encode = true) {
+	if (encode) {
+		let uriData = parseChannelUri(channel);
+
+		if (uriData) {
+			channel = encodeURIComponent(uriData.server) + "/" +
+				encodeURIComponent(uriData.channel);
+		}
+	}
+
 	return internalUrl(
-		"/channel/" + channelUri +
+		"/channel/" + channel +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);

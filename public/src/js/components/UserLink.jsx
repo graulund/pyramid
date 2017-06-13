@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { TWITCH_DISPLAY_NAMES } from "../constants";
+import { getTwitchUserDisplayNameData } from "../lib/displayNames";
 import { userUrl } from "../lib/routeHelpers";
 
 class UserLink extends PureComponent {
@@ -14,31 +14,30 @@ class UserLink extends PureComponent {
 			enableTwitchUserDisplayNames,
 			friendsList,
 			noLink,
-			userName
+			username
 		} = this.props;
 
-		if (!userName) {
+		if (!username) {
 			return null;
 		}
 
-		var content = userName;
+		var content = username;
 
 		// If displaying display name
+		let displayNameData = getTwitchUserDisplayNameData(
+			username, displayName, enableTwitchUserDisplayNames
+		);
 
-		if (enableTwitchUserDisplayNames && displayName && displayName !== userName) {
-			if (displayName.toLowerCase() !== userName.toLowerCase()) {
-				// Totally different altogether
-				if (enableTwitchUserDisplayNames === TWITCH_DISPLAY_NAMES.ALL) {
-					content = [
-						displayName + " ",
-						<em key="origName">({ userName })</em>
-					];
-				}
-			}
-			else {
-				// Merely case changes
-				content = displayName;
-			}
+		let { primary, secondary, tooltip } = displayNameData;
+
+		if (secondary) {
+			content = [
+				primary + " ",
+				<em key="secondary">({ secondary })</em>
+			];
+		}
+		else {
+			content = primary;
 		}
 
 		// Does this user exist in the friends list?
@@ -47,7 +46,7 @@ class UserLink extends PureComponent {
 
 		for (var list in friendsList) {
 			if (friendsList.hasOwnProperty(list)) {
-				if (friendsList[list].indexOf(userName) >= 0) {
+				if (friendsList[list].indexOf(username) >= 0) {
 					isFriend = true;
 					break;
 				}
@@ -65,7 +64,8 @@ class UserLink extends PureComponent {
 		return (
 			<Link
 				className={className}
-				to={userUrl(userName)}
+				to={userUrl(username)}
+				title={tooltip}
 				key="main">
 				{ content }
 			</Link>
@@ -79,7 +79,7 @@ UserLink.propTypes = {
 	enableTwitchUserDisplayNames: PropTypes.number,
 	friendsList: PropTypes.object,
 	noLink: PropTypes.bool,
-	userName: PropTypes.string.isRequired
+	username: PropTypes.string.isRequired
 };
 
 export default connect(({

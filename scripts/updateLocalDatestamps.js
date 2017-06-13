@@ -1,4 +1,3 @@
-const lodash = require("lodash");
 const moment = require("moment-timezone");
 
 const dbSource = require("../server/db");

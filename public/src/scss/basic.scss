@@ -60,5 +60,14 @@ p.ta {
 	textarea {
 		width: 100%;
 		height: 100px;
+		box-sizing: border-box;
 	}
+}
+
+.accesskeys {
+	position: absolute;
+	left: -9999px;
+	opacity: 0;
+	pointer-events: none;
+	z-index: -1;
 }

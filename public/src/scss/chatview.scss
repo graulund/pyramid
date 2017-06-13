@@ -89,21 +89,91 @@
 				pointer-events: none;
 			}
 		}
+
+		&__channel,
+		&__channel a,
+		time {
+			color: #999;
+			white-space: nowrap;
+		}
+
+		.prefix {
+			color: #999;
+			margin: 2px 0;
+		}
+
+		&--highlight {
+			background-color: #fff0aa;
+			transition: 1s background-color;
+
+			&.line--unseen-highlight {
+				background-color: #afa;
+			}
+
+			mark {
+				background-color: rgba(0,0,0,.1);
+				color: inherit;
+			}
+		}
+
+		&--notice {
+			background-color: rgba(0,0,0,.05);
+		}
+
+		&--connection {
+			position: relative;
+
+			> span {
+				position: relative;
+				background-color: #fff;
+				z-index: 2;
+				padding-right: .5em;
+			}
+
+			&:after {
+				content: "";
+				position: absolute;
+				top: 50%;
+				right: 0;
+				left: 10em;
+				height: 1px;
+				background-color: #ccc;
+				z-index: 1;
+			}
+		}
+
+		&--offline > :not(.line__offline-resend) {
+			opacity: .6;
+		}
 	}
 
 	.msg {
 		word-break: break-word;
-	}
 
-	.msg img {
-		vertical-align: middle;
-	}
+		img {
+			vertical-align: middle;
+		}
 
-	.line__channel,
-	.line__channel a,
-	.line time {
-		color: #999;
-		white-space: nowrap;
+		&--action {
+			font-style: italic;
+
+			time {
+				font-style: normal;
+			}
+		}
+
+		&--cleared {
+			opacity: .5;
+			text-decoration: line-through;
+
+			&, a {
+				text-decoration-color: #000;
+			}
+
+			&:hover {
+				text-decoration: none;
+			}
+		}
 	}
 
 	.msg__author a,
@@ -114,51 +184,20 @@
 		white-space: nowrap;
 	}
 
-	.msg--action {
-		font-style: italic;
-	}
+	.unhide {
+		appearance: none;
+		font-family: inherit;
+		font-size: inherit;
+		border: none;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		background-color: transparent;
+		color: #999;
+		text-decoration: line-through;
 
-	.msg--action time {
-		font-style: normal;
-	}
-
-	.line--highlight {
-		background-color: #fff0aa;
-		transition: 1s background-color;
-	}
-
-	.line--highlight.line--unseen-highlight {
-		background-color: #e8da9b;
-	}
-
-	.line--highlight mark {
-		background-color: rgba(0,0,0,.1);
-		color: inherit;
-	}
-
-	.line--notice {
-		background-color: rgba(0,0,0,.05);
-	}
-
-	.line--connection {
-		position: relative;
-
-		> span {
-			position: relative;
-			background-color: #fff;
-			z-index: 2;
-			padding-right: .5em;
-		}
-
-		&:after {
-			content: "";
-			position: absolute;
-			top: 50%;
-			right: 0;
-			left: 10em;
-			height: 1px;
-			background-color: #ccc;
-			z-index: 1;
+		&:hover {
+			text-decoration: underline line-through;
 		}
 	}
 
@@ -182,6 +221,10 @@
 	.userevent--strong {
 		color: #000;
 		font-weight: bold;
+
+		&:before {
+			background-color: #000;
+		}
 	}
 
 	.connectionevent {
@@ -321,6 +364,28 @@
 		color: #666;
 	}
 
+	&__channel-flags {
+		position: absolute;
+		bottom: 10px;
+		left: 20px;
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+		font-size: .75rem;
+		line-height: 1em;
+		color: #999;
+		text-transform: uppercase;
+
+		li {
+			display: inline;
+			margin: 0 .8em 0 0;
+
+			&:last-child {
+				margin-right: 0;
+			}
+		}
+	}
+
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 
@@ -354,6 +419,11 @@
 					}
 				}
 			}
+		}
+
+		&__channel-flags {
+			// TODO: Support for channel flags on mobile
+			display: none;
 		}
 
 		.line {

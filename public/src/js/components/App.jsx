@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
 
+import AccessKeys from "./AccessKeys.jsx";
 import ConnectionInfo from "./ConnectionInfo.jsx";
 import Header from "./Header.jsx";
 import Sidebar from "./Sidebar.jsx";
@@ -38,6 +39,7 @@ class App extends PureComponent {
 				<ConnectionInfo key="connection-info" />
 				<Header key="header" />
 				<Sidebar key="sidebar" />
+				<AccessKeys key="accesskeys" />
 				{ children }
 			</div>
 		);

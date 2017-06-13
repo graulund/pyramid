@@ -1,13 +1,18 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
 
+import TwitchChannelFlags from "../twitch/TwitchChannelFlags.jsx";
+import { parseChannelUri } from "../lib/channelNames";
 import { convertCodesToEmojis } from "../lib/emojis";
-import { cacheItem, sendMessage } from "../lib/io";
-import { combinedDisplayName } from "../lib/pageTitles";
+import { cacheItem } from "../lib/messageCaches";
+import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "../lib/displayNames";
+import { postMessage } from "../lib/posting";
+import { refElSetter } from "../lib/refEls";
 
 const YOUNG_MESSAGE_MS = 1800000;
+const MAX_INPUT_HISTORY_LENGTH = 100;
 
 const TAB_COMPLETE_INITIAL_SUFFIX = ", ";
 const TAB_COMPLETE_DEFAULT_SUFFIX = " ";
@@ -27,24 +32,13 @@ const getEventDisplayName = function(evt) {
 	return evt.displayName || evt.tags && evt.tags["display-name"];
 };
 
-const getCombinedDisplayNames = function(list) {
-	return list.map(
-		({ displayName, username }) =>
-		({
-			displayName,
-			username,
-			outName: combinedDisplayName(username, displayName)
-		})
-	);
-};
-
 const matchesSubstring = function(value, subString) {
 	return value.slice(0, subString.length).toLowerCase() === subString;
 };
 
 var inputHistory = {}, currentInput = "", currentHistoryIndex = -1;
 
-class ChatInput extends Component {
+class ChatInput extends PureComponent {
 
 	constructor(props) {
 		super(props);
@@ -58,23 +52,32 @@ class ChatInput extends Component {
 
 		this.currentCyclingNames = null;
 		this.currentCyclingOffset = 0;
+
+		this.els = {};
+		this.setInputEl = refElSetter("input").bind(this);
 	}
 
 	shouldComponentUpdate(newProps) {
-		if (newProps) {
-			if (newProps.channel !== this.props.channel) {
-				return true;
-			}
+		// Only the following props are relevant to the view
+		if (
+			newProps.channel !== this.props.channel ||
+			newProps.channelData !== this.props.channelData ||
+			newProps.enableTwitch !== this.props.enableTwitch ||
+			newProps.enableTwitchChannelDisplayNames !==
+				this.props.enableTwitchChannelDisplayNames ||
+			newProps.enableTwitchUserDisplayNames !==
+				this.props.enableTwitchUserDisplayNames ||
+			newProps.isTouchDevice !== this.props.isTouchDevice
+		) {
+			return true;
 		}
 
 		return false;
 	}
 
 	componentWillReceiveProps(newProps) {
-		if (newProps) {
-			if (newProps.channel !== this.props.channel) {
-				this.resetCurrentHistory();
-			}
+		if (newProps && newProps.channel !== this.props.channel) {
+			this.resetCurrentHistory();
 		}
 	}
 
@@ -93,44 +96,47 @@ class ChatInput extends Component {
 	}
 
 	currentUserNames() {
-		const { channel, channelCaches, channelUserLists } = this.props;
-		let cache = channelCaches[channel], userList = channelUserLists[channel];
-		var users = [], userNames = [], displayNames = [];
+		let { channelCache, channelUserList } = this.props;
+		var users = [], usernames = [], displayNames = [];
 
 		// Add most recently talking people first
-		if (cache && cache.length) {
+		if (
+			channelCache &&
+			channelCache.cache &&
+			channelCache.cache.length
+		) {
 			let now = Date.now();
-			let reversedCache = [...cache].reverse();
+			let reversedCache = [...channelCache.cache].reverse();
 			reversedCache.forEach((evt) => {
 				if (evt && evt.username && evt.time) {
 					if (
 						now - new Date(evt.time) <= YOUNG_MESSAGE_MS &&
-						userNames.indexOf(evt.username) < 0
+						usernames.indexOf(evt.username) < 0
 					) {
 						users.push({
 							displayName: getEventDisplayName(evt),
 							username: evt.username
 						});
-						userNames.push(evt.username);
+						usernames.push(evt.username);
 					}
 				}
 			});
 		}
 
-		displayNames = getCombinedDisplayNames(users);
+		displayNames = this.getUserDisplayNames(users);
 
 		// Append from user list those that aren't already there
-		if (userList) {
-			let listUsers = Object.keys(userList)
-				.filter((username) => userNames.indexOf(username) < 0)
+		if (channelUserList) {
+			let listUsers = Object.keys(channelUserList)
+				.filter((username) => usernames.indexOf(username) < 0)
 				.map((username) =>
 					({
-						displayName: userList[username].displayName,
+						displayName: channelUserList[username].displayName,
 						username
 					})
 				);
 
-			let listDisplayNames = getCombinedDisplayNames(listUsers);
+			let listDisplayNames = this.getUserDisplayNames(listUsers);
 			listDisplayNames.sort((a, b) => {
 				return a.outName.toLowerCase().localeCompare(b.outName.toLowerCase());
 			});
@@ -143,15 +149,30 @@ class ChatInput extends Component {
 
 	focus() {
 		const { isTouchDevice } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (inputEl && !isTouchDevice) {
 			inputEl.focus();
 		}
 	}
 
+	getUserDisplayNames(userList) {
+		let { enableTwitchUserDisplayNames } = this.props;
+
+		return userList.map(
+			({ displayName, username }) =>
+			({
+				displayName,
+				username,
+				outName: getTwitchUserDisplayNameString(
+					username, displayName, enableTwitchUserDisplayNames
+				)
+			})
+		);
+	}
+
 	handleHistoryKey(direction, origHistory) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		var next;
 
@@ -191,7 +212,7 @@ class ChatInput extends Component {
 	}
 
 	handleTabKey(tokens) {
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		const last = tokens.length-1;
 		const suffix = last === 0
@@ -238,7 +259,7 @@ class ChatInput extends Component {
 
 		// Ensure focus if we are typing characters without having focus in the input field
 
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (
 			inputEl &&
@@ -259,7 +280,7 @@ class ChatInput extends Component {
 		this.resetCurrentHistory();
 
 		const { enableEmojiCodes } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 		if (inputEl && inputEl.value && enableEmojiCodes) {
 			const val = inputEl.value;
 			const convertedValue = convertCodesToEmojis(val, true);
@@ -276,7 +297,7 @@ class ChatInput extends Component {
 
 	onKeyDown(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		// Note: These things are in the keydown event because they are not acting
 		// correctly when they are in keyup.
@@ -328,7 +349,7 @@ class ChatInput extends Component {
 
 	onKeyUp(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (
 			channel &&
@@ -351,7 +372,7 @@ class ChatInput extends Component {
 	resetCurrentHistory() {
 		// Call if the contents of the field has been edited
 
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		currentInput = inputEl && inputEl.value || "";
 		currentHistoryIndex = -1;
@@ -359,7 +380,7 @@ class ChatInput extends Component {
 
 	submit(evt) {
 		const { channel } = this.props;
-		const { input: inputEl } = this.refs;
+		const { input: inputEl } = this.els;
 
 		if (evt) {
 			evt.preventDefault();
@@ -373,49 +394,114 @@ class ChatInput extends Component {
 			this.resetCurrentHistory();
 
 			// Send and store
-			sendMessage(channel, message);
+			postMessage(channel, message);
 			inputHistory[channel] = cacheItem(
 				inputHistory[channel] || [],
-				message
+				message,
+				MAX_INPUT_HISTORY_LENGTH
 			);
 		}
 	}
 
 	render() {
+		let {
+			channel,
+			channelData,
+			displayName,
+			enableTwitch,
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames,
+			isTouchDevice
+		} = this.props;
+		var channelFlags = null, placeholder = "Send a message";
+
+		if (enableTwitch) {
+			channelFlags = <TwitchChannelFlags
+				channelData={channelData}
+				key="channel-flags" />;
+		}
+
+		let autoComplete = isTouchDevice ? undefined : "off";
+
+		let uriData = parseChannelUri(channel);
+
+		if (uriData) {
+			let displayNameString = getTwitchChannelDisplayNameString(
+				uriData.channel,
+				displayName,
+				enableTwitchChannelDisplayNames,
+				enableTwitchUserDisplayNames
+			);
+
+			placeholder = "Message " + displayNameString;
+		}
+
 		return (
 			<form onSubmit={this.submit} className="chatview__input" key="main">
 				<input
 					type="text"
-					ref="input"
+					ref={this.setInputEl}
 					onChange={this.onChange}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
 					tabIndex={1}
-					placeholder="Send a message"
-					autoComplete="off"
+					placeholder={placeholder}
+					autoComplete={autoComplete}
 					/>
 				<input type="submit" />
+				{ channelFlags }
 			</form>
 		);
 	}
 }
 
 ChatInput.propTypes = {
-	channelCaches: PropTypes.object,
-	channelUserLists: PropTypes.object,
 	channel: PropTypes.string,
+	channelCache: PropTypes.object,
+	channelData: PropTypes.object,
+	channelUserList: PropTypes.object,
+	displayName: PropTypes.string,
 	enableEmojiCodes: PropTypes.bool,
+	enableTwitch: PropTypes.bool,
+	enableTwitchChannelDisplayNames: PropTypes.bool,
+	enableTwitchUserDisplayNames: PropTypes.number,
 	isTouchDevice: PropTypes.bool
 };
 
-export default connect(({
-	appConfig: { enableEmojiCodes },
-	deviceState: { isTouchDevice },
-	channelCaches,
-	channelUserLists
-}) => ({
-	channelCaches,
-	channelUserLists,
-	enableEmojiCodes,
-	isTouchDevice
-}))(ChatInput);
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let {
+		appConfig,
+		channelCaches,
+		channelData,
+		channelUserLists,
+		deviceState
+	} = state;
+	let {
+		enableEmojiCodes,
+		enableTwitch,
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames
+	} = appConfig;
+
+	var channelCache, channelUserList, thisChannelData;
+
+	if (channel) {
+		channelCache = channelCaches[channel];
+		channelUserList = channelUserLists[channel];
+		thisChannelData = channelData[channel];
+	}
+
+	return {
+		channelCache,
+		channelData: thisChannelData,
+		channelUserList,
+		enableEmojiCodes,
+		enableTwitch,
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames,
+		isTouchDevice: deviceState.isTouchDevice
+	};
+};
+
+export default connect(mapStateToProps)(ChatInput);

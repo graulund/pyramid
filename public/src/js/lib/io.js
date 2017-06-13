@@ -1,14 +1,11 @@
 import actions from "../actions";
 import store from "../store";
-import pull from "lodash/pull";
 import without from "lodash/without";
 
-import { CACHE_LINES, PAGE_TYPES } from "../constants";
+import { PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { sendMessageNotification } from "./notifications";
-import {
-	categoryUrl, channelUrl, parseSubjectName, subjectName, userUrl
-} from "./routeHelpers";
+import { parseSubjectName, subjectName } from "./routeHelpers";
 
 var io;
 var socket;
@@ -68,12 +65,13 @@ export function unsubscribeFromSubject(subject) {
 	_handleSubscription(subject, true);
 }
 
-export function sendMessage(channelUri, message) {
-	if (socket && channelUri && message) {
+export function sendMessage(channel, message, messageToken) {
+	if (socket && channel && message) {
 		const state = store.getState();
 		const data = {
-			channel: channelUri,
+			channel,
 			message,
+			messageToken,
 			token: state && state.token
 		};
 
@@ -81,41 +79,8 @@ export function sendMessage(channelUri, message) {
 	}
 }
 
-export function cacheItem(cache, item) {
-	// Add it, or them
-	if (item) {
-		if (item instanceof Array) {
-			cache = cache.concat(item);
-		} else {
-			cache = [ ...cache, item ];
-		}
-	}
-
-	// And make sure we only have the maximum amount
-	if (cache.length > CACHE_LINES) {
-		cache = cache.slice(cache.length - CACHE_LINES);
-	}
-
-	return cache;
-}
-
-export function clearReplacedIdsFromCache(cache, prevIds) {
-	if (cache && cache.length && prevIds && prevIds.length) {
-		const itemsWithPrevIds = cache.filter(
-			(item) => prevIds.indexOf(item.lineId) >= 0
-		);
-		return pull(cache, ...itemsWithPrevIds);
-
-		// NOTE: We are modifiying in place to prevent too many change handlers from
-		// occuring. We are expecting the caller to create a new array with an added
-		// item immediately after having called this method.
-	}
-
-	return cache;
-}
-
-export function requestLogDetailsForChannel(channelUri, time) {
-	emit("requestChannelLogDetails", { channelUri, time });
+export function requestLogDetailsForChannel(channel, time) {
+	emit("requestChannelLogDetails", { channel, time });
 }
 
 export function requestLogDetailsForUsername(username, time) {
@@ -132,8 +97,8 @@ export function requestLogDetails(subject, time) {
 	}
 }
 
-export function requestLogFileForChannel(channelUri, time, pageNumber) {
-	emit("requestChannelLogFile", { channelUri, pageNumber, time });
+export function requestLogFileForChannel(channel, time, pageNumber) {
+	emit("requestChannelLogFile", { channel, pageNumber, time });
 }
 
 export function requestLogFileForUsername(username, time, pageNumber) {
@@ -281,56 +246,29 @@ export function initializeIo() {
 			setGlobalConnectionStatus(status);
 		});
 
-		const onChatEvent = (details) => {
-			const { channel, highlight, relationship, type, username } = details;
+		socket.on("channelEvent", (details) => {
+			store.dispatch(actions.channelCaches.append(details));
+		});
 
-			// Only add chat messages to store if we're actually viewing
-			// their respective stores, otherwise we'll get the whole
-			// thing when we request subscription, so it doesn't really matter
+		socket.on("listEvent", (details) => {
+			let { event, listName, listType } = details;
 
-			if (location.pathname === channelUrl(channel)) {
-				store.dispatch(actions.channelCaches.append(details));
+			if (listType === PAGE_TYPES.USER) {
+				store.dispatch(actions.userCaches.append(event));
 			}
 
-			if (
-				location.pathname === categoryUrl("highlights") &&
-				highlight && highlight.length
-			) {
+			else if (listType === PAGE_TYPES.CATEGORY) {
 				store.dispatch(actions.categoryCaches.append({
-					categoryName: "highlights",
-					item: details
+					categoryName: listName,
+					item: event
 				}));
 			}
+		});
 
-			if (!relationship || (type !== "msg" && type !== "action")) {
-				return;
-			}
-
-			if (location.pathname === userUrl(username)) {
-				store.dispatch(actions.userCaches.append(details));
-			}
-
-			if (location.pathname === categoryUrl("allfriends")) {
-				store.dispatch(actions.categoryCaches.append({
-					categoryName: "allfriends",
-					item: details
-				}));
-			}
-		};
-
-		socket.on("msg", onChatEvent);
-		socket.on("action", onChatEvent);
-		socket.on("notice", onChatEvent);
-		socket.on("join", onChatEvent);
-		socket.on("part", onChatEvent);
-		socket.on("quit", onChatEvent);
-		socket.on("kick", onChatEvent);
-		socket.on("kill", onChatEvent);
-		socket.on("events", onChatEvent);
-		socket.on("+mode", onChatEvent);
-		socket.on("-mode", onChatEvent);
-		socket.on("log", onChatEvent);
-		socket.on("connectionEvent", onChatEvent);
+		socket.on("messagePosted", (details) => {
+			let { channel, messageToken } = details;
+			store.dispatch(actions.offlineMessages.remove(channel, messageToken));
+		});
 
 		socket.on("channelUserList", (details) => {
 			if (details && details.channel && details.list) {
@@ -382,34 +320,34 @@ export function initializeIo() {
 
 		socket.on("channelCache", (details) => {
 			let cache = details && details.cache || [];
-			if (details && details.channelUri) {
-				store.dispatch(actions.channelCaches.update({
-					[details.channelUri]: cache
-				}));
+			if (details && details.channel) {
+				store.dispatch(actions.channelCaches.update(
+					details.channel, cache
+				));
 			}
 		});
 
 		socket.on("userCache", (details) => {
 			let cache = details && details.cache || [];
 			if (details && details.username) {
-				store.dispatch(actions.userCaches.update({
-					[details.username]: cache
-				}));
+				store.dispatch(actions.userCaches.update(
+					details.username, cache
+				));
 			}
 		});
 
 		socket.on("categoryCache", (details) => {
 			let cache = details && details.cache || [];
 			if (details && details.categoryName) {
-				store.dispatch(actions.categoryCaches.update({
-					[details.categoryName]: cache
-				}));
+				store.dispatch(actions.categoryCaches.update(
+					details.categoryName, cache
+				));
 			}
 		});
 
 		socket.on("channelLogDetails", (details) => {
-			if (details && details.channelUri && details.details) {
-				let subject = subjectName("channel", details.channelUri);
+			if (details && details.channel && details.details) {
+				let subject = subjectName("channel", details.channel);
 				store.dispatch(actions.logDetails.update({
 					[subject]: details.details
 				}));
@@ -426,8 +364,8 @@ export function initializeIo() {
 		});
 
 		socket.on("channelLogFile", (details) => {
-			if (details && details.channelUri && details.file && details.time) {
-				let subject = subjectName("channel", details.channelUri);
+			if (details && details.channel && details.file && details.time) {
+				let subject = subjectName("channel", details.channel);
 				store.dispatch(actions.logFiles.update(
 					subject,
 					details.time,
@@ -473,6 +411,22 @@ export function initializeIo() {
 				store.dispatch(actions.systemInfo.update({
 					[details.key]: details.value
 				}));
+			}
+		});
+
+		socket.on("channelData", (details) => {
+			if (details && details.channel) {
+				store.dispatch(actions.channelData.update(
+					details.channel, details.data
+				));
+			}
+		});
+
+		socket.on("serverData", (details) => {
+			if (details && details.server) {
+				store.dispatch(actions.serverData.update(
+					details.server, details.data
+				));
 			}
 		});
 

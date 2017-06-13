@@ -3,13 +3,17 @@
 
 const path = require("path");
 
+const DATA_ROOT = path.join(__dirname, "..", "data");
+
 module.exports = {
 	DEBUG: false,
 	FILE_ENCODING: "utf8",
 
 	PROJECT_ROOT: path.join(__dirname, ".."),
-	DATA_ROOT: path.join(__dirname, "..", "data"),
+	DATA_ROOT,
 	LOG_ROOT: path.join(__dirname, "..", "public", "data", "logs"),
+
+	DB_FILENAME: path.join(DATA_ROOT, "pyramid.db"),
 
 	RELATIONSHIP_NONE: 0,
 	RELATIONSHIP_FRIEND: 1,
@@ -22,16 +26,22 @@ module.exports = {
 	BUNCHED_EVENT_SIZE: 50,
 
 	USER_MODIFYING_EVENT_TYPES:
-		["join", "part", "quit", "kick", "kill", "+mode", "-mode"],
+		["join", "part", "quit", "kick", "kill", "mode"],
 	PART_EVENT_TYPES:
 		["part", "quit", "kick", "kill"],
 	BUNCHABLE_EVENT_TYPES:
-		["join", "part", "quit", "kill", "+mode", "-mode"],
+		["join", "part", "quit", "kill", "mode"],
 
 	SUPPORTED_CATEGORY_NAMES: ["highlights", "allfriends", "system"],
 
 	TOKEN_COOKIE_NAME: "token",
 	TOKEN_COOKIE_SECONDS: 86400 * 365,
+
+	PAGE_TYPES: {
+		CATEGORY: "category",
+		CHANNEL: "channel",
+		USER: "user"
+	},
 
 	CONNECTION_STATUS: {
 		ABORTED: "aborted",

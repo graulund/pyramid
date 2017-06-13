@@ -3,17 +3,20 @@
 
 const fs = require("fs");
 const path = require("path");
-const sqlite = require("sqlite3");
+
+const _ = require("lodash");
 const async = require("async");
-const lodash = require("lodash");
 const mkdirp = require("mkdirp");
+const sqlite = require("sqlite3");
 
 const constants = require("./constants");
-const util = require("./util");
+const channelUtils = require("./util/channels");
+const fileUtils = require("./util/files");
+const timeUtils = require("./util/time");
 
-const ASC = 0, DESC = 1;
+const ASC = 0; //, DESC = 1;
 
-const DB_FILENAME = path.join(constants.DATA_ROOT, "pyramid.db");
+const DB_FILENAME = constants.DB_FILENAME;
 
 // Create db
 
@@ -29,7 +32,8 @@ const createDatabaseFromEmpty = function(callback) {
 					callback(err);
 				}
 				else {
-					util.copyFile(source, target, callback);
+					console.log("Created a new database from empty template");
+					fileUtils.copyFile(source, target, callback);
 				}
 			});
 		} else {
@@ -49,7 +53,7 @@ const dbCallback = function(callback) {
 		if (typeof callback === "function") {
 			callback(err, data);
 		}
-	}
+	};
 };
 
 // Query utility
@@ -70,7 +74,7 @@ const nameValueRowsToObject = (rows) => {
 			if (row && row.name) {
 				output[row.name] = row.value;
 			}
-		})
+		});
 	}
 
 	return output;
@@ -89,7 +93,7 @@ const formatIn = (list) => {
 
 const dollarize = (data) => {
 	const out = {};
-	lodash.forOwn(data, (value, key) => {
+	_.forOwn(data, (value, key) => {
 		out["$" + key] = value;
 	});
 	return out;
@@ -99,7 +103,7 @@ const onlyParamsInQuery = (params, query) => {
 	const out = {};
 
 	if (params && query) {
-		lodash.forOwn(params, (value, key) => {
+		_.forOwn(params, (value, key) => {
 			if (query.indexOf(key) >= 0) {
 				out[key] = value;
 			}
@@ -139,13 +143,19 @@ const dq = (table, whereCols) => {
 	return `DELETE FROM ${table} WHERE ${where}`;
 };
 
+const initializeDb = function(db) {
+	// Set up SQLite settings
+	db.run("PRAGMA journal_mode=WAL");
+	db.run("PRAGMA synchronous=NORMAL");
+};
+
 const mainMethods = function(main, db) {
 
 	const getLocalDatestampFromTime = (time) => {
-		return util.ymd(main.localMoment(time));
+		return timeUtils.ymd(main.logs().localMoment(time));
 	};
 
-	const close = () => { db.close() };
+	const close = () => { db.close(); };
 
 	const upsert = (updateQuery, insertQuery, params, callback) => {
 		db.run(
@@ -290,7 +300,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("friends", Object.keys(data), ["friendId"]),
-			dollarize(lodash.assign({ friendId }, data)),
+			dollarize(_.assign({ friendId }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -327,12 +337,17 @@ const mainMethods = function(main, db) {
 					callback(err);
 				}
 				else {
-					const serverId = row.serverId;
-					db.get(
-						sq("ircChannels", ["channelId"], ["name", "serverId"]),
-						dollarize({ name: channelName, serverId }),
-						dbCallback(callback)
-					);
+					if (row) {
+						const serverId = row.serverId;
+						db.get(
+							sq("ircChannels", ["channelId"], ["name", "serverId"]),
+							dollarize({ name: channelName, serverId }),
+							dbCallback(callback)
+						);
+					}
+					else {
+						callback(null, null);
+					}
 				}
 			}
 		);
@@ -370,7 +385,7 @@ const mainMethods = function(main, db) {
 					callback(err);
 				}
 				else {
-					callback(null, JSON.parse(row.value));
+					callback(null, row && JSON.parse(row.value));
 				}
 			})
 		);
@@ -385,7 +400,7 @@ const mainMethods = function(main, db) {
 				}
 				else {
 					var obj = nameValueRowsToObject(rows);
-					lodash.forOwn(obj, (value, key) => {
+					_.forOwn(obj, (value, key) => {
 						obj[key] = JSON.parse(value);
 					});
 					callback(null, obj);
@@ -454,7 +469,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("nicknames", keys, ["nickname"]),
-			dollarize(lodash.assign({ nickname }, data)),
+			dollarize(_.assign({ nickname }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -501,7 +516,7 @@ const mainMethods = function(main, db) {
 	const modifyServerInIrcConfig = (serverId, data, callback) => {
 		db.run(
 			uq("ircServers", Object.keys(data), ["serverId"]),
-			dollarize(lodash.assign({ serverId }, data)),
+			dollarize(_.assign({ serverId }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -520,7 +535,7 @@ const mainMethods = function(main, db) {
 		upsert(
 			uq("ircChannels", ["isEnabled"].concat(dataKeys), ["serverId", "name"]),
 			iq("ircChannels", ["serverId", "name", "isEnabled"].concat(dataKeys)),
-			dollarize(lodash.assign({ serverId, name, isEnabled: 1 }, data)),
+			dollarize(_.assign({ serverId, name, isEnabled: 1 }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -532,7 +547,7 @@ const mainMethods = function(main, db) {
 
 		db.run(
 			uq("ircChannels", Object.keys(data), ["channelId"]),
-			dollarize(lodash.assign({ channelId }, data)),
+			dollarize(_.assign({ channelId }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -589,7 +604,7 @@ const mainMethods = function(main, db) {
 			}
 			else {
 				const output = {};
-				friends.forEach((friend, i) => {
+				friends.forEach((friend) => {
 					const {
 						displayName,
 						lastSeenTime,
@@ -601,9 +616,9 @@ const mainMethods = function(main, db) {
 						output[username] = {
 							displayName,
 							time: lastSeenTime,
-							channel: util.getChannelUri(
-								friend.channelName,
-								friend.serverName
+							channel: channelUtils.getChannelUri(
+								friend.serverName,
+								friend.channelName
 							)
 						};
 					}
@@ -625,7 +640,7 @@ const mainMethods = function(main, db) {
 					[constants.RELATIONSHIP_BEST_FRIEND]: []
 				};
 
-				friends.forEach((friend, i) => {
+				friends.forEach((friend) => {
 					const { isBestFriend, username } = friend;
 					if (isBestFriend) {
 						friendsList[constants.RELATIONSHIP_BEST_FRIEND].push(username);
@@ -722,6 +737,10 @@ const mainMethods = function(main, db) {
 			eventData = { events: line.events, prevIds: line.prevIds };
 		}
 
+		else if (line.status) {
+			eventData = { status: line.status };
+		}
+
 		db.run(
 			iq("lines", [
 				"lineId",
@@ -779,6 +798,7 @@ const mainMethods = function(main, db) {
 	getAllConfigValues(callback)
 	getChannelId(serverName, channelName, callback)
 	getChannelUri(serverId, channelName, callback)
+	getChannelUriFromId(channelId, callback)
 	getConfigValue(name, callback)
 	getDateLineCountForChannel(channelId, date, callback)
 	getDateLineCountForUsername(username, date, callback)
@@ -822,6 +842,7 @@ const mainMethods = function(main, db) {
 		getAllConfigValues,
 		getChannelId,
 		getChannelUri,
+		getChannelUriFromId,
 		getConfigValue,
 		getDateLineCountForChannel,
 		getDateLineCountForUsername,
@@ -865,6 +886,7 @@ module.exports = function(main, callback) {
 		else {
 			// Open database
 			var db = new sqlite.Database(DB_FILENAME);
+			initializeDb(db);
 			mainMethods(main, db);
 
 			if (typeof callback === "function") {

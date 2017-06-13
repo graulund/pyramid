@@ -12,7 +12,9 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
+import { initializeMessageCaches } from "./lib/messageCaches";
 import setUpPageTitles from "./lib/pageTitles";
+import { startUpdatingNotificationsActiveState } from "./lib/notifications";
 import * as routes from "./lib/routeHelpers";
 import store from "./store";
 import { initVisualBehavior, isMobile } from "./lib/visualBehavior";
@@ -79,6 +81,10 @@ if (window.pyramid_onlineFriends) {
 	store.dispatch(actions.onlineFriends.set(window.pyramid_onlineFriends));
 }
 
+if (window.pyramid_serverData) {
+	store.dispatch(actions.serverData.set(window.pyramid_serverData));
+}
+
 if (window.pyramid_unseenHighlights) {
 	store.dispatch(actions.unseenHighlights.set(window.pyramid_unseenHighlights));
 }
@@ -87,9 +93,14 @@ if (window.pyramid_unseenHighlights) {
 
 initializeIo();
 
+// Caches
+
+initializeMessageCaches();
+
 // View
 
 initVisualBehavior();
+startUpdatingNotificationsActiveState();
 
 const main = document.querySelector("main");
 
@@ -102,31 +113,31 @@ if (main) {
 						<Route exact path={routes.homeUrl} component={NoChatView} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName", ":logDate"
+								":serverName/:channelName", ":logDate", 0, false
 							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName", ":logDate"
+								":serverName/:channelName", ":logDate", 0, false
 							)}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.channelUrl(
-								":serverName/:channelName"
+								":serverName/:channelName", "", 0, false
 							)}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":userName", ":logDate"
+								":username", ":logDate"
 							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":userName", ":logDate"
+								":username", ":logDate"
 							)}
 							component={ChatViewWrapper} />
 						<Route
-							path={routes.userUrl(":userName")}
+							path={routes.userUrl(":username")}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.settingsPattern}

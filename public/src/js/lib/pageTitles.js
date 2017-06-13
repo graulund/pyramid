@@ -1,12 +1,18 @@
-import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES, TWITCH_DISPLAY_NAMES } from "../constants";
-import { channelNameFromUrl } from "./channelNames";
+import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
+import { channelNameFromUri } from "./channelNames";
+import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
+import { getChannelInfo } from "./ircConfigs";
 import * as route from "./routeHelpers";
 import store from "../store";
 
+var currentPathname = "";
 var currentTitle = "";
 var currentUnseenNumber = 0;
 var userDisplayNameSetting = 0;
 var channelDisplayNameSetting = false;
+
+var oldIrcConfigCount = 0;
+var oldLastSeenUsersCount = 0;
 
 function siteTitle(pageTitle = "") {
 	if (pageTitle) {
@@ -20,45 +26,49 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-export function combinedDisplayName(name, displayName) {
-	if (userDisplayNameSetting && displayName && displayName !== name) {
-		if (displayName.toLowerCase() !== name.toLowerCase()) {
-			// Totally different altogether
-			if (userDisplayNameSetting === TWITCH_DISPLAY_NAMES.ALL) {
-				return `${displayName} (${name})`;
-			}
-		}
-		else {
-			// Merely case changes
-			return displayName;
-		}
-	}
+function channelDisplayNameString(name, displayName) {
+	return getTwitchChannelDisplayNameString(
+		name,
+		displayName,
+		channelDisplayNameSetting,
+		userDisplayNameSetting
+	);
+}
 
-	return name;
+function userDisplayNameString(name, displayName) {
+	return getTwitchUserDisplayNameString(
+		name,
+		displayName,
+		userDisplayNameSetting
+	);
 }
 
 function channelPageTitle(channelInfo) {
 	return siteTitle(
-		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUrl(channelInfo.channel)
+		channelDisplayNameString(
+			channelNameFromUri(channelInfo.channel),
+			channelInfo.displayName
+		)
 	);
 }
 
 function userPageTitle(user) {
-	return siteTitle(combinedDisplayName(user.username, user.displayName));
+	return siteTitle(userDisplayNameString(user.username, user.displayName));
 }
 
 function channelPageLogTitle(channelInfo, date) {
 	return siteTitle(logTitle(
 		date,
-		(channelDisplayNameSetting && channelInfo.displayName) ||
-		channelNameFromUrl(channelInfo.channel)
+		channelDisplayNameString(
+			channelNameFromUri(channelInfo.channel),
+			channelInfo.displayName
+		)
 	));
 }
 
 function userPageLogTitle(user, date) {
 	return siteTitle(logTitle(
-		date, combinedDisplayName(user.username, user.displayName)
+		date, userDisplayNameString(user.username, user.displayName)
 	));
 }
 
@@ -83,6 +93,16 @@ function setUnseenNumber(unseenNumber) {
 	commitTitle();
 }
 
+function setUserDisplayNameSetting(setting) {
+	userDisplayNameSetting = setting;
+	reloadTitle();
+}
+
+function setChannelDisplayNameSetting(setting) {
+	channelDisplayNameSetting = setting;
+	reloadTitle();
+}
+
 function commitTitle() {
 	const prefix = currentUnseenNumber > 0 ? `(${currentUnseenNumber}) ` : "";
 	document.title = prefix + currentTitle;
@@ -93,23 +113,9 @@ function getUserInfo(username) {
 	return { username, ...state.lastSeenUsers[username] };
 }
 
-function getChannelInfo(channel) {
-	let state = store.getState();
-	let [ serverName, channelName ] = channel.split(/\//);
-	let config = state.ircConfigs[serverName];
-	let setting = state.appConfig.enableTwitchChannelDisplayNames;
-
-	var channelConfig = {};
-
-	if (setting && config) {
-		channelConfig = config.channels[channelName];
-	}
-
-	return { channel, ...channelConfig };
-}
-
 function handleLocationChange(location) {
 	const { pathname } = location;
+	currentPathname = pathname;
 
 	var m = route.parseChannelLogUrl(pathname);
 
@@ -157,16 +163,50 @@ function handleLocationChange(location) {
 	setTitle(siteTitle());
 }
 
+function reloadTitle() {
+	handleLocationChange({ pathname: currentPathname });
+}
+
 store.subscribe(function() {
-	const state = store.getState();
-	const unseenNumber =
-		state.unseenHighlights && state.unseenHighlights.length || 0;
+	let state = store.getState();
+	let { appConfig, ircConfigs, lastSeenUsers, unseenHighlights } = state;
+
+	// When the unseen number changes
+
+	let unseenNumber = unseenHighlights && unseenHighlights.length || 0;
 	if (unseenNumber !== currentUnseenNumber) {
 		setUnseenNumber(unseenNumber);
 	}
 
-	userDisplayNameSetting = state.appConfig.enableTwitchUserDisplayNames;
-	channelDisplayNameSetting = state.appConfig.enableTwitchChannelDisplayNames;
+	// When the settings change
+
+	let {
+		enableTwitchChannelDisplayNames,
+		enableTwitchUserDisplayNames
+	} = appConfig;
+
+	if (channelDisplayNameSetting !== enableTwitchChannelDisplayNames) {
+		setChannelDisplayNameSetting(enableTwitchChannelDisplayNames);
+	}
+
+	if (userDisplayNameSetting !== enableTwitchUserDisplayNames) {
+		setUserDisplayNameSetting(enableTwitchUserDisplayNames);
+	}
+
+	// Once data loads
+
+	let ircConfigCount = Object.keys(ircConfigs).length;
+	let lastSeenUsersCount = Object.keys(lastSeenUsers).length;
+
+	if (!oldIrcConfigCount && ircConfigCount) {
+		reloadTitle();
+		oldIrcConfigCount = ircConfigCount;
+	}
+
+	if (!oldLastSeenUsersCount && lastSeenUsersCount) {
+		reloadTitle();
+		oldLastSeenUsersCount = lastSeenUsersCount;
+	}
 });
 
 export default function setUpPageTitles(history) {

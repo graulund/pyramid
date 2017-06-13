@@ -1,5 +1,23 @@
-header {
-	border-bottom: 2px solid #ccc;
-	padding: 0 10px 0;
-	margin: 0 -10px 5px;
+#header {
+	.highlightslink {
+		display: none;
+		pointer-events: none;
+
+		&--highlighted {
+			display: block;
+			position: fixed;
+			top: 4px;
+			left: 18px;
+			z-index: 10;
+
+			background-color: #b9af7c;
+			color: #fff;
+			border: 2px solid #fff;
+			border-radius: 100px;
+			line-height: 1.2em;
+			min-width: 0.8em;
+			padding: 0 0.2em;
+			text-align: center;
+		}
+	}
 }

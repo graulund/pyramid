@@ -2,13 +2,14 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import debounce from "lodash/debounce";
-import without from "lodash/without";
+import omit from "lodash/omit";
 
 import SettingsList from "./SettingsList.jsx";
 import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
 import { CHANGE_DEBOUNCE_MS, INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
 import * as io from "../lib/io";
+import { refElSetter } from "../lib/refEls";
 
 class SettingsIrcView extends PureComponent {
 	constructor(props) {
@@ -21,22 +22,25 @@ class SettingsIrcView extends PureComponent {
 		this.eventHandlers = {};
 		this.valueChangeHandlers = {};
 
+		this.els = {};
+		this.setAddForm = refElSetter("addForm").bind(this);
+
 		this.state = {
-			newServer: { channels: [] },
+			newServer: { channels: {} },
 			newServerName: null,
 			showingAddForm: false
 		};
 	}
 
 	componentDidUpdate(prevProps, prevState) {
-		const { showingAddForm } = this.state;
-		const { addForm } = this.refs;
+		let { showingAddForm } = this.state;
+		let { addForm } = this.els;
 
 		// Automatically add focus to the first input element
 		// if we just started showing a form
 
 		if (addForm && showingAddForm && !prevState.showingAddForm) {
-			const input = addForm.querySelector(INPUT_SELECTOR);
+			let input = addForm.querySelector(INPUT_SELECTOR);
 
 			if (input) {
 				input.focus();
@@ -111,12 +115,13 @@ class SettingsIrcView extends PureComponent {
 	onAddChannel(serverName, channel) {
 		console.log("Tried to add channel", serverName, channel);
 		const channelName = channel.name || channel;
+		const channelObj = typeof channel === "string" ? { name: channel } : channel;
 		if (serverName) {
 			io.addIrcChannel(serverName, channelName);
 		}
 		else {
 			const { newServer } = this.state;
-			const channels = [...newServer.channels, channelName];
+			const channels = { ...newServer.channels, [channelName]: channelObj };
 			this.setState({ newServer: { ...newServer, channels } });
 		}
 	}
@@ -130,7 +135,7 @@ class SettingsIrcView extends PureComponent {
 			}
 			else {
 				const { newServer } = this.state;
-				const channels = without(newServer.channels, channelName);
+				const channels = omit(newServer.channels, channelName);
 				this.setState({ newServer: { ...newServer, channels } });
 			}
 		}
@@ -154,7 +159,7 @@ class SettingsIrcView extends PureComponent {
 		console.log("Tried to add server", newServerName, newServer);
 		io.addIrcServer(newServerName, newServer);
 		this.setState({
-			newServer: { channels: [] },
+			newServer: { channels: {} },
 			newServerName: null,
 			showingAddForm: false
 		});
@@ -207,7 +212,7 @@ class SettingsIrcView extends PureComponent {
 	renderAddForm() {
 		const { newServer, newServerName } = this.state;
 		return (
-			<div className="settings__add" key="add" ref="addForm">
+			<div className="settings__add" key="add" ref={this.setAddForm}>
 				<h3>Add IRC server &#8220;{ newServerName }&#8221;</h3>
 				{ this.renderIrcConfigForm(newServer) }
 				<button onClick={this.onAddSubmit}>Submit</button>

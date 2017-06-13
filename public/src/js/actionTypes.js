@@ -9,7 +9,12 @@ export const categoryCaches = {
 
 export const channelCaches = {
 	"UPDATE": "channelCaches/UPDATE",
-	"APPEND": "channelCaches/APPEND"
+	"APPEND": "channelCaches/APPEND",
+	"CLEARUSER": "channelCaches/CLEARUSER"
+};
+
+export const channelData = {
+	"UPDATE": "channelData/UPDATE"
 };
 
 export const channelUserLists = {
@@ -66,6 +71,16 @@ export const nicknames = {
 
 export const onlineFriends = {
 	"SET": "onlineFriends/SET"
+};
+
+export const offlineMessages = {
+	"ADD": "offlineMessages/ADD",
+	"REMOVE": "offlineMessages/REMOVE"
+};
+
+export const serverData = {
+	"SET": "serverData/SET",
+	"UPDATE": "serverData/UPDATE"
 };
 
 export const systemInfo = {

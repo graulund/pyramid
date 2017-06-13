@@ -1,6 +1,8 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 
+import { refElSetter } from "../lib/refEls";
+
 const block = "password-input";
 const PASSWORD_DEFAULT = "%DEFAULT%";
 
@@ -16,11 +18,21 @@ class SettingsPasswordInput extends PureComponent {
 		this.onFocus = this.onFocus.bind(this);
 		this.onKeyPress = this.onKeyPress.bind(this);
 
+		this.els = {};
+		this.setInputEl = refElSetter("input").bind(this);
+
 		this.state = {
 			dirty: false,
-			editing: false,
-			focus: false
+			editing: false
 		};
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		let { editing } = this.state;
+		if (editing && !prevState.editing) {
+			let { input } = this.els;
+			input.focus();
+		}
 	}
 
 	edit() {
@@ -29,7 +41,7 @@ class SettingsPasswordInput extends PureComponent {
 
 	empty() {
 		const { onChange } = this.props;
-		const { input } = this.refs;
+		const { input } = this.els;
 
 		input.value = "";
 
@@ -41,14 +53,12 @@ class SettingsPasswordInput extends PureComponent {
 	}
 
 	onBlur(evt) {
-		const { input } = this.refs;
+		const { input } = this.els;
 		const { dirty } = this.state;
 
 		if (input.value === "" && !dirty) {
 			input.value = PASSWORD_DEFAULT;
 		}
-
-		this.setState({ focus: false });
 
 		if (typeof this.props.onBlur === "function") {
 			this.props.onBlur(evt);
@@ -61,7 +71,7 @@ class SettingsPasswordInput extends PureComponent {
 
 		// Do not allow any value with PASSWORD_DEFAULT in it
 		if (value && value.match(PASSWORD_DEFAULT)) {
-			this.refs.input.value = "";
+			this.els.input.value = "";
 		}
 		else if (typeof onChange === "function") {
 			onChange(evt);
@@ -69,13 +79,11 @@ class SettingsPasswordInput extends PureComponent {
 	}
 
 	onFocus(evt) {
-		const { input } = this.refs;
+		const { input } = this.els;
 
 		if (input && input.value === PASSWORD_DEFAULT) {
 			input.value = "";
 		}
-
-		this.setState({ focus: true });
 
 		if (typeof this.props.onFocus === "function") {
 			this.props.onFocus(evt);
@@ -92,7 +100,7 @@ class SettingsPasswordInput extends PureComponent {
 
 	render() {
 		const { defaultValue, emptiable, ...inputProps } = this.props;
-		const { editing, focus } = this.state;
+		const { editing } = this.state;
 		var displayValue = defaultValue;
 
 		if (displayValue === true) {
@@ -100,8 +108,7 @@ class SettingsPasswordInput extends PureComponent {
 		}
 
 		const className = block +
-			(editing ? ` ${block}--editing` : "") +
-			(focus ? ` ${block}--focus` : "");
+			(editing ? ` ${block}--editing` : "");
 
 		let hasValue = !!defaultValue;
 
@@ -111,7 +118,7 @@ class SettingsPasswordInput extends PureComponent {
 			content = [
 				<input
 					key="input"
-					ref="input"
+					ref={this.setInputEl}
 					{...inputProps}
 					defaultValue={displayValue}
 					onBlur={this.onBlur}

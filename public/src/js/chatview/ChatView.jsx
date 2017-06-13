@@ -1,6 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import shallowEqual from "fbjs/lib/shallowEqual";
 
 import ChannelUserList from "./ChannelUserList.jsx";
 import ChatFrame from "./ChatFrame.jsx";
@@ -35,6 +36,18 @@ class ChatView extends PureComponent {
 
 	componentWillMount() {
 		this.requestDataIfNeeded(this.props);
+	}
+
+	shouldComponentUpdate(nextProps, nextState) {
+
+		// Lock updates if window is not visible anyway
+		if (!nextProps.isVisible) {
+			return false;
+		}
+
+		// Default PureComponent behaviour
+		return !shallowEqual(this.props, nextProps) ||
+			!shallowEqual(this.state, nextState);
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -80,6 +93,7 @@ class ChatView extends PureComponent {
 
 	requestDataIfNeeded(props = this.props, oldProps = {}) {
 		const {
+			lastReload,
 			lines,
 			logDate,
 			pageNumber,
@@ -88,6 +102,7 @@ class ChatView extends PureComponent {
 		} = props;
 
 		const {
+			lastReload: oldLastReload,
 			lines: oldLines,
 			logDate: oldLogDate,
 			pageNumber: oldPageNumber,
@@ -113,7 +128,10 @@ class ChatView extends PureComponent {
 
 		else if (
 			loading &&
-			lines !== oldLines &&
+			(
+				lastReload !== oldLastReload ||
+				lines !== oldLines
+			) &&
 			pageQuery === oldQuery &&
 			pageType === oldType &&
 			logDate === oldLogDate &&
@@ -146,6 +164,7 @@ class ChatView extends PureComponent {
 			logBrowserOpen,
 			logDate,
 			logDetails,
+			offlineMessages,
 			pageNumber,
 			pageQuery,
 			pageType,
@@ -201,6 +220,7 @@ class ChatView extends PureComponent {
 					loading={loading}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
+					offlineMessages={offlineMessages}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					selectedLine={selectedLine}
@@ -208,6 +228,7 @@ class ChatView extends PureComponent {
 					key="chat" />
 
 				<ChatViewFooter
+					displayName={displayName}
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}
@@ -228,11 +249,14 @@ ChatView.propTypes = {
 	collapseJoinParts: PropTypes.bool,
 	displayName: PropTypes.string,
 	inFocus: PropTypes.bool,
+	isVisible: PropTypes.bool,
+	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
+	offlineMessages: PropTypes.object,
 	pageNumber: PropTypes.number,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
@@ -257,7 +281,7 @@ const mapStateToProps = function(state, ownProps) {
 	const { lineId, logDate, pageQuery, pageType } = ownProps;
 	const subject = subjectName(pageType, pageQuery);
 
-	var lines;
+	var lines, lastReload, offlineMessages;
 
 	if (logDate) {
 		const logCache = state.logFiles[subject];
@@ -265,7 +289,13 @@ const mapStateToProps = function(state, ownProps) {
 	}
 	else {
 		const cacheName = PAGE_TYPE_CACHE_MAP[pageType];
-		lines = state[cacheName][pageQuery];
+		const cacheData = state[cacheName][pageQuery];
+		lines = cacheData && cacheData.cache;
+		lastReload = cacheData && cacheData.lastReload;
+
+		if (pageType === PAGE_TYPES.CHANNEL) {
+			offlineMessages = state.offlineMessages[pageQuery];
+		}
 	}
 
 	const displayName = getDisplayName(state, pageType, pageQuery);
@@ -276,9 +306,12 @@ const mapStateToProps = function(state, ownProps) {
 		collapseJoinParts: state.appConfig.collapseJoinParts,
 		displayName,
 		inFocus: state.deviceState.inFocus,
+		isVisible: state.deviceState.visible,
+		lastReload,
 		lines,
 		logBrowserOpen: state.viewState.logBrowserOpen,
 		logDetails,
+		offlineMessages,
 		selectedLine,
 		userListOpen: state.viewState.userListOpen
 	};

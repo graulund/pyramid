@@ -39,6 +39,25 @@
 		height: 200px;
 	}
 
+	.network-type-selector {
+		border: 1px solid #ccc;
+		margin: 1em 0 2em;
+
+		&__head {
+			position: relative;
+			border-bottom: 1px solid #ccc;
+			padding: 10px 20px;
+
+			p, ul {
+				display: inline;
+			}
+		}
+
+		&__main {
+			padding: 10px 20px;
+		}
+	}
+
 	@media #{$mobile-media} {
 		h1 {
 			font-size: 200%;

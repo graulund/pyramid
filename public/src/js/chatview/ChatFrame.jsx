@@ -2,12 +2,15 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { findDOMNode } from "react-dom";
 import remove from "lodash/remove";
+import values from "lodash/values";
 import "intersection-observer";
 
 import ChatLines from "./ChatLines.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { reportHighlightAsSeen } from "../lib/io";
-import { areWeScrolledToTheBottom, scrollToTheBottom } from "../lib/visualBehavior";
+import {
+	areWeScrolledToTheBottom, scrollToTheBottom, scrollToTheTop
+} from "../lib/visualBehavior";
 
 const FLASHING_LINE_CLASS_NAME = "flashing";
 
@@ -27,6 +30,14 @@ class ChatFrame extends PureComponent {
 		this.atBottom = true;
 
 		this.clearObserver();
+	}
+
+	componentDidMount() {
+		let { lines, logDate } = this.props;
+
+		if (lines && lines.length && !logDate) {
+			scrollToTheBottom();
+		}
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -81,25 +92,24 @@ class ChatFrame extends PureComponent {
 
 		// Page changed
 
-		if (
+		let pageChanged = (
 			pageQuery !== oldQuery ||
 			pageType !== oldType ||
 			logDate !== oldLogDate
-		) {
+		);
+
+		if (pageChanged) {
 			this.clearObserver();
 		}
 
 		// Lines changed
 
 		if (lines !== oldLines) {
-			if (
-				(this.atBottom && !logDate) ||
-				(oldLogDate && !logDate)
-			) {
-				scrollToTheBottom();
+			if (logDate) {
+				scrollToTheTop();
 			}
-			else if (logDate) {
-				window.scrollTo(0, 0);
+			else if (this.atBottom || pageChanged) {
+				scrollToTheBottom();
 			}
 		}
 
@@ -295,7 +305,14 @@ class ChatFrame extends PureComponent {
 	// Render
 
 	render() {
-		const { collapseJoinParts, lines, loading, pageQuery, pageType } = this.props;
+		const {
+			collapseJoinParts,
+			lines,
+			loading,
+			offlineMessages,
+			pageQuery,
+			pageType
+		} = this.props;
 
 		const displayChannel = pageType !== PAGE_TYPES.CHANNEL;
 		const displayContextLink =
@@ -303,13 +320,26 @@ class ChatFrame extends PureComponent {
 			pageQuery === "highlights";
 		const displayUsername = pageType !== PAGE_TYPES.USER;
 
+		var allLines = lines;
+
+		// Add any offline messages at the bottom
+
+		if (offlineMessages) {
+			const offlineLines = values(offlineMessages);
+
+			if (offlineLines.length) {
+				offlineLines.sort((a,b) => a.time > b.time);
+				allLines = lines.concat(offlineLines);
+			}
+		}
+
 		const content = <ChatLines
 			collapseJoinParts={collapseJoinParts}
 			displayChannel={displayChannel}
 			displayContextLink={displayContextLink}
 			displayUsername={displayUsername}
 			loading={loading}
-			messages={lines}
+			messages={allLines}
 			observer={this.observerHandlers}
 			key="main" />;
 
@@ -325,6 +355,7 @@ ChatFrame.propTypes = {
 	loading: PropTypes.bool,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
+	offlineMessages: PropTypes.object,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	selectedLine: PropTypes.object,

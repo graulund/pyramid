@@ -3,6 +3,7 @@ import { combineReducers } from "redux";
 import appConfig from "./appConfig";
 import categoryCaches from "./categoryCaches";
 import channelCaches from "./channelCaches";
+import channelData from "./channelData";
 import channelUserLists from "./channelUserLists";
 import connectionStatus from "./connectionStatus";
 import deviceState from "./deviceState";
@@ -16,6 +17,8 @@ import logFiles from "./logFiles";
 import multiServerChannels from "./multiServerChannels";
 import nicknames from "./nicknames";
 import onlineFriends from "./onlineFriends";
+import offlineMessages from "./offlineMessages";
+import serverData from "./serverData";
 import systemInfo from "./systemInfo";
 import token from "./token";
 import unseenHighlights from "./unseenHighlights";
@@ -26,6 +29,7 @@ export default combineReducers({
 	appConfig,
 	categoryCaches,
 	channelCaches,
+	channelData,
 	channelUserLists,
 	connectionStatus,
 	deviceState,
@@ -39,6 +43,8 @@ export default combineReducers({
 	multiServerChannels,
 	nicknames,
 	onlineFriends,
+	offlineMessages,
+	serverData,
 	systemInfo,
 	token,
 	unseenHighlights,

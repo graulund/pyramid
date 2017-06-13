@@ -6,6 +6,7 @@ import TimeAgo from "react-timeago";
 
 import { formatTime, midnightDate, prevDay, timeColors, timeStamp }
 	from "../lib/formatting";
+import { refElSetter } from "../lib/refEls";
 
 // Custom timeago formatter for more succinct outputs
 
@@ -38,12 +39,16 @@ class TimedItem extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.endFlash = this.endFlash.bind(this);
 		this.flash = this.flash.bind(this);
 		this.renderClassName = this.renderClassName.bind(this);
 		this.tick = this.tick.bind(this);
 
 		this.isStillMounted = false;
 		this.date = new Date(props.time);
+
+		this.els = {};
+		this.setSts = refElSetter("sts").bind(this);
 
 		this.state = {
 			shieldedNow: false
@@ -98,7 +103,7 @@ class TimedItem extends PureComponent {
 
 		let { shieldedNow } = this.state;
 
-		if (this.root && this.refs && this.refs.sts) {
+		if (this.root && this.els.sts) {
 			const then = this.date;
 			const diff = Math.abs(Date.now() - then);
 
@@ -109,7 +114,7 @@ class TimedItem extends PureComponent {
 
 			// Secondary time stamp
 			const secondaryTimestamp = this.renderSecondaryTimestamp(then);
-			this.refs.sts.textContent = secondaryTimestamp;
+			this.els.sts.textContent = secondaryTimestamp;
 			this.stStr = secondaryTimestamp;
 			this.handleWideSts();
 
@@ -129,8 +134,8 @@ class TimedItem extends PureComponent {
 		// Handle abnormally long strings in the STS
 		if (this.root) {
 			if (this.stStr && this.stStr.length > 6) {
-				if (this.refs.sts) {
-					const stsWidth = this.refs.sts.getBoundingClientRect().width;
+				if (this.els.sts) {
+					const stsWidth = this.els.sts.getBoundingClientRect().width;
 					if (stsWidth > 35) {
 						this.root.style.paddingRight = (stsWidth + 15) + "px";
 						return;
@@ -148,11 +153,13 @@ class TimedItem extends PureComponent {
 		let { deviceVisible, visible } = this.props;
 		if (this.root && deviceVisible && visible) {
 			this.root.className = this.renderClassName(true);
-			this.flashTimeout = setTimeout(() => {
-				if (this.root) {
-					this.root.className = this.renderClassName(false);
-				}
-			}, 200);
+			this.flashTimeout = setTimeout(this.endFlash, 200);
+		}
+	}
+
+	endFlash() {
+		if (this.root) {
+			this.root.className = this.renderClassName(false);
 		}
 	}
 
@@ -233,7 +240,11 @@ class TimedItem extends PureComponent {
 				primaryTimeEl = <TimeAgo date={time} formatter={formatter} />;
 			}
 
-			secondaryTimeEl = <div className="ts" ref="sts">{ secondaryTimestamp }</div>;
+			secondaryTimeEl = (
+				<div className="ts" ref={this.setSts}>
+					{ secondaryTimestamp }
+				</div>
+			);
 		} else {
 
 			if (skipOld) {

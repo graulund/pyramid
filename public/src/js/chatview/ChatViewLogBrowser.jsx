@@ -3,16 +3,22 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import forOwn from "lodash/forOwn";
 
+import { refElSetter } from "../lib/refEls";
+
 class ChatViewLogBrowser extends PureComponent {
 	constructor(props) {
 		super(props);
+
 		this.logBrowserSubmit = this.logBrowserSubmit.bind(this);
+
+		this.els = {};
+		this.setLogRequestInput = refElSetter("logRequestInput").bind(this);
 	}
 
 	logBrowserSubmit(evt) {
 		const { logUrl } = this.props;
 		const { router } = this.context;
-		const { logRequestInput } = this.refs;
+		const { logRequestInput } = this.els;
 
 		if (evt) {
 			evt.preventDefault();
@@ -58,7 +64,7 @@ class ChatViewLogBrowser extends PureComponent {
 					className="logbrowser__request">
 					<div>
 						{"Pick a date: "}
-						<input type="date" ref="logRequestInput" />
+						<input type="date" ref={this.setLogRequestInput} />
 						{" "}
 						<input type="submit" value="Go" />
 					</div>
