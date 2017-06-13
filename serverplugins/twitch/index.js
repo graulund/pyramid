@@ -13,16 +13,12 @@ const util = require("./util");
 const EMOTE_RELOAD_INTERVAL_MS = 3600000;
 const MIN_TIME_BETWEEN_GROUP_CHAT_CALLS_MS = 10000;
 
-var log = console.log;
-var warn = console.warn;
-
 var twitchChannelCache = [];
 var lastGroupChatCallTimes = {};
 
 module.exports = function(main) {
 
-	log = main.log;
-	warn = main.warn;
+	util.setMain(main);
 
 	// Utility
 
@@ -55,7 +51,7 @@ module.exports = function(main) {
 
 	const loadExternalEmotesForChannel = function(channel) {
 		const channelEnabledTypes = enabledChannelEmoteTypes();
-		log(`Requesting external channel emoticons for ${channel}`);
+		util.log(`Requesting external channel emoticons for ${channel}`);
 		externalEmotes.requestExternalChannelEmoticons(
 			channel, channelEnabledTypes
 		);
@@ -135,7 +131,7 @@ module.exports = function(main) {
 
 		if (autoJoin || useDisplayNames) {
 			if (token) {
-				log("Updating Twitch group chat info...");
+				util.log("Updating Twitch group chat info...");
 				groupChats.requestGroupChatInfo(token, function(error, channels) {
 					if (!error && channels) {
 						channels.forEach((channel) => {
@@ -161,7 +157,7 @@ module.exports = function(main) {
 								channels.forEach((channel) => {
 									let { name, displayName } = channel;
 									if (name && configChannels.indexOf(name) < 0) {
-										log(
+										util.log(
 											"Found and added Twitch group chat: " +
 											name
 										);
@@ -179,7 +175,7 @@ module.exports = function(main) {
 			}
 
 			else {
-				warn(
+				util.warn(
 					"Tried to update Twitch group chat info, " +
 					"but couldn't find your oauth token"
 				);
@@ -201,7 +197,7 @@ module.exports = function(main) {
 			.find((channel) => channel.name === username);
 
 		if (useDisplayNames) {
-			log(`Updating Twitch user info for ${username}...`);
+			util.log(`Updating Twitch user info for ${username}...`);
 
 			users.requestTwitchUserInfo(username, function(err, data) {
 				if (!err && data && data.display_name) {
@@ -361,12 +357,14 @@ module.exports = function(main) {
 						}
 					}
 					break;
+
 				case "ROOMSTATE":
 					if (message.tags) {
 						//twitchApiData.setRoomState(channel, message.tags);
 						main.channelData().setChannelData(channel, message.tags);
 					}
 					break;
+
 				case "USERNOTICE": {
 					let username = message.tags && message.tags.login;
 					let messageText = message.params[1] || "";
@@ -390,6 +388,7 @@ module.exports = function(main) {
 					);
 					break;
 				}
+
 				case "CLEARCHAT": {
 					let duration = message.tags && message.tags["ban-duration"];
 					let reason = message.tags && message.tags["ban-reason"];
@@ -424,12 +423,17 @@ module.exports = function(main) {
 					);
 					break;
 				}
+
+				/*case "WHISPER": {
+					console.log("RECEIVED WHISPER", message);
+					break;
+				}*/
 			}
 		}
 	};
 
 	const loadGlobalExternalEmotesForAllClients = function() {
-		log("Reloading global external emotes for all clients...");
+		util.log("Reloading global external emotes for all clients...");
 
 		const clients = main.ircControl().currentIrcClients();
 
@@ -439,7 +443,7 @@ module.exports = function(main) {
 	};
 
 	const loadExternalEmotesForAllChannels = function() {
-		log("Reloading external emotes for all channels...");
+		util.log("Reloading external emotes for all channels...");
 
 		twitchChannelCache.forEach(
 			(channel) => loadExternalEmotesForChannel(channel)

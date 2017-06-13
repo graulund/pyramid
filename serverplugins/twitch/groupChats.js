@@ -2,8 +2,6 @@ const stringUtils = require("../../server/util/strings");
 const twitchApi = require("./twitchApi");
 const util = require("./util");
 
-var warn = console.warn;
-
 const requestGroupChatInfo = function(oauthToken, callback) {
 	twitchApi.chatdepotGetRequest(
 		"room_memberships",
@@ -26,7 +24,7 @@ const requestGroupChatInfo = function(oauthToken, callback) {
 				callback(null, groupChats);
 			}
 			else {
-				warn(
+				util.warn(
 					"Error occurred trying to get group chat info\n",
 					error
 				);

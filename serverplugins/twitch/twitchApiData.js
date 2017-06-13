@@ -14,9 +14,6 @@ var roomStates = {};
 var userStates = {};
 var globalUserStates = {};
 
-var log = console.log;
-var warn = console.warn;
-
 const getUserState = function(channel) {
 	return userStates[channel];
 };
@@ -46,7 +43,7 @@ const getEmoticonImages = function(emoteSetsString) {
 };
 
 const requestEmoticonImages = function(emotesets) {
-	log(`Requesting emoticon images for ${emotesets}`);
+	util.log(`Requesting emoticon images for ${emotesets}`);
 	twitchApi.krakenGetRequest(
 		"chat/emoticon_images",
 		{ emotesets },
@@ -55,11 +52,11 @@ const requestEmoticonImages = function(emotesets) {
 				emoticonImages[emotesets] =
 					twitchApi.flattenEmoticonImagesData(data);
 
-				log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
+				util.log(`There are now ${emoticonImages[emotesets].length} emoticon images for ${emotesets}`);
 			}
 
 			else {
-				warn(
+				util.warn(
 					"Error occurred trying to request emoticon images from the Twitch API\n",
 					error
 				);
@@ -79,7 +76,7 @@ const requestEmoticonImagesIfNeeded = function(emotesets) {
 };
 
 const reloadEmoticonImages = function() {
-	log("Reloading emoticon images...");
+	util.log("Reloading emoticon images...");
 	const queries = Object.keys(emoticonImages);
 	queries.forEach((emotesets) => {
 		requestEmoticonImages(emotesets);

@@ -35,7 +35,7 @@ function queueRequest(options, callback) {
 function fireQueuedRequests() {
 	// Take one per host and fire it off
 	if (numQueued > 0) {
-		_.forOwn(requestQueue, function(requestList, host) {
+		_.forOwn(requestQueue, function(requestList/*, host*/) {
 			let r = requestList.shift();
 
 			if (r) {

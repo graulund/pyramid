@@ -1,8 +1,6 @@
 const twitchApi = require("./twitchApi");
 const util = require("./util");
 
-var warn = console.warn;
-
 const requestTwitchUserInfo = function(username, callback) {
 	twitchApi.krakenGetRequest(
 		"users",
@@ -19,7 +17,7 @@ const requestTwitchUserInfo = function(username, callback) {
 			}
 
 			else {
-				warn(
+				util.warn(
 					"Error occurred trying to get user info\n",
 					error
 				);

@@ -16,9 +16,6 @@ const EXTERNAL_CHANNEL_EMOTE_ENDPOINTS = [
 var externalGlobalEmotes = [];
 var externalChannelEmotes = {};
 
-var log = console.log;
-var warn = console.warn;
-
 // Utility
 
 const parseExternalEmoticon = function(type, data) {
@@ -73,7 +70,7 @@ const getExternalEmotesForChannel = function(channel) {
 };
 
 const clearExternalEmotesForChannel = function(channel) {
-	log(`Clearing external channel emoticons for ${channel}`);
+	util.log(`Clearing external channel emoticons for ${channel}`);
 	delete externalChannelEmotes[channel];
 };
 
@@ -102,7 +99,7 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 							externalGlobalEmotes = storeExternalEmotes(
 								type, externalGlobalEmotes, data.sets[setId].emoticons
 							);
-							log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+							util.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 						}
 					});
 				}
@@ -111,12 +108,12 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 					externalGlobalEmotes = storeExternalEmotes(
 						type, externalGlobalEmotes, data.emotes
 					);
-					log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
+					util.log(`There are now ${externalGlobalEmotes.length} external global emotes (after ${type})`);
 				}
 			}
 
 			else {
-				warn(
+				util.warn(
 					`Error occurred trying to get external global emoticons (${type})\n`,
 					error
 				);
@@ -166,7 +163,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 							);
 						});
 
-						log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
+						util.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 					}
 					else if (data.emotes) {
 						// BTTV
@@ -174,7 +171,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 							type, externalChannelEmotes[channel], data.emotes
 						);
 
-						log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
+						util.log(`There are now ${externalChannelEmotes[channel].length} external emotes for ${channel} (after ${type})`);
 					}
 				}
 
@@ -185,7 +182,7 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 						return;
 					}
 
-					warn(
+					util.warn(
 						`Error occurred trying to get external emoticons for ${channel} (${type})\n`,
 						error
 					);

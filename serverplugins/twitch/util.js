@@ -1,5 +1,7 @@
 const ASTRAL_SYMBOLS_REGEX = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
 
+var main;
+
 const isTwitch = function(client) {
 	if (client && client.config) {
 		return isTwitchHostname(client.config.hostname);
@@ -70,12 +72,37 @@ const acceptRequest = function(callback) {
 	};
 };
 
+const log = function() {
+	if (main && main.log) {
+		main.log.apply(null, arguments);
+	}
+	else {
+		console.log.apply(console, arguments);
+	}
+};
+
+const warn = function() {
+	if (main && main.warn) {
+		main.warn.apply(null, arguments);
+	}
+	else {
+		console.warn.apply(console, arguments);
+	}
+};
+
+const setMain = function(_main) {
+	main = _main;
+};
+
 module.exports = {
 	acceptRequest,
 	channelIsGroupChat,
 	getEnabledExternalEmoticonTypes,
 	isTwitch,
 	isTwitchHostname,
+	log,
 	rangesOverlap,
-	stringWithoutAstralSymbols
+	setMain,
+	stringWithoutAstralSymbols,
+	warn
 };
