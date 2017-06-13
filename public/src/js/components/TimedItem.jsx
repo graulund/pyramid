@@ -39,6 +39,7 @@ class TimedItem extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.endFlash = this.endFlash.bind(this);
 		this.flash = this.flash.bind(this);
 		this.renderClassName = this.renderClassName.bind(this);
 		this.tick = this.tick.bind(this);
@@ -152,11 +153,13 @@ class TimedItem extends PureComponent {
 		let { deviceVisible, visible } = this.props;
 		if (this.root && deviceVisible && visible) {
 			this.root.className = this.renderClassName(true);
-			this.flashTimeout = setTimeout(() => {
-				if (this.root) {
-					this.root.className = this.renderClassName(false);
-				}
-			}, 200);
+			this.flashTimeout = setTimeout(this.endFlash, 200);
+		}
+	}
+
+	endFlash() {
+		if (this.root) {
+			this.root.className = this.renderClassName(false);
 		}
 	}
 
