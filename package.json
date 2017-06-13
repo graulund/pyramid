@@ -1,6 +1,6 @@
 {
   "name": "pyramid",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "Web-based IRCv3 client with bouncer, and support for Twitch features",
   "author": "Andy Graulund <andy@graulund.com>",
   "license": "MIT",
@@ -67,6 +67,7 @@
     "eslint-plugin-react": "^7.0.1",
     "eslint-plugin-standard": "^3.0.1",
     "extract-text-webpack-plugin": "^2.1.0",
+    "fbjs": "^0.8.12",
     "intersection-observer": "^0.2.1",
     "linkify-it": "^2.0.3",
     "node-sass": "^4.5.3",
