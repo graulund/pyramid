@@ -42,6 +42,20 @@ module.exports = function(main) {
 		});
 	};
 
+	const prefillAndEmitChannelCache = function(socket, channel) {
+		console.log("Emitting channel cache", new Date());
+		emitChannelCache(socket, channel);
+		main.messageCaches().prefillChannelCache(channel, function(err) {
+			if (!err) {
+				console.log("Emitting channel cache after prefilling", new Date());
+				emitChannelCache(socket, channel);
+			}
+			else {
+				console.log("Prefill error:", err);
+			}
+		});
+	};
+
 	const emitUserCache = function(socket, username) {
 		socket.emit("userCache", {
 			username,
@@ -49,10 +63,38 @@ module.exports = function(main) {
 		});
 	};
 
+	const prefillAndEmitUserCache = function(socket, username) {
+		console.log("Emitting user cache", new Date());
+		emitUserCache(socket, username);
+		main.messageCaches().prefillUserCache(username, function(err) {
+			if (!err) {
+				console.log("Emitting user cache after prefilling", new Date());
+				emitUserCache(socket, username);
+			}
+			else {
+				console.log("Prefill error:", err);
+			}
+		});
+	};
+
 	const emitCategoryCache = function(socket, categoryName) {
 		socket.emit("categoryCache", {
 			categoryName,
 			cache: main.messageCaches().getCategoryCache(categoryName)
+		});
+	};
+
+	const prefillAndEmitCategoryCache = function(socket, categoryName) {
+		console.log("Emitting category cache", new Date());
+		emitCategoryCache(socket, categoryName);
+		main.messageCaches().prefillCategoryCache(categoryName, function(err) {
+			if (!err) {
+				console.log("Emitting category cache after prefilling", new Date());
+				emitCategoryCache(socket, categoryName);
+			}
+			else {
+				console.log("Prefill error:", err);
+			}
 		});
 	};
 
@@ -376,21 +418,21 @@ module.exports = function(main) {
 			socket.on("requestChannelCache", (channel) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channel === "string") {
-					emitChannelCache(socket, channel);
+					prefillAndEmitChannelCache(socket, channel);
 				}
 			});
 
 			socket.on("requestUserCache", (username) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
-					emitUserCache(socket, username);
+					prefillAndEmitUserCache(socket, username);
 				}
 			});
 
 			socket.on("requestCategoryCache", (categoryName) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof categoryName === "string") {
-					emitCategoryCache(socket, categoryName);
+					prefillAndEmitCategoryCache(socket, categoryName);
 				}
 			});
 
@@ -400,17 +442,17 @@ module.exports = function(main) {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
 					main.recipients().addChannelRecipient(details.channel, socket);
-					emitChannelCache(socket, details.channel);
+					prefillAndEmitChannelCache(socket, details.channel);
 					emitChannelUserList(socket, details.channel);
 					emitChannelData(socket, details.channel);
 				}
 				else if (details && details.username) {
 					main.recipients().addUserRecipient(details.username, socket);
-					emitUserCache(socket, details.username);
+					prefillAndEmitUserCache(socket, details.username);
 				}
 				else if (details && details.category) {
 					main.recipients().addCategoryRecipient(details.category, socket);
-					emitCategoryCache(socket, details.category);
+					prefillAndEmitCategoryCache(socket, details.category);
 				}
 			});
 

@@ -8,9 +8,13 @@ const usernameUtils = require("../util/usernames");
 
 module.exports = function(db, appConfig, ircConfig, nicknames) {
 
+	// Utility
+
 	const localMoment = function(arg) {
 		return moment(arg).tz(appConfig.configValue("timeZone"));
 	};
+
+	// Parsing
 
 	const parseDbLine = function(line, callback) {
 		var l = null;
@@ -111,6 +115,17 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		return outLines;
 	};
 
+	// Single line
+
+	const getLineByLineId = function(lineId, callback) {
+		async.waterfall([
+			(callback) => db.getLineByLineId(lineId, callback),
+			(line, callback) => parseDbLine(line, callback)
+		], callback);
+	};
+
+	// Line counts
+
 	const getDateLineCountForChannel = function(channel, date, callback) {
 		let uriData = channelUtils.parseChannelUri(channel);
 
@@ -134,7 +149,21 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
-	const getDateLinesForChannel = function(channel, date, options, callback) {
+	const getDateLineCountForUsername = function(username, date, callback) {
+		db.getDateLineCountForUsername(username, date, callback);
+	};
+
+	// General lookup, with parsing included
+
+	const getDbLines = function(dataCallback, callback) {
+		async.waterfall([
+			dataCallback,
+			(lines, callback) => parseDbLines(lines, callback)
+		], callback);
+	};
+
+	const getLinesForChannel = function(channel, dataCallback, callback) {
+		// Data callback: function(channelId, callback(err, data))
 		let uriData = channelUtils.parseChannelUri(channel);
 
 		if (!uriData) {
@@ -148,7 +177,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			(callback) => db.getChannelId(server, channelName, callback),
 			(data, callback) => {
 				if (data) {
-					db.getDateLinesForChannel(data.channelId, date, options, callback);
+					dataCallback(data.channelId, callback);
 				}
 				else {
 					callback(new Error("No such channel"));
@@ -158,23 +187,57 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
-	const getDateLineCountForUsername = function(username, date, callback) {
-		db.getDateLineCountForUsername(username, date, callback);
+	// Specific lookups
+
+	const getDateLinesForChannel = function(channel, date, options, callback) {
+		getLinesForChannel(
+			channel,
+			function(channelId, callback) {
+				db.getDateLinesForChannel(channelId, date, options, callback);
+			},
+			callback
+		);
+	};
+
+	const getMostRecentChannelLines = function(channel, limit, beforeTime, callback) {
+		getLinesForChannel(
+			channel,
+			function(channelId, callback) {
+				db.getMostRecentChannelLines(channelId, limit, beforeTime, callback);
+			},
+			callback
+		);
 	};
 
 	const getDateLinesForUsername = function(username, date, options, callback) {
-		async.waterfall([
+		getDbLines(
 			(callback) => db.getDateLinesForUsername(username, date, options, callback),
-			(lines, callback) => parseDbLines(lines, callback)
-		], callback);
+			callback
+		);
 	};
 
-	const getLineByLineId = function(lineId, callback) {
-		async.waterfall([
-			(callback) => db.getLineByLineId(lineId, callback),
-			(line, callback) => parseDbLine(line, callback)
-		], callback);
+	const getMostRecentUserLines = function(username, limit, beforeTime, callback) {
+		getDbLines(
+			(callback) => db.getMostRecentUserLines(username, limit, beforeTime, callback),
+			callback
+		);
 	};
+
+	const getMostRecentAllFriendsLines = function(limit, beforeTime, callback) {
+		getDbLines(
+			(callback) => db.getMostRecentAllFriendsLines(limit, beforeTime, callback),
+			callback
+		);
+	};
+
+	const getMostRecentHighlightsLines = function(limit, beforeTime, callback) {
+		getDbLines(
+			(callback) => db.getMostRecentHighlightsLines(limit, beforeTime, callback),
+			callback
+		);
+	};
+
+	// Log details
 
 	const getChannelLogDetails = function(channel, date, callback) {
 		const today = timeUtils.ymd(localMoment());
@@ -253,6 +316,10 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		getDateLinesForChannel,
 		getDateLinesForUsername,
 		getLineByLineId,
+		getMostRecentAllFriendsLines,
+		getMostRecentChannelLines,
+		getMostRecentHighlightsLines,
+		getMostRecentUserLines,
 		getUserLogDetails,
 		localMoment
 	};

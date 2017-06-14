@@ -9,6 +9,7 @@ module.exports = function(
 	db,
 	io,
 	appConfig,
+	logs,
 	recipients,
 	unseenHighlights
 ) {
@@ -329,12 +330,119 @@ module.exports = function(
 		channelIdCache = cache;
 	};
 
+	const prefillCache = function(
+		getCacheCallback, requestCallback, storeCacheCallback, callback
+	) {
+		let cache = getCacheCallback();
+		let cacheLength = cache && cache.length || 0;
+		let requestLength = getCacheLinesSetting() - cacheLength;
+		let beforeTime = null;
+
+		if (requestLength < 10) {
+			callback(new Error("Already full"));
+			return;
+		}
+
+		if (cache && cache[0]) {
+			beforeTime = cache[0].time;
+		}
+
+		console.log({ cacheLength, requestLength });
+
+		requestCallback(requestLength, beforeTime, function(err, file) {
+			if (!err) {
+				// Get existing data
+				let cache = getCacheCallback() || [];
+				let missingLength = getCacheLinesSetting() - cache.length;
+
+				console.log({ missingLength, fileLength: file && file.length });
+
+				// Slice, and flip list to ascending time sort
+				let fileSlice = file.slice(0, missingLength);
+				fileSlice.reverse();
+
+				// Mark as prefilled
+				fileSlice.map((line) => {
+					if (line) {
+						line.prefilled = true;
+					}
+					return line;
+				});
+
+				// Insert in the beginning
+				storeCacheCallback(fileSlice.concat(cache));
+			}
+
+			callback(err);
+		});
+	};
+
+	const prefillChannelCache = function(channel, callback) {
+		prefillCache(
+			() => channelCaches[channel],
+			(requestLength, beforeTime, callback) => {
+				logs.getMostRecentChannelLines(
+					channel,
+					requestLength,
+					beforeTime,
+					callback
+				);
+			},
+			(data) => { channelCaches[channel] = data; },
+			callback
+		);
+	};
+
+	const prefillUserCache = function(username, callback) {
+		prefillCache(
+			() => userCaches[username],
+			(requestLength, beforeTime, callback) => {
+				logs.getMostRecentUserLines(
+					username,
+					requestLength,
+					beforeTime,
+					callback
+				);
+			},
+			(data) => { userCaches[username] = data; },
+			callback
+		);
+	};
+
+	const prefillCategoryCache = function(categoryName, callback) {
+		var func;
+
+		switch (categoryName) {
+			case "allfriends":
+				func = logs.getMostRecentAllFriendsLines;
+				break;
+			/*case "highlights":
+				func = logs.getMostRecentHighlightsLines;
+				break;*/
+		}
+
+		if (!func) {
+			callback(new Error("Not a prefillable category"));
+			return;
+		}
+
+		prefillCache(
+			() => categoryCaches[categoryName],
+			func,
+			(data) => { categoryCaches[categoryName] = data; },
+			callback
+		);
+	};
+
 	return {
 		cacheBunchableChannelEvent,
 		cacheCategoryMessage,
 		cacheChannelEvent,
 		cacheMessage,
 		cacheUserMessage,
+		prefillCategoryCache,
+		prefillChannelCache,
+		prefillUserCache,
 		getCategoryCache: (categoryName) => categoryCaches[categoryName],
 		getChannelCache: (channel) => channelCaches[channel],
 		getUserCache: (username) => userCaches[username],

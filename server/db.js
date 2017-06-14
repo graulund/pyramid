@@ -14,9 +14,12 @@ const channelUtils = require("./util/channels");
 const fileUtils = require("./util/files");
 const timeUtils = require("./util/time");
 
-const ASC = 0; //, DESC = 1;
+const ASC = 0, DESC = 1;
 
 const DB_FILENAME = constants.DB_FILENAME;
+
+const excludeEventLinesQuery =
+	"lines.type NOT IN ('join', 'part', 'quit', 'kick', 'kill', 'mode')";
 
 // Create db
 
@@ -655,20 +658,7 @@ const mainMethods = function(main, db) {
 		});
 	};
 
-	const getDateLines = (where, args, options, callback) => {
-		options = options || {};
-		const limit = options.pageNumber
-			? "LIMIT " + ((options.pageNumber-1) * constants.LOG_PAGE_SIZE) +
-				", " + constants.LOG_PAGE_SIZE
-			: "LIMIT " + constants.LOG_PAGE_SIZE;
-
-		var whereSince = "";
-
-		if (options.sinceTime instanceof Date) {
-			whereSince = "AND lines.time >= $sinceTime ";
-			args.$sinceTime = options.sinceTime.toISOString();
-		}
-
+	const getLines = (where, direction, limit, args, callback) => {
 		db.all(
 			sq(
 				"lines",
@@ -684,11 +674,33 @@ const mainMethods = function(main, db) {
 			"INNER JOIN ircServers ON " +
 				"ircChannels.serverId = ircServers.serverId " +
 			where + " " +
-			whereSince +
-			oq("time", ASC) + " " +
-			limit,
+			oq("lines.time", direction) + " " +
+			"LIMIT " + limit,
 			args,
 			dbCallback(callback)
+		);
+	};
+
+	const getDateLines = (where, args, options, callback) => {
+		options = options || {};
+		const limit = options.pageNumber
+			? ((options.pageNumber-1) * constants.LOG_PAGE_SIZE) +
+				", " + constants.LOG_PAGE_SIZE
+			: constants.LOG_PAGE_SIZE;
+
+		var whereSince = "";
+
+		if (options.sinceTime instanceof Date) {
+			whereSince = "AND lines.time >= $sinceTime ";
+			args.$sinceTime = options.sinceTime.toISOString();
+		}
+
+		getLines(
+			where + " " + whereSince,
+			ASC,
+			limit,
+			args,
+			callback
 		);
 	};
 
@@ -705,9 +717,75 @@ const mainMethods = function(main, db) {
 	const getDateLinesForUsername = (username, date, options, callback) => {
 		getDateLines(
 			"WHERE lines.username = $username " +
-			"AND lines.date = $date",
+			"AND lines.date = $date " +
+			"AND " + excludeEventLinesQuery,
 			dollarize({ username, date }),
 			options,
+			callback
+		);
+	};
+
+	const getMostRecentLines = (where, limit, args, beforeTime, callback) => {
+		args = args || {};
+		let beforeTimeLine = "";
+
+		if (beforeTime) {
+			beforeTimeLine = (where ? " AND " : "WHERE ") +
+				"lines.time < $beforeTime";
+			args["$beforeTime"] = getTimestamp(beforeTime);
+		}
+
+		getLines(
+			where + beforeTimeLine,
+			DESC,
+			limit,
+			args,
+			callback
+		);
+	};
+
+	const getMostRecentChannelLines = (channelId, limit, beforeTime, callback) => {
+		getMostRecentLines(
+			"WHERE lines.channelId = $channelId",
+			limit,
+			dollarize({ channelId }),
+			beforeTime,
+			callback
+		);
+	};
+
+	const getMostRecentUserLines = (username, limit, beforeTime, callback) => {
+		// TODO: Somehow include connection event lines
+		getMostRecentLines(
+			"WHERE lines.username = $username " +
+			"AND " + excludeEventLinesQuery,
+			limit,
+			dollarize({ username }),
+			beforeTime,
+			callback
+		);
+	};
+
+	const getMostRecentAllFriendsLines = (limit, beforeTime, callback) => {
+		// TODO: Somehow include connection event lines
+		getMostRecentLines(
+			"WHERE lines.username IN (SELECT username FROM friends) " +
+			"AND " + excludeEventLinesQuery,
+			limit,
+			{},
+			beforeTime,
+			callback
+		);
+	};
+
+	const getMostRecentHighlightsLines = (limit, beforeTime, callback) => {
+		// TODO: Somehow include connection event lines
+		getMostRecentLines(
+			"WHERE lines.highlightData IS NOT NULL " +
+			"AND " + excludeEventLinesQuery,
+			limit,
+			{},
+			beforeTime,
 			callback
 		);
 	};
@@ -721,6 +799,7 @@ const mainMethods = function(main, db) {
 	};
 
 	const getDateLineCountForUsername = (username, date, callback) => {
+		// TODO: Exclude event lines, because they are not reliable in user logs
 		db.get(
 			sq("lines", ["COUNT(*) AS count"], ["username", "date"]),
 			dollarize({ username, date }),
@@ -729,16 +808,38 @@ const mainMethods = function(main, db) {
 	};
 
 	const storeLine = (channelId, line, callback) => {
+		const { argument, by, events, mode, prevIds, reason, status } = line;
 		var eventData = null;
+
+		// Bunched events
 		if (
-			(line.events && line.events.length) ||
-			(line.prevIds && line.prevIds.length)
+			(events && events.length) ||
+			(prevIds && prevIds.length)
 		) {
-			eventData = { events: line.events, prevIds: line.prevIds };
+			eventData = { events, prevIds };
 		}
 
-		else if (line.status) {
-			eventData = { status: line.status };
+		// Connection events
+		else if (status) {
+			eventData = { status };
+		}
+
+		// Part/quit/kick/kill events
+		else if (reason) {
+			eventData = { reason };
+
+			if (by) {
+				eventData.by = by;
+			}
+		}
+
+		// Mode events
+		else if (mode) {
+			eventData = { mode };
+
+			if (argument) {
+				eventData.argument = argument;
+			}
 		}
 
 		db.run(
@@ -815,6 +916,10 @@ const mainMethods = function(main, db) {
 	getLastSeenChannels(callback)
 	getLastSeenUsers(callback)
 	getLineByLineId(lineId, callback)
+	getMostRecentAllFriendsLines(limit, beforeTime, callback)
+	getMostRecentChannelLines(channelId, limit, beforeTime, callback)
+	getMostRecentHighlightsLines(limit, beforeTime, callback)
+	getMostRecentUserLines(username, limit, beforeTime, callback)
 	getNicknames(callback)
 	getServerId(name, callback)
 	getServerName(serverId, callback)
@@ -859,6 +964,10 @@ const mainMethods = function(main, db) {
 		getLastSeenChannels,
 		getLastSeenUsers,
 		getLineByLineId,
+		getMostRecentAllFriendsLines,
+		getMostRecentChannelLines,
+		getMostRecentHighlightsLines,
+		getMostRecentUserLines,
 		getNicknames,
 		getServerId,
 		getServerName,

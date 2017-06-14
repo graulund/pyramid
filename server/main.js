@@ -179,10 +179,10 @@ const initStartup = function() {
 		db,
 		io,
 		appConfig,
+		logs,
 		recipients,
 		unseenHighlights
 	);
-
 	incomingEvents   = require("./main/incomingEvents")(
 		io,
 		appConfig,
