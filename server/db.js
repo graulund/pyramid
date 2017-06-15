@@ -781,8 +781,7 @@ const mainMethods = function(main, db) {
 	const getMostRecentHighlightsLines = (limit, beforeTime, callback) => {
 		// TODO: Somehow include connection event lines
 		getMostRecentLines(
-			"WHERE lines.highlightData IS NOT NULL " +
-			"AND " + excludeEventLinesQuery,
+			"WHERE lines.isHighlight = 1",
 			limit,
 			{},
 			beforeTime,
@@ -808,7 +807,7 @@ const mainMethods = function(main, db) {
 	};
 
 	const storeLine = (channelId, line, callback) => {
-		const { argument, by, events, mode, prevIds, reason, status } = line;
+		const { argument, by, events, highlight, mode, prevIds, reason, status } = line;
 		var eventData = null;
 
 		// Bunched events
@@ -842,6 +841,13 @@ const mainMethods = function(main, db) {
 			}
 		}
 
+		let isHighlight = null;
+
+		if (highlight && highlight.length) {
+			eventData = _.assign(eventData || {}, { highlight });
+			isHighlight = 1;
+		}
+
 		db.run(
 			iq("lines", [
 				"lineId",
@@ -853,7 +859,8 @@ const mainMethods = function(main, db) {
 				"message",
 				"symbol",
 				"tags",
-				"eventData"
+				"eventData",
+				"isHighlight"
 			]),
 			{
 				$lineId: line.lineId,
@@ -865,7 +872,8 @@ const mainMethods = function(main, db) {
 				$message: line.message,
 				$symbol: line.symbol,
 				$tags: line.tags && JSON.stringify(line.tags),
-				$eventData: eventData && JSON.stringify(eventData)
+				$eventData: eventData && JSON.stringify(eventData),
+				$isHighlight: isHighlight
 			},
 			dbCallback(callback)
 		);

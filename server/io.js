@@ -43,16 +43,10 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitChannelCache = function(socket, channel) {
-		console.log("Emitting channel cache", new Date());
-		emitChannelCache(socket, channel);
+		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillChannelCache(channel, function(err) {
-			if (!err) {
-				console.log("Emitting channel cache after prefilling", new Date());
-				emitChannelCache(socket, channel);
-			}
-			else {
-				console.log("Prefill error:", err);
-			}
+			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
+			emitChannelCache(socket, channel);
 		});
 	};
 
@@ -64,16 +58,10 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitUserCache = function(socket, username) {
-		console.log("Emitting user cache", new Date());
-		emitUserCache(socket, username);
+		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillUserCache(username, function(err) {
-			if (!err) {
-				console.log("Emitting user cache after prefilling", new Date());
-				emitUserCache(socket, username);
-			}
-			else {
-				console.log("Prefill error:", err);
-			}
+			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
+			emitUserCache(socket, username);
 		});
 	};
 
@@ -85,16 +73,10 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitCategoryCache = function(socket, categoryName) {
-		console.log("Emitting category cache", new Date());
-		emitCategoryCache(socket, categoryName);
+		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillCategoryCache(categoryName, function(err) {
-			if (!err) {
-				console.log("Emitting category cache after prefilling", new Date());
-				emitCategoryCache(socket, categoryName);
-			}
-			else {
-				console.log("Prefill error:", err);
-			}
+			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
+			emitCategoryCache(socket, categoryName);
 		});
 	};
 

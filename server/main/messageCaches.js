@@ -21,6 +21,7 @@ module.exports = function(
 
 	var currentHighlightContexts = {};
 	var bunchableLinesToInsert = {};
+	var prefilledSubjectNames = [];
 
 	var lineIdsToDelete = new Set();
 
@@ -331,8 +332,14 @@ module.exports = function(
 	};
 
 	const prefillCache = function(
-		getCacheCallback, requestCallback, storeCacheCallback, callback
+		subjectName, getCacheCallback, requestCallback, storeCacheCallback, callback
 	) {
+
+		if (prefilledSubjectNames.indexOf(subjectName) >= 0) {
+			callback(new Error("Already prefilled"));
+			return;
+		}
+
 		let cache = getCacheCallback();
 		let cacheLength = cache && cache.length || 0;
 		let requestLength = getCacheLinesSetting() - cacheLength;
@@ -347,15 +354,16 @@ module.exports = function(
 			beforeTime = cache[0].time;
 		}
 
-		console.log({ cacheLength, requestLength });
-
 		requestCallback(requestLength, beforeTime, function(err, file) {
 			if (!err) {
 				// Get existing data
 				let cache = getCacheCallback() || [];
 				let missingLength = getCacheLinesSetting() - cache.length;
 
-				console.log({ missingLength, fileLength: file && file.length });
+				if (!file || !file.length) {
+					callback(new Error("No data"));
+					return;
+				}
 
 				// Slice, and flip list to ascending time sort
 				let fileSlice = file.slice(0, missingLength);
@@ -371,6 +379,9 @@ module.exports = function(
 
 				// Insert in the beginning
 				storeCacheCallback(fileSlice.concat(cache));
+
+				// Record as prefilled
+				prefilledSubjectNames.push(subjectName);
 			}
 
 			callback(err);
@@ -379,6 +390,7 @@ module.exports = function(
 
 	const prefillChannelCache = function(channel, callback) {
 		prefillCache(
+			`channel:${channel}`,
 			() => channelCaches[channel],
 			(requestLength, beforeTime, callback) => {
 				logs.getMostRecentChannelLines(
@@ -395,6 +407,7 @@ module.exports = function(
 
 	const prefillUserCache = function(username, callback) {
 		prefillCache(
+			`user:${username}`,
 			() => userCaches[username],
 			(requestLength, beforeTime, callback) => {
 				logs.getMostRecentUserLines(
@@ -416,9 +429,9 @@ module.exports = function(
 			case "allfriends":
 				func = logs.getMostRecentAllFriendsLines;
 				break;
-			/*case "highlights":
+			case "highlights":
 				func = logs.getMostRecentHighlightsLines;
-				break;*/
+				break;
 		}
 
 		if (!func) {
@@ -427,6 +440,7 @@ module.exports = function(
 		}
 
 		prefillCache(
+			`category:${categoryName}`,
 			() => categoryCaches[categoryName],
 			func,
 			(data) => { categoryCaches[categoryName] = data; },
