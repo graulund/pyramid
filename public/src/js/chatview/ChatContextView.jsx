@@ -107,7 +107,7 @@ class ChatContextView extends PureComponent {
 		var content = null;
 
 		if (contextMessages) {
-			if (showContext && contextMessages) {
+			if (showContext) {
 				const before = [], after = [];
 				contextMessages.forEach((msg) => {
 					if (msg) {
