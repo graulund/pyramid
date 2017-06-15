@@ -11,7 +11,6 @@ const block = "userlink";
 class UserLink extends PureComponent {
 	render() {
 		const {
-			//className,
 			displayName,
 			enableTwitchUserDisplayNames,
 			friendsList,
@@ -76,7 +75,6 @@ class UserLink extends PureComponent {
 }
 
 UserLink.propTypes = {
-	className: PropTypes.string,
 	displayName: PropTypes.string,
 	enableTwitchUserDisplayNames: PropTypes.number,
 	friendsList: PropTypes.object,
