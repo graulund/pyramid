@@ -104,69 +104,74 @@ class ChatContextView extends PureComponent {
 			displayFirstDate={false}
 			key="content" />;
 
-		const contextLinkEl = (
-			<a className={`${block}__options`}
-				href="javascript://"
-				onClick={this.toggleContext}
-				key="showContext">
-				Context
-			</a>
-		);
-
 		var content = null;
 
-		if (showContext && contextMessages) {
-			const before = [], after = [];
-			contextMessages.forEach((msg) => {
-				if (msg) {
-					if (msg.time <= time) {
-						before.push(msg);
+		if (contextMessages) {
+			if (showContext && contextMessages) {
+				const before = [], after = [];
+				contextMessages.forEach((msg) => {
+					if (msg) {
+						if (msg.time <= time) {
+							before.push(msg);
+						}
+						else {
+							after.push(msg);
+						}
 					}
-					else {
-						after.push(msg);
-					}
-				}
-			});
+				});
 
-			const allMessages = before.concat([this.props]).concat(after);
+				const allMessages = before.concat([this.props]).concat(after);
 
-			/*
-			const fullUrl = channelUrl(channel) + createLineIdHash(lineId);
+				/*
+				const fullUrl = channelUrl(channel) + createLineIdHash(lineId);
 
-			<Link to={fullUrl}
-				key="showFullContext">
-				Full context
-			</Link>{" "}
-			*/
+				<Link to={fullUrl}
+					key="showFullContext">
+					Full context
+				</Link>{" "}
+				*/
 
-			const header = (
-				<div className={`${block}__header`} key="header">
-					<strong>Expanded view</strong>
-					<span className={`${block}__options`}>
-						<a href="javascript://"
-							onClick={this.toggleContext}
-							key="closeContext">
-							Close
-						</a>
-					</span>
-				</div>
-			);
+				const header = (
+					<div className={`${block}__header`} key="header">
+						<strong>Expanded view</strong>
+						<span className={`${block}__options`}>
+							<a href="javascript://"
+								onClick={this.toggleContext}
+								key="closeContext">
+								Close
+							</a>
+						</span>
+					</div>
+				);
 
-			const context = (
-				<div className={`${block}__main`} key="main" ref={this.setMain}>
-					<ChatLines
-						messages={allMessages}
-						observer={observer}
-						displayChannel={displayChannel}
-						displayUsername={displayUsername}
-						displayFirstDate={false} />
-				</div>
-			);
+				const context = (
+					<div className={`${block}__main`} key="main" ref={this.setMain}>
+						<ChatLines
+							messages={allMessages}
+							observer={observer}
+							displayChannel={displayChannel}
+							displayUsername={displayUsername}
+							displayFirstDate={false} />
+					</div>
+				);
 
-			content = [header, context];
+				content = [header, context];
+			}
+			else {
+				let contextLinkEl = (
+					<a className={`${block}__options`}
+						href="javascript://"
+						onClick={this.toggleContext}
+						key="showContext">
+						Context
+					</a>
+				);
+
+				content = [contextLinkEl, lineEl];
+			}
 		}
 		else {
-			content = [contextLinkEl, lineEl];
+			content = lineEl;
 		}
 
 		const itemProps = {
