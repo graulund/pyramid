@@ -20,7 +20,7 @@ class ChannelLink extends PureComponent {
 		}
 
 		return (
-			<Link className="invisible" to={channelUrl(channel)}>
+			<Link className="channellink" to={channelUrl(channel)}>
 				<ChannelName
 					channel={channel}
 					displayName={displayName}

@@ -34,7 +34,6 @@ class TimedChannelItem extends PureComponent {
 					by <UserLink
 						username={username}
 						displayName={userDisplayName}
-						className="invisible"
 						key={username}
 						/>
 				</span>

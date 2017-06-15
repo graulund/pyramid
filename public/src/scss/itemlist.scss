@@ -73,6 +73,10 @@
 
 	time, .ts, .channel, .msg, .now {
 		opacity: .5;
+
+		a {
+			font-weight: normal;
+		}
 	}
 
 	.flash, .flash[style] {

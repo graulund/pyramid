@@ -23,10 +23,6 @@ a {
 	&:hover {
 		text-decoration: underline;
 	}
-
-	&.invisible {
-		font-weight: normal;
-	}
 }
 
 h1 {
@@ -70,4 +66,11 @@ p.ta {
 	opacity: 0;
 	pointer-events: none;
 	z-index: -1;
+}
+
+.userlink, .channelname {
+	em {
+		font-style: normal;
+		font-weight: normal;
+	}
 }

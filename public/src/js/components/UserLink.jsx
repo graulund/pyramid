@@ -6,10 +6,12 @@ import { Link } from "react-router-dom";
 import { getTwitchUserDisplayNameData } from "../lib/displayNames";
 import { userUrl } from "../lib/routeHelpers";
 
+const block = "userlink";
+
 class UserLink extends PureComponent {
 	render() {
 		const {
-			className,
+			//className,
 			displayName,
 			enableTwitchUserDisplayNames,
 			friendsList,
@@ -56,14 +58,14 @@ class UserLink extends PureComponent {
 		// Link-free output for non-friends
 
 		if (!isFriend || noLink) {
-			return <span className={className} key="main">{ content }</span>;
+			return <span className={block} key="main">{ content }</span>;
 		}
 
 		// Link output for friends
 
 		return (
 			<Link
-				className={className}
+				className={block}
 				to={userUrl(username)}
 				title={tooltip}
 				key="main">

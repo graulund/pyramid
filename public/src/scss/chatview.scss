@@ -94,6 +94,7 @@
 		&__channel a,
 		time {
 			color: #999;
+			font-weight: normal;
 			white-space: nowrap;
 		}
 
@@ -447,12 +448,6 @@
 }
 
 .chatusername {
-
-	em {
-		font-style: normal;
-		font-weight: normal;
-	}
-
 	&--color {
 		a    { color: inherit; }
 		&-0  { color: #0175e7; }

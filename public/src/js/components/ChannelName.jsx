@@ -49,7 +49,7 @@ class ChannelName extends Component {
 			title = tooltip;
 
 			if (secondary) {
-				suffix = <em key="secondary">({ secondary })</em>;
+				suffix = [" ", <em key="secondary">({ secondary })</em>];
 			}
 		}
 
