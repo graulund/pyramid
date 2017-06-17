@@ -92,7 +92,7 @@ class ChannelList extends PureComponent {
 }
 
 ChannelList.propTypes = {
-	configChannels: PropTypes.object,
+	configChannels: PropTypes.array,
 	enableTwitchChannelDisplayNames: PropTypes.bool,
 	enableTwitchUserDisplayNames: PropTypes.number,
 	hideOldChannels: PropTypes.bool,
