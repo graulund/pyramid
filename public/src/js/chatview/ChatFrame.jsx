@@ -73,6 +73,7 @@ class ChatFrame extends PureComponent {
 			lines,
 			logBrowserOpen,
 			logDate,
+			offlineMessages,
 			pageQuery,
 			pageType,
 			selectedLine,
@@ -84,6 +85,7 @@ class ChatFrame extends PureComponent {
 			lines: oldLines,
 			logDate: oldLogDate,
 			logBrowserOpen: oldLogBrowserOpen,
+			offlineMessages: oldOfflineMessages,
 			pageQuery: oldQuery,
 			pageType: oldType,
 			selectedLine: oldSelectedLine,
@@ -104,7 +106,7 @@ class ChatFrame extends PureComponent {
 
 		// Lines changed
 
-		if (lines !== oldLines) {
+		if (lines !== oldLines || offlineMessages !== oldOfflineMessages) {
 			if (logDate) {
 				scrollToTheTop();
 			}
