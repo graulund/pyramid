@@ -526,13 +526,14 @@ module.exports = function(main) {
 					// if the command itself includes an accepted token
 
 					if (tokenUtils.isAnAcceptedToken(details.token)) {
+						const message = stringUtils.normalise(details.message);
+						main.ircControl().sendOutgoingMessage(
+							details.channel, message, details.messageToken
+						);
 
 						if (details.messageToken) {
 							emitMessagePosted(socket, details.channel, details.messageToken);
 						}
-
-						const message = stringUtils.normalise(details.message);
-						main.ircControl().sendOutgoingMessage(details.channel, message);
 					}
 				}
 			});

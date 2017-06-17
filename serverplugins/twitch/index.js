@@ -419,7 +419,8 @@ module.exports = function(main) {
 					main.incomingEvents().handleIncomingCustomEvent(
 						channel, serverName, clearedUsername,
 						time, "clearchat", line, message.tags, null,
-						`** ${clearedUsername} ${line}`, true, extraData
+						`** ${clearedUsername} ${line}`, true, null,
+						extraData
 					);
 					break;
 				}

@@ -98,7 +98,7 @@ module.exports = function(main) {
 
 	// Send message
 
-	const sendOutgoingMessage = function(channelUri, message, isAction = false) {
+	const sendOutgoingMessage = function(channelUri, message, messageToken) {
 		let uriData = channelUtils.parseChannelUri(channelUri);
 
 		if (uriData && uriData.server && uriData.channel) {
@@ -109,9 +109,9 @@ module.exports = function(main) {
 			if (client) {
 
 				// TODO: Proper /command handling in a different layer
-				let meRegex = /^\/me\s+/;
+				let meRegex = /^\/me\s+/, isAction = false;
 
-				if (!isAction && meRegex.test(message)) {
+				if (meRegex.test(message)) {
 					isAction = true;
 					message = message.replace(meRegex, "");
 				}
@@ -134,7 +134,7 @@ module.exports = function(main) {
 					handleIncomingMessage(
 						client, client.irc.user.nick,
 						channelName, type, m, {},
-						true
+						true, messageToken
 					);
 				});
 
@@ -148,7 +148,8 @@ module.exports = function(main) {
 	// Handle incoming events
 
 	const handleIncomingMessage = function(
-		client, username, channel, type, message, tags = {}, postedLocally = false
+		client, username, channel, type, message, tags = {}, postedLocally = false,
+		messageToken = null
 	) {
 
 		// Context
@@ -169,7 +170,7 @@ module.exports = function(main) {
 
 		main.incomingEvents().handleIncomingMessage(
 			channelUri, serverName, username,
-			time, type, message, parsedTags, meUsername
+			time, type, message, parsedTags, meUsername, messageToken
 		);
 	};
 

@@ -251,7 +251,7 @@ module.exports = function(
 	const cacheMessage = function(
 		channelUri, serverName, username, symbol,
 		time, type, message, tags, relationship, highlightStrings,
-		customCols = null
+		messageToken = null, customCols = null
 	) {
 		let msg = {
 			channel: channelUri,
@@ -267,6 +267,10 @@ module.exports = function(
 			type,
 			username
 		};
+
+		if (messageToken) {
+			msg = _.assign(msg, { messageToken });
+		}
 
 		if (customCols) {
 			msg = _.assign(msg, customCols);

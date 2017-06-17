@@ -57,6 +57,13 @@ function _handleSubscription(subject, unsubscribe = false) {
 	}
 }
 
+function removeOfflineMessage(details) {
+	let { channel, messageToken } = details;
+	if (channel && messageToken) {
+		store.dispatch(actions.offlineMessages.remove(channel, messageToken));
+	}
+}
+
 export function subscribeToSubject(subject) {
 	_handleSubscription(subject, false);
 }
@@ -247,11 +254,14 @@ export function initializeIo() {
 		});
 
 		socket.on("channelEvent", (details) => {
+			removeOfflineMessage(details);
 			store.dispatch(actions.channelCaches.append(details));
 		});
 
 		socket.on("listEvent", (details) => {
 			let { event, listName, listType } = details;
+
+			removeOfflineMessage(details);
 
 			if (listType === PAGE_TYPES.USER) {
 				store.dispatch(actions.userCaches.append(event));
@@ -266,8 +276,7 @@ export function initializeIo() {
 		});
 
 		socket.on("messagePosted", (details) => {
-			let { channel, messageToken } = details;
-			store.dispatch(actions.offlineMessages.remove(channel, messageToken));
+			removeOfflineMessage(details);
 		});
 
 		socket.on("channelUserList", (details) => {
