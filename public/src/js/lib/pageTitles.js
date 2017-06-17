@@ -2,6 +2,7 @@ import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
 import { channelNameFromUri } from "./channelNames";
 import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
 import { getChannelInfo } from "./ircConfigs";
+import { getUserInfo } from "./users";
 import * as route from "./routeHelpers";
 import store from "../store";
 
@@ -108,11 +109,6 @@ function commitTitle() {
 	document.title = prefix + currentTitle;
 }
 
-function getUserInfo(username) {
-	let state = store.getState();
-	return { username, ...state.lastSeenUsers[username] };
-}
-
 function handleLocationChange(location) {
 	const { pathname } = location;
 	currentPathname = pathname;
@@ -120,29 +116,41 @@ function handleLocationChange(location) {
 	var m = route.parseChannelLogUrl(pathname);
 
 	if (m) {
-		setTitle(channelPageLogTitle(getChannelInfo(m[1]), m[2]));
-		return;
+		let channelInfo = getChannelInfo(m[1]);
+		if (channelInfo) {
+			setTitle(channelPageLogTitle(channelInfo, m[2]));
+			return;
+		}
 	}
 
 	m = route.parseUserLogUrl(pathname);
 
 	if (m) {
-		setTitle(userPageLogTitle(getUserInfo(m[1]), m[2]));
-		return;
+		let userInfo = getUserInfo(m[1]);
+		if (userInfo) {
+			setTitle(userPageLogTitle(userInfo, m[2]));
+			return;
+		}
 	}
 
 	m = route.parseChannelUrl(pathname);
 
 	if (m) {
-		setTitle(channelPageTitle(getChannelInfo(m[1])));
-		return;
+		let channelInfo = getChannelInfo(m[1]);
+		if (channelInfo) {
+			setTitle(channelPageTitle(channelInfo));
+			return;
+		}
 	}
 
 	m = route.parseUserUrl(pathname);
 
 	if (m) {
-		setTitle(userPageTitle(getUserInfo(m[1])));
-		return;
+		let userInfo = getUserInfo(m[1]);
+		if (userInfo) {
+			setTitle(userPageTitle(userInfo));
+			return;
+		}
 	}
 
 	m = route.parseSettingsUrl(pathname);

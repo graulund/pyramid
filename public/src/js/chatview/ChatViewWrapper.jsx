@@ -5,44 +5,56 @@ import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import { CATEGORY_NAMES } from "../constants";
 import { getChannelUri } from "../lib/channelNames";
+import { getChannelInfoByNames } from "../lib/ircConfigs";
 import { parseLineIdHash } from "../lib/routeHelpers";
+import { getUserInfo } from "../lib/users";
 
 const VALID_CATEGORIES = Object.keys(CATEGORY_NAMES);
 
 class ChatViewWrapper extends PureComponent {
 	render() {
-		const { location, match: { params } } = this.props;
+		const { location, match: { params, url } } = this.props;
+
+		const {
+			categoryName,
+			channelName,
+			logDate,
+			pageNumber,
+			serverName,
+			username
+		} = params;
 
 		var pageType = "", pageQuery = "";
 
-		if (params.channelName && params.serverName) {
+		if (
+			channelName && serverName &&
+			getChannelInfoByNames(serverName, channelName)
+		) {
 			pageType = "channel";
-			pageQuery = getChannelUri(
-				params.serverName, params.channelName
-			);
+			pageQuery = getChannelUri(serverName, channelName);
 		}
-		else if (params.username) {
+		else if (username && getUserInfo(username)) {
 			pageType = "user";
-			pageQuery = params.username;
+			pageQuery = username;
 		}
 		else if (
-			params.categoryName &&
-			VALID_CATEGORIES.indexOf(params.categoryName) >= 0
+			categoryName &&
+			VALID_CATEGORIES.indexOf(categoryName) >= 0
 		) {
 			pageType = "category";
-			pageQuery = params.categoryName;
+			pageQuery = categoryName;
 		}
 
 		if (!pageType) {
-			return <NoChatView key="main" />;
+			return <NoChatView notFound={url !== "/"} key="main" />;
 		}
 
 		const lineId = parseLineIdHash(location.hash);
 
 		return <ChatView
 			lineId={lineId}
-			logDate={params.logDate}
-			pageNumber={+params.pageNumber || 1}
+			logDate={logDate}
+			pageNumber={+pageNumber || 1}
 			pageQuery={pageQuery}
 			pageType={pageType}
 			key="main" />;

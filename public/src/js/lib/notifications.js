@@ -39,7 +39,7 @@ export function sendMessageNotification(msg) {
 		let channelInfo = getChannelInfo(msg.channel);
 		let channelString = getTwitchChannelDisplayNameString(
 			channelNameFromUri(msg.channel),
-			channelInfo.displayName,
+			channelInfo && channelInfo.displayName,
 			channelDisplayNameSetting,
 			userDisplayNameSetting
 		);
