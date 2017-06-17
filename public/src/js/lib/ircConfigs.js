@@ -28,14 +28,6 @@ export function resetMultiServerChannels() {
 	));
 }
 
-export function isTwitch(ircConfig) {
-	if (ircConfig) {
-		return /irc\.(chat\.)?twitch\.tv/.test(ircConfig.hostname);
-	}
-
-	return false;
-}
-
 export function getChannelInfo(channel) {
 	var channelConfig = {};
 	let state = store.getState();

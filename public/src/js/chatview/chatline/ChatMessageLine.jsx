@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
 import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
-import { isTwitch } from "../../lib/ircConfigs";
+import { parseChannelUri } from "../../lib/channelNames";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
 
 const block = "msg";
@@ -108,16 +108,14 @@ class ChatMessageLine extends PureComponent {
 			cleared = false,
 			color,
 			displayUsername,
-			enableTwitch,
 			enableTwitchColors,
 			enableUsernameColors,
-			ircConfigs,
 			showTwitchDeletedMessages,
-			server,
 			symbol = "",
 			tags,
 			type,
-			username
+			username,
+			useTwitch
 		} = this.props;
 
 		const { unhidden } = this.state;
@@ -126,15 +124,11 @@ class ChatMessageLine extends PureComponent {
 			(type !== "msg" ? ` ${block}--${type}` : "") +
 			(cleared && showTwitchDeletedMessages ? ` ${block}--cleared` : "");
 
-		// DEPRECATE: Use serverData
-		const useTwitch = enableTwitch && server &&
-			ircConfigs && isTwitch(ircConfigs[server]);
-
 		const tokens = tokenizeChatLine(this.props, useTwitch);
 
 		var messageContent;
 
-		if (cleared && !unhidden && !showTwitchDeletedMessages) {
+		if (useTwitch && cleared && !unhidden && !showTwitchDeletedMessages) {
 			messageContent = this.renderCleared();
 		}
 		else {
@@ -153,18 +147,22 @@ class ChatMessageLine extends PureComponent {
 			authorColor = color;
 		}
 
-		// Twitch color
-		if (enableTwitchColors && tags && tags.color) {
-			authorColor = tags.color;
-		}
+		if (useTwitch) {
 
-		// Twitch display name
-		if (tags && tags["display-name"]) {
-			authorDisplayName = tags["display-name"];
-		}
+			// Twitch color
+			if (enableTwitchColors && tags && tags.color) {
+				authorColor = tags.color;
+			}
 
-		if (tags && tags["user-id"]) {
-			authorUserId = tags["user-id"];
+			// Twitch display name
+			if (tags && tags["display-name"]) {
+				authorDisplayName = tags["display-name"];
+			}
+
+			// Twitch user id
+			if (tags && tags["user-id"]) {
+				authorUserId = tags["user-id"];
+			}
 		}
 
 		const content = (
@@ -196,7 +194,6 @@ ChatMessageLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
-	enableTwitch: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
@@ -211,23 +208,34 @@ ChatMessageLine.propTypes = {
 	tags: PropTypes.object,
 	time: PropTypes.string,
 	type: PropTypes.string,
-	username: PropTypes.string
+	username: PropTypes.string,
+	useTwitch: PropTypes.bool
 };
 
-export default connect(({
-	appConfig: {
+const mapStateToProps = function(state, ownProps) {
+	let { channel } = ownProps;
+	let { appConfig, serverData } = state;
+
+	let {
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchColors,
 		enableUsernameColors,
 		showTwitchDeletedMessages
-	},
-	ircConfigs
-}) => ({
-	enableEmojiImages,
-	enableTwitch,
-	enableTwitchColors,
-	enableUsernameColors,
-	ircConfigs,
-	showTwitchDeletedMessages
-}))(ChatMessageLine);
+	} = appConfig;
+
+	let uriData = parseChannelUri(channel);
+	let server = uriData && uriData.server;
+	let thisServerData = server && serverData[server];
+	let useTwitch = enableTwitch && thisServerData && thisServerData.isTwitch;
+
+	return {
+		enableEmojiImages,
+		enableTwitchColors,
+		enableUsernameColors,
+		showTwitchDeletedMessages,
+		useTwitch
+	};
+};
+
+export default connect(mapStateToProps)(ChatMessageLine);
