@@ -56,6 +56,15 @@
 		&__main {
 			padding: 10px 20px;
 		}
+
+		&__switcher {
+			a {
+				border: 1px solid #ccc;
+				border-radius: 3px;
+				margin: 0 0 0 8px;
+				padding: 4px 8px;
+			}
+		}
 	}
 
 	@media #{$mobile-media} {
