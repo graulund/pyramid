@@ -19,6 +19,7 @@ class TimedUserItem extends PureComponent {
 			lastSeenData = {},
 			onlineFriends = [],
 			skipOld = true,
+			style,
 			symbol = "",
 			username,
 			visible
@@ -80,6 +81,7 @@ class TimedUserItem extends PureComponent {
 				prefix={prefix}
 				suffix={suffix}
 				skipOld={skipOld}
+				style={style}
 				visible={visible}
 				key="main"
 				/>;
@@ -94,6 +96,7 @@ TimedUserItem.propTypes = {
 	lastSeenData: PropTypes.object,
 	onlineFriends: PropTypes.array,
 	skipOld: PropTypes.bool,
+	style: PropTypes.object,
 	symbol: PropTypes.string,
 	username: PropTypes.string,
 	visible: PropTypes.bool

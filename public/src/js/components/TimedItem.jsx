@@ -207,7 +207,7 @@ class TimedItem extends PureComponent {
 	}
 
 	render() {
-		const { prefix, skipOld = true, suffix, time } = this.props;
+		const { prefix, skipOld = true, style: givenStyle, suffix, time } = this.props;
 		const { shieldedNow } = this.state;
 
 		const now = Date.now();
@@ -262,6 +262,10 @@ class TimedItem extends PureComponent {
 
 		this.hasRenderedOnce = true;
 
+		if (givenStyle) {
+			styles = { ...styles, ...givenStyle };
+		}
+
 		return (
 			<li className={className} style={styles}>
 				<div className="l">
@@ -283,6 +287,7 @@ TimedItem.propTypes = {
 	enableDarkMode: PropTypes.bool,
 	prefix: PropTypes.node,
 	skipOld: PropTypes.bool,
+	style: PropTypes.object,
 	suffix: PropTypes.node,
 	time: PropTypes.string,
 	visible: PropTypes.bool

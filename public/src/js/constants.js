@@ -54,3 +54,5 @@ export const COLOR_BLINDNESS = {
 	DEUTERANOPE: 2,
 	TRITANOPE: 3
 };
+
+export const ITEM_LIST_ITEM_HEIGHT = 27;
