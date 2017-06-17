@@ -19,14 +19,14 @@ class ChatOfflineResendButton extends PureComponent {
 
 		let visible = this.prepareVisibility(props);
 
-		this.state = { visible };
+		this.state = { clicked: false, visible };
 	}
 
 	componentWillReceiveProps(newProps) {
 		if (newProps.time !== this.props.time) {
 			let visible = this.prepareVisibility(newProps);
 			if (visible !== this.state.visible) {
-				this.setState({ visible });
+				this.setState({ clicked: false, visible });
 			}
 		}
 	}
@@ -58,17 +58,19 @@ class ChatOfflineResendButton extends PureComponent {
 	resend() {
 		let { channel, messageToken } = this.props;
 		resendOfflineMessage(channel, messageToken);
+		this.setState({ clicked: true });
 	}
 
 	show() {
-		this.setState({ visible: true });
+		this.setState({ clicked: false, visible: true });
 	}
 
 	render() {
 		let { globalConnectionStatus } = this.props;
-		let { visible } = this.state;
+		let { clicked, visible } = this.state;
 
 		if (
+			!clicked &&
 			visible &&
 			globalConnectionStatus &&
 			globalConnectionStatus.status === STATUS.CONNECTED
