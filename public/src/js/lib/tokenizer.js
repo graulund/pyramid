@@ -120,7 +120,7 @@ function addTokensFromText(tokens, newTokens, preSorted = true) {
 function tokenizeLinks(tokens) {
 	const linkify = new linkifyIt();
 
-	var newTokens;
+	var newTokens = [];
 
 	getTextTokens(tokens, (token) => {
 		const { offset, text } = token;
@@ -128,7 +128,7 @@ function tokenizeLinks(tokens) {
 		const matches = linkify.match(text);
 
 		if (matches) {
-			newTokens = matches.map((match) => {
+			newTokens = newTokens.concat(matches.map((match) => {
 				const { index, lastIndex, url } = match;
 
 				// Convert offsets to full-char offsets
@@ -143,7 +143,7 @@ function tokenizeLinks(tokens) {
 						url
 					}
 				};
-			});
+			}));
 		}
 	});
 
