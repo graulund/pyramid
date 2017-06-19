@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import forOwn from "lodash/forOwn";
 import without from "lodash/without";
-import { List } from "react-virtualized";
+import { AutoSizer, List } from "react-virtualized";
 
 import TimedUserItem from "../components/TimedUserItem.jsx";
 import { ITEM_LIST_ITEM_HEIGHT } from "../constants";
@@ -16,8 +16,9 @@ class ChannelUserList extends PureComponent {
 	constructor(props) {
 		super(props);
 
+		this.renderList = this.renderList.bind(this);
 		this.renderListItem = this.renderListItem.bind(this);
-		this.currentList = [];
+		this.currentList = this.sortedUserList(props.userList);
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -107,21 +108,35 @@ class ChannelUserList extends PureComponent {
 		return null;
 	}
 
+	renderList({ width, height }) {
+		let userList = this.currentList;
+
+		// We always want to create a new instance of this, so it re-renders fully
+		let itemRenderer = (data) => this.renderListItem(data);
+
+		return (
+			<List
+				height={height}
+				rowCount={userList.length}
+				rowHeight={ITEM_LIST_ITEM_HEIGHT}
+				rowRenderer={itemRenderer}
+				width={width}
+				cacheBreaker={userList} />
+		);
+	}
+
 	render() {
 		let userList = this.currentList;
 
 		if (userList) {
-			// TODO: Better way of calculating this...
-			let height = window.innerHeight - 41 - 72;
+			// We always want to create a new instance of this, so it re-renders fully
+			let listRenderer = (data) => this.renderList(data);
 
 			return (
 				<div className="channeluserlist itemlist">
-					<List
-						height={height}
-						rowCount={userList.length}
-						rowHeight={ITEM_LIST_ITEM_HEIGHT}
-						rowRenderer={this.renderListItem}
-						width={280} />
+					<AutoSizer>
+						{ listRenderer }
+					</AutoSizer>
 				</div>
 			);
 		}
