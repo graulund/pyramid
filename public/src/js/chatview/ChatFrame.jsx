@@ -19,6 +19,7 @@ class ChatFrame extends PureComponent {
 		super(props);
 
 		this.lineObserverCallback = this.lineObserverCallback.bind(this);
+		this.onEmoteLoad = this.onEmoteLoad.bind(this);
 		this.onObserve = this.onObserve.bind(this);
 		this.onUnobserve = this.onUnobserve.bind(this);
 
@@ -148,6 +149,13 @@ class ChatFrame extends PureComponent {
 	isLiveChannel(props = this.props) {
 		const { logDate, pageType } = props;
 		return pageType === PAGE_TYPES.CHANNEL && !logDate;
+	}
+
+	onEmoteLoad() {
+		let { logDate } = this.props;
+		if (!logDate && this.atBottom) {
+			scrollToTheBottom();
+		}
 	}
 
 	// Observers
@@ -343,6 +351,7 @@ class ChatFrame extends PureComponent {
 			loading={loading}
 			messages={allLines}
 			observer={this.observerHandlers}
+			onEmoteLoad={this.onEmoteLoad}
 			key="main" />;
 
 		return content;

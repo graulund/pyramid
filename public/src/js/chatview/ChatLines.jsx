@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { CellMeasurer, CellMeasurerCache, List, WindowScroller } from "react-virtualized";
 
 import ChatLine from "./ChatLine.jsx";
 import { humanDateStamp } from "../lib/formatting";
@@ -7,8 +8,19 @@ import { humanDateStamp } from "../lib/formatting";
 const block = "chatlines";
 
 class ChatLines extends PureComponent {
+	constructor(props) {
+		super(props);
 
-	renderDateHeader(dateString) {
+		this.renderItem = this.renderItem.bind(this);
+
+		this.cellMeasurerCache = new CellMeasurerCache({
+			defaultHeight: 21,
+			minHeight: 21,
+			fixedWidth: true
+		});
+	}
+
+	renderDateHeader(dateString, key, style) {
 		if (!this.dateHeaderCache) {
 			this.dateHeaderCache = {};
 		}
@@ -20,14 +32,36 @@ class ChatLines extends PureComponent {
 		}
 
 		let out = (
-			<li className="date-header" key={dateString}>
+			<div
+				className="date-header"
+				key={key || dateString}
+				style={style}>
 				<span>{ dateString }</span>
-			</li>
+			</div>
 		);
 
 		this.dateHeaderCache[dateString] = out;
 
 		return out;
+	}
+
+	renderItem(content, request) {
+		let { index, key, parent } = request;
+
+		if (!content) {
+			return null;
+		}
+
+		return (
+			<CellMeasurer
+				cache={this.cellMeasurerCache}
+				columnIndex={0}
+				key={key}
+				rowIndex={index}
+				parent={parent}>
+				{ content }
+			</CellMeasurer>
+		);
 	}
 
 	render() {
@@ -48,19 +82,36 @@ class ChatLines extends PureComponent {
 		if (messages && messages.length) {
 			var lastDateString = "";
 
-			content = [];
+			let contentList = [];
 
 			messages.forEach((msg, index) => {
 				if (msg) {
 					var dateString = humanDateStamp(new Date(msg.time), true, true);
-					var line = <ChatLine {...msg}
-						collapseJoinParts={collapseJoinParts}
-						displayChannel={displayChannel}
-						displayContextLink={displayContextLink}
-						displayUsername={displayUsername}
-						observer={observer}
-						onEmoteLoad={onEmoteLoad}
-						key={msg.lineId || index} />;
+					var line = (key, style) => {
+						return ({ measure }) => {
+							let m = () => {
+								if (typeof measure === "function") {
+									measure();
+								}
+								if (typeof onEmoteLoad === "function") {
+									onEmoteLoad();
+								}
+							};
+
+							return (
+								<ChatLine
+									{...msg}
+									collapseJoinParts={collapseJoinParts}
+									displayChannel={displayChannel}
+									displayContextLink={displayContextLink}
+									displayUsername={displayUsername}
+									observer={observer}
+									onEmoteLoad={m}
+									style={style}
+									key={key || msg.lineId || index} />
+							);
+						};
+					};
 
 					// Detect date change
 					if (dateString !== lastDateString) {
@@ -68,8 +119,9 @@ class ChatLines extends PureComponent {
 						// Insert date header
 						if (displayFirstDate || lastDateString !== "") {
 							lastDateString = dateString;
-							content.push(
-								this.renderDateHeader(dateString)
+							contentList.push(
+								(key, style) =>
+									this.renderDateHeader(dateString, key, style)
 							);
 						}
 
@@ -78,19 +130,44 @@ class ChatLines extends PureComponent {
 						}
 					}
 
-					content.push(line);
+					contentList.push(line);
 				}
 			});
+
+			let itemRenderer = (request) => {
+				let { index, key, style } = request;
+				let content = contentList[index](key, style);
+				return this.renderItem(content, request);
+			};
+
+			content = (
+				<WindowScroller>
+					{ ({ height, isScrolling, onChildScroll, scrollTop }) => (
+						<List
+							autoHeight
+							deferredMeasurementCache={this.cellMeasurerCache}
+							height={height}
+							isScrolling={isScrolling}
+							onScroll={onChildScroll}
+							rowCount={contentList.length}
+							rowHeight={this.cellMeasurerCache.rowHeight}
+							rowRenderer={itemRenderer}
+							scrollTop={scrollTop}
+							width={window.innerWidth - 320}
+						/>
+					) }
+				</WindowScroller>
+			);
 		}
 
 		else if (!loading) {
-			content = <li className={`${block}__empty`} key="empty">Nothing here :(</li>;
+			content = <div className={`${block}__empty`} key="empty">Nothing here :(</div>;
 		}
 
 		const className = block +
 			(displayContextLink ? ` ${block}--with-context` : "");
 
-		return <ul className={className}>{ content }</ul>;
+		return <div className={className}>{ content }</div>;
 	}
 }
 

@@ -35,6 +35,7 @@ class ChatLine extends PureComponent {
 			offline,
 			showTwitchClearChats,
 			status,
+			style,
 			time,
 			type
 		} = this.props;
@@ -190,7 +191,8 @@ class ChatLine extends PureComponent {
 
 		const itemProps = {
 			className,
-			id: lineId && `line-${lineId}`
+			id: lineId && `line-${lineId}`,
+			style
 		};
 
 		if (isHighlight) {
@@ -201,7 +203,7 @@ class ChatLine extends PureComponent {
 			);
 		}
 
-		return <li {...itemProps}>{ outerContent }</li>;
+		return <div {...itemProps}>{ outerContent }</div>;
 	}
 }
 
@@ -230,6 +232,7 @@ ChatLine.propTypes = {
 	server: PropTypes.string,
 	status: PropTypes.string,
 	showTwitchClearChats: PropTypes.bool,
+	style: PropTypes.object,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,
