@@ -112,7 +112,7 @@ class ChannelUserList extends PureComponent {
 		let userList = this.currentList;
 
 		// We always want to create a new instance of this, so it re-renders fully
-		let itemRenderer = (data) => this.renderListItem(data);
+		let itemRenderer = (request) => this.renderListItem(request);
 
 		return (
 			<List
@@ -120,8 +120,7 @@ class ChannelUserList extends PureComponent {
 				rowCount={userList.length}
 				rowHeight={ITEM_LIST_ITEM_HEIGHT}
 				rowRenderer={itemRenderer}
-				width={width}
-				cacheBreaker={userList} />
+				width={width} />
 		);
 	}
 
@@ -130,7 +129,7 @@ class ChannelUserList extends PureComponent {
 
 		if (userList) {
 			// We always want to create a new instance of this, so it re-renders fully
-			let listRenderer = (data) => this.renderList(data);
+			let listRenderer = (dimensions) => this.renderList(dimensions);
 
 			return (
 				<div className="channeluserlist itemlist">

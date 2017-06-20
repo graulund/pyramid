@@ -189,7 +189,7 @@ class TimedItem extends PureComponent {
 	renderClassName(flashing = false) {
 		const { className: givenClassName } = this.props;
 
-		var classNames = [];
+		var classNames = ["itemlist__item"];
 
 		if (givenClassName) {
 			classNames.push(givenClassName);
@@ -267,7 +267,7 @@ class TimedItem extends PureComponent {
 		}
 
 		return (
-			<li className={className} style={styles}>
+			<div className={className} style={styles}>
 				<div className="l">
 					{ prefix }
 					{ prefix && primaryTimeEl ? " " : null }
@@ -276,7 +276,7 @@ class TimedItem extends PureComponent {
 					{ suffix }
 				</div>
 				{ secondaryTimeEl }
-			</li>
+			</div>
 		);
 	}
 }

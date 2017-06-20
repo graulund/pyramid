@@ -21,7 +21,8 @@ class UserList extends PureComponent {
 		this.renderUserItem = this.renderUserItem.bind(this);
 	}
 
-	renderUserItem(data) {
+	renderUserItem(data, request) {
+		let { key, style } = request;
 		let { hideOldUsers = true, visible } = this.props;
 		if (data && data.username) {
 			let { username, lastSeen = {} } = data;
@@ -30,15 +31,16 @@ class UserList extends PureComponent {
 				username={username}
 				lastSeenData={lastSeen}
 				skipOld={hideOldUsers}
+				style={style}
 				visible={visible}
-				key={username}
+				key={key}
 				/>;
 		}
 		return null;
 	}
 
 	render() {
-		const { lastSeenUsers, sort } = this.props;
+		let { height, lastSeenUsers, sort, width } = this.props;
 
 		let list = [];
 		for (var username in lastSeenUsers) {
@@ -48,21 +50,25 @@ class UserList extends PureComponent {
 
 		return <SortedItemList
 			getIdForItem={getDataUsername}
+			height={height}
 			id="userlist"
 			list={list}
 			noItemsText="No friends :("
 			renderItem={this.renderUserItem}
 			sort={sort}
 			sortableNameForItem={sortableName}
+			width={width}
 			/>;
 	}
 }
 
 UserList.propTypes = {
+	height: PropTypes.number.isRequired,
 	hideOldUsers: PropTypes.bool,
 	lastSeenUsers: PropTypes.object,
 	sort: PropTypes.string,
-	visible: PropTypes.bool
+	visible: PropTypes.bool,
+	width: PropTypes.number.isRequired
 };
 
 export default connect(({

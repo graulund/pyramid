@@ -13,6 +13,7 @@ class TimedChannelItem extends PureComponent {
 			displayServer = false,
 			lastSeenData = {},
 			skipOld = false,
+			style,
 			visible
 		} = this.props;
 
@@ -44,6 +45,7 @@ class TimedChannelItem extends PureComponent {
 				time={lastSeenData.time}
 				skipOld={skipOld}
 				prefix={prefix}
+				style={style}
 				suffix={suffix}
 				visible={visible}
 				key="main"
@@ -57,6 +59,7 @@ TimedChannelItem.propTypes = {
 	displayServer: PropTypes.bool,
 	lastSeenData: PropTypes.object,
 	skipOld: PropTypes.bool,
+	style: PropTypes.object,
 	visible: PropTypes.bool
 };
 

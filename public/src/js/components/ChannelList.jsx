@@ -61,7 +61,8 @@ class ChannelList extends PureComponent {
 		}
 	}
 
-	renderChannelItem(data) {
+	renderChannelItem(data, request) {
+		let { key, style } = request;
 		let { hideOldChannels = false, visible } = this.props;
 		if (data && data.channel) {
 			let { channel, displayName, lastSeen } = data;
@@ -70,23 +71,26 @@ class ChannelList extends PureComponent {
 				displayName={displayName}
 				lastSeenData={lastSeen}
 				skipOld={hideOldChannels}
+				style={style}
 				visible={visible}
-				key={channel} />;
+				key={key} />;
 		}
 		return null;
 	}
 
 	render() {
-		let { configChannels, sort } = this.props;
+		let { configChannels, height, sort, width } = this.props;
 
 		return <SortedItemList
 			getIdForItem={getDataChannel}
+			height={height}
 			id="channellist"
 			list={configChannels}
 			noItemsText="No channels :("
 			renderItem={this.renderChannelItem}
 			sort={sort}
 			sortableNameForItem={this.sortableName}
+			width={width}
 			/>;
 	}
 }
@@ -95,10 +99,12 @@ ChannelList.propTypes = {
 	configChannels: PropTypes.array,
 	enableTwitchChannelDisplayNames: PropTypes.bool,
 	enableTwitchUserDisplayNames: PropTypes.number,
+	height: PropTypes.number.isRequired,
 	hideOldChannels: PropTypes.bool,
 	serverIsTwitch: PropTypes.object,
 	sort: PropTypes.string,
-	visible: PropTypes.bool
+	visible: PropTypes.bool,
+	width: PropTypes.number.isRequired
 };
 
 const mapStateToProps = function(state) {

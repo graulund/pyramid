@@ -1,6 +1,8 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { List } from "react-virtualized";
 
+import { ITEM_LIST_ITEM_HEIGHT } from "../constants";
 import { minuteTime } from "../lib/formatting";
 
 const defaultLastSeenData = { time: "" };
@@ -13,6 +15,7 @@ class SortedItemList extends PureComponent {
 		this.alphaSort = this.alphaSort.bind(this);
 		this.onMouseEnter = this.onMouseEnter.bind(this);
 		this.onMouseLeave = this.onMouseLeave.bind(this);
+		this.renderItem = this.renderItem.bind(this);
 
 		this.currentSortedNames = null;
 
@@ -64,17 +67,30 @@ class SortedItemList extends PureComponent {
 		return 1;
 	}
 
+	renderItem(request, list) {
+		let { index } = request;
+		let { renderItem } = this.props;
+		let data = list[index];
+
+		return renderItem(data, request);
+	}
+
 	render() {
 		let {
 			getIdForItem,
+			height,
 			id,
 			list,
 			noItemsText = "Nothing here :(",
-			renderItem,
-			sort
+			sort,
+			width
 		} = this.props;
 
 		let { sortLocked } = this.state;
+
+		if (!width || !height) {
+			return null;
+		}
 
 		let displayedList = list;
 
@@ -126,34 +142,46 @@ class SortedItemList extends PureComponent {
 
 		var renderedItems;
 		if (displayedList.length) {
-			renderedItems = displayedList.map(renderItem);
+			// We always want to create a new instance of this, so it re-renders fully
+			let itemRenderer = (request) => this.renderItem(request, displayedList);
+
+			renderedItems = (
+				<List
+					height={height}
+					rowCount={list.length}
+					rowHeight={ITEM_LIST_ITEM_HEIGHT}
+					rowRenderer={itemRenderer}
+					width={width} />
+			);
 		}
 		else {
 			renderedItems = [
-				<li className="nothing" key="nothing">{ noItemsText }</li>
+				<div className="nothing" key="nothing">{ noItemsText }</div>
 			];
 		}
 
 		return (
-			<ul
+			<div
 				id={id}
 				className="itemlist"
 				onMouseEnter={this.onMouseEnter}
 				onMouseLeave={this.onMouseLeave}>
 				{ renderedItems }
-			</ul>
+			</div>
 		);
 	}
 }
 
 SortedItemList.propTypes = {
 	getIdForItem: PropTypes.func.isRequired,
+	height: PropTypes.number.isRequired,
 	id: PropTypes.string,
 	list: PropTypes.array.isRequired,
 	noItemsText: PropTypes.string,
 	renderItem: PropTypes.func.isRequired,
 	sort: PropTypes.string,
-	sortableNameForItem: PropTypes.func.isRequired
+	sortableNameForItem: PropTypes.func.isRequired,
+	width: PropTypes.number.isRequired
 };
 
 export default SortedItemList;

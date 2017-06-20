@@ -1,7 +1,9 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { findDOMNode } from "react-dom";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
+import throttle from "lodash/throttle";
 
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
@@ -21,16 +23,21 @@ class Sidebar extends PureComponent {
 
 		this.onClick = this.onClick.bind(this);
 		this.hide = this.hide.bind(this);
+		this.setListDimensions = this.setListDimensions.bind(this);
 		this.showUsers = this.showUsers.bind(this);
 		this.showChannels = this.showChannels.bind(this);
 		this.sortByAlpha = this.sortByAlpha.bind(this);
 		this.sortByActivity = this.sortByActivity.bind(this);
 		this.toggleSystemMenu = this.toggleSystemMenu.bind(this);
 
+		this.handleResize = throttle(this.setListDimensions, 16);
+
 		this.els = {};
 		this.setCog = refElSetter("cog").bind(this);
 
 		this.state = {
+			listHeight: 0,
+			listWidth: 0,
 			systemMenuOpen: false
 		};
 	}
@@ -47,6 +54,9 @@ class Sidebar extends PureComponent {
 			this.closeSystemMenu();
 		};
 		document.addEventListener("click", this.closeClickHandler);
+
+		window.addEventListener("resize", this.handleResize);
+		this.setListDimensions();
 	}
 
 	componentWillUnmount() {
@@ -54,6 +64,8 @@ class Sidebar extends PureComponent {
 		if (this.closeClickHandler) {
 			document.removeEventListener("click", this.closeClickHandler);
 		}
+
+		window.removeEventListener("resize", this.handleResize);
 	}
 
 	// Event handler
@@ -80,6 +92,22 @@ class Sidebar extends PureComponent {
 			) {
 				this.hide();
 			}
+		}
+	}
+
+	setListDimensions() {
+		if (!this.root) {
+			this.root = findDOMNode(this);
+		}
+
+		if (this.root) {
+			let r = this.root;
+			let topRect = r.querySelector(".sidebar__top").getBoundingClientRect();
+			let listHeadRect = r.querySelector(".sidebar__list-head").getBoundingClientRect();
+			let listWidth = topRect.width;
+			let listHeight = window.innerHeight - topRect.height - listHeadRect.height;
+
+			this.setState({ listHeight, listWidth });
 		}
 	}
 
@@ -141,7 +169,7 @@ class Sidebar extends PureComponent {
 			sidebarTab: tab = "user",
 			sidebarVisible: visible = true
 		} = this.props;
-		const { systemMenuOpen } = this.state;
+		const { listHeight, listWidth, systemMenuOpen } = this.state;
 
 		const className = "sidebar" +
 			" sidebar--" + tab +
@@ -151,55 +179,71 @@ class Sidebar extends PureComponent {
 		var content = null;
 
 		if (tab === "user") {
-			content = <UserList sort={sort} visible={visible} key="userlist" />;
+			content = (
+				<UserList
+					height={listHeight}
+					sort={sort}
+					visible={visible}
+					width={listWidth}
+					key="userlist" />
+			);
 		}
 		else if (tab === "channel") {
-			content = <ChannelList sort={sort} visible={visible} key="channellist" />;
+			content = (
+				<ChannelList
+					height={listHeight}
+					sort={sort}
+					visible={visible}
+					width={listWidth}
+					key="channellist" />
+			);
 		}
 
 		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;
 
 		return (
 			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
-				<div className="sidebar__head" key="head">
-					<h1>Pyramid <VersionNumber /></h1>
-					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
-						<img src="/img/close.svg" width="16" height="16" alt="Close" />
-					</a>
-					<a className="sidebar__cog"
-						href="javascript://"
-						ref={this.setCog}
-						onClick={this.toggleSystemMenu}>
-						<img src="/img/cog.svg" width="16" height="16" alt="System" />
-					</a>
-					<ul className="sidebar__system-menu" style={systemMenuStyles}>
-						<li key="settings">
-							<Link to={settingsUrl()} className="sidebar__menu-link">
-								Settings
-							</Link>
+				<div className="sidebar__top" key="top">
+					<div className="sidebar__head" key="head">
+						<h1>Pyramid <VersionNumber /></h1>
+						<a className="sidebar__close" href="javascript://" onClick={this.hide}>
+							<img src="/img/close.svg" width="16" height="16" alt="Close" />
+						</a>
+						<a className="sidebar__cog"
+							href="javascript://"
+							ref={this.setCog}
+							onClick={this.toggleSystemMenu}>
+							<img src="/img/cog.svg" width="16" height="16" alt="System" />
+						</a>
+						<ul className="sidebar__system-menu" style={systemMenuStyles}>
+							<li key="settings">
+								<Link to={settingsUrl()} className="sidebar__menu-link">
+									Settings
+								</Link>
+							</li>
+							<li key="log">
+								<Link to={categoryUrl("system")} className="sidebar__menu-link">
+									System log
+								</Link>
+							</li>
+							<li key="logout" className="sep">
+								<a href={internalUrl("/logout")} className="sidebar__menu-link">
+									Log out
+								</a>
+							</li>
+						</ul>
+					</div>
+					<ul className="sidebar__menu" key="menu">
+						<li key="highlights">
+							<HighlightsLink className="sidebar__menu-link" />
 						</li>
-						<li key="log">
-							<Link to={categoryUrl("system")} className="sidebar__menu-link">
-								System log
+						<li key="allfriends">
+							<Link to={categoryUrl("allfriends")} className="sidebar__menu-link">
+								{ CATEGORY_NAMES.allfriends }
 							</Link>
-						</li>
-						<li key="logout" className="sep">
-							<a href={internalUrl("/logout")} className="sidebar__menu-link">
-								Log out
-							</a>
 						</li>
 					</ul>
 				</div>
-				<ul className="sidebar__menu" key="menu">
-					<li key="highlights">
-						<HighlightsLink className="sidebar__menu-link" />
-					</li>
-					<li key="allfriends">
-						<Link to={categoryUrl("allfriends")} className="sidebar__menu-link">
-							{ CATEGORY_NAMES.allfriends }
-						</Link>
-					</li>
-				</ul>
 				<div className="sidebar__list" key="list">
 					<div className="sidebar__list-head">
 						<ul className="sidebar__tabs switcher" key="tabs">
