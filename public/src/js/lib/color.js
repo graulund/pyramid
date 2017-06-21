@@ -1,11 +1,8 @@
 // Big thanks to FrankerFaceZ
 
-import { COLOR_BLINDNESS } from "../constants";
+import { COLOR_BLINDNESS, DEFAULT_BG_COLOR, DEFAULT_DARKMODE_BG_COLOR } from "../constants";
 
 // Settings
-
-const DEFAULT_BG_COLOR = "#ffffff";
-const DEFAULT_DARKMODE_BG_COLOR = "#111111";
 
 const luv_contrast = 4.5;
 

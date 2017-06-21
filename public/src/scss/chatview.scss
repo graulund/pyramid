@@ -98,6 +98,12 @@
 			white-space: nowrap;
 		}
 
+		time {
+			display: inline-block;
+			width: 4.385em;
+			text-align: right;
+		}
+
 		.prefix {
 			color: #999;
 			margin: 2px 0;
@@ -314,6 +320,11 @@
 		box-sizing: border-box;
 		border: 1px solid #ccc;
 		padding: 3px 5px;
+
+		&:focus {
+			outline: none;
+			border-color: #29d;
+		}
 	}
 
 	&__input input[type="submit"] {

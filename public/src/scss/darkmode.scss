@@ -10,10 +10,14 @@ body.darkmode {
 	.chatview .contextview__main,
 	.sidebar__system-menu,
 	.switcher a {
-		background-color: #111;
+		background-color: #2b2b33;
 		color: #ccc;
 
-		border-color: #444;
+		border-color: #4b4b55;
+	}
+
+	.sidebar {
+		background-color: #222227;
 	}
 
 	h1, h2, h3, h4, h5, h6,
@@ -95,6 +99,12 @@ body.darkmode {
 				&:before {
 					background-color: #c00;
 				}
+			}
+		}
+
+		&__input input[type="text"] {
+			&:focus {
+				border-color: #5b5b88;
 			}
 		}
 	}

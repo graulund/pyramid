@@ -4,7 +4,6 @@ import values from "lodash/values";
 
 export const VERSION = "1.0 prerelease";
 
-export const DEFAULT_COLOR_RGB = "0,0,51";
 export const DEFAULT_TIMEZONE = "UTC";
 export const ROOT_PATHNAME = "";
 
@@ -40,13 +39,17 @@ export const SETTINGS_PAGE_NAMES = {
 export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
 
-export const DEFAULT_DARKMODE_COLOR_RGB = "119,187,238";
 
 export const TWITCH_DISPLAY_NAMES = {
 	OFF: 0,
 	CASE_CHANGES_ONLY: 1,
 	ALL: 2
 };
+
+export const DEFAULT_COLOR_RGB = "0,0,51";
+export const DEFAULT_DARKMODE_COLOR_RGB = "119,187,238";
+export const DEFAULT_BG_COLOR = "#ffffff";
+export const DEFAULT_DARKMODE_BG_COLOR = "#2b2b33";
 
 export const COLOR_BLINDNESS = {
 	OFF: 0,
