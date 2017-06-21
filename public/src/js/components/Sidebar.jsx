@@ -157,38 +157,52 @@ class Sidebar extends PureComponent {
 			content = <ChannelList sort={sort} visible={visible} key="channellist" />;
 		}
 
+		const cogClassName = "sidebar__cog" +
+			(systemMenuOpen ? " sidebar__cog--active" : "");
 		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;
 
-		return (
-			<div id="sidebar" className={className} key="main" onClick={this.onClick}>
+		const systemMenu = (
+			<ul
+				className="sidebar__system-menu"
+				key="system-menu"
+				style={systemMenuStyles}
+				onClick={this.onClick}>
+				<li key="settings">
+					<Link to={settingsUrl()} className="sidebar__menu-link sidebar__system-menu-link">
+						Settings
+					</Link>
+				</li>
+				<li key="log">
+					<Link to={categoryUrl("system")} className="sidebar__menu-link sidebar__system-menu-link">
+						System log
+					</Link>
+				</li>
+				<li key="logout" className="sep">
+					<a href={internalUrl("/logout")} className="sidebar__menu-link sidebar__system-menu-link">
+						Log out
+					</a>
+				</li>
+			</ul>
+		);
+
+		const sidebar = (
+			<div id="sidebar"
+				className={className}
+				key="main"
+				onClick={this.onClick}>
 				<div className="sidebar__head" key="head">
 					<h1>Pyramid <VersionNumber /></h1>
 					<a className="sidebar__close" href="javascript://" onClick={this.hide}>
 						<img src="/img/close.svg" width="16" height="16" alt="Close" />
 					</a>
-					<a className="sidebar__cog"
+					<a className={cogClassName}
 						href="javascript://"
 						ref={this.setCog}
-						onClick={this.toggleSystemMenu}>
+						onClick={this.toggleSystemMenu}
+						title="Open system menu">
 						<img src="/img/cog.svg" width="16" height="16" alt="System" />
 					</a>
-					<ul className="sidebar__system-menu" style={systemMenuStyles}>
-						<li key="settings">
-							<Link to={settingsUrl()} className="sidebar__menu-link">
-								Settings
-							</Link>
-						</li>
-						<li key="log">
-							<Link to={categoryUrl("system")} className="sidebar__menu-link">
-								System log
-							</Link>
-						</li>
-						<li key="logout" className="sep">
-							<a href={internalUrl("/logout")} className="sidebar__menu-link">
-								Log out
-							</a>
-						</li>
-					</ul>
+
 				</div>
 				<ul className="sidebar__menu" key="menu">
 					<li key="highlights">
@@ -235,6 +249,13 @@ class Sidebar extends PureComponent {
 					</div>
 					{ content }
 				</div>
+			</div>
+		);
+
+		return (
+			<div>
+				{ sidebar }
+				{ systemMenu }
 			</div>
 		);
 	}

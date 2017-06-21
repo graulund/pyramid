@@ -76,7 +76,7 @@ body.darkmode {
 			}
 
 			> span {
-				background-color: #111;
+				background-color: #2b2b33;
 			}
 		}
 
@@ -171,7 +171,7 @@ body.darkmode {
 	#header {
 		.highlightslink--highlighted {
 			background-color: #258;
-			border-color: #111;
+			border-color: #2b2b33;
 		}
 	}
 
@@ -215,17 +215,22 @@ body.darkmode {
 	.settingsview select,
 	.settingsview textarea,
 	.logbrowser input {
-		border-color: #666;
-		background-color: #333;
+		border-color: #7b7b88;
+		background-color: #4b4b55;
 		color: #eee;
 	}
 
-	.settings__detail-view {
-		background-color: #222;
+	.settings__detail-view,
+	.sidebar__system-menu-link:hover {
+		background-color: #3b3b44;
 	}
 
 	.settings__detail-view .settings__list {
-		background-color: #111;
+		background-color: #2b2b33;
+	}
+
+	.settings__list-item:nth-child(even):not(.settings__list-item--selected) {
+		background-color: #33333b;
 	}
 
 	.settings__list-item--selected,
@@ -235,13 +240,31 @@ body.darkmode {
 		color: #000;
 	}
 
-	.settings__list-item:nth-child(even) {
-		background-color: #191919;
+	.sidebar__system-menu {
+		box-shadow: 0 5px 12px 0 rgba(0,0,0,.8);
+
+		&, .sep {
+			border-color: #6b6b77;
+		}
 	}
 
-	.sidebar__system-menu {
-		&, .sep {
-			border-color: #666;
+	.sidebar__cog--active {
+		background-color: #32323b;
+	}
+
+	.sidebar__menu-link, .switcher button, .switcher a {
+		color: #bbb;
+	}
+
+	.sidebar__head {
+		.version {
+			color: #777;
+		}
+	}
+
+	@media #{$mobile-media} {
+		.sidebar, .channeluserlist {
+			box-shadow: 0 0 60px 0 #000;
 		}
 	}
 }

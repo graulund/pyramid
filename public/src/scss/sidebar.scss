@@ -44,7 +44,7 @@
 		.version {
 			font-size: 75%;
 			font-weight: normal;
-			color: #999;
+			color: #99a;
 			line-height: 1em;
 		}
 	}
@@ -113,8 +113,20 @@
 
 	&__cog {
 		position: absolute;
-		top: 12px;
-		right: 10px;
+		top: 0;
+		right: 0;
+		width: 36px;
+		height: 40px;
+
+		&--active {
+			background-color: #e7e7e7;
+		}
+
+		img {
+			position: absolute;
+			top: 12px;
+			right: 10px;
+		}
 	}
 
 	&__menu, &__system-menu {
@@ -128,6 +140,8 @@
 		display: block;
 		padding: 5px 10px;
 		line-height: 17px;
+		color: #556;
+		font-weight: normal;
 	}
 
 	.highlightslink--highlighted {
@@ -146,19 +160,31 @@
 
 	&__system-menu {
 		display: none;
-		position: absolute;
-		top: 22px;
-		right: 10px;
+		position: fixed;
+		top: 40px;
+		left: 188px;
 		z-index: 10;
-		min-width: 10em;
+		min-width: 130px;
 		text-align: right;
 		border: 1px solid #ccc;
 		background-color: #fff;
-		box-shadow: 0 5px 12px 0 rgba(0,0,0,0.3);
+		padding: 0;
+		box-shadow: 0 5px 12px 0 rgba(0,0,0,.3);
+
+		&-link:hover {
+			background-color: #eee;
+			text-decoration: none;
+		}
 	}
 
 	&__system-menu .sep {
 		border-top: 1px solid #ccc;
+	}
+
+	.switcher {
+		button, a {
+			color: #556;
+		}
 	}
 
 	@media #{$mobile-media} {
@@ -180,7 +206,7 @@
 		}
 
 		&--hidden {
-			left: -360px;
+			left: -380px;
 		}
 	}
 }
