@@ -251,7 +251,7 @@ class TimedItem extends PureComponent {
 				return null;
 			}
 
-			const nullDate = new Date("1970-01-01 00:00:00");
+			const nullDate = new Date("1970-01-01T00:00:00");
 			styles = timeColors(now - nullDate);
 			this.stStr = "";
 		}
