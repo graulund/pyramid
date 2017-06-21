@@ -5,6 +5,10 @@ body {
 	color: #222227;
 	background-color: #fff;
 	margin: 0;
+
+	&.patch-chrome-sf-font {
+		letter-spacing: -.0125em;
+	}
 }
 
 strong, dt {
