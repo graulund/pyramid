@@ -1,6 +1,6 @@
 // Big thanks to FrankerFaceZ
 
-import { COLOR_BLINDNESS, DEFAULT_BG_COLOR, DEFAULT_DARKMODE_BG_COLOR } from "../constants";
+import { COLOR_BLINDNESS, BG_COLOR, DARKMODE_BG_COLOR } from "../constants";
 
 // Settings
 
@@ -449,10 +449,10 @@ export class HSLAColor {
 
 function rebuildContrast() {
 	_hslluma_required_bright = luv_contrast *
-		(RGBAColor.fromCSS(DEFAULT_DARKMODE_BG_COLOR).luminance() + 0.05) - 0.05;
+		(RGBAColor.fromCSS(DARKMODE_BG_COLOR).luminance() + 0.05) - 0.05;
 
 	_hslluma_required_dark =
-		(RGBAColor.fromCSS(DEFAULT_BG_COLOR).luminance() + 0.05) /
+		(RGBAColor.fromCSS(BG_COLOR).luminance() + 0.05) /
 		luv_contrast - 0.05;
 }
 

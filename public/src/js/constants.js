@@ -39,17 +39,20 @@ export const SETTINGS_PAGE_NAMES = {
 export const CHANGE_DEBOUNCE_MS = 1300;
 export const INPUT_SELECTOR = "input, select, textarea";
 
-
 export const TWITCH_DISPLAY_NAMES = {
 	OFF: 0,
 	CASE_CHANGES_ONLY: 1,
 	ALL: 2
 };
 
-export const DEFAULT_COLOR_RGB = "0,0,51";
-export const DEFAULT_DARKMODE_COLOR_RGB = "119,187,238";
-export const DEFAULT_BG_COLOR = "#ffffff";
-export const DEFAULT_DARKMODE_BG_COLOR = "#2b2b33";
+export const ACTIVITY_COLOR_RGB = "0,0,51";
+export const DARKMODE_ACTIVITY_COLOR_RGB = "119,187,238";
+export const BG_COLOR = "#fff";
+export const DARKMODE_BG_COLOR = "#2b2b33";
+export const FG_COLOR = "#222227";
+export const DARKMODE_FG_COLOR = "#ccc";
+export const INVERTED_FG_COLOR = "#fff";
+export const DARKMODE_INVERTED_FG_COLOR = "#222227";
 
 export const COLOR_BLINDNESS = {
 	OFF: 0,

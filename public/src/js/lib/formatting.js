@@ -1,5 +1,11 @@
 import {
-	DEFAULT_COLOR_RGB, DEFAULT_DARKMODE_COLOR_RGB, ROOT_PATHNAME
+	ACTIVITY_COLOR_RGB,
+	DARKMODE_ACTIVITY_COLOR_RGB,
+	DARKMODE_FG_COLOR,
+	DARKMODE_INVERTED_FG_COLOR,
+	FG_COLOR,
+	INVERTED_FG_COLOR,
+	ROOT_PATHNAME
 } from "../constants";
 import store from "../store";
 
@@ -193,20 +199,20 @@ export function timeTextOpacity(secondsSince) {
 	return Math.max(minOpacity, Math.min(maxOpacity, 29/25 - secondsSince/45000));
 }
 
-export function timeColors (milliseconds, color = DEFAULT_COLOR_RGB) {
+export function timeColors (milliseconds, color = ACTIVITY_COLOR_RGB) {
 	const darkMode = darkModeEnabled();
 
-	if (color === DEFAULT_COLOR_RGB && darkMode) {
-		color = DEFAULT_DARKMODE_COLOR_RGB;
+	if (color === ACTIVITY_COLOR_RGB && darkMode) {
+		color = DARKMODE_ACTIVITY_COLOR_RGB;
 	}
 
 	// Color
 	var backgroundOpacity = round2(timeOpacity(milliseconds/1000)),
-		textColor = darkMode ? "#ccc" : "#000",
+		textColor = darkMode ? DARKMODE_FG_COLOR : FG_COLOR,
 		opacity = round2(timeTextOpacity(milliseconds/1000));
 
 	if (backgroundOpacity >= 0.3) {
-		textColor = darkMode ? "#000" : "#fff";
+		textColor = darkMode ? DARKMODE_INVERTED_FG_COLOR : INVERTED_FG_COLOR;
 	}
 
 	return {
