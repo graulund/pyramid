@@ -162,18 +162,21 @@ class ChatLine extends PureComponent {
 		var outerContent;
 
 		if (content) {
-			outerContent = [
-				prefix,
-				channelEl,
-				timeStampEl,
-				" ",
-				content
-			];
+			let innerContent = [content];
+			let mainContent = (
+				<div className={`${block}__main`} key="main">
+					{ channelEl }
+					{ timeStampEl }
+					<span key="inner">{ innerContent }</span>
+				</div>
+			);
+
+			outerContent = [prefix, mainContent];
 
 			if (offline) {
 				let { messageToken } = this.props;
-				outerContent.push(" ");
-				outerContent.push(
+				innerContent.push(" ");
+				innerContent.push(
 					<ChatOfflineResendButton
 						channel={channel}
 						messageToken={messageToken}
@@ -183,9 +186,7 @@ class ChatLine extends PureComponent {
 			}
 		}
 		else {
-			outerContent = [
-				prefix
-			];
+			outerContent = prefix;
 		}
 
 		const itemProps = {

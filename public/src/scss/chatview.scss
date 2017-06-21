@@ -77,6 +77,38 @@
 		max-height: 200px;
 		overflow-y: auto;
 
+		&__main {
+			padding: 0 0 0 63px;
+			text-indent: -63px;
+
+			time {
+				display: inline-block;
+				width: 55px;
+				padding: 0 8px 0 0;
+				text-indent: 0;
+				vertical-align: text-bottom;
+				overflow: hidden;
+				line-height: 1rem;
+			}
+
+			/*body.sf-font & {
+				// The SF font has issues with digits not being equally wide
+				// So let's use a monospace stack instead
+
+				&__main {
+					padding: 0 0 0 65px;
+					text-indent: -65px;
+				}
+
+				time {
+					font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+					font-size: 0.6875rem;
+					line-height: 1.1818em;
+					width: 57px;
+				}
+			}*/
+		}
+
 		&.flashing {
 			position: relative;
 
@@ -100,12 +132,6 @@
 			color: #999;
 			font-weight: normal;
 			white-space: nowrap;
-		}
-
-		time {
-			display: inline-block;
-			width: 4.385em;
-			text-align: right;
 		}
 
 		.prefix {

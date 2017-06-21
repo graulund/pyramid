@@ -1,12 +1,12 @@
 body {
 	font-family: San Francisco, -apple-system, BlinkMacSystemFont, '.SFNSText-Regular', "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, sans-serif;
 	font-size: 81.25%;
-	line-height: 1.6em;
+	line-height: 1.25rem;
 	color: #222227;
 	background-color: #fff;
 	margin: 0;
 
-	&.patch-chrome-sf-font {
+	&.chrome-sf-font {
 		letter-spacing: -.0125em;
 	}
 }

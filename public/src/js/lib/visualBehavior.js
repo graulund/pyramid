@@ -49,7 +49,7 @@ function initTouchDeviceTest() {
 export function initVisualBehavior() {
 	initTouchDeviceTest();
 	initFocusHandler();
-	patchMacChromeFontProblem();
+	patchSFFontIssues();
 }
 
 function getFocus() {
@@ -128,15 +128,20 @@ export function setDarkModeStatus(status) {
 	}
 }
 
-function patchMacChromeFontProblem() {
+function patchSFFontIssues() {
 	let ua = navigator.userAgent;
-	if (/Chrome\//.test(ua)) {
-		let osMatch = ua.match(/Mac OS X 10_([0-9]+)/);
-		let osVersion = osMatch && osMatch[1] && parseInt(osMatch[1], 10);
+	let osMatch = ua.match(/Mac OS X 10_([0-9]+)/);
+	let osVersion = osMatch && osMatch[1] && parseInt(osMatch[1], 10);
 
-		if (osVersion && osVersion >= 11) {
-			// Chrome on >= macOS 10.11, we assume SF font
-			document.body.classList.add("patch-chrome-sf-font");
+	if (osVersion && osVersion >= 11) {
+		// >= macOS 10.11, we assume SF font
+
+		// General
+		document.body.classList.add("sf-font");
+
+		// Issue with chrome
+		if (/Chrome\//.test(ua)) {
+			document.body.classList.add("chrome-sf-font");
 		}
 	}
 }

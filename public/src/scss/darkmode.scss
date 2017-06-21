@@ -48,12 +48,15 @@ body.darkmode {
 		.line__channel,
 		.line__channel a,
 		.line time,
-		.line .prefix,
 		.userevent,
 		.bunchedevents,
 		.unhide,
 		&__channel-flags {
 			color: #777;
+		}
+
+		.line .prefix {
+			color: #999;
 		}
 
 		.userevent,
