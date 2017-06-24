@@ -115,11 +115,13 @@ module.exports = function(db, io) {
 		return null;
 	};
 
-	const getConfigChannelsInServer = function(serverName, ircConfig = currentIrcConfig) {
+	const getConfigPublicChannelsInServer = function(serverName, ircConfig = currentIrcConfig) {
 		const s = getIrcConfigByName(serverName, ircConfig);
 		if (s) {
-			return s.channels.map(
-				(val) => channelUtils.getChannelUri(serverName, val.name)
+			return s.channels.filter(
+				(channel) => channel.channelType === CHANNEL_TYPES.PUBLIC
+			).map(
+				(channel) => channelUtils.getChannelUri(serverName, channel.name)
 			);
 		}
 
@@ -306,7 +308,7 @@ module.exports = function(db, io) {
 		addServerToIrcConfig,
 		channelIdCache: () => channelIdCache,
 		currentIrcConfig: () => currentIrcConfig,
-		getConfigChannelsInServer,
+		getConfigPublicChannelsInServer,
 		getIrcConfig,
 		getIrcConfigByName,
 		loadIrcConfig,

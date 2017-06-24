@@ -310,7 +310,7 @@ module.exports = function(
 		}
 
 		// Propagate message to all channels in this server
-		const channelList = ircConfig.getConfigChannelsInServer(serverName);
+		const channelList = ircConfig.getConfigPublicChannelsInServer(serverName);
 		if (channelList && channelList.length) {
 			channelList.forEach((channel) => {
 				let type = "connectionEvent";
