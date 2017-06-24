@@ -24,6 +24,7 @@ var nicknames;
 var recipients;
 var serverData;
 var unseenHighlights;
+var unseenPrivateMessages;
 var userLists;
 
 // Delayed singletons
@@ -165,6 +166,7 @@ const initStartup = function() {
 	recipients       = require("./main/recipients")(io);
 	serverData       = require("./main/serverData")(io);
 	unseenHighlights = require("./main/unseenHighlights")(io);
+	unseenPrivateMessages = require("./main/unseenPrivateMessages")(io);
 	userLists        = require("./main/userLists")(io, friends);
 	ircControl       = require("./main/ircControl")(
 		irc, ircConfig, io
@@ -179,9 +181,11 @@ const initStartup = function() {
 		db,
 		io,
 		appConfig,
+		ircConfig,
 		logs,
 		recipients,
-		unseenHighlights
+		unseenHighlights,
+		unseenPrivateMessages
 	);
 	incomingEvents   = require("./main/incomingEvents")(
 		io,
@@ -263,6 +267,7 @@ module.exports = {
 	setPlugins,
 	setWeb,
 	unseenHighlights: () => unseenHighlights,
+	unseenPrivateMessages: () => unseenPrivateMessages,
 	userLists: () => userLists,
 	viewState,
 	warn: _warn

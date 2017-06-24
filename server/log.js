@@ -26,7 +26,24 @@ const lastSeenUsersFileName = path.join(
 );
 
 const pathChannelUri = function(channelUri) {
-	return channelUri.replace(/\//g, path.sep);
+	const uriData = channelUtils.parseChannelUri(channelUri);
+
+	if (!uriData) {
+		return "unknown";
+	}
+
+	const { channel, channelType, server } = uriData;
+	var dirs;
+
+	if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
+		dirs = [server, "private", channel];
+	}
+
+	else {
+		dirs = [server, channel];
+	}
+
+	return path.join(...dirs);
 };
 
 const standardWritingCallback = function(err) {

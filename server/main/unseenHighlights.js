@@ -13,6 +13,10 @@ module.exports = function(io) {
 		}
 	};
 
+	const addUnseenHighlightId = function(highlightId) {
+		unseenHighlightIds.add(highlightId);
+	};
+
 	const clearUnseenHighlights = function() {
 		unseenHighlightIds.clear();
 
@@ -22,6 +26,7 @@ module.exports = function(io) {
 	};
 
 	return {
+		addUnseenHighlightId,
 		clearUnseenHighlights,
 		reportHighlightAsSeen,
 		unseenHighlightIds: () => unseenHighlightIds

@@ -49,5 +49,10 @@ module.exports = {
 		DISCONNECTED: "disconnected",
 		FAILED: "failed",
 		REJECTED: "rejected"
+	},
+
+	CHANNEL_TYPES: {
+		PUBLIC: 0,
+		PRIVATE: 1
 	}
 };

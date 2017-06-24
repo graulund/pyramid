@@ -1,3 +1,5 @@
+const { CHANNEL_TYPES } = require("../constants");
+
 const CHANNEL_URI_SEPARATOR = "/";
 
 const getChannelUri = function(server, channel) {
@@ -15,12 +17,20 @@ const parseChannelUri = function(channelUri) {
 		return null;
 	}
 
+	let channelType = CHANNEL_TYPES.PUBLIC;
+
+	if (channelUri.substr(0, 8) === "private:") {
+		channelType = CHANNEL_TYPES.PRIVATE;
+		channelUri = channelUri.substr(8);
+		separatorLocation -= 8;
+	}
+
 	let server = channelUri.substr(0, separatorLocation);
 	let channel = channelUri.substr(
 		separatorLocation + CHANNEL_URI_SEPARATOR.length
 	);
 
-	return { channel, server };
+	return { channel, channelType, server };
 };
 
 const channelNameFromUri = function(channelUri, prefix = "") {
@@ -87,10 +97,18 @@ const passesChannelWhiteBlacklist = function(target, channelUri) {
 	return true;
 };
 
+const getPrivateConversationUri = function(serverName, username1, username2) {
+	let usernames = [username1, username2];
+	usernames.sort();
+
+	return `private:${serverName}/${usernames.join(",")}`;
+};
+
 module.exports = {
 	channelNameFromUri,
 	serverNameFromChannelUri,
 	getChannelUri,
+	getPrivateConversationUri,
 	parseChannelUri,
 	passesChannelWhiteBlacklist
 };

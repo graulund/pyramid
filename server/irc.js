@@ -199,11 +199,13 @@ module.exports = function(main) {
 		const chobj = channelObject(client, channel);
 		const channelUri = getChannelUri(chobj);
 		const serverName = chobj.server;
+		const meUsername = client.irc.user.nick;
 
 		main.plugins().handleEvent("customMessage", {
 			channel: channelUri,
 			client,
 			message,
+			meUsername,
 			serverName,
 			time: new Date(),
 			username
@@ -308,8 +310,9 @@ module.exports = function(main) {
 
 		client.irc.on("join", (event) => {
 			let { channel, ident, hostname, nick } = event;
+			let meUsername = client.irc.user.nick;
 
-			if (nick === client.irc.user.nick) {
+			if (nick === meUsername) {
 				client.joinedChannels.push(channel);
 			}
 
@@ -319,25 +322,33 @@ module.exports = function(main) {
 			);
 
 			let channelUri = getChannelUri(channelObject(client, channel));
-			main.plugins().handleEvent(
-				"join",
-				{ client, channel: channelUri, username: nick, ident, hostname }
-			);
+			main.plugins().handleEvent("join", {
+				channel: channelUri,
+				client,
+				hostname,
+				ident,
+				meUsername,
+				username: nick
+			});
 		});
 
 		client.irc.on("part", (event) => {
 			let { channel, nick } = event;
+			let meUsername = client.irc.user.nick;
 
-			if (nick === client.irc.user.nick) {
+			if (nick === meUsername) {
 				client.joinedChannels = _.without(client.joinedChannels, channel);
 			}
 
 			handleIncomingEvent(client, channel, "part", { username: nick });
 
 			let channelUri = getChannelUri(channelObject(client, channel));
-			main.plugins().handleEvent(
-				"part", { client, channel: channelUri, username: nick }
-			);
+			main.plugins().handleEvent("part", {
+				client,
+				channel: channelUri,
+				meUsername,
+				username: nick
+			});
 		});
 
 		client.irc.on("quit", (event) => {
@@ -372,10 +383,18 @@ module.exports = function(main) {
 		});
 	};
 
-	const convertChannelObjects = (channels) => {
-		return channels.map((channel) => {
-			return "#" + channel.name;
+	const convertChannelObjects = function(channels) {
+		let publicChannels = [];
+
+		channels.forEach((channel) => {
+			let { channelType, name } = channel;
+
+			if (channelType === constants.CHANNEL_TYPES.PUBLIC) {
+				publicChannels.push("#" + name);
+			}
 		});
+
+		return publicChannels;
 	};
 
 	// Set up clients

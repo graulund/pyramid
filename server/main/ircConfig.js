@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const async = require("async");
 
+const { CHANNEL_TYPES } = require("../constants");
 const channelUtils = require("../util/channels");
 const passwordUtils = require("../util/passwords");
 const stringUtils = require("../util/strings");
@@ -51,9 +52,21 @@ module.exports = function(db, io) {
 					if (server.channels && server.channels.length) {
 						server.channels.forEach((channel) => {
 							if (channel && channel.channelId && channel.name) {
-								const channelUri = channelUtils.getChannelUri(
-									server.name, channel.name
-								);
+								var channelUri;
+
+								if (channel.channelType === CHANNEL_TYPES.PRIVATE) {
+									let participants = channel.name.split(",");
+									channelUri = channelUtils.getPrivateConversationUri(
+										server.name, participants[0], participants[1]
+									);
+								}
+
+								else {
+									channelUri = channelUtils.getChannelUri(
+										server.name, channel.name
+									);
+								}
+
 								channelIds[channelUri] = channel.channelId;
 							}
 						});
@@ -79,8 +92,10 @@ module.exports = function(db, io) {
 			if (channels) {
 				outConfig.channels = {};
 				channels.forEach((channel) => {
-					let { displayName, name } = channel;
-					outConfig.channels[name] = { displayName, name };
+					let { channelType, displayName, name } = channel;
+					if (channelType === CHANNEL_TYPES.PUBLIC) {
+						outConfig.channels[name] = { displayName, name };
+					}
 				});
 			}
 
@@ -173,15 +188,28 @@ module.exports = function(db, io) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
-			(data, callback) => {
-				if (data) {
-					db.addChannelToIrcConfig(data.serverId, name, data, callback);
+			(serverData, callback) => {
+				if (serverData) {
+					db.addChannelToIrcConfig(serverData.serverId, name, data, callback);
 				}
 				else {
 					callback(new Error("No such server"));
 				}
 			}
 		], callback);
+	};
+
+	const addChannelToIrcConfigFromUri = function(channelUri, callback) {
+		let uriData = channelUtils.parseChannelUri(channelUri);
+
+		if (!uriData) {
+			callback(new Error("Invalid channel URI"));
+			return;
+		}
+
+		let { channel, channelType, server } = uriData;
+
+		addChannelToIrcConfig(server, channel, { channelType }, callback);
 	};
 
 	const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
@@ -273,6 +301,7 @@ module.exports = function(db, io) {
 
 	return {
 		addChannelToIrcConfig,
+		addChannelToIrcConfigFromUri,
 		addIrcServerFromDetails,
 		addServerToIrcConfig,
 		channelIdCache: () => channelIdCache,

@@ -274,10 +274,10 @@ module.exports = function(main) {
 	};
 
 	const onJoin = function(data) {
-		const { client, channel, username } = data;
+		const { client, channel, meUsername, username } = data;
 		if (
 			util.isTwitch(client) &&
-			username === client.irc.user.nick
+			username === meUsername
 		) {
 			twitchChannelCache = _.uniq(twitchChannelCache.concat([channel]));
 			loadExternalEmotesForChannel(channel);
@@ -286,10 +286,10 @@ module.exports = function(main) {
 	};
 
 	const onPart = function(data) {
-		const { client, channel, username } = data;
+		const { client, channel, meUsername, username } = data;
 		if (
 			util.isTwitch(client) &&
-			username === client.irc.user.nick
+			username === meUsername
 		) {
 			externalEmotes.clearExternalEmotesForChannel(channel);
 			twitchChannelCache = _.without(twitchChannelCache, channel);
@@ -337,7 +337,7 @@ module.exports = function(main) {
 	};
 
 	const onCustomMessage = function(data) {
-		const { channel, client, message, serverName, time } = data;
+		const { channel, client, message, meUsername, serverName, time } = data;
 		if (message && message.command && util.isTwitch(client)) {
 			switch(message.command) {
 				case "USERSTATE":
@@ -425,10 +425,36 @@ module.exports = function(main) {
 					break;
 				}
 
-				/*case "WHISPER": {
-					console.log("RECEIVED WHISPER", message);
+				case "WHISPER": {
+					let username = message.nick;
+					let messageText = message.params[1] || "";
+					let channel = channelUtils.getPrivateConversationUri(
+						serverName, meUsername, username
+					);
+
+					console.log("RECEIVED WHISPER", { channel, message });
+
+					let tagsInfo = {
+						client,
+						channel,
+						message: messageText,
+						postedLocally: false,
+						serverName,
+						tags: message.tags,
+						username
+					};
+
+					onMessageTags(tagsInfo);
+
+					// TODO: Handle other msg types
+
+					main.incomingEvents().handleIncomingMessage(
+						channel, serverName, username,
+						time, "msg", messageText, message.tags, meUsername
+					);
+
 					break;
-				}*/
+				}
 			}
 		}
 	};

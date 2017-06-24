@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const async = require("async");
 const uuid = require("uuid");
 
 const constants = require("../constants");
@@ -9,14 +10,17 @@ module.exports = function(
 	db,
 	io,
 	appConfig,
+	ircConfig,
 	logs,
 	recipients,
-	unseenHighlights
+	unseenHighlights,
+	unseenPrivateMessages
 ) {
 
 	var channelCaches = {};
 	var userCaches = {};
 	var categoryCaches = { highlights: [], allfriends: [], system: [] };
+	var privateMessageCaches = {};
 	var channelIdCache = {};
 
 	var currentHighlightContexts = {};
@@ -35,11 +39,42 @@ module.exports = function(
 		return constants.CACHE_LINES;
 	};
 
+	const addChannelToDb = function(channelUri, callback) {
+		async.waterfall([
+			(callback) => ircConfig.addChannelToIrcConfigFromUri(channelUri, callback),
+			(data, callback) => ircConfig.loadIrcConfig(callback)
+		], function(err) {
+			if (!err) {
+				setChannelIdCache(ircConfig.channelIdCache());
+			}
+			else {
+				console.warn("addChannelToDb error:", err);
+			}
+
+			callback(err);
+		});
+	};
+
+	const _storeLine = function(channel, line, callback) {
+		if (channelIdCache[channel]) {
+			db.storeLine(channelIdCache[channel], line, callback);
+		}
+	};
+
 	const storeLine = function(
 		channel, line, callback = function(){}
 	) {
 		if (channelIdCache[channel]) {
-			db.storeLine(channelIdCache[channel], line, callback);
+			_storeLine(channel, line, callback);
+		}
+
+		else {
+			console.warn(`Channel ${channel} did not exist in channel id cache`);
+
+			// Add to db and store
+			addChannelToDb(channel, () => {
+				_storeLine(channel, line, callback);
+			});
 		}
 	};
 
@@ -83,6 +118,30 @@ module.exports = function(
 		}
 	};
 
+	const cachePrivateMessage = function(channel, data) {
+
+		// Add to local cache
+
+		if (!privateMessageCaches[channel]) {
+			privateMessageCaches[channel] = [];
+		}
+		privateMessageCaches[channel] = cacheItem(privateMessageCaches[channel], data);
+
+		// Add to db
+
+		/*if (appConfig.configValue("logLinesDb")) {
+			storeLine(channel, data);
+		}*/
+
+		// Send to users
+
+		if (io) {
+			io.emitPrivateMessage(channel, data);
+			let { server, channel: username } = channelUtils.parseChannelUri(channel);
+			unseenPrivateMessages.addUnseenUser(server, username);
+		}
+	};
+
 	const cacheUserMessage = function(username, msg) {
 		if (!userCaches[username]) {
 			userCaches[username] = [];
@@ -100,7 +159,7 @@ module.exports = function(
 		recipients.emitToCategoryRecipients(categoryName, msg);
 
 		if (categoryName === "highlights" && msg.lineId) {
-			unseenHighlights.unseenHighlightIds().add(msg.lineId);
+			unseenHighlights.addUnseenHighlightId(msg.lineId);
 			createCurrentHighlightContext(msg.channel, msg);
 
 			if (io) {
@@ -457,12 +516,14 @@ module.exports = function(
 		cacheCategoryMessage,
 		cacheChannelEvent,
 		cacheMessage,
+		cachePrivateMessage,
 		cacheUserMessage,
 		prefillCategoryCache,
 		prefillChannelCache,
 		prefillUserCache,
 		getCategoryCache: (categoryName) => categoryCaches[categoryName],
 		getChannelCache: (channel) => channelCaches[channel],
+		getPrivateMessageCache: (channel) => privateMessageCaches[channel],
 		getUserCache: (username) => userCaches[username],
 		setChannelIdCache,
 		withUuid
