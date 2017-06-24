@@ -1,6 +1,5 @@
 import { CHANNEL_TYPES } from "../constants";
 
-
 const CHANNEL_URI_SEPARATOR = "/";
 
 export function getChannelUri(server, channel) {
