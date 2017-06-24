@@ -1,3 +1,6 @@
+import { CHANNEL_TYPES } from "../constants";
+
+
 const CHANNEL_URI_SEPARATOR = "/";
 
 export function getChannelUri(server, channel) {
@@ -13,12 +16,20 @@ export function parseChannelUri(channelUri) {
 		return null;
 	}
 
+	let channelType = CHANNEL_TYPES.PUBLIC;
+
+	if (channelUri.substr(0, 8) === "private:") {
+		channelType = CHANNEL_TYPES.PRIVATE;
+		channelUri = channelUri.substr(8);
+		separatorLocation -= 8;
+	}
+
 	let server = channelUri.substr(0, separatorLocation);
 	let channel = channelUri.substr(
 		separatorLocation + CHANNEL_URI_SEPARATOR.length
 	);
 
-	return { channel, server };
+	return { channel, channelType, server };
 }
 
 export function channelNameFromUri(channelUri, prefix = "") {
@@ -39,6 +50,13 @@ export function serverNameFromChannelUri(channelUri) {
 	}
 
 	return null;
+}
+
+export function getPrivateConversationUri(serverName, username1, username2) {
+	let usernames = [username1, username2];
+	usernames.sort();
+
+	return `private:${serverName}/${usernames.join(",")}`;
 }
 
 export function getChannelDisplayNameFromState(state, channelUri) {

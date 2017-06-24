@@ -52,12 +52,21 @@ export function getChannelInfoByNames(serverName, channelName) {
 	return null;
 }
 
-export function getMyNickname(channel) {
+export function getMyNickname(serverName) {
 	let state = store.getState();
-	let serverName = serverNameFromChannelUri(channel);
 
 	if (serverName && state.ircConfigs[serverName]) {
 		return state.ircConfigs[serverName].nickname;
+	}
+
+	return "";
+}
+
+export function getMyNicknameFromChannel(channel) {
+	let serverName = serverNameFromChannelUri(channel);
+
+	if (serverName) {
+		return getMyNickname(serverName);
 	}
 
 	return "";

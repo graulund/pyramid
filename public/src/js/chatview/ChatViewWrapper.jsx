@@ -4,8 +4,8 @@ import PropTypes from "prop-types";
 import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import { CATEGORY_NAMES } from "../constants";
-import { getChannelUri } from "../lib/channelNames";
-import { getChannelInfoByNames } from "../lib/ircConfigs";
+import { getChannelUri, getPrivateConversationUri } from "../lib/channelNames";
+import { getChannelInfoByNames, getMyNickname } from "../lib/ircConfigs";
 import { parseLineIdHash } from "../lib/routeHelpers";
 import { getUserInfo } from "../lib/users";
 
@@ -33,9 +33,21 @@ class ChatViewWrapper extends PureComponent {
 			pageType = "channel";
 			pageQuery = getChannelUri(serverName, channelName);
 		}
-		else if (username && getUserInfo(username)) {
-			pageType = "user";
-			pageQuery = username;
+		else if (username) {
+			// Different behaviour dependent on the route
+			let route = (url.match(/^\/([a-z]+)/) || [])[1];
+
+			if (route === "user" && getUserInfo(username)) {
+				pageType = route;
+				pageQuery = username;
+			}
+
+			else if (route === "conversation") {
+				pageType = "channel";
+				pageQuery = getPrivateConversationUri(
+					serverName, getMyNickname(serverName), username
+				);
+			}
 		}
 		else if (
 			categoryName &&

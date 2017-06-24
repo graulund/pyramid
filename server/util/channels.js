@@ -53,6 +53,13 @@ const serverNameFromChannelUri = function(channelUri) {
 	return null;
 };
 
+const getPrivateConversationUri = function(serverName, username1, username2) {
+	let usernames = [username1, username2];
+	usernames.sort();
+
+	return `private:${serverName}/${usernames.join(",")}`;
+};
+
 const passesChannelWhiteBlacklist = function(target, channelUri) {
 	const uriData = parseChannelUri(channelUri);
 
@@ -95,13 +102,6 @@ const passesChannelWhiteBlacklist = function(target, channelUri) {
 	}
 
 	return true;
-};
-
-const getPrivateConversationUri = function(serverName, username1, username2) {
-	let usernames = [username1, username2];
-	usernames.sort();
-
-	return `private:${serverName}/${usernames.join(",")}`;
 };
 
 module.exports = {

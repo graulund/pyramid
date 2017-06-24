@@ -7,9 +7,9 @@ export function internalUrl(url) {
 
 export const homeUrl = ROOT_PATHNAME + "/";
 
-export function userUrl(username, logDate, pageNumber) {
+export function userUrl(username, logDate, pageNumber, encode = true) {
 	return internalUrl(
-		"/user/" + username +
+		"/user/" + (encode ? encodeURIComponent(username) : username) +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
@@ -27,6 +27,25 @@ export function channelUrl(channel, logDate, pageNumber, encode = true) {
 
 	return internalUrl(
 		"/channel/" + channel +
+		(logDate ? "/log/" + logDate : "") +
+		(pageNumber > 1 ? "/page/" + pageNumber : "")
+	);
+}
+
+export function conversationUrl(serverName, username, logDate, pageNumber, encode = true) {
+	var name;
+
+	if (encode) {
+		name = encodeURIComponent(serverName) + "/" +
+			encodeURIComponent(username);
+	}
+
+	else {
+		name = serverName + "/" + username;
+	}
+
+	return internalUrl(
+		"/conversation/" + name +
 		(logDate ? "/log/" + logDate : "") +
 		(pageNumber > 1 ? "/page/" + pageNumber : "")
 	);
@@ -113,6 +132,14 @@ export function subjectName(type, query, delimiter = ":") {
 }
 
 export function parseSubjectName(subject, delimiter = ":") {
-	const [ type, query ] = subject.split(delimiter);
+	// Only the first instance of delimiter
+	let delimiterPosition = subject.indexOf(delimiter);
+	let type = "", query = "";
+
+	if (delimiterPosition >= 0) {
+		type = subject.substr(0, delimiterPosition);
+		query = subject.substr(1 + delimiterPosition);
+	}
+
 	return { type, query };
 }

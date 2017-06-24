@@ -128,16 +128,33 @@ if (main) {
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":username", ":logDate"
+								":username", ":logDate", 0, false
 							) + "/page/:pageNumber"}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.userUrl(
-								":username", ":logDate"
+								":username", ":logDate", 0, false
 							)}
 							component={ChatViewWrapper} />
 						<Route
-							path={routes.userUrl(":username")}
+							path={routes.userUrl(
+								":username", "", 0, false
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.conversationUrl(
+								":serverName", ":username", ":logDate", 0, false
+							) + "/page/:pageNumber"}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.conversationUrl(
+								":serverName", ":username", ":logDate", 0, false
+							)}
+							component={ChatViewWrapper} />
+						<Route
+							path={routes.conversationUrl(
+								":serverName", ":username", "", 0, false
+							)}
 							component={ChatViewWrapper} />
 						<Route
 							path={routes.settingsPattern}

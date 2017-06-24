@@ -60,3 +60,8 @@ export const COLOR_BLINDNESS = {
 	DEUTERANOPE: 2,
 	TRITANOPE: 3
 };
+
+export const CHANNEL_TYPES = {
+	PUBLIC: 0,
+	PRIVATE: 1
+};
