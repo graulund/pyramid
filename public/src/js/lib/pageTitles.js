@@ -1,7 +1,7 @@
 import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
-import { channelNameFromUri } from "./channelNames";
-import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
-import { getChannelInfo } from "./ircConfigs";
+import { getPrivateConversationUri } from "./channelNames";
+import { getChannelDisplayString, getTwitchUserDisplayNameString } from "./displayNames";
+import { getChannelInfo, getMyNickname } from "./ircConfigs";
 import { getUserInfo } from "./users";
 import * as route from "./routeHelpers";
 import store from "../store";
@@ -27,13 +27,12 @@ function logTitle(date, title) {
 	return `${date} log of ` + title;
 }
 
-function channelDisplayNameString(name, displayName) {
-	return getTwitchChannelDisplayNameString(
-		name,
+function channelDisplayNameString(channel, displayName) {
+	return getChannelDisplayString(channel, {
 		displayName,
-		channelDisplayNameSetting,
-		userDisplayNameSetting
-	);
+		enableTwitchChannelDisplayNames: channelDisplayNameSetting,
+		enableTwitchUserDisplayNames: userDisplayNameSetting
+	});
 }
 
 function userDisplayNameString(name, displayName) {
@@ -45,31 +44,28 @@ function userDisplayNameString(name, displayName) {
 }
 
 function channelPageTitle(channelInfo) {
-	return siteTitle(
-		channelDisplayNameString(
-			channelNameFromUri(channelInfo.channel),
-			channelInfo.displayName
-		)
-	);
+	let { channel, displayName } = channelInfo;
+	return siteTitle(channelDisplayNameString(channel, displayName));
 }
 
 function userPageTitle(user) {
-	return siteTitle(userDisplayNameString(user.username, user.displayName));
+	let { displayName, username } = user;
+	return siteTitle(userDisplayNameString(username, displayName));
 }
 
 function channelPageLogTitle(channelInfo, date) {
+	let { channel, displayName } = channelInfo;
+
 	return siteTitle(logTitle(
-		date,
-		channelDisplayNameString(
-			channelNameFromUri(channelInfo.channel),
-			channelInfo.displayName
-		)
+		date, channelDisplayNameString(channel, displayName)
 	));
 }
 
 function userPageLogTitle(user, date) {
+	let { displayName, username } = user;
+
 	return siteTitle(logTitle(
-		date, userDisplayNameString(user.username, user.displayName)
+		date, userDisplayNameString(username, displayName)
 	));
 }
 
@@ -109,9 +105,21 @@ function commitTitle() {
 	document.title = prefix + currentTitle;
 }
 
+function getConversationUri(serverName, participantName) {
+	let myNick = getMyNickname(serverName);
+
+	if (myNick) {
+		return getPrivateConversationUri(serverName, myNick, participantName);
+	}
+
+	return null;
+}
+
 function handleLocationChange(location) {
 	const { pathname } = location;
 	currentPathname = pathname;
+
+	// Log URLs
 
 	var m = route.parseChannelLogUrl(pathname);
 
@@ -133,6 +141,18 @@ function handleLocationChange(location) {
 		}
 	}
 
+	m = route.parseConversationLogUrl(pathname);
+
+	if (m) {
+		let channel = getConversationUri(m[1], m[2]);
+		if (channel) {
+			setTitle(channelPageLogTitle({ channel }, m[3]));
+			return;
+		}
+	}
+
+	// Live URLs
+
 	m = route.parseChannelUrl(pathname);
 
 	if (m) {
@@ -152,6 +172,18 @@ function handleLocationChange(location) {
 			return;
 		}
 	}
+
+	m = route.parseConversationUrl(pathname);
+
+	if (m) {
+		let channel = getConversationUri(m[1], m[2]);
+		if (channel) {
+			setTitle(channelPageTitle({ channel }));
+			return;
+		}
+	}
+
+	// Utility URLs
 
 	m = route.parseSettingsUrl(pathname);
 

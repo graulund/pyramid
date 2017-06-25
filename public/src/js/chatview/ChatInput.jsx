@@ -4,10 +4,13 @@ import { connect } from "react-redux";
 import escapeRegExp from "lodash/escapeRegExp";
 
 import TwitchChannelFlags from "../twitch/TwitchChannelFlags.jsx";
-import { parseChannelUri } from "../lib/channelNames";
 import { convertCodesToEmojis } from "../lib/emojis";
 import { cacheItem } from "../lib/messageCaches";
-import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "../lib/displayNames";
+import {
+	getChannelDisplayString,
+	getTwitchUserDisplayNameString,
+	DISPLAY_NAME_PREFIX_TYPES
+} from "../lib/displayNames";
 import { postMessage } from "../lib/posting";
 import { refElSetter } from "../lib/refEls";
 
@@ -423,17 +426,15 @@ class ChatInput extends PureComponent {
 
 		let autoComplete = isTouchDevice ? undefined : "off";
 
-		let uriData = parseChannelUri(channel);
+		let channelString = getChannelDisplayString(channel, {
+			displayName,
+			enableTwitchChannelDisplayNames,
+			enableTwitchUserDisplayNames,
+			prefixType: DISPLAY_NAME_PREFIX_TYPES.NONE
+		});
 
-		if (uriData) {
-			let displayNameString = getTwitchChannelDisplayNameString(
-				uriData.channel,
-				displayName,
-				enableTwitchChannelDisplayNames,
-				enableTwitchUserDisplayNames
-			);
-
-			placeholder = "Message " + displayNameString;
+		if (channelString) {
+			placeholder = "Message " + channelString;
 		}
 
 		return (

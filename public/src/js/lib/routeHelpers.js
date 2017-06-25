@@ -97,6 +97,14 @@ export function parseChannelLogUrl(pathname) {
 	return pathname.match(/^\/channel\/(.+?)\/log\/([^\/]+)\/?$/);
 }
 
+export function parseConversationUrl(pathname) {
+	return pathname.match(/^\/conversation\/([^\/]+)\/([^\/]+)\/?$/);
+}
+
+export function parseConversationLogUrl(pathname) {
+	return pathname.match(/^\/conversation\/([^\/]+)\/([^\/]+)\/log\/([^\/]+)\/?$/);
+}
+
 export function parseCategoryUrl(pathname) {
 	var out = null;
 	Object.keys(CATEGORY_NAMES).forEach((name) => {

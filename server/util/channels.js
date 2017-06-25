@@ -30,7 +30,13 @@ const parseChannelUri = function(channelUri) {
 		separatorLocation + CHANNEL_URI_SEPARATOR.length
 	);
 
-	return { channel, channelType, server };
+	let out = { channel, channelType, server };
+
+	if (channelType === CHANNEL_TYPES.PRIVATE) {
+		out.participants = channel.split(",");
+	}
+
+	return out;
 };
 
 const channelNameFromUri = function(channelUri, prefix = "") {

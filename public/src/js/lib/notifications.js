@@ -1,5 +1,8 @@
-import { channelNameFromUri } from "./channelNames";
-import { getTwitchChannelDisplayNameString, getTwitchUserDisplayNameString } from "./displayNames";
+import {
+	getChannelDisplayString,
+	getTwitchUserDisplayNameString,
+	DISPLAY_NAME_PREFIX_TYPES
+} from "./displayNames";
 import { getChannelInfo } from "./ircConfigs";
 import store from "../store";
 
@@ -36,19 +39,30 @@ function sendNotification(title, body) {
 
 export function sendMessageNotification(msg) {
 	if (msg) {
-		let channelInfo = getChannelInfo(msg.channel);
-		let channelString = getTwitchChannelDisplayNameString(
-			channelNameFromUri(msg.channel),
-			channelInfo && channelInfo.displayName,
-			channelDisplayNameSetting,
-			userDisplayNameSetting
+		let { channel, message, tags, username } = msg;
+
+		let channelInfo = getChannelInfo(channel);
+		let channelDisplayName = channelInfo && channelInfo.displayName;
+		let userDisplayName = tags && tags["display-name"];
+
+		let channelString = getChannelDisplayString(
+			channel,
+			{
+				displayName: channelDisplayName,
+				enableTwitchChannelDisplayNames: channelDisplayNameSetting,
+				enableTwitchUserDisplayNames: userDisplayNameSetting,
+				prefixType: DISPLAY_NAME_PREFIX_TYPES.LOWERCASE,
+				userDisplayNames: { [username]: userDisplayName }
+			}
 		);
+
 		let name = getTwitchUserDisplayNameString(
-			msg.username,
-			msg.tags && msg.tags["display-name"],
+			username,
+			userDisplayName,
 			userDisplayNameSetting
 		);
-		sendNotification(`${name} in ${channelString}`, msg.message);
+
+		sendNotification(`${name} in ${channelString}`, message);
 	}
 }
 
