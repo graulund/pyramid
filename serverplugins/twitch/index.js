@@ -434,6 +434,15 @@ module.exports = function(main) {
 
 					console.log("RECEIVED WHISPER", { channel, message });
 
+					let meRegex = /^\/me\s+/, isAction = false;
+
+					if (meRegex.test(messageText)) {
+						isAction = true;
+						messageText = messageText.replace(meRegex, "");
+					}
+
+					let type = isAction ? "action" : "msg";
+
 					let tagsInfo = {
 						client,
 						channel,
@@ -446,11 +455,9 @@ module.exports = function(main) {
 
 					onMessageTags(tagsInfo);
 
-					// TODO: Handle other msg types
-
 					main.incomingEvents().handleIncomingMessage(
 						channel, serverName, username,
-						time, "msg", messageText, message.tags, meUsername
+						time, type, messageText, message.tags, meUsername
 					);
 
 					break;
