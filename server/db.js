@@ -264,6 +264,7 @@ const mainMethods = function(main, db) {
 				[
 					"friends.*",
 					"ircChannels.name AS channelName",
+					"ircChannels.channelType",
 					"ircServers.name AS serverName"
 				]
 			) +
@@ -354,29 +355,6 @@ const mainMethods = function(main, db) {
 				}
 			}
 		);
-	};
-
-	const getChannelUri = (serverId, channelName, callback) => {
-		getServerName(serverId, (err, server) => {
-			if (err) {
-				callback(err);
-			}
-			else {
-				const serverName = server.name;
-				callback(null, path.join(serverName, channelName));
-			}
-		});
-	};
-
-	const getChannelUriFromId = (channelId, callback) => {
-		getIrcChannel(channelId, (err, channel) => {
-			if (err) {
-				callback(err);
-			}
-			else {
-				getChannelUri(channel.serverId, channel.name, callback);
-			}
-		});
 	};
 
 	const getConfigValue = (name, callback) => {
@@ -569,22 +547,53 @@ const mainMethods = function(main, db) {
 				callback(err);
 			}
 			else {
-				const parallelCalls = channels.map((channel) => {
-					return function(callback) {
-						getChannelUri(channel.serverId, channel.name, callback);
-					};
+				// Resolve server names
+				let serverIds = _.uniq(channels.map((channel) => channel.serverId));
+				let calls = serverIds.map((s) => {
+					return (callback) => getServerName(s, (err, data) => {
+						callback(err, { id: s, data });
+					})
 				});
-				async.parallel(parallelCalls, (err, channelUris) => {
+
+				async.parallel(calls, (err, serverNames) => {
 					let output = {};
 					channels.forEach((channel, i) => {
 						let {
 							lastSeenTime,
 							lastSeenUsername,
-							lastSeenDisplayName
+							lastSeenDisplayName,
+							name,
+							channelType,
+							serverId
 						} = channel;
 
-						if (lastSeenTime && lastSeenUsername) {
-							output[channelUris[i]] = {
+						// Find server name
+
+						var serverName;
+
+						if (serverId) {
+							serverNames.forEach((s) => {
+								if (s.id === serverId) {
+									serverName = s.data && s.data.name;
+								}
+							});
+						}
+
+						// Get URI and add to list
+
+						if (
+							serverName &&
+							lastSeenTime &&
+							lastSeenUsername &&
+							channelType === constants.CHANNEL_TYPES.PUBLIC
+						) {
+							let channelUri = channelUtils.getChannelUri(
+								serverName,
+								name,
+								channelType
+							);
+
+							output[channelUri] = {
 								time: lastSeenTime,
 								userDisplayName: lastSeenDisplayName,
 								username: lastSeenUsername
@@ -621,7 +630,8 @@ const mainMethods = function(main, db) {
 							time: lastSeenTime,
 							channel: channelUtils.getChannelUri(
 								friend.serverName,
-								friend.channelName
+								friend.channelName,
+								friend.channelType
 							)
 						};
 					}
@@ -665,6 +675,7 @@ const mainMethods = function(main, db) {
 				[
 					"lines.*",
 					"ircChannels.name AS channelName",
+					"ircChannels.channelType",
 					"ircServers.name AS serverName"
 				]
 			) +
@@ -906,8 +917,6 @@ const mainMethods = function(main, db) {
 	deleteLinesWithLineIds(lineIds, callback)
 	getAllConfigValues(callback)
 	getChannelId(serverName, channelName, callback)
-	getChannelUri(serverId, channelName, callback)
-	getChannelUriFromId(channelId, callback)
 	getConfigValue(name, callback)
 	getDateLineCountForChannel(channelId, date, callback)
 	getDateLineCountForUsername(username, date, callback)
@@ -954,8 +963,6 @@ const mainMethods = function(main, db) {
 		deleteLinesWithLineIds,
 		getAllConfigValues,
 		getChannelId,
-		getChannelUri,
-		getChannelUriFromId,
 		getConfigValue,
 		getDateLineCountForChannel,
 		getDateLineCountForUsername,

@@ -64,6 +64,7 @@ class TimedUserItem extends PureComponent {
 				: [
 					"in ",
 					<ChannelLink
+						noConversationName
 						channel={channel}
 						channelName={channelName}
 						displayName={channelDisplayName}

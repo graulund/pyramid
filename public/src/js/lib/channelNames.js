@@ -2,7 +2,17 @@ import { CHANNEL_TYPES } from "../constants";
 
 const CHANNEL_URI_SEPARATOR = "/";
 
-export function getChannelUri(server, channel) {
+export function getChannelUri(server, channel, channelType = CHANNEL_TYPES.PUBLIC) {
+
+	if (channelType === CHANNEL_TYPES.PRIVATE) {
+		let [one, two] = channel.split(",");
+		return getPrivateConversationUri(server, one, two);
+	}
+
+	if (channel.indexOf(",") >= 0) {
+		throw new Error("Invalid public channel " + channel); // temp DEBUG
+	}
+
 	return server.replace(/\//g, "") +
 		CHANNEL_URI_SEPARATOR +
 		channel;
@@ -61,7 +71,9 @@ export function getPrivateConversationUri(serverName, username1, username2) {
 	let usernames = [username1, username2];
 	usernames.sort();
 
-	return `private:${serverName}/${usernames.join(",")}`;
+	return "private:" + serverName +
+		CHANNEL_URI_SEPARATOR +
+		usernames.join(",");
 }
 
 export function getChannelDisplayNameFromState(state, channelUri) {

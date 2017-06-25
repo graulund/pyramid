@@ -18,6 +18,7 @@ class ChannelName extends Component {
 			enableTwitchChannelDisplayNames,
 			enableTwitchUserDisplayNames,
 			multiServerChannels,
+			noConversationName = false,
 			noUserLink = false,
 			prefixType,
 			serverData
@@ -52,21 +53,32 @@ class ChannelName extends Component {
 
 		if (conversationData) {
 			let { server, userDisplayName, username } = conversationData;
-			let prefix = getConversationPrefix(prefixType);
 
-			let link = <UserLink
-				username={username}
-				displayName={userDisplayName}
-				enableTwitchUserDisplayNames={usersEnabled}
-				noLink={noUserLink}
-				serverName={null} // No conversation links allowed
-				key="participant" />;
+			if (noConversationName) {
+				displayedName = "conversation";
+			}
 
-			displayedName = [prefix, link];
-			suffix = [
-				" ",
-				<em key="secondary" className="server-context">on { server }</em>
-			];
+			else {
+				let prefix = getConversationPrefix(prefixType);
+
+				let link = <UserLink
+					username={username}
+					displayName={userDisplayName}
+					enableTwitchUserDisplayNames={usersEnabled}
+					noLink={noUserLink}
+					serverName={null} // No conversation links allowed
+					key="participant" />;
+
+				displayedName = [prefix, link];
+				suffix = [
+					" ",
+					<em
+						className="server-context"
+						key="secondary">
+						on { server }
+					</em>
+				];
+			}
 		}
 
 		// If displaying Twitch display names
@@ -116,6 +128,7 @@ ChannelName.propTypes = {
 	enableTwitchChannelDisplayNames: PropTypes.bool,
 	enableTwitchUserDisplayNames: PropTypes.number,
 	multiServerChannels: PropTypes.array,
+	noConversationName: PropTypes.bool,
 	noUserLink: PropTypes.bool,
 	prefixType: PropTypes.number,
 	server: PropTypes.string,

@@ -2,6 +2,7 @@ const _ = require("lodash");
 const async = require("async");
 const moment = require("moment-timezone");
 
+const { CHANNEL_TYPES } = require("../constants");
 const channelUtils = require("../util/channels");
 const timeUtils = require("../util/time");
 const usernameUtils = require("../util/usernames");
@@ -24,11 +25,19 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			// Channel and server names
 
 			if (l.channelName && l.serverName) {
-				l.channel = channelUtils.getChannelUri(l.serverName, l.channelName);
+				l.channel = channelUtils.getChannelUri(
+					l.serverName, l.channelName, l.channelType
+				);
 			}
 
-			if (l.channelName) {
-				l.channelName = "#" + l.channelName;
+			if (l.channelType === CHANNEL_TYPES.PUBLIC) {
+				// TODO: Deprecate channelName
+				if (l.channelName) {
+					l.channelName = "#" + l.channelName;
+				}
+			}
+			else {
+				delete l.channelName;
 			}
 
 			if (l.serverName) {

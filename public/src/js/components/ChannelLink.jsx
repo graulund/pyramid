@@ -3,7 +3,9 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 import ChannelName from "./ChannelName.jsx";
-import { channelUrl } from "../lib/routeHelpers";
+import { parseChannelUri } from "../lib/channelNames";
+import { getConversationData } from "../lib/displayNames";
+import { channelUrl, conversationUrl } from "../lib/routeHelpers";
 
 class ChannelLink extends PureComponent {
 	render() {
@@ -11,6 +13,7 @@ class ChannelLink extends PureComponent {
 			channel,
 			displayName,
 			displayServer,
+			noConversationName,
 			server,
 			strong
 		} = this.props;
@@ -19,12 +22,27 @@ class ChannelLink extends PureComponent {
 			return null;
 		}
 
+		const uriData = parseChannelUri(channel);
+		const conversationData = uriData && getConversationData(uriData);
+		var url;
+
+		if (conversationData) {
+			let { username, server } = conversationData;
+			url = conversationUrl(server, username);
+		}
+
+		else {
+			url = channelUrl(channel);
+		}
+
 		return (
-			<Link className="channellink" to={channelUrl(channel)}>
+			<Link className="channellink" to={url}>
 				<ChannelName
+					noUserLink
 					channel={channel}
 					displayName={displayName}
 					displayServer={displayServer}
+					noConversationName={noConversationName}
 					server={server}
 					strong={strong}
 					/>
@@ -37,6 +55,7 @@ ChannelLink.propTypes = {
 	channel: PropTypes.string.isRequired,
 	displayName: PropTypes.string,
 	displayServer: PropTypes.bool,
+	noConversationName: PropTypes.bool,
 	server: PropTypes.string,
 	strong: PropTypes.bool
 };
