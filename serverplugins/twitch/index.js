@@ -308,20 +308,19 @@ module.exports = function(main) {
 				tags = data.tags = {};
 			}
 
-			let channelUserState = twitchApiData.getUserState(channel);
-
 			if (tags.emotes) {
+				// Parse emoticon indices supplied by Twitch
 				if (typeof tags.emotes === "string") {
-					tags.emotes = emoteParsing.parseEmoticonIndices(tags.emotes);
+					tags.emotes = emoteParsing.parseEmoticonIndices(
+						tags.emotes
+					);
 				}
 			}
-			else if (
-				postedLocally && username === meUsername &&
-				channelUserState &&
-				twitchApiData.getEmoticonImages(channelUserState["emote-sets"])
-			) {
-				// We posted this message
-				twitchApiData.populateLocallyPostedTags(tags, serverName, channel, message);
+			else if (postedLocally && username === meUsername) {
+				// We posted this message, populate emotes
+				twitchApiData.populateLocallyPostedTags(
+					tags, serverName, channel, message
+				);
 			}
 			else if ("emotes" in tags) {
 				// Type normalization
@@ -374,6 +373,7 @@ module.exports = function(main) {
 						client,
 						channel,
 						message: messageText,
+						meUsername,
 						postedLocally: false,
 						serverName,
 						tags: message.tags,
@@ -450,7 +450,7 @@ module.exports = function(main) {
 
 	const handleIncomingWhisper = function(
 		client, serverName, convoUsername, authorUsername,
-		time, messageText, tags, meUsername, postedLocally
+		time, messageText, tags, meUsername, postedLocally, messageToken = null
 	) {
 		let channel = channelUtils.getPrivateConversationUri(
 			serverName, meUsername, convoUsername
@@ -469,6 +469,7 @@ module.exports = function(main) {
 			client,
 			channel,
 			message: messageText,
+			meUsername,
 			postedLocally,
 			serverName,
 			tags,
@@ -479,7 +480,7 @@ module.exports = function(main) {
 
 		main.incomingEvents().handleIncomingMessage(
 			channel, serverName, authorUsername,
-			time, type, messageText, tags, meUsername
+			time, type, messageText, tags, meUsername, messageToken
 		);
 	};
 
@@ -489,7 +490,7 @@ module.exports = function(main) {
 		if (uriData.channelType === CHANNEL_TYPES.PRIVATE) {
 			// Twitch behaviour for private messages is a little special...
 
-			let { channel, client, message } = data;
+			let { channel, client, message, messageToken } = data;
 			let { server } = uriData;
 			let getIrcChannelName = main.ircControl().getIrcChannelNameFromUri;
 			let meUsername = client.irc.user.nick;
@@ -526,7 +527,7 @@ module.exports = function(main) {
 			blocks.forEach((m) => {
 				handleIncomingWhisper(
 					client, server, username, meUsername,
-					time, m, {}, meUsername, true
+					time, m, {}, meUsername, true, messageToken
 				);
 			});
 

@@ -85,21 +85,57 @@ const reloadEmoticonImages = function() {
 
 const populateLocallyPostedTags = function(tags, serverName, channel, message) {
 	if (tags) {
+		let globalState = globalUserStates[serverName] || {};
+		let localState = userStates[channel] || getAverageUserState();
+
 		_.assign(
 			tags,
-			_.pick(globalUserStates[serverName], USER_STATE_MESSAGE_FIELDS),
-			_.pick(userStates[channel], USER_STATE_MESSAGE_FIELDS),
+			_.pick(globalState, USER_STATE_MESSAGE_FIELDS),
+			_.pick(localState, USER_STATE_MESSAGE_FIELDS),
 			{
 				emotes: emoteParsing.generateEmoticonIndices(
 						message,
 						emoticonImages[
-							userStates[channel]["emote-sets"] ||
-							globalUserStates[serverName]["emote-sets"]
+							localState["emote-sets"] ||
+							globalState["emote-sets"]
 						]
 					)
 			}
 		);
 	}
+};
+
+// Getting the "most average" user state for when the server lets us down...
+
+const userStateSpecialness = function(state) {
+	// (less is more average)
+
+	let specialness = 0;
+
+	// The less badges you have, the more average it must be, right?
+
+	if (state && state.badges) {
+		specialness = state.badges.length || 0;
+	}
+
+	return specialness;
+};
+
+const getAverageUserState = function() {
+	let lowestValue, lowestState;
+
+	_.forOwn(userStates, (state) => {
+		if (state) {
+			let specialness = userStateSpecialness(state);
+
+			if (typeof lowestValue === "undefined" || lowestValue > specialness) {
+				lowestValue = specialness;
+				lowestState = state;
+			}
+		}
+	});
+
+	return lowestState;
 };
 
 module.exports = {
