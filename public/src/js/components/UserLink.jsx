@@ -55,35 +55,23 @@ class UserLink extends PureComponent {
 			}
 		}
 
+		var url;
+
 		if (!isFriend || noLink) {
 
 			// Link-free output if wanted
 
-			let nonLink = <span className={block} key="main">{ content }</span>;
-
-			if (noLink) {
-				return nonLink;
+			if (noLink || !serverName) {
+				return <span className={block} key="main">{ content }</span>;
 			}
 
 			// Conversation link output for non-friends
 
-			else {
-				if (serverName) {
-					return (
-						<Link
-							className={block}
-							to={conversationUrl(serverName, username)}
-							title={tooltip}
-							key="main">
-							{ content }
-						</Link>
-					);
-				}
+			url = conversationUrl(serverName, username);
+		}
 
-				else {
-					return nonLink;
-				}
-			}
+		else {
+			url = userUrl(username);
 		}
 
 		// User page link output for friends
@@ -91,7 +79,7 @@ class UserLink extends PureComponent {
 		return (
 			<Link
 				className={block}
-				to={userUrl(username)}
+				to={url}
 				title={tooltip}
 				key="main">
 				{ content }
