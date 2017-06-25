@@ -155,6 +155,22 @@ class ChatView extends PureComponent {
 		}
 	}
 
+	getLastServerName(props = this.props) {
+		let { lines } = props;
+
+		if (lines && lines.length) {
+			for (var i = lines.length - 1; i >= 0; i--) {
+				let line = lines[i];
+
+				if (line && line.server) {
+					return line.server;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	render() {
 		const {
 			collapseJoinParts,
@@ -198,6 +214,12 @@ class ChatView extends PureComponent {
 			(logBrowserOpen || logDate ? " chatview--logbrowsing" : "") +
 			(userListOpen && isLiveChannel ? " chatview--userlisting" : "");
 
+		var deducedServerName;
+
+		if (pageType === PAGE_TYPES.USER) {
+			deducedServerName = this.getLastServerName();
+		}
+
 		return (
 			<div className={className}>
 
@@ -211,6 +233,7 @@ class ChatView extends PureComponent {
 					logUrl={this.contentLogUrl}
 					pageQuery={pageQuery}
 					pageType={pageType}
+					serverName={deducedServerName}
 					key="header" />
 
 				<ChatFrame

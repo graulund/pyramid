@@ -36,7 +36,8 @@ class ChatBunchedEventsLine extends PureComponent {
 			joins = [],
 			overloaded,
 			partCount,
-			parts = []
+			parts = [],
+			server
 		} = this.props;
 
 		var {
@@ -101,6 +102,7 @@ class ChatBunchedEventsLine extends PureComponent {
 								<UserLink
 									username={username}
 									displayName={displayName}
+									serverName={server}
 									key={username} />
 							</strong>
 						);

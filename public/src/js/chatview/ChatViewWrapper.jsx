@@ -24,7 +24,7 @@ class ChatViewWrapper extends PureComponent {
 			username
 		} = params;
 
-		var pageType = "", pageQuery = "";
+		var pageType, pageQuery;
 
 		if (
 			channelName && serverName &&
@@ -43,10 +43,14 @@ class ChatViewWrapper extends PureComponent {
 			}
 
 			else if (route === "conversation") {
-				pageType = "channel";
-				pageQuery = getPrivateConversationUri(
-					serverName, getMyNickname(serverName), username
-				);
+				let myNick = getMyNickname(serverName);
+
+				if (myNick !== username) {
+					pageType = "channel";
+					pageQuery = getPrivateConversationUri(
+						serverName, myNick, username
+					);
+				}
 			}
 		}
 		else if (

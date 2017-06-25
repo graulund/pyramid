@@ -9,6 +9,7 @@ import ChatUserListControl from "./ChatUserListControl.jsx";
 import UserLink from "../components/UserLink.jsx";
 import { CATEGORY_NAMES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
+import { conversationUrl } from "../lib/routeHelpers";
 import store from "../store";
 import actions from "../actions";
 
@@ -40,7 +41,8 @@ class ChatViewHeader extends PureComponent {
 			logBrowserOpen,
 			logDate,
 			pageQuery,
-			pageType
+			pageType,
+			serverName
 		} = this.props;
 
 		if (
@@ -87,6 +89,7 @@ class ChatViewHeader extends PureComponent {
 		}
 
 		var userListToggler = null;
+		var conversationLink = null;
 
 		if (isLiveChannel) {
 			userListToggler = (
@@ -98,9 +101,22 @@ class ChatViewHeader extends PureComponent {
 			);
 		}
 
+		else if (pageType === PAGE_TYPES.USER && serverName) {
+			conversationLink = (
+				<li key="conversationlink">
+					<Link to={conversationUrl(serverName, pageQuery)}>
+						Conversation
+					</Link>
+				</li>
+			);
+		}
+
+		// These are mutually exclusive
+		let firstButton = userListToggler || conversationLink;
+
 		return (
 			<ul className="controls chatview__controls">
-				{ userListToggler }
+				{ firstButton }
 				<li key="logbrowser">
 					{ logBrowserToggler }
 				</li>
@@ -169,7 +185,8 @@ ChatViewHeader.propTypes = {
 	logDetails: PropTypes.object,
 	logUrl: PropTypes.func,
 	pageQuery: PropTypes.string.isRequired,
-	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired
+	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
+	serverName: PropTypes.string
 };
 
 export default ChatViewHeader;

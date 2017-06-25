@@ -59,6 +59,7 @@ class ChannelName extends Component {
 				displayName={userDisplayName}
 				enableTwitchUserDisplayNames={usersEnabled}
 				noLink={noUserLink}
+				serverName={null} // No conversation links allowed
 				key="participant" />;
 
 			displayedName = [prefix, link];

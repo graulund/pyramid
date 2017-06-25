@@ -173,9 +173,15 @@ function _getConversationName(
 		return "";
 	}
 
-	let { server, userDisplayName, username } = _getConversationData(
+	let conversationData = _getConversationData(
 		uriData, usersEnabled, userDisplayNames
 	);
+
+	if (!conversationData) {
+		return "";
+	}
+
+	let { server, userDisplayName, username } = conversationData;
 
 	let prefix = getConversationPrefix(prefixType);
 

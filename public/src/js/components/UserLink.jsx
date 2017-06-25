@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { getTwitchUserDisplayNameData } from "../lib/displayNames";
-import { userUrl } from "../lib/routeHelpers";
+import { conversationUrl, userUrl } from "../lib/routeHelpers";
 
 const block = "userlink";
 
@@ -15,6 +15,7 @@ class UserLink extends PureComponent {
 			enableTwitchUserDisplayNames,
 			friendsList,
 			noLink,
+			serverName,
 			username
 		} = this.props;
 
@@ -54,13 +55,38 @@ class UserLink extends PureComponent {
 			}
 		}
 
-		// Link-free output for non-friends
-
 		if (!isFriend || noLink) {
-			return <span className={block} key="main">{ content }</span>;
+
+			// Link-free output if wanted
+
+			let nonLink = <span className={block} key="main">{ content }</span>;
+
+			if (noLink) {
+				return nonLink;
+			}
+
+			// Conversation link output for non-friends
+
+			else {
+				if (serverName) {
+					return (
+						<Link
+							className={block}
+							to={conversationUrl(serverName, username)}
+							title={tooltip}
+							key="main">
+							{ content }
+						</Link>
+					);
+				}
+
+				else {
+					return nonLink;
+				}
+			}
 		}
 
-		// Link output for friends
+		// User page link output for friends
 
 		return (
 			<Link
@@ -79,6 +105,7 @@ UserLink.propTypes = {
 	enableTwitchUserDisplayNames: PropTypes.number,
 	friendsList: PropTypes.object,
 	noLink: PropTypes.bool,
+	serverName: PropTypes.string,
 	username: PropTypes.string.isRequired
 };
 

@@ -15,6 +15,7 @@ class ChatUserEventLine extends PureComponent {
 			message,
 			mode,
 			reason,
+			server,
 			type,
 			username
 		} = this.props;
@@ -60,6 +61,7 @@ class ChatUserEventLine extends PureComponent {
 						<strong className={`${block}__target`}>
 							<UserLink
 								displayName={displayName}
+								serverName={server}
 								username={username}
 								key={username} />
 							{" "}

@@ -111,6 +111,7 @@ class ChatMessageLine extends PureComponent {
 			enableTwitchColors,
 			enableUsernameColors,
 			showTwitchDeletedMessages,
+			server,
 			symbol = "",
 			tags,
 			type,
@@ -173,6 +174,7 @@ class ChatMessageLine extends PureComponent {
 							className={authorClassName}
 							color={authorColor}
 							displayName={authorDisplayName}
+							serverName={server}
 							symbol={symbol}
 							username={username}
 							key="username" />,
