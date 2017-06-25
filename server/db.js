@@ -552,12 +552,12 @@ const mainMethods = function(main, db) {
 				let calls = serverIds.map((s) => {
 					return (callback) => getServerName(s, (err, data) => {
 						callback(err, { id: s, data });
-					})
+					});
 				});
 
 				async.parallel(calls, (err, serverNames) => {
 					let output = {};
-					channels.forEach((channel, i) => {
+					channels.forEach((channel) => {
 						let {
 							lastSeenTime,
 							lastSeenUsername,

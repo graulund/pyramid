@@ -1,5 +1,6 @@
 const _ = require("lodash");
 
+const { CHANNEL_TYPES } = require("../../server/constants");
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
 
@@ -379,7 +380,7 @@ module.exports = function(main) {
 						username
 					};
 
-					onMessageTags(tagsInfo);
+					main.plugins().handleEvent("messageTags", tagsInfo);
 
 					main.incomingEvents().handleIncomingCustomEvent(
 						channel, serverName, username,
@@ -428,36 +429,17 @@ module.exports = function(main) {
 				case "WHISPER": {
 					let username = message.nick;
 					let messageText = message.params[1] || "";
+					let tags = message.tags;
+
 					let channel = channelUtils.getPrivateConversationUri(
 						serverName, meUsername, username
 					);
 
 					console.log("RECEIVED WHISPER", { channel, message });
 
-					let meRegex = /^\/me\s+/, isAction = false;
-
-					if (meRegex.test(messageText)) {
-						isAction = true;
-						messageText = messageText.replace(meRegex, "");
-					}
-
-					let type = isAction ? "action" : "msg";
-
-					let tagsInfo = {
-						client,
-						channel,
-						message: messageText,
-						postedLocally: false,
-						serverName,
-						tags: message.tags,
-						username
-					};
-
-					onMessageTags(tagsInfo);
-
-					main.incomingEvents().handleIncomingMessage(
-						channel, serverName, username,
-						time, type, messageText, message.tags, meUsername
+					handleIncomingWhisper(
+						client, serverName, username, username,
+						time, messageText, tags, meUsername, false
 					);
 
 					break;
@@ -465,6 +447,95 @@ module.exports = function(main) {
 			}
 		}
 	};
+
+	const handleIncomingWhisper = function(
+		client, serverName, convoUsername, authorUsername,
+		time, messageText, tags, meUsername, postedLocally
+	) {
+		let channel = channelUtils.getPrivateConversationUri(
+			serverName, meUsername, convoUsername
+		);
+
+		let meRegex = /^\/me\s+/, isAction = false;
+
+		if (meRegex.test(messageText)) {
+			isAction = true;
+			messageText = messageText.replace(meRegex, "");
+		}
+
+		let type = isAction ? "action" : "msg";
+
+		let tagsInfo = {
+			client,
+			channel,
+			message: messageText,
+			postedLocally,
+			serverName,
+			tags,
+			username: authorUsername
+		};
+
+		main.plugins().handleEvent("messageTags", tagsInfo);
+
+		main.incomingEvents().handleIncomingMessage(
+			channel, serverName, authorUsername,
+			time, type, messageText, tags, meUsername
+		);
+	};
+
+	const onSendOutgoingMessage = function(data /*, callback */ ) {
+		let { uriData } = data;
+
+		if (uriData.channelType === CHANNEL_TYPES.PRIVATE) {
+			// Twitch behaviour for private messages is a little special...
+
+			let { channel, client, message } = data;
+			let { server } = uriData;
+			let getIrcChannelName = main.ircControl().getIrcChannelNameFromUri;
+			let meUsername = client.irc.user.nick;
+			let username = getIrcChannelName(channel);
+			let time = new Date();
+
+			// Pick a random channel to send a /w command to
+
+			let channels = twitchChannelCache.filter(
+				(u) => u.substr(0, server.length) === server
+			);
+			let gatewayChannel = channels.length
+				? getIrcChannelName(channels[0])
+				: "#jtv";
+
+			// Send
+			// TODO: Do not pipe through *all* IRC /commands
+
+			let prefix = `/w ${username} `;
+			let blocks = client.irc.say(gatewayChannel, prefix + message);
+
+			if (!blocks || !blocks.length) {
+				blocks = [message];
+			}
+
+			// Handle custom incoming completely different from what was sent
+
+			let firstBlock = blocks[0];
+
+			if (firstBlock.substr(0, prefix.length) === prefix) {
+				blocks[0] = firstBlock.substr(prefix.length);
+			}
+
+			blocks.forEach((m) => {
+				handleIncomingWhisper(
+					client, server, username, meUsername,
+					time, m, {}, meUsername, true
+				);
+			});
+
+			// Do not call the default action in the callback
+			return true;
+		}
+	};
+
+	// Utility requiring main
 
 	const loadGlobalExternalEmotesForAllClients = function() {
 		util.log("Reloading global external emotes for all clients...");
@@ -540,6 +611,7 @@ module.exports = function(main) {
 		onIrcFrameworkConfig,
 		onJoin,
 		onMessageTags,
-		onPart
+		onPart,
+		onSendOutgoingMessage
 	};
 };

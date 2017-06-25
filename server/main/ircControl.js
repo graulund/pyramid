@@ -56,12 +56,17 @@ module.exports = function(irc, ircConfig, io) {
 		return irc.clients();
 	};
 
+	const getIrcChannelNameFromUri = function(channelUri) {
+		return irc.getIrcChannelNameFromUri(channelUri);
+	};
+
 	return {
 		addAndJoinChannel,
 		connectUnconnectedIrcs,
 		currentIrcClients,
 		disconnectAndRemoveIrcServer,
 		disconnectIrcServer,
+		getIrcChannelNameFromUri,
 		joinIrcChannel,
 		loadAndConnectUnconnectedIrcs,
 		partIrcChannel,

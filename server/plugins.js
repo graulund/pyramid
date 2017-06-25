@@ -38,6 +38,32 @@ module.exports = function(main) {
 		});
 	}
 
+	// Handler for query events: Handlers that can stop the event from taking place
+
+	function handleQueryEvent(name, data, callback) {
+		for (var i = 0; i < plugins.length; i++) {
+			let plugin = plugins[i];
+			const handlerName = getHandlerName(name);
+			if (plugin && typeof plugin[handlerName] === "function") {
+				let result = plugin[handlerName](data, callback);
+
+				// Give it to the first plugin that gives a non-falsy response
+				// It is this plugin's responsibility to either call the callback,
+				// or intentionally omit it.
+
+				// It is important that they only call the callback if they return
+				// a non-falsy response, otherwise it will be called at least twice.
+
+				if (result) {
+					return;
+				}
+			}
+		}
+
+		// If we're here, no one handled it, so call the callback
+		callback();
+	}
+
 	// Start up
 
 	let pluginFolderItems = fs.readdirSync(PLUGINS_FOLDER);
@@ -69,7 +95,7 @@ module.exports = function(main) {
 		return plugin;
 	});
 
-	const output = { handleEvent };
+	const output = { handleEvent, handleQueryEvent };
 
 	main.setPlugins(output);
 

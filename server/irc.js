@@ -61,7 +61,22 @@ module.exports = function(main) {
 	};
 
 	const getChannelUri = function(chobj) {
-		return channelUtils.getChannelUri(chobj.server, chobj.channel);
+		let { client, channel, server } = chobj;
+
+		// Public channel
+		if (
+			channel[0] === "#" ||
+			channel[0] === "$" ||
+			channel[0] === "&"
+		) {
+			// TODO: Disambiguate between IRC public channel types one day
+			return channelUtils.getChannelUri(server, channel);
+		}
+
+		// Assume private query
+		return channelUtils.getPrivateConversationUri(
+			server, client.irc.user.nick, channel
+		);
 	};
 
 	const getChannelFullName = function(chobj) {
@@ -93,18 +108,40 @@ module.exports = function(main) {
 	};
 
 	const formatChannelName = function(channelName) {
+		// TODO: Do not remove # willy nilly, because you might remove too many
 		return "#" + channelName.replace(/^#/, "");
+	};
+
+	const getIrcChannelNameFromUri = function(channelUri) {
+		let uriData = typeof channelUri === "string"
+			? channelUtils.parseChannelUri(channelUri)
+			: channelUri; // Assume given uriData
+
+		let { channel, channelType, participants, server } = uriData;
+
+		// Special handling for private channels
+		if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
+			// Return the nickname that's not mine
+			let client = findClientByServerName(server);
+			let myNick = client && client.irc.user.nick;
+			let other  = (participants.filter((n) => n !== myNick) || [])[0];
+
+			return other;
+		}
+
+		// Return channel name with #
+		return "#" + channel;
 	};
 
 	// Send message
 
-	const sendOutgoingMessage = function(channelUri, message, messageToken) {
+	const _sendOutgoingMessage = function(channelUri, message, messageToken) {
 		let uriData = channelUtils.parseChannelUri(channelUri);
 
 		if (uriData && uriData.server && uriData.channel) {
 			let { channel, server } = uriData;
 			let client = findClientByServerName(server);
-			let channelName = "#" + channel;
+			let channelName = getIrcChannelNameFromUri(uriData);
 
 			if (client) {
 
@@ -143,6 +180,27 @@ module.exports = function(main) {
 		}
 
 		return false;
+	};
+
+	const sendOutgoingMessage = function(channelUri, message, messageToken) {
+		let uriData = channelUtils.parseChannelUri(channelUri);
+		let client = uriData && findClientByServerName(uriData.server);
+		main.plugins().handleQueryEvent(
+			"sendOutgoingMessage",
+			{
+				client,
+				channel: channelUri,
+				message,
+				messageToken,
+				uriData
+			},
+			function(err) {
+				if (!err) {
+					// TODO: Allow simple changing of values
+					_sendOutgoingMessage(channelUri, message, messageToken);
+				}
+			}
+		);
 	};
 
 	// Handle incoming events
@@ -594,6 +652,7 @@ module.exports = function(main) {
 		clients: () => clients,
 		connectUnconnectedClients,
 		disconnectServer,
+		getIrcChannelNameFromUri,
 		go,
 		joinChannel,
 		partChannel,
