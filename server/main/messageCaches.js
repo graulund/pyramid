@@ -150,6 +150,13 @@ module.exports = function(
 		}
 	};
 
+	const reportUnseenPrivateMessage = function(serverName, username, msg) {
+		unseenPrivateMessages.addUnseenUser(serverName, username);
+
+		if (io) {
+			io.emitNewPrivateMessage(null, msg);
+		}
+	};
 
 	const createCurrentHighlightContext = function(channel, highlightMsg) {
 		if (!currentHighlightContexts[channel]) {
@@ -291,7 +298,7 @@ module.exports = function(
 	const cacheMessage = function(
 		channelUri, serverName, username, symbol,
 		time, type, message, tags, relationship, highlightStrings,
-		messageToken = null, customCols = null
+		privateMessageHighlightUser, messageToken, customCols
 	) {
 		let msg = {
 			channel: channelUri,
@@ -344,6 +351,13 @@ module.exports = function(
 		// Highlights
 		if (isHighlight) {
 			cacheCategoryMessage("highlights", highlightMsg);
+		}
+
+		// Private messages
+		if (privateMessageHighlightUser) {
+			reportUnseenPrivateMessage(
+				serverName, privateMessageHighlightUser, msg
+			);
 		}
 	};
 

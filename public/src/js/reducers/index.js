@@ -21,6 +21,7 @@ import offlineMessages from "./offlineMessages";
 import serverData from "./serverData";
 import systemInfo from "./systemInfo";
 import token from "./token";
+import unseenConversations from "./unseenConversations";
 import unseenHighlights from "./unseenHighlights";
 import userCaches from "./userCaches";
 import viewState from "./viewState";
@@ -47,6 +48,7 @@ export default combineReducers({
 	serverData,
 	systemInfo,
 	token,
+	unseenConversations,
 	unseenHighlights,
 	userCaches,
 	viewState

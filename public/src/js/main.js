@@ -85,6 +85,10 @@ if (window.pyramid_serverData) {
 	store.dispatch(actions.serverData.set(window.pyramid_serverData));
 }
 
+if (window.pyramid_unseenConversations) {
+	store.dispatch(actions.unseenConversations.set(window.pyramid_unseenConversations));
+}
+
 if (window.pyramid_unseenHighlights) {
 	store.dispatch(actions.unseenHighlights.set(window.pyramid_unseenHighlights));
 }

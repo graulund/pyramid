@@ -313,6 +313,26 @@ module.exports = function(main) {
 		}
 	};
 
+	const emitUnseenPrivateMessages = function(socket) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit(
+				"unseenPrivateMessages",
+				{ list: main.unseenPrivateMessages().unseenPrivateMessages() }
+			);
+		}
+	};
+
+	const emitNewPrivateMessage = function(socket, message) {
+		socket = socket || io;
+		if (socket) {
+			socket.emit(
+				"newPrivateMessage",
+				{ message }
+			);
+		}
+	};
+
 	const emitLineInfo = function(socket, lineId) {
 		main.logs().getLineByLineId(lineId, (err, line) => {
 			if (!err) {
@@ -493,7 +513,7 @@ module.exports = function(main) {
 				}
 			});
 
-			// See an unseen highlight
+			// See an unseen highlight or private message conversation
 
 			socket.on("reportHighlightAsSeen", (details) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
@@ -505,6 +525,24 @@ module.exports = function(main) {
 			socket.on("clearUnseenHighlights", () => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				main.unseenHighlights().clearUnseenHighlights();
+			});
+
+			socket.on("reportConversationAsSeen", (details) => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (
+					details &&
+					typeof details.serverName === "string" &&
+					typeof details.username === "string"
+				) {
+					main.unseenPrivateMessages().reportUserAsSeen(
+						details.serverName, details.username
+					);
+				}
+			});
+
+			socket.on("clearUnseenConversations", () => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				main.unseenPrivateMessages().clearUnseenPrivateMessages();
 			});
 
 			// Storing view state
@@ -862,9 +900,11 @@ module.exports = function(main) {
 		emitIrcConnectionStatus,
 		emitListEventToRecipients,
 		emitNewHighlight,
+		emitNewPrivateMessage,
 		emitOnlineFriends,
 		emitServerData,
 		emitUnseenHighlights,
+		emitUnseenPrivateMessages,
 		setServer
 	};
 

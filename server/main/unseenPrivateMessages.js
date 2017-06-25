@@ -3,7 +3,10 @@ const { getChannelUri } = require("../util/channels");
 module.exports = function(io) {
 	var unseenPrivateMessages = {};
 
-	// See an unseen highlight
+	// Unseen private messages
+	// These are grouped by users. You can only report an entire user's
+	// private messages as unseen at the same time, but a user can have a
+	// number of unseen private messages that can increase
 
 	const reportUserAsSeen = function(serverName, username) {
 		if (serverName && username) {

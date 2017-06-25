@@ -91,6 +91,10 @@ export const token = {
 	"SET": "token/SET"
 };
 
+export const unseenConversations = {
+	"SET": "unseenConversations/SET"
+};
+
 export const unseenHighlights = {
 	"SET": "unseenHighlights/SET"
 };

@@ -16,6 +16,7 @@ module.exports = function(main) {
 			let nicknames = main.nicknames();
 			let serverData = main.serverData();
 			let unseenHighlights = main.unseenHighlights();
+			let unseenPrivateMessages = main.unseenPrivateMessages();
 			let userLists = main.userLists();
 			let viewState = main.viewState;
 
@@ -50,6 +51,7 @@ module.exports = function(main) {
 					onlineFriends: userLists.currentOnlineFriends(),
 					serverData: serverData.getAllServerData(),
 					token: routeUtils.getUsedToken(req),
+					unseenConversations: unseenPrivateMessages.unseenPrivateMessages(),
 					unseenHighlights: Array.from(unseenHighlights.unseenHighlightIds()),
 					viewState: viewState.currentViewState(),
 					// Template-related

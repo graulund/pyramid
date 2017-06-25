@@ -266,6 +266,15 @@ export default {
 		}
 	},
 
+	unseenConversations: {
+		set(data) {
+			return {
+				type: actionTypes.unseenConversations.SET,
+				data
+			};
+		}
+	},
+
 	unseenHighlights: {
 		set(data) {
 			return {

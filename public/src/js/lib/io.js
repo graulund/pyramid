@@ -138,6 +138,10 @@ export function reportHighlightAsSeen(messageId) {
 	emit("reportHighlightAsSeen", { messageId });
 }
 
+export function reportConversationAsSeen(serverName, username) {
+	emit("reportConversationAsSeen", { serverName, username });
+}
+
 export function storeViewState(viewState) {
 	if (viewState) {
 		emit("storeViewState", { viewState });
@@ -198,6 +202,10 @@ export function reconnectToIrcServer(name) {
 
 export function clearUnseenHighlights() {
 	emit("clearUnseenHighlights");
+}
+
+export function clearUnseenConversations() {
+	emit("clearUnseenConversations");
 }
 
 export function initializeIo() {
@@ -400,9 +408,20 @@ export function initializeIo() {
 			}
 		});
 
+		socket.on("unseenPrivateMessages", (details) => {
+			if (details && details.list) {
+				store.dispatch(actions.unseenConversations.set(details.list));
+			}
+		});
+
 		socket.on("newHighlight", (details) => {
 			if (details && details.message) {
-				// TODO: Don't alert if the window is in focus and you're viewing a source where this appears
+				sendMessageNotification(details.message);
+			}
+		});
+
+		socket.on("newPrivateMessage", (details) => {
+			if (details && details.message) {
 				sendMessageNotification(details.message);
 			}
 		});

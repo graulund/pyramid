@@ -59,9 +59,9 @@ module.exports = function(
 			}
 		}
 
-		// Highlighted? Add to specific logs
+		// Highlights or private messages
 
-		var highlightStrings = [];
+		var highlightStrings = [], privateMessageHighlightUser;
 
 		if (
 			meUsername &&
@@ -70,12 +70,23 @@ module.exports = function(
 				username.toLowerCase() !== meUsername.toLowerCase()
 			)
 		) {
+			// Highlighted? Add to specific logs
+
 			highlightStrings = nicknames.getHighlightStringsForMessage(
 				message, channelUri, meUsername
 			);
 
 			if (highlightStrings.length && appConfig.configValue("logLinesFile")) {
 				log.logCategoryLine("mentions", channelUri, logLine, time);
+			}
+
+			// Check if this is a private message not from you
+
+			let { channelType, participants } = channelUtils.parseChannelUri(channelUri);
+
+			if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
+				let other = (participants.filter((n) => n !== meUsername) || [])[0];
+				privateMessageHighlightUser = other;
 			}
 		}
 
@@ -104,7 +115,7 @@ module.exports = function(
 		messageCaches.cacheMessage(
 			channelUri, serverName, username, symbol,
 			time, type, message, tags, relationship, highlightStrings,
-			messageToken, customCols
+			privateMessageHighlightUser, messageToken, customCols
 		);
 	};
 
