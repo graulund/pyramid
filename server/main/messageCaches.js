@@ -20,7 +20,6 @@ module.exports = function(
 	var channelCaches = {};
 	var userCaches = {};
 	var categoryCaches = { highlights: [], allfriends: [], system: [] };
-	var privateMessageCaches = {};
 	var channelIdCache = {};
 
 	var currentHighlightContexts = {};
@@ -121,30 +120,6 @@ module.exports = function(
 
 		if (io) {
 			io.emitEventToChannel(channel, data);
-		}
-	};
-
-	const cachePrivateMessage = function(channel, data) {
-
-		// Add to local cache
-
-		if (!privateMessageCaches[channel]) {
-			privateMessageCaches[channel] = [];
-		}
-		privateMessageCaches[channel] = cacheItem(privateMessageCaches[channel], data);
-
-		// Add to db
-
-		/*if (appConfig.configValue("logLinesDb")) {
-			storeLine(channel, data);
-		}*/
-
-		// Send to users
-
-		if (io) {
-			io.emitPrivateMessage(channel, data);
-			let { server, channel: username } = channelUtils.parseChannelUri(channel);
-			unseenPrivateMessages.addUnseenUser(server, username);
 		}
 	};
 
@@ -522,14 +497,12 @@ module.exports = function(
 		cacheCategoryMessage,
 		cacheChannelEvent,
 		cacheMessage,
-		cachePrivateMessage,
 		cacheUserMessage,
 		prefillCategoryCache,
 		prefillChannelCache,
 		prefillUserCache,
 		getCategoryCache: (categoryName) => categoryCaches[categoryName],
 		getChannelCache: (channel) => channelCaches[channel],
-		getPrivateMessageCache: (channel) => privateMessageCaches[channel],
 		getUserCache: (username) => userCaches[username],
 		setChannelIdCache,
 		withUuid
