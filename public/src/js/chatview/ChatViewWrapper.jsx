@@ -5,6 +5,7 @@ import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import { CATEGORY_NAMES } from "../constants";
 import { getChannelUri, getPrivateConversationUri } from "../lib/channelNames";
+import { reportConversationAsSeenIfNeeded } from "../lib/conversations";
 import { getChannelInfoByNames, getMyNickname } from "../lib/ircConfigs";
 import { parseLineIdHash } from "../lib/routeHelpers";
 import { getUserInfo } from "../lib/users";
@@ -50,6 +51,7 @@ class ChatViewWrapper extends PureComponent {
 					pageQuery = getPrivateConversationUri(
 						serverName, myNick, username
 					);
+					reportConversationAsSeenIfNeeded(serverName, username);
 				}
 			}
 		}

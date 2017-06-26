@@ -59,6 +59,15 @@ module.exports = function(
 			}
 		}
 
+		// Display name
+
+		let displayName = tags && tags["display-name"];
+
+		if (serverName && username && displayName) {
+			tags["display-name"] = displayName = stringUtils.clean(displayName);
+			setUserCachedDisplayName(username, serverName, displayName);
+		}
+
 		// Highlights or private messages
 
 		var highlightStrings = [], privateMessageHighlightUser;
@@ -85,18 +94,8 @@ module.exports = function(
 			let { channelType, participants } = channelUtils.parseChannelUri(channelUri);
 
 			if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
-				let other = (participants.filter((n) => n !== meUsername) || [])[0];
-				privateMessageHighlightUser = other;
+				privateMessageHighlightUser = { username, displayName };
 			}
-		}
-
-		// Display name
-
-		let displayName = tags && tags["display-name"];
-
-		if (serverName && username && displayName) {
-			tags["display-name"] = displayName = stringUtils.clean(displayName);
-			setUserCachedDisplayName(username, serverName, displayName);
 		}
 
 		// Store!

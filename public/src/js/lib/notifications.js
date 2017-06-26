@@ -85,9 +85,10 @@ export function startUpdatingNotificationsActiveState() {
 	store.subscribe(function() {
 		let state = store.getState();
 		let { appConfig, deviceState } = state;
+		let { enableDesktopNotifications } = appConfig;
+		let { inFocus, visible } = deviceState;
 
-		let active = appConfig.enableDesktopNotifications &&
-			(!deviceState.visible || !deviceState.inFocus);
+		let active = enableDesktopNotifications && (!visible || !inFocus);
 
 		if (active !== notificationsActive) {
 			notificationsActive = active;

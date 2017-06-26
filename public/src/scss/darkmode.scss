@@ -171,6 +171,11 @@ body.darkmode {
 		background-color: rgba(0,0,0,.25);
 	}
 
+	.sidebar__tabs .badge,
+	.sidebar__list .badge {
+		background-color: #258;
+	}
+
 	#header {
 		.highlightslink--highlighted {
 			background-color: #258;

@@ -101,3 +101,27 @@
 		}
 	}
 }
+
+.extralistitem {
+	padding: 3px 10px;
+
+	a {
+		color: inherit !important;
+
+		&.wide {
+			font-weight: normal;
+
+			&:hover {
+				text-decoration: none;
+
+				strong {
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+
+	.now {
+		opacity: .5;
+	}
+}

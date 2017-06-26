@@ -112,6 +112,7 @@ function blurHandler() {
 }
 
 function initFocusHandler() {
+	visibilityChangeHandler();
 	window.addEventListener("visibilitychange", visibilityChangeHandler);
 	window.addEventListener("focus", focusHandler);
 	window.addEventListener("blur", blurHandler);

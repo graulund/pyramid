@@ -14,7 +14,7 @@ module.exports = function(
 	logs,
 	recipients,
 	unseenHighlights,
-	unseenPrivateMessages
+	unseenConversations
 ) {
 
 	var channelCaches = {};
@@ -150,8 +150,9 @@ module.exports = function(
 		}
 	};
 
-	const reportUnseenPrivateMessage = function(serverName, username, msg) {
-		unseenPrivateMessages.addUnseenUser(serverName, username);
+	const reportUnseenPrivateMessage = function(serverName, user, msg) {
+		let { displayName, username } = user;
+		unseenConversations.addUnseenUser(serverName, username, displayName);
 
 		if (io) {
 			io.emitNewPrivateMessage(null, msg);

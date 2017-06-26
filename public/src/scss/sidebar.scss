@@ -151,11 +151,27 @@
 	&__menu-link .badge {
 		position: absolute;
 		right: 10px;
+	}
+
+	&__menu-link .badge,
+	&__tabs .badge,
+	&__list .badge {
 		background-color: #b9af7c;
 		color: #fff;
 		padding: 2px 6px;
 		border-radius: 8px;
 		line-height: 1em;
+		font-weight: bold;
+		font-style: normal;
+	}
+
+	&__tabs .badge,
+	&__list .badge {
+		display: inline-block;
+	}
+
+	&__tabs .badge {
+		margin-left: 4px;
 	}
 
 	&__system-menu {

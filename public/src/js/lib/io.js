@@ -4,6 +4,7 @@ import without from "lodash/without";
 
 import { PAGE_TYPES } from "../constants";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
+import { handleNewUnseenConversationsList } from "./conversations";
 import { sendMessageNotification } from "./notifications";
 import { parseSubjectName, subjectName } from "./routeHelpers";
 
@@ -408,9 +409,10 @@ export function initializeIo() {
 			}
 		});
 
-		socket.on("unseenPrivateMessages", (details) => {
+		socket.on("unseenConversations", (details) => {
 			if (details && details.list) {
-				store.dispatch(actions.unseenConversations.set(details.list));
+				let correctedList = handleNewUnseenConversationsList(details.list);
+				store.dispatch(actions.unseenConversations.set(correctedList));
 			}
 		});
 

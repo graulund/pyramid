@@ -5,11 +5,12 @@ import { Link } from "react-router-dom";
 
 import ChannelList from "./ChannelList.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
-import UserList from "./UserList.jsx";
+import SidebarUserList from "./SidebarUserList.jsx";
 import VersionNumber from "./VersionNumber.jsx";
 import actions from "../actions";
 import { CATEGORY_NAMES } from "../constants";
 import store from "../store";
+import { pluralize } from "../lib/formatting";
 import { storeViewState } from "../lib/io";
 import { refElSetter } from "../lib/refEls";
 import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
@@ -135,11 +136,18 @@ class Sidebar extends PureComponent {
 		this.setState({ systemMenuOpen: !systemMenuOpen });
 	}
 
+	getUnseenConversationsCount() {
+		let { unseenConversations } = this.props;
+
+		return Object.keys(unseenConversations).length;
+	}
+
 	render() {
 		const {
 			sidebarSort: sort = "alpha",
 			sidebarTab: tab = "user",
-			sidebarVisible: visible = true
+			sidebarVisible: visible = true,
+			unseenConversations
 		} = this.props;
 		const { systemMenuOpen } = this.state;
 
@@ -151,10 +159,21 @@ class Sidebar extends PureComponent {
 		var content = null;
 
 		if (tab === "user") {
-			content = <UserList sort={sort} visible={visible} key="userlist" />;
+			content = (
+				<SidebarUserList
+					sort={sort}
+					unseenConversations={unseenConversations}
+					visible={visible}
+					key="userlist" />
+			);
 		}
 		else if (tab === "channel") {
-			content = <ChannelList sort={sort} visible={visible} key="channellist" />;
+			content = (
+				<ChannelList
+					sort={sort}
+					visible={visible}
+					key="channellist" />
+			);
 		}
 
 		const cogClassName = "sidebar__cog" +
@@ -184,6 +203,24 @@ class Sidebar extends PureComponent {
 				</li>
 			</ul>
 		);
+
+		const unseenConversationsCount = this.getUnseenConversationsCount();
+
+		const unseenBadge = unseenConversationsCount && tab !== "user"
+			? (
+				<strong
+					className="badge"
+					title={
+						unseenConversationsCount +
+						pluralize(
+							unseenConversationsCount,
+							" unseen conversation", "s"
+						)
+				}>
+					{ unseenConversationsCount }
+				</strong>
+			)
+			: null;
 
 		const sidebar = (
 			<div id="sidebar"
@@ -221,6 +258,7 @@ class Sidebar extends PureComponent {
 								<button className="user"
 									onClick={this.showUsers}>
 									Friends
+									{ unseenBadge }
 								</button>
 							</li>
 							<li key="channel">
@@ -264,10 +302,12 @@ class Sidebar extends PureComponent {
 Sidebar.propTypes = {
 	sidebarSort: PropTypes.string,
 	sidebarTab: PropTypes.string,
-	sidebarVisible: PropTypes.bool
+	sidebarVisible: PropTypes.bool,
+	unseenConversations: PropTypes.object
 };
 
 export default connect(({
+	unseenConversations,
 	viewState: {
 		sidebarSort,
 		sidebarTab,
@@ -276,5 +316,6 @@ export default connect(({
 }) => ({
 	sidebarSort,
 	sidebarTab,
-	sidebarVisible
+	sidebarVisible,
+	unseenConversations
 }))(Sidebar);

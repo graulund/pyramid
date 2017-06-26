@@ -313,12 +313,12 @@ module.exports = function(main) {
 		}
 	};
 
-	const emitUnseenPrivateMessages = function(socket) {
+	const emitUnseenConversations = function(socket) {
 		socket = socket || io;
 		if (socket) {
 			socket.emit(
-				"unseenPrivateMessages",
-				{ list: main.unseenPrivateMessages().unseenPrivateMessages() }
+				"unseenConversations",
+				{ list: main.unseenConversations().unseenConversations() }
 			);
 		}
 	};
@@ -534,7 +534,7 @@ module.exports = function(main) {
 					typeof details.serverName === "string" &&
 					typeof details.username === "string"
 				) {
-					main.unseenPrivateMessages().reportUserAsSeen(
+					main.unseenConversations().reportUserAsSeen(
 						details.serverName, details.username
 					);
 				}
@@ -542,7 +542,7 @@ module.exports = function(main) {
 
 			socket.on("clearUnseenConversations", () => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
-				main.unseenPrivateMessages().clearUnseenPrivateMessages();
+				main.unseenConversations().clearUnseenConversations();
 			});
 
 			// Storing view state
@@ -904,7 +904,7 @@ module.exports = function(main) {
 		emitOnlineFriends,
 		emitServerData,
 		emitUnseenHighlights,
-		emitUnseenPrivateMessages,
+		emitUnseenConversations,
 		setServer
 	};
 
