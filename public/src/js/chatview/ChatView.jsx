@@ -10,8 +10,9 @@ import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
+import { getConversationData } from "../lib/displayNames";
 import * as io from "../lib/io";
-import { subjectName, subjectUrl } from "../lib/routeHelpers";
+import { conversationUrl, subjectName, subjectUrl } from "../lib/routeHelpers";
 import store from "../store";
 import actions from "../actions";
 
@@ -55,14 +56,39 @@ class ChatView extends PureComponent {
 		this.cleanUpIfNeeded(newProps);
 	}
 
-	contentLiveUrl() {
+	contentUrl(date, pageNumber) {
 		const { pageType, pageQuery } = this.props;
-		return subjectUrl(pageType, pageQuery);
+		var convoData;
+
+		if (pageType === PAGE_TYPES.CHANNEL) {
+			convoData = getConversationData(pageQuery);
+		}
+
+		if (date) {
+			if (convoData) {
+				let { server, username } = convoData;
+				return conversationUrl(server, username, date, pageNumber);
+			}
+
+			return subjectUrl(pageType, pageQuery, date, pageNumber);
+		}
+
+		else {
+			if (convoData) {
+				let { server, username } = convoData;
+				return conversationUrl(server, username);
+			}
+
+			return subjectUrl(pageType, pageQuery);
+		}
+	}
+
+	contentLiveUrl() {
+		return this.contentUrl();
 	}
 
 	contentLogUrl(date, pageNumber) {
-		const { pageType, pageQuery } = this.props;
-		return subjectUrl(pageType, pageQuery, date, pageNumber);
+		return this.contentUrl(date, pageNumber);
 	}
 
 	isLiveChannel() {
