@@ -143,10 +143,10 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			return;
 		}
 
-		let { channel: channelName, server } = uriData;
+		let { channel: channelName, channelType, server } = uriData;
 
 		async.waterfall([
-			(callback) => db.getChannelId(server, channelName, callback),
+			(callback) => db.getChannelId(server, channelName, channelType, callback),
 			(data, callback) => {
 				if (data) {
 					db.getDateLineCountForChannel(data.channelId, date, callback);
@@ -180,10 +180,10 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 			return;
 		}
 
-		let { channel: channelName, server } = uriData;
+		let { channel: channelName, channelType, server } = uriData;
 
 		async.waterfall([
-			(callback) => db.getChannelId(server, channelName, callback),
+			(callback) => db.getChannelId(server, channelName, channelType, callback),
 			(data, callback) => {
 				if (data) {
 					dataCallback(data.channelId, callback);

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
+import { getMyIrcNick } from "../lib/connectionStatus";
 import { getTwitchUserDisplayNameData } from "../lib/displayNames";
 import { conversationUrl, userUrl } from "../lib/routeHelpers";
 
@@ -61,7 +62,9 @@ class UserLink extends PureComponent {
 
 			// Link-free output if wanted
 
-			if (noLink || !serverName) {
+			let me = serverName && getMyIrcNick(serverName);
+
+			if (noLink || !serverName || username === me) {
 				return <span className={block} key="main">{ content }</span>;
 			}
 

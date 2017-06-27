@@ -1,7 +1,9 @@
+const { CHANNEL_TYPES } = require("../constants");
+
 module.exports = function(irc, ircConfig, io) {
 	const addAndJoinChannel = function(serverName, name, data, callback) {
 		ircConfig.addChannelToIrcConfig(
-			serverName, name, data,
+			serverName, name, CHANNEL_TYPES.PUBLIC, data,
 			(err) => {
 				joinIrcChannel(serverName, name);
 				if (io) {

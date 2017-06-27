@@ -1,5 +1,6 @@
 import actions from "../actions";
 import store from "../store";
+import { serverNameFromChannelUri } from "./channelNames";
 
 export const GLOBAL_CONNECTION = "_global";
 
@@ -22,4 +23,24 @@ export function setGlobalConnectionStatus(status) {
 
 export function setIrcConnectionStatus(serverName, status) {
 	setConnectionStatus(serverName, status);
+}
+
+export function getMyIrcNick(serverName) {
+	let state = store.getState();
+
+	if (serverName && state.connectionStatus[serverName]) {
+		return state.connectionStatus[serverName].nick;
+	}
+
+	return "";
+}
+
+export function getMyIrcNickFromChannel(channel) {
+	let serverName = serverNameFromChannelUri(channel);
+
+	if (serverName) {
+		return getMyIrcNick(serverName);
+	}
+
+	return "";
 }

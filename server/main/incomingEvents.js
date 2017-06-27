@@ -91,7 +91,7 @@ module.exports = function(
 
 			// Check if this is a private message not from you
 
-			let { channelType, participants } = channelUtils.parseChannelUri(channelUri);
+			let { channelType } = channelUtils.parseChannelUri(channelUri);
 
 			if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
 				privateMessageHighlightUser = { username, displayName };

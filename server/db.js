@@ -333,7 +333,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getChannelId = (serverName, channelName, callback) => {
+	const getChannelId = (serverName, channelName, channelType, callback) => {
 		getServerId(
 			serverName,
 			function(err, row) {
@@ -344,8 +344,12 @@ const mainMethods = function(main, db) {
 					if (row) {
 						const serverId = row.serverId;
 						db.get(
-							sq("ircChannels", ["channelId"], ["name", "serverId"]),
-							dollarize({ name: channelName, serverId }),
+							sq(
+								"ircChannels",
+								["channelId"],
+								["serverId", "channelType", "name"]
+							),
+							dollarize({ channelType, name: channelName, serverId }),
 							dbCallback(callback)
 						);
 					}
@@ -510,13 +514,20 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addChannelToIrcConfig = (serverId, name, data, callback) => {
+	const addChannelToIrcConfig = (serverId, name, channelType, data, callback) => {
 		data = data || {};
 		let dataKeys = Object.keys(data);
 		upsert(
-			uq("ircChannels", ["isEnabled"].concat(dataKeys), ["serverId", "name"]),
-			iq("ircChannels", ["serverId", "name", "isEnabled"].concat(dataKeys)),
-			dollarize(_.assign({ serverId, name, isEnabled: 1 }, data)),
+			uq(
+				"ircChannels",
+				["isEnabled"].concat(dataKeys),
+				["serverId", "channelType", "name"]
+			),
+			iq(
+				"ircChannels",
+				["serverId", "channelType", "name", "isEnabled"].concat(dataKeys)
+			),
+			dollarize(_.assign({ serverId, channelType, name, isEnabled: 1 }, data)),
 			dbCallback(callback)
 		);
 	};
@@ -909,14 +920,14 @@ const mainMethods = function(main, db) {
 
 	API:
 
-	addChannelToIrcConfig(serverId, name, data, callback)
+	addChannelToIrcConfig(serverId, name, channelType, data, callback)
 	addNickname(nickname, callback)
 	addServerToIrcConfig(data, callback)
 	addToFriends(serverId, username, isBestFriend, callback)
 	close()
 	deleteLinesWithLineIds(lineIds, callback)
 	getAllConfigValues(callback)
-	getChannelId(serverName, channelName, callback)
+	getChannelId(serverName, channelName, channelType, callback)
 	getConfigValue(name, callback)
 	getDateLineCountForChannel(channelId, date, callback)
 	getDateLineCountForUsername(username, date, callback)

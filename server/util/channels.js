@@ -5,12 +5,7 @@ const CHANNEL_URI_SEPARATOR = "/";
 const getChannelUri = function(server, channel, channelType = CHANNEL_TYPES.PUBLIC) {
 
 	if (channelType === CHANNEL_TYPES.PRIVATE) {
-		let [one, two] = channel.split(",");
-		return getPrivateConversationUri(server, one, two);
-	}
-
-	if (channel.indexOf(",") >= 0) {
-		throw new Error("Invalid public channel " + channel); // temp DEBUG
+		return getPrivateConversationUri(server, channel);
 	}
 
 	return server.replace(/\//g, "") +
@@ -40,13 +35,7 @@ const parseChannelUri = function(channelUri) {
 		separatorLocation + CHANNEL_URI_SEPARATOR.length
 	);
 
-	let out = { channel, channelType, server };
-
-	if (channelType === CHANNEL_TYPES.PRIVATE) {
-		out.participants = channel.split(",");
-	}
-
-	return out;
+	return { channel, channelType, server };
 };
 
 const channelNameFromUri = function(channelUri, prefix = "") {
@@ -69,13 +58,8 @@ const serverNameFromChannelUri = function(channelUri) {
 	return null;
 };
 
-const getPrivateConversationUri = function(serverName, username1, username2) {
-	let usernames = [username1, username2];
-	usernames.sort();
-
-	return "private:" + serverName +
-		CHANNEL_URI_SEPARATOR +
-		usernames.join(",");
+const getPrivateConversationUri = function(serverName, username) {
+	return "private:" + getChannelUri(serverName, username);
 };
 
 const passesChannelWhiteBlacklist = function(target, channelUri) {

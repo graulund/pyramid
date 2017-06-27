@@ -74,9 +74,7 @@ module.exports = function(main) {
 		}
 
 		// Assume private query
-		return channelUtils.getPrivateConversationUri(
-			server, client.irc.user.nick, channel
-		);
+		return channelUtils.getPrivateConversationUri(server, channel);
 	};
 
 	const getChannelFullName = function(chobj) {
@@ -121,12 +119,8 @@ module.exports = function(main) {
 
 		// Special handling for private channels
 		if (channelType === constants.CHANNEL_TYPES.PRIVATE) {
-			// Return the nickname that's not mine
-			let client = findClientByServerName(server);
-			let myNick = client && client.irc.user.nick;
-			let other  = (participants.filter((n) => n !== myNick) || [])[0];
-
-			return other;
+			// Just return the nickname (channel) without a prefix
+			return channel;
 		}
 
 		// Return channel name with #

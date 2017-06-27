@@ -1,7 +1,7 @@
 import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
 import { getPrivateConversationUri } from "./channelNames";
 import { getChannelDisplayString, getTwitchUserDisplayNameString } from "./displayNames";
-import { getChannelInfo, getMyNickname } from "./ircConfigs";
+import { getChannelInfo } from "./ircConfigs";
 import { getUserInfo } from "./users";
 import * as route from "./routeHelpers";
 import store from "../store";
@@ -105,16 +105,6 @@ function commitTitle() {
 	document.title = prefix + currentTitle;
 }
 
-function getConversationUri(serverName, participantName) {
-	let myNick = getMyNickname(serverName);
-
-	if (myNick) {
-		return getPrivateConversationUri(serverName, myNick, participantName);
-	}
-
-	return null;
-}
-
 function handleLocationChange(location) {
 	const { pathname } = location;
 	currentPathname = pathname;
@@ -144,7 +134,7 @@ function handleLocationChange(location) {
 	m = route.parseConversationLogUrl(pathname);
 
 	if (m) {
-		let channel = getConversationUri(m[1], m[2]);
+		let channel = getPrivateConversationUri(m[1], m[2]);
 		if (channel) {
 			setTitle(channelPageLogTitle({ channel }, m[3]));
 			return;
@@ -176,7 +166,7 @@ function handleLocationChange(location) {
 	m = route.parseConversationUrl(pathname);
 
 	if (m) {
-		let channel = getConversationUri(m[1], m[2]);
+		let channel = getPrivateConversationUri(m[1], m[2]);
 		if (channel) {
 			setTitle(channelPageTitle({ channel }));
 			return;

@@ -754,7 +754,7 @@ module.exports = function(main) {
 					const name = stringUtils.formatUriName(details.name);
 
 					main.ircConfig().addChannelToIrcConfig(
-						serverName, name, {},
+						serverName, name, constants.CHANNEL_TYPES.PUBLIC, {},
 						(err) => {
 							if (err) {
 								console.warn("Error occurred adding irc channel", err);

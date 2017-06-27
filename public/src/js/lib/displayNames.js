@@ -1,6 +1,5 @@
 import { CHANNEL_TYPES, TWITCH_DISPLAY_NAMES } from "../constants";
 import { parseChannelUri } from "./channelNames";
-import { getMyNickname } from "./ircConfigs";
 import { getUserInfo } from "./users";
 
 export const DISPLAY_NAME_PREFIX_TYPES = {
@@ -102,18 +101,13 @@ function _getConversationData(
 	userDisplayNames = {}
 ) {
 
-	let { channelType, participants, server } = uriData;
+	let { channel, channelType, server } = uriData;
 
-	if (!participants || !server || channelType !== CHANNEL_TYPES.PRIVATE) {
+	if (!server || channelType !== CHANNEL_TYPES.PRIVATE) {
 		return null;
 	}
 
-	const myNick = getMyNickname(server);
-	const otherParticipant = (participants.filter((n) => n !== myNick) || [])[0];
-
-	if (!otherParticipant || !myNick) {
-		return null;
-	}
+	const otherParticipant = channel;
 
 	var otherDisplayName;
 

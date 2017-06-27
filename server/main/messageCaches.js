@@ -64,11 +64,6 @@ module.exports = function(
 		channel, line, callback = function(){}
 	) {
 
-		if (channel.indexOf(",") >= 0 && channel.substr(0, 8) !== "private:") {
-			console.log("This line threw an error", line);
-			throw new Error("Invalid public channel " + channel); // temp DEBUG
-		}
-
 		if (channelIdCache[channel]) {
 			_storeLine(channel, line, callback);
 		}

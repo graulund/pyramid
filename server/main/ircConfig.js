@@ -55,9 +55,13 @@ module.exports = function(db, io) {
 								var channelUri;
 
 								if (channel.channelType === CHANNEL_TYPES.PRIVATE) {
-									let participants = channel.name.split(",");
+									if (channel.name.indexOf(",") >= 0) {
+										// Old format; abort
+										return;
+									}
+
 									channelUri = channelUtils.getPrivateConversationUri(
-										server.name, participants[0], participants[1]
+										server.name, channel.name
 									);
 								}
 
@@ -186,13 +190,15 @@ module.exports = function(db, io) {
 		], callback);
 	};
 
-	const addChannelToIrcConfig = function(serverName, name, data, callback) {
+	const addChannelToIrcConfig = function(serverName, name, channelType, data, callback) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
 			(callback) => db.getServerId(serverName, callback),
 			(serverData, callback) => {
 				if (serverData) {
-					db.addChannelToIrcConfig(serverData.serverId, name, data, callback);
+					db.addChannelToIrcConfig(
+						serverData.serverId, name, channelType, data, callback
+					);
 				}
 				else {
 					callback(new Error("No such server"));
@@ -211,13 +217,15 @@ module.exports = function(db, io) {
 
 		let { channel, channelType, server } = uriData;
 
-		addChannelToIrcConfig(server, channel, { channelType }, callback);
+		addChannelToIrcConfig(server, channel, channelType, {}, callback);
 	};
 
 	const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
-			(callback) => db.getChannelId(serverName, name, callback),
+			(callback) => db.getChannelId(
+				serverName, name, CHANNEL_TYPES.PUBLIC, callback
+			),
 			(data, callback) => {
 				if (data) {
 					db.modifyChannelInIrcConfig(data.channelId, details, callback);
@@ -232,7 +240,9 @@ module.exports = function(db, io) {
 	const removeChannelFromIrcConfig = function(serverName, name, callback) {
 		name = name.replace(/^#/, "");
 		async.waterfall([
-			(callback) => db.getChannelId(serverName, name, callback),
+			(callback) => db.getChannelId(
+				serverName, name, CHANNEL_TYPES.PUBLIC, callback
+			),
 			(data, callback) => {
 				if (data) {
 					db.removeChannelFromIrcConfig(data.channelId, callback);
@@ -277,7 +287,11 @@ module.exports = function(db, io) {
 								async.parallel(
 									channelNames.map((channelName) =>
 										((callback) => addChannelToIrcConfig(
-											name, channelName, {}, callback
+											name,
+											channelName,
+											CHANNEL_TYPES.PUBLIC,
+											{},
+											callback
 										))
 									),
 									callback

@@ -432,7 +432,7 @@ module.exports = function(main) {
 					let tags = message.tags;
 
 					let channel = channelUtils.getPrivateConversationUri(
-						serverName, meUsername, username
+						serverName, username
 					);
 
 					console.log("RECEIVED WHISPER", { channel, message });
@@ -453,7 +453,7 @@ module.exports = function(main) {
 		time, messageText, tags, meUsername, postedLocally, messageToken = null
 	) {
 		let channel = channelUtils.getPrivateConversationUri(
-			serverName, meUsername, convoUsername
+			serverName, convoUsername
 		);
 
 		let meRegex = /^\/me\s+/, isAction = false;

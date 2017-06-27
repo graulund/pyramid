@@ -1,5 +1,5 @@
 import { sendMessage } from "./io";
-import { getMyNicknameFromChannel } from "./ircConfigs";
+import { getMyIrcNickFromChannel } from "../lib/connectionStatus";
 
 import actions from "../actions";
 import store from "../store";
@@ -30,7 +30,7 @@ function prepareOfflineMessage(messageData) {
 
 export function postMessage(channel, message) {
 	let messageToken = generateToken();
-	let username = getMyNicknameFromChannel(channel);
+	let username = getMyIrcNickFromChannel(channel);
 	let messageData = prepareOfflineMessage({
 		channel,
 		offline: true,
