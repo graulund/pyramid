@@ -332,6 +332,18 @@ module.exports = function(
 		}
 	};
 
+	const handleIrcNickChange = function(serverName, nick) {
+		let info = { nick };
+		ircConnectionState.addToConnectionState(serverName, info);
+
+		if (io) {
+			io.emitIrcConnectionStatus(
+				serverName,
+				ircConnectionState.currentIrcConnectionState()[serverName]
+			);
+		}
+	};
+
 	const handleIncomingCustomEvent = function(
 		channelUri, serverName, username,
 		time, type, message, tags, meUsername,
@@ -387,6 +399,7 @@ module.exports = function(
 		handleIncomingMessage,
 		handleIncomingUserList,
 		handleIrcConnectionStateChange,
+		handleIrcNickChange,
 		handleSystemLog
 	};
 };

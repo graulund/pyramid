@@ -287,6 +287,11 @@ module.exports = function(main) {
 		main.incomingEvents().handleSystemLog(serverName, text, level);
 	};
 
+	const handleNickChange = function(client, nick) {
+		const serverName = clientServerName(client);
+		main.incomingEvents().handleIrcNickChange(serverName, nick);
+	};
+
 	const setChannelUserList = function(client, channel, userList) {
 		const chobj = channelObject(client, channel);
 		const serverName = clientServerName(client);
@@ -302,17 +307,29 @@ module.exports = function(main) {
 
 	const setUpClient = function(client) {
 
-		client.irc.on("registered", function() {
+		client.irc.on("registered", function(event) {
+
+			// Set connection state as online
+			client._pyramidAborted = false;
+			handleConnectionStateChange(
+				client, constants.CONNECTION_STATUS.CONNECTED
+			);
+
+			// Get the nick the server sent us
+			let { nick } = event;
+
+			if (nick) {
+				handleNickChange(client, nick);
+			}
+
+			// Auto join channels
 			let channels = convertChannelObjects(client.config.channels);
 
 			channels.forEach((channel) => {
 				client.irc.join(channel);
 			});
 
-			client._pyramidAborted = false;
-			handleConnectionStateChange(
-				client, constants.CONNECTION_STATUS.CONNECTED
-			);
+			// Fire off event
 			main.plugins().handleEvent("registered", { client });
 		});
 
