@@ -4,6 +4,7 @@ const { CHANNEL_TYPES } = require("../../server/constants");
 const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
 
+const badges = require("./badges");
 const emoteParsing = require("./emoteParsing");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
@@ -308,6 +309,12 @@ module.exports = function(main) {
 				tags = data.tags = {};
 			}
 
+			// Badges
+
+			badges.parseBadgesInTags(tags);
+
+			// Emotes
+
 			if (tags.emotes) {
 				// Parse emoticon indices supplied by Twitch
 				if (typeof tags.emotes === "string") {
@@ -339,15 +346,18 @@ module.exports = function(main) {
 	const onCustomMessage = function(data) {
 		const { channel, client, message, meUsername, serverName, time } = data;
 		if (message && message.command && util.isTwitch(client)) {
-			switch(message.command) {
+			let { command, tags } = message;
+			switch(command) {
 				case "USERSTATE":
 				case "GLOBALUSERSTATE":
-					if (message.tags) {
+					if (tags) {
+						badges.parseBadgesInTags(tags);
+
 						if (message.command === "GLOBALUSERSTATE") {
-							twitchApiData.setGlobalUserState(serverName, message.tags);
+							twitchApiData.setGlobalUserState(serverName, tags);
 						}
 						else {
-							twitchApiData.setUserState(channel, message.tags);
+							twitchApiData.setUserState(channel, tags);
 						}
 
 						if (message.tags["emote-sets"]) {
