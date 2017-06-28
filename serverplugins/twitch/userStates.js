@@ -2,16 +2,11 @@ const _ = require("lodash");
 
 const twitchApiData = require("./twitchApiData");
 
-var roomStates = {};
 var userStates = {};
 var globalUserStates = {};
 
 const getUserState = function(channel) {
 	return userStates[channel];
-};
-
-const getRoomState = function(channel) {
-	return roomStates[channel];
 };
 
 const getGlobalUserState = function(serverName) {
@@ -20,10 +15,6 @@ const getGlobalUserState = function(serverName) {
 
 const setUserState = function(channel, state) {
 	userStates[channel] = state;
-};
-
-const setRoomState = function(channel, state) {
-	roomStates[channel] = state;
 };
 
 const setGlobalUserState = function(serverName, state) {
@@ -64,7 +55,8 @@ const getAverageUserState = function() {
 };
 
 const handleNewUserState = function(data) {
-	let { channel, command, serverName, tags } = data;
+	let { channel, message, serverName } = data;
+	let { command, tags } = message;
 
 	if (command === "GLOBALUSERSTATE") {
 		setGlobalUserState(serverName, tags);
@@ -83,10 +75,8 @@ const handleNewUserState = function(data) {
 module.exports = {
 	getAverageUserState,
 	getGlobalUserState,
-	getRoomState,
 	getUserState,
 	handleNewUserState,
 	setGlobalUserState,
-	setRoomState,
 	setUserState
 };

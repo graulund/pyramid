@@ -34,6 +34,7 @@ module.exports = {
 	// Twitch
 	automaticallyJoinTwitchGroupChats: true,
 	enableTwitch: true,
+	enableTwitchBadges: true,
 	enableTwitchColors: true,
 	enableTwitchChannelDisplayNames: true,
 	colorBlindness: 0,

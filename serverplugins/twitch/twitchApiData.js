@@ -48,10 +48,47 @@ const reloadEmoticonImages = function() {
 	});
 };
 
+const requestGlobalBadgeData = function(callback) {
+	twitchApi.badgeGetRequest(
+		"global/display",
+		util.acceptRequest((error, data) => {
+			if (!error) {
+				callback(data);
+			}
+
+			else {
+				util.warn(
+					"Error occurred trying to request global badge data from the Twitch API\n",
+					error
+				);
+			}
+		})
+	);
+};
+
+const requestChannelBadgeData = function(roomId, callback) {
+	twitchApi.badgeGetRequest(
+		`channels/${roomId}/display`,
+		util.acceptRequest((error, data) => {
+			if (!error) {
+				callback(data);
+			}
+
+			else {
+				util.warn(
+					"Error occurred trying to request channel badge data from the Twitch API\n",
+					error
+				);
+			}
+		})
+	);
+};
 
 module.exports = {
 	getEmoticonImages,
 	reloadEmoticonImages,
+	requestChannelBadgeData,
 	requestEmoticonImages,
-	requestEmoticonImagesIfNeeded
+	requestEmoticonImagesIfNeeded,
+	requestGlobalBadgeData
 };

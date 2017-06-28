@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
+import TwitchBadges from "../../twitch/TwitchBadges.jsx";
 import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
 import { parseChannelUri } from "../../lib/channelNames";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
@@ -105,9 +106,11 @@ class ChatMessageLine extends PureComponent {
 
 	render() {
 		const {
+			channel,
 			cleared = false,
 			color,
 			displayUsername,
+			enableTwitchBadges,
 			enableTwitchColors,
 			enableUsernameColors,
 			showTwitchDeletedMessages,
@@ -141,12 +144,14 @@ class ChatMessageLine extends PureComponent {
 		var authorClassName = `${block}__author`;
 		var authorColor = null;
 		var authorDisplayName = null;
-		var authorUserId = null;
+		var authorUserId;
 
 		// Number color
 		if (enableUsernameColors && typeof color === "number" && color >= 0) {
 			authorColor = color;
 		}
+
+		var prefix = null;
 
 		if (useTwitch) {
 
@@ -164,10 +169,22 @@ class ChatMessageLine extends PureComponent {
 			if (tags && tags["user-id"]) {
 				authorUserId = tags["user-id"];
 			}
+
+			// Twitch badges
+			if (enableTwitchBadges && tags && tags.badges && tags.badges.length) {
+				prefix = (
+					<TwitchBadges
+						badges={tags.badges}
+						channel={channel}
+						server={server}
+						key="badges" />
+				);
+			}
 		}
 
 		const content = (
 			<span className={className} data-user-id={authorUserId} key="main">
+				{ prefix }
 				{ username && displayUsername
 					? [
 						<ChatUsername
@@ -196,6 +213,7 @@ ChatMessageLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
+	enableTwitchBadges: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
 	enableUsernameColors: PropTypes.bool,
 	highlight: PropTypes.array,
@@ -221,6 +239,7 @@ const mapStateToProps = function(state, ownProps) {
 	let {
 		enableEmojiImages,
 		enableTwitch,
+		enableTwitchBadges,
 		enableTwitchColors,
 		enableUsernameColors,
 		showTwitchDeletedMessages
@@ -233,6 +252,7 @@ const mapStateToProps = function(state, ownProps) {
 
 	return {
 		enableEmojiImages,
+		enableTwitchBadges,
 		enableTwitchColors,
 		enableUsernameColors,
 		showTwitchDeletedMessages,

@@ -21,7 +21,7 @@ class TwitchChannelFlags extends PureComponent {
 		if (roomState) {
 
 			let flags = [], added = false;
-			let roomId = parseInt(roomState["room-id"], 10);
+			let roomId = roomState["room-id"];
 
 			forOwn(TWITCH_CHANNEL_FLAGS_LABELS, (label, prop) => {
 				let value = parseInt(roomState[prop], 10);
@@ -46,7 +46,7 @@ class TwitchChannelFlags extends PureComponent {
 					else if (prop === "followers-only") {
 
 						// Abort if no room id
-						if (isNaN(roomId) || roomId <= 0) {
+						if (!roomId || roomId === "0") {
 							return;
 						}
 

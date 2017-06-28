@@ -6,6 +6,7 @@ const { queueRequest } = require("./httpRequests");
 const CLIENT_ID = "o1cax9hjz2h9yp1l6f2ph95d440cil";
 const KRAKEN_BASE_URI = "https://api.twitch.tv/kraken/";
 const CHATDEPOT_BASE_URI = "https://chatdepot.twitch.tv/";
+const BADGE_BASE_URI = "https://badges.twitch.tv/v1/badges/";
 
 const clientIdRequest = function(url, callback, extraOptions = {}) {
 	const options = _.merge(
@@ -36,6 +37,11 @@ const chatdepotGetRequest = function(commandName, password, query, callback) {
 	const oauthId = password.replace(/^oauth:/, "");
 	const queryString = qs.stringify(_.extend({ oauth_token: oauthId }, query));
 	const url = CHATDEPOT_BASE_URI + commandName + "?" + queryString;
+	return queueRequest({ url, json: true }, callback);
+};
+
+const badgeGetRequest = function(commandString, callback) {
+	let url = BADGE_BASE_URI + commandString;
 	return queueRequest({ url, json: true }, callback);
 };
 
@@ -70,6 +76,7 @@ const flattenEmoticonImagesData = function(data) {
 
 
 module.exports = {
+	badgeGetRequest,
 	chatdepotGetRequest,
 	flattenEmoticonImagesData,
 	krakenGetRequest

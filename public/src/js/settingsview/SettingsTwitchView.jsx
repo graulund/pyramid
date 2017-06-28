@@ -25,6 +25,13 @@ const settings = {
 			requires: ["enableTwitch"]
 		},
 		{
+			name: "enableTwitchBadges",
+			readableName: "Enable Twitch user badges",
+			type: "bool",
+			description: "Show the user badges in Twitch chat",
+			requires: ["enableTwitch"]
+		},
+		{
 			name: "colorBlindness",
 			readableName: "Twitch colors colorblindness compensation",
 			type: "enum",

@@ -1,11 +1,9 @@
-
 const parseBadgeCode = function(badgeCode) {
 	let data = badgeCode.split("/");
 	return { badge: data[0], version: data[1] };
 };
 
 const parseBadgeCodes = function(badgeCodesString) {
-
 	if (!badgeCodesString) {
 		return [];
 	}
@@ -15,7 +13,6 @@ const parseBadgeCodes = function(badgeCodesString) {
 };
 
 const parseBadgesInTags = function(tags) {
-
 	if (!tags) {
 		return;
 	}

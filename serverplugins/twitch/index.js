@@ -13,10 +13,10 @@ const users = require("./users");
 const userStates = require("./userStates");
 const util = require("./util");
 
-const EMOTE_RELOAD_INTERVAL_MS = 3600000;
+const METADATA_RELOAD_INTERVAL_MS = 3600000;
 const MIN_TIME_BETWEEN_GROUP_CHAT_CALLS_MS = 10000;
 
-var twitchChannelCache = [];
+var twitchChannelCache = [], twitchRoomIdCache = {};
 var lastGroupChatCallTimes = {};
 
 module.exports = function(main) {
@@ -250,6 +250,31 @@ module.exports = function(main) {
 		}
 	};
 
+	const getGlobalBadgeDataForServer = function(client) {
+		if (!util.isTwitch(client)) {
+			return;
+		}
+
+		let serverName = client.config.name;
+		twitchApiData.requestGlobalBadgeData(function(data) {
+			if (data && data.badge_sets) {
+				main.serverData().setServerData(
+					serverName, { badgeData: data.badge_sets }
+				);
+			}
+		});
+	};
+
+	const getBadgeDataForChannel = function(channel, roomId) {
+		twitchApiData.requestChannelBadgeData(roomId, function(data) {
+			if (data && data.badge_sets) {
+				main.channelData().setChannelData(
+					channel, { badgeData: data.badge_sets }
+				);
+			}
+		});
+	};
+
 	// Events
 
 	const onIrcFrameworkConfig = (data) => {
@@ -273,6 +298,7 @@ module.exports = function(main) {
 			main.serverData().setServerData(client.config.name, { isTwitch: true });
 			loadExternalEmotesForClient(client);
 			updateGroupChatInfo(client);
+			getGlobalBadgeDataForServer(client);
 		}
 	};
 
@@ -296,6 +322,7 @@ module.exports = function(main) {
 		) {
 			externalEmotes.clearExternalEmotesForChannel(channel);
 			twitchChannelCache = _.without(twitchChannelCache, channel);
+			delete twitchRoomIdCache[channel];
 		}
 	};
 
@@ -307,14 +334,14 @@ module.exports = function(main) {
 				tags = message.tags = {};
 			}
 
-			// Badges
-
-			badges.parseBadgesInTags(tags);
-
 			// Emotes
 
 			let externalEmotes = getExternalEmotesForChannel(channel);
 			emotes.prepareEmotesInMessage(message, externalEmotes);
+
+			// Badges
+
+			badges.parseBadgesInTags(tags);
 		}
 	};
 
@@ -327,20 +354,24 @@ module.exports = function(main) {
 				case "GLOBALUSERSTATE":
 					if (tags) {
 						badges.parseBadgesInTags(tags);
-						userStates.handleNewUserState(message);
+						userStates.handleNewUserState(data);
 					}
 					break;
 
 				case "ROOMSTATE":
 					if (message.tags) {
-						//twitchApiData.setRoomState(channel, message.tags);
 						let channelData = main.channelData();
 						let currentData = channelData.getChannelData(channel);
-						let roomState = currentData && currentData.roomState || {};
+						let oldRoomState = currentData && currentData.roomState || {};
+						let roomState = _.assign(oldRoomState, message.tags);
+						let roomId = roomState["room-id"];
 
-						main.channelData().setChannelData(
-							channel, { roomState: _.assign(roomState, message.tags) }
-						);
+						main.channelData().setChannelData(channel, { roomState });
+
+						if (roomId && roomId !== "0") {
+							twitchRoomIdCache[channel] = roomId;
+							getBadgeDataForChannel(channel, roomId);
+						}
 					}
 					break;
 
@@ -534,30 +565,33 @@ module.exports = function(main) {
 		loadExternalEmotesForAllChannels();
 	};
 
-	const updateChatInfoForAllClients = function() {
+	const reloadBadgeDataForAllChannels = function() {
+		util.log("Reloading badge data for all channels...");
+
+		_.forOwn(twitchRoomIdCache, function(roomId, channel) {
+			getBadgeDataForChannel(channel, roomId);
+		});
+	};
+
+	const reloadMetadataForAllClients = function() {
 		const clients = main.ircControl().currentIrcClients();
 
 		if (clients && clients.length) {
 			clients.forEach((client) => updateGroupChatInfo(client));
 			clients.forEach((client) => updateUserChatInfoForClient(client));
+			clients.forEach((client) => getGlobalBadgeDataForServer(client));
 		}
+
+		twitchApiData.reloadEmoticonImages();
+		reloadAllExternalEmotes();
+		reloadBadgeDataForAllChannels();
 	};
 
-	// Reload emotes and group chat data every hour
+	// Reload required meta data every hour
 
 	setInterval(
-		twitchApiData.reloadEmoticonImages,
-		EMOTE_RELOAD_INTERVAL_MS
-	);
-
-	setInterval(
-		reloadAllExternalEmotes,
-		EMOTE_RELOAD_INTERVAL_MS
-	);
-
-	setInterval(
-		updateChatInfoForAllClients,
-		EMOTE_RELOAD_INTERVAL_MS
+		reloadMetadataForAllClients,
+		METADATA_RELOAD_INTERVAL_MS
 	);
 
 	// React to external emote settings changes
