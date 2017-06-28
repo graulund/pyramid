@@ -43,9 +43,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitChannelCache = function(socket, channel) {
-		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillChannelCache(channel, function(err) {
-			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
 			emitChannelCache(socket, channel);
 		});
 	};
@@ -58,9 +56,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitUserCache = function(socket, username) {
-		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillUserCache(username, function(err) {
-			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
 			emitUserCache(socket, username);
 		});
 	};
@@ -73,9 +69,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitCategoryCache = function(socket, categoryName) {
-		console.log("Started prefilling:", new Date());
 		main.messageCaches().prefillCategoryCache(categoryName, function(err) {
-			console.log((err ? "Aborted" : "Done") + " prefilling:", new Date());
 			emitCategoryCache(socket, categoryName);
 		});
 	};
