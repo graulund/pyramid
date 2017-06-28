@@ -5,11 +5,12 @@ const channelUtils = require("../../server/util/channels");
 const stringUtils = require("../../server/util/strings");
 
 const badges = require("./badges");
-const emoteParsing = require("./emoteParsing");
+const emotes = require("./emotes");
 const externalEmotes = require("./externalEmotes");
 const groupChats = require("./groupChats");
 const twitchApiData = require("./twitchApiData");
 const users = require("./users");
+const userStates = require("./userStates");
 const util = require("./util");
 
 const EMOTE_RELOAD_INTERVAL_MS = 3600000;
@@ -298,15 +299,12 @@ module.exports = function(main) {
 		}
 	};
 
-	const onMessageTags = function(data) {
-		var {
-			client, channel, message, meUsername, postedLocally,
-			serverName, tags, username
-		} = data;
+	const onMessageTags = function(message) {
+		let { client, channel, tags } = message;
 
 		if (util.isTwitch(client)) {
 			if (!tags) {
-				tags = data.tags = {};
+				tags = message.tags = {};
 			}
 
 			// Badges
@@ -315,31 +313,8 @@ module.exports = function(main) {
 
 			// Emotes
 
-			if (tags.emotes) {
-				// Parse emoticon indices supplied by Twitch
-				if (typeof tags.emotes === "string") {
-					tags.emotes = emoteParsing.parseEmoticonIndices(
-						tags.emotes
-					);
-				}
-			}
-			else if (postedLocally && username === meUsername) {
-				// We posted this message, populate emotes
-				twitchApiData.populateLocallyPostedTags(
-					tags, serverName, channel, message
-				);
-			}
-			else if ("emotes" in tags) {
-				// Type normalization
-				tags.emotes = [];
-			}
-
-			// Add external emotes
-			tags.emotes = emoteParsing.generateEmoticonIndices(
-				message,
-				getExternalEmotesForChannel(channel),
-				tags.emotes || []
-			);
+			let externalEmotes = getExternalEmotesForChannel(channel);
+			emotes.prepareEmotesInMessage(message, externalEmotes);
 		}
 	};
 
@@ -352,26 +327,20 @@ module.exports = function(main) {
 				case "GLOBALUSERSTATE":
 					if (tags) {
 						badges.parseBadgesInTags(tags);
-
-						if (message.command === "GLOBALUSERSTATE") {
-							twitchApiData.setGlobalUserState(serverName, tags);
-						}
-						else {
-							twitchApiData.setUserState(channel, tags);
-						}
-
-						if (message.tags["emote-sets"]) {
-							twitchApiData.requestEmoticonImagesIfNeeded(
-								message.tags["emote-sets"]
-							);
-						}
+						userStates.handleNewUserState(message);
 					}
 					break;
 
 				case "ROOMSTATE":
 					if (message.tags) {
 						//twitchApiData.setRoomState(channel, message.tags);
-						main.channelData().setChannelData(channel, message.tags);
+						let channelData = main.channelData();
+						let currentData = channelData.getChannelData(channel);
+						let roomState = currentData && currentData.roomState || {};
+
+						main.channelData().setChannelData(
+							channel, { roomState: _.assign(roomState, message.tags) }
+						);
 					}
 					break;
 
@@ -440,12 +409,6 @@ module.exports = function(main) {
 					let username = message.nick;
 					let messageText = message.params[1] || "";
 					let tags = message.tags;
-
-					let channel = channelUtils.getPrivateConversationUri(
-						serverName, username
-					);
-
-					console.log("RECEIVED WHISPER", { channel, message });
 
 					handleIncomingWhisper(
 						client, serverName, username, username,
