@@ -43,7 +43,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitChannelCache = function(socket, channel) {
-		main.messageCaches().prefillChannelCache(channel, function(err) {
+		main.messageCaches().prefillChannelCache(channel, function() {
 			emitChannelCache(socket, channel);
 		});
 	};
@@ -56,7 +56,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitUserCache = function(socket, username) {
-		main.messageCaches().prefillUserCache(username, function(err) {
+		main.messageCaches().prefillUserCache(username, function() {
 			emitUserCache(socket, username);
 		});
 	};
@@ -69,7 +69,7 @@ module.exports = function(main) {
 	};
 
 	const prefillAndEmitCategoryCache = function(socket, categoryName) {
-		main.messageCaches().prefillCategoryCache(categoryName, function(err) {
+		main.messageCaches().prefillCategoryCache(categoryName, function() {
 			emitCategoryCache(socket, categoryName);
 		});
 	};
