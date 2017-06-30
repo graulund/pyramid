@@ -298,7 +298,11 @@ module.exports = function(main) {
 			main.serverData().setServerData(client.config.name, { isTwitch: true });
 			loadExternalEmotesForClient(client);
 			updateGroupChatInfo(client);
+
+			// TODO: Only do these if the user has the setting on
+			// (and do them once they turn it on)
 			getGlobalBadgeDataForServer(client);
+			twitchApiData.requestGlobalCheerData();
 		}
 	};
 
@@ -334,10 +338,23 @@ module.exports = function(main) {
 				tags = message.tags = {};
 			}
 
+			// Cheers
+
+			let roomId = twitchRoomIdCache[channel];
+			let cheerData = twitchApiData.getCheerData(0);
+
+			if (roomId) {
+				cheerData = twitchApiData.getCheerData(roomId).concat(cheerData);
+			}
+
 			// Emotes
 
 			let externalEmotes = getExternalEmotesForChannel(channel);
-			emotes.prepareEmotesInMessage(message, externalEmotes);
+			emotes.prepareEmotesInMessage(
+				message,
+				externalEmotes,
+				cheerData // TODO: respect setting
+			);
 
 			// Badges
 
@@ -371,6 +388,7 @@ module.exports = function(main) {
 						if (roomId && roomId !== "0") {
 							twitchRoomIdCache[channel] = roomId;
 							getBadgeDataForChannel(channel, roomId);
+							twitchApiData.requestChannelCheerData(roomId);
 						}
 					}
 					break;
@@ -573,6 +591,14 @@ module.exports = function(main) {
 		});
 	};
 
+	const reloadCheerDataForAllChannels = function() {
+		util.log("Reloading cheer data for all channels...");
+
+		_.forOwn(twitchRoomIdCache, function(roomId) {
+			twitchApiData.requestChannelCheerData(roomId);
+		});
+	};
+
 	const reloadMetadataForAllClients = function() {
 		const clients = main.ircControl().currentIrcClients();
 
@@ -585,6 +611,8 @@ module.exports = function(main) {
 		twitchApiData.reloadEmoticonImages();
 		reloadAllExternalEmotes();
 		reloadBadgeDataForAllChannels();
+		twitchApiData.requestGlobalCheerData();
+		reloadCheerDataForAllChannels();
 	};
 
 	// Reload required meta data every hour

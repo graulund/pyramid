@@ -41,6 +41,7 @@ module.exports = {
 	enableTwitchUserDisplayNames: 1,
 	showTwitchDeletedMessages: false,
 	showTwitchClearChats: false,
+	showTwitchCheers: 2,
 	enableFfzEmoticons: true,
 	enableFfzGlobalEmoticons: true,
 	enableFfzChannelEmoticons: true,

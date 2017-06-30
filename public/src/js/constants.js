@@ -65,3 +65,9 @@ export const CHANNEL_TYPES = {
 	PUBLIC: 0,
 	PRIVATE: 1
 };
+
+export const TWITCH_CHEER_DISPLAY = {
+	OFF: 0,
+	STATIC: 1,
+	ANIMATED: 2
+};

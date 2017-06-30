@@ -2,9 +2,17 @@ const twitchApi = require("./twitchApi");
 const util = require("./util");
 
 var emoticonImages = {};
+var cheerData = {};
+
+const ROOM_ID_GLOBAL = 0;
 
 const getEmoticonImages = function(emoteSetsString) {
-	return emoticonImages[emoteSetsString];
+	return emoticonImages[emoteSetsString] || [];
+};
+
+const getCheerData = function(roomId) {
+	// pass ROOM_ID_GLOBAL for global cheer data
+	return cheerData[roomId] || [];
 };
 
 const requestEmoticonImages = function(emotesets) {
@@ -49,6 +57,7 @@ const reloadEmoticonImages = function() {
 };
 
 const requestGlobalBadgeData = function(callback) {
+	util.log("Requesting global channel badge data");
 	twitchApi.badgeGetRequest(
 		"global/display",
 		util.acceptRequest((error, data) => {
@@ -67,6 +76,7 @@ const requestGlobalBadgeData = function(callback) {
 };
 
 const requestChannelBadgeData = function(roomId, callback) {
+	util.log(`Requesting channel badge data for ${roomId}`);
 	twitchApi.badgeGetRequest(
 		`channels/${roomId}/display`,
 		util.acceptRequest((error, data) => {
@@ -84,11 +94,60 @@ const requestChannelBadgeData = function(roomId, callback) {
 	);
 };
 
+const requestGlobalCheerData = function() {
+	util.log("Requesting global cheer data");
+	twitchApi.krakenGetRequest(
+		"bits/actions",
+		{},
+		util.acceptRequest((error, data) => {
+			if (!error) {
+				cheerData[ROOM_ID_GLOBAL] =
+					twitchApi.flattenCheerData(data);
+
+				util.log(`There are now ${cheerData[ROOM_ID_GLOBAL].length} cheer types in the global cheer data`);
+			}
+
+			else {
+				util.warn(
+					"Error occurred trying to request cheer data from the Twitch API\n",
+					error
+				);
+			}
+		})
+	);
+};
+
+const requestChannelCheerData = function(roomId) {
+	util.log(`Requesting channel cheer data for ${roomId}`);
+	twitchApi.krakenGetRequest(
+		"bits/actions",
+		{ channel_id: roomId },
+		util.acceptRequest((error, data) => {
+			if (!error) {
+				cheerData[roomId] =
+					twitchApi.flattenCheerData(data, cheerData[ROOM_ID_GLOBAL]);
+
+				util.log(`There are now ${cheerData[roomId].length} cheer types in ${roomId}`);
+			}
+
+			else {
+				util.warn(
+					"Error occurred trying to request cheer data from the Twitch API\n",
+					error
+				);
+			}
+		})
+	);
+};
+
 module.exports = {
 	getEmoticonImages,
+	getCheerData,
 	reloadEmoticonImages,
 	requestChannelBadgeData,
+	requestChannelCheerData,
 	requestEmoticonImages,
 	requestEmoticonImagesIfNeeded,
-	requestGlobalBadgeData
+	requestGlobalBadgeData,
+	requestGlobalCheerData
 };

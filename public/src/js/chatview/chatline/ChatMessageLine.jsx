@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
 import TwitchBadges from "../../twitch/TwitchBadges.jsx";
+import TwitchCheermote from "../../twitch/TwitchCheermote.jsx";
 import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
 import { parseChannelUri } from "../../lib/channelNames";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
@@ -75,6 +76,15 @@ class ChatMessageLine extends PureComponent {
 		return token.text;
 	}
 
+	renderTwitchCheermote(token, index) {
+		const { onEmoteLoad } = this.props;
+		return <TwitchCheermote
+			{...token.emote}
+			text={token.text}
+			onLoad={onEmoteLoad}
+			key={index} />;
+	}
+
 	renderTwitchEmoticon(token, index) {
 		const { onEmoteLoad } = this.props;
 		return <TwitchEmoticon
@@ -94,6 +104,8 @@ class ChatMessageLine extends PureComponent {
 				return this.renderMention(token, index);
 			case TOKEN_TYPES.EMOJI:
 				return this.renderEmoji(token, index);
+			case TOKEN_TYPES.TWITCH_CHEERMOTE:
+				return this.renderTwitchCheermote(token, index);
 			case TOKEN_TYPES.TWITCH_EMOTICON:
 				return this.renderTwitchEmoticon(token, index);
 		}

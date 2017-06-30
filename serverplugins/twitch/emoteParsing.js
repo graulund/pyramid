@@ -29,12 +29,12 @@ const parseEmoticonIndices = function(dataString) {
 		.filter((em) => em !== null);
 };
 
-const generateEmoteRegex = function(code) {
+const generateEmoteRegex = function(code, isInsensitive = false) {
 	return new RegExp(
 		EMOTE_PREFIX_REGEX +
 			"(" + code + ")" +
 			EMOTE_SUFFIX_REGEX,
-		"g"
+		isInsensitive ? "gi" : "g"
 	);
 };
 
@@ -69,7 +69,7 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 		emoteData.forEach((emote) => {
 			if (emote && emote.id && emote.code) {
 				const indices = [];
-				const rgx = generateEmoteRegex(emote.code);
+				const rgx = generateEmoteRegex(emote.code, !!emote.insensitive);
 				var result;
 
 				while ((result = rgx.exec(cleanedMessage)) !== null) {
@@ -90,7 +90,10 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 
 				if (indices.length) {
 					emotes.push(
-						_.assign(_.omit(emote, ["code"]), { indices })
+						_.assign(
+							_.omit(emote, ["code", "insensitive"]),
+							{ indices }
+						)
 					);
 				}
 			}
@@ -99,7 +102,61 @@ const generateEmoticonIndices = function(message, emoteData, emotes = []) {
 	return emotes;
 };
 
+const getCheerEmote = function(cheer) {
+	let { prefix } = cheer;
+	return { id: prefix, code: `${prefix}\\d+`, insensitive: true };
+};
+
+const generateCheerIndices = function(message, cheerData, emotes = []) {
+	let cheerEmotes = cheerData.map(getCheerEmote);
+	let emoteData = generateEmoticonIndices(message, cheerEmotes, emotes.slice(0));
+	let cheers = {};
+
+	emoteData.forEach((cheerType) => {
+		let { id, indices } = cheerType;
+		let cheer = cheerData.find((c) => c.prefix === id);
+		if (cheer && cheer.tiers && cheer.tiers.length) {
+			indices.forEach(({ first, last }) => {
+				let str = message.substring(first, last + 1);
+				let amount = parseInt(str.match(/\d+$/)[0], 10);
+
+				if (amount <= 0) {
+					return;
+				}
+
+				// Determine tier
+				let tier = cheer.tiers[0];
+
+				cheer.tiers.forEach((t) => {
+					if (t.min_bits <= amount) {
+						tier = t;
+					}
+				});
+
+				if (tier && tier.images) {
+					// Push only the relevant data
+					let { color, images } = tier;
+
+					// Group by tiers so we don't send the hard image data more than needed
+					let tierName = cheer.prefix + tier.min_bits;
+
+					if (!cheers[tierName]) {
+						cheers[tierName] = {
+							color, images, indices: []
+						};
+					}
+
+					cheers[tierName].indices.push({ amount, first, last });
+				}
+			});
+		}
+	});
+
+	return Object.values(cheers);
+};
+
 module.exports = {
+	generateCheerIndices,
 	generateEmoticonIndices,
 	parseEmoticonIndices
 };

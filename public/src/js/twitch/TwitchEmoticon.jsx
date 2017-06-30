@@ -1,6 +1,7 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import Tipsy from "react-tipsy";
+import forOwn from "lodash/forOwn";
 
 import { refElSetter } from "../lib/refEls";
 import { stickToTheBottom } from "../lib/visualBehavior";
@@ -28,14 +29,35 @@ const EMOTE_REPLACEMENTS = {
 };
 
 const getEmoticonUrlsets = function(emote) {
-	const output = {};
-	switch (emote.type) {
+	let { id, sizes, type, urlSet } = emote;
+	let output = {};
+
+	// Use directly given data if any
+	// Assumes data structure pixelRatio => imageUrl
+
+	if (urlSet) {
+		output.src = urlSet[1];
+		output.srcSet = [];
+
+		forOwn(urlSet, (url, ratio) => {
+			// Only allow whole numbers
+			if (ratio % 1 === 0) {
+				output.srcSet.push(`${url} ${ratio}x`);
+			}
+		});
+
+		return output;
+	}
+
+	// Default behaviour
+
+	switch (type) {
 		case "ffz":
-			output.src = EMOTE_FFZ_IMG_URL_ROOT + emote.id + "/1";
-			if (emote.sizes && emote.sizes.length) {
-				output.srcSet = emote.sizes.map((size) => {
+			output.src = EMOTE_FFZ_IMG_URL_ROOT + id + "/1";
+			if (sizes && sizes.length) {
+				output.srcSet = sizes.map((size) => {
 					return EMOTE_FFZ_IMG_URL_ROOT +
-						emote.id + "/" + size + " " + size + "x";
+						id + "/" + size + " " + size + "x";
 				});
 			}
 			else {
@@ -43,26 +65,26 @@ const getEmoticonUrlsets = function(emote) {
 			}
 			break;
 		case "bttv":
-			output.src = EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x";
+			output.src = EMOTE_BTTV_IMG_URL_ROOT + id + "/1x";
 			output.srcSet = [
-				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/1x 1x",
-				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/2x 2x",
-				EMOTE_BTTV_IMG_URL_ROOT + emote.id + "/3x 4x"
+				EMOTE_BTTV_IMG_URL_ROOT + id + "/1x 1x",
+				EMOTE_BTTV_IMG_URL_ROOT + id + "/2x 2x",
+				EMOTE_BTTV_IMG_URL_ROOT + id + "/3x 4x"
 			];
 			break;
 		default:
 			// Assume normal
-			if (emote.id in EMOTE_REPLACEMENTS) {
-				output.src = EMOTE_REPLACEMENTS[emote.id];
+			if (id in EMOTE_REPLACEMENTS) {
+				output.src = EMOTE_REPLACEMENTS[id];
 				output.srcSet = [output.src + " 1x"];
 			}
 			else {
-				output.src = EMOTE_IMG_URL_ROOT + emote.id + "/1.0";
+				output.src = EMOTE_IMG_URL_ROOT + id + "/1.0";
 				output.srcSet = [
-					EMOTE_IMG_URL_ROOT + emote.id + "/1.0 1x",
-					EMOTE_IMG_URL_ROOT + emote.id + "/2.0 2x"
+					EMOTE_IMG_URL_ROOT + id + "/1.0 1x",
+					EMOTE_IMG_URL_ROOT + id + "/2.0 2x"
 				];
-				output.largeSrc = EMOTE_IMG_URL_ROOT + emote.id + "/4.0 4x";
+				output.largeSrc = EMOTE_IMG_URL_ROOT + id + "/4.0 4x";
 			}
 	}
 
@@ -136,7 +158,8 @@ TwitchEmoticon.propTypes = {
 	id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 	onLoad: PropTypes.func,
 	text: PropTypes.string,
-	type: PropTypes.string
+	type: PropTypes.string,
+	urlSet: PropTypes.object
 };
 
 export default TwitchEmoticon;

@@ -74,10 +74,42 @@ const flattenEmoticonImagesData = function(data) {
 	return null;
 };
 
+const flattenCheerData = function(data, globalCheersList = null) {
+	if (data && data.actions && data.actions.length) {
+
+		// Sort by priority
+		let list = data.actions.sort((a, b) => a.priority - b.priority);
+
+		if (globalCheersList && list.length) {
+			// Weed out those in the global list
+			globalCheersList.forEach((globalCheer) => {
+				for (var i = list.length - 1; i >= 0; i--) {
+					let cheer = list[i];
+
+					if (cheer.prefix === globalCheer.prefix) {
+						list.splice(i, 1);
+					}
+				}
+			});
+		}
+
+		// Make sure tiers in each cheer type are sorted
+		list.forEach((c) => {
+			if (c.tiers && c.tiers.length) {
+				c.tiers.sort((a, b) => a.min_bits - b.min_bits);
+			}
+		});
+
+		return list;
+	}
+
+	return [];
+};
 
 module.exports = {
 	badgeGetRequest,
 	chatdepotGetRequest,
+	flattenCheerData,
 	flattenEmoticonImagesData,
 	krakenGetRequest
 };

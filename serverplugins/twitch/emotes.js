@@ -31,7 +31,7 @@ const populateLocallyPostedTags = function(tags, serverName, channel, message) {
 	}
 };
 
-const prepareEmotesInMessage = function(message, externalEmotes) {
+const prepareEmotesInMessage = function(message, externalEmotes, cheerData) {
 	let {
 		channel,
 		message: messageText,
@@ -61,11 +61,25 @@ const prepareEmotesInMessage = function(message, externalEmotes) {
 		tags.emotes = [];
 	}
 
+	let emotes = tags.emotes || [];
+
+	// Add cheers
+	if (tags.bits) {
+		// Temp debug
+		console.log("Message with bits!", new Date(), { channel, username, messageText, tags });
+
+		let cheers = emoteParsing.generateCheerIndices(
+			messageText, cheerData, emotes
+		);
+
+		if (cheers) {
+			tags.cheers = cheers;
+		}
+	}
+
 	// Add external emotes
 	tags.emotes = emoteParsing.generateEmoticonIndices(
-		messageText,
-		externalEmotes,
-		tags.emotes || []
+		messageText, externalEmotes, emotes
 	);
 };
 

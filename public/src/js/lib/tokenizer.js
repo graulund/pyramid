@@ -10,6 +10,7 @@ export const TOKEN_TYPES = {
 	LINK: "link",
 	MENTION: "mention",
 	EMOJI: "emoji",
+	TWITCH_CHEERMOTE: "twitch_cheermote",
 	TWITCH_EMOTICON: "twitch_emoticon"
 };
 
@@ -230,13 +231,25 @@ function tokenizeMentions(tokens, highlights) {
 }
 
 function tokenizeTwitch(tokens, tags) {
-	if (tags && tags.emotes && tags.emotes.length) {
+	if (
+		tags && (
+			(tags.emotes && tags.emotes.length) ||
+			(tags.cheers && tags.cheers.length)
+		)
+	) {
 		var emoteTokens = [];
 
 		getTextTokens(tokens, (token) => {
-			emoteTokens = emoteTokens.concat(
-				getTwitchEmoteTokens(tags.emotes, token.offset)
-			);
+			if (tags.emotes && tags.emotes.length) {
+				emoteTokens = emoteTokens.concat(
+					getTwitchEmoteTokens(tags.emotes, token.offset)
+				);
+			}
+			if (tags.cheers && tags.cheers.length) {
+				emoteTokens = emoteTokens.concat(
+					getTwitchEmoteTokens(tags.cheers, token.offset)
+				);
+			}
 		});
 
 		return addTokensFromText(tokens, emoteTokens, false);
@@ -247,24 +260,34 @@ function tokenizeTwitch(tokens, tags) {
 
 function getTwitchEmoteTokens(emotes, offset = 0) {
 	const emoteTokens = [];
+
 	emotes.forEach((e) => {
 		if (e && e.indices) {
 			e.indices.forEach((i) => {
 				if (i) {
-					const first = parseInt(i.first, 10) - offset;
-					const last = parseInt(i.last, 10) - offset;
+					let first = parseInt(i.first, 10) - offset;
+					let last = parseInt(i.last, 10) - offset;
+					let type = TOKEN_TYPES.TWITCH_EMOTICON;
 
 					if (!isNaN(first) && !isNaN(last)) {
-						const emoteProperties = pick(
-							e, ["id", "imageType", "sizes", "type"]
-						);
+						let emoteProps = pick(e, [
+							"color",
+							"id",
+							"images",
+							"imageType",
+							"sizes",
+							"type"
+						]);
+
+						if (i.amount) {
+							emoteProps.amount = i.amount;
+							type = TOKEN_TYPES.TWITCH_CHEERMOTE;
+						}
+
 						emoteTokens.push({
 							first,
 							last,
-							token: {
-								type: TOKEN_TYPES.TWITCH_EMOTICON,
-								emote: emoteProperties
-							}
+							token: { type, emote: emoteProps }
 						});
 					}
 				}
