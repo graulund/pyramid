@@ -41,7 +41,11 @@ module.exports = function(db) {
 	// Output data
 
 	const safeAppConfig = function(appConfig = currentAppConfig) {
-		var outConfig = _.omit(appConfig, ["webPassword"]);
+		let outConfig = _.omit(appConfig, [
+			"httpsCertPath",
+			"httpsKeyPath",
+			"webPassword"
+		]);
 
 		if (appConfig.webPassword) {
 			// Signal that a password has been set
