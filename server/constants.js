@@ -54,5 +54,12 @@ module.exports = {
 	CHANNEL_TYPES: {
 		PUBLIC: 0,
 		PRIVATE: 1
+	},
+
+	USER_EVENT_VISIBILITY: {
+		OFF: 0,
+		COLLAPSE_PRESENCE: 1,
+		COLLAPSE_MESSAGES: 2,
+		SHOW_ALL: 3
 	}
 };

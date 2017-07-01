@@ -97,10 +97,17 @@ const settings = {
 			notice: "Doesn't affect your joined status"
 		},
 		{
-			name: "collapseJoinParts",
-			readableName: "Collapse join/part events",
-			type: "bool",
-			description: "If someone joins and immediately leaves, don't display anything"
+			name: "showUserEvents",
+			readableName: "Show user events",
+			type: "enum",
+			description: "How to handle join and part events",
+			notice: "Collapse presence means: If someone joins and immediately leaves, don't display anything for them",
+			valueNames: [
+				"Off",
+				"Collapse events into one line",
+				"Collapse presence (default)",
+				"Show all"
+			]
 		},
 		{
 			name: "cacheLines",

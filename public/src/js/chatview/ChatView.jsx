@@ -8,7 +8,7 @@ import ChatFrame from "./ChatFrame.jsx";
 import ChatViewFooter from "./ChatViewFooter.jsx";
 import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
-import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
+import { PAGE_TYPES, PAGE_TYPE_NAMES, USER_EVENT_VISIBILITY } from "../constants";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import { getConversationData } from "../lib/displayNames";
 import * as io from "../lib/io";
@@ -351,8 +351,11 @@ const mapStateToProps = function(state, ownProps) {
 	const selectedLine = lineId && state.lineInfo[lineId];
 	const logDetails = state.logDetails[subject];
 
+	const collapseJoinParts = state.appConfig.showUserEvents ===
+		USER_EVENT_VISIBILITY.COLLAPSE_PRESENCE;
+
 	return {
-		collapseJoinParts: state.appConfig.collapseJoinParts,
+		collapseJoinParts,
 		displayName,
 		inFocus: state.deviceState.inFocus,
 		isVisible: state.deviceState.visible,

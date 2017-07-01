@@ -135,6 +135,7 @@ module.exports = function(
 		channelUri, serverName, type, data, time, ircClient
 	) {
 
+		let eventVisibilitySetting = appConfig.configValue("showUserEvents");
 		let username = data && data.username || "";
 
 		if (username) {
@@ -143,10 +144,12 @@ module.exports = function(
 
 		// Log
 
-		const line = log.getLogLineFromData(type, data);
+		if (eventVisibilitySetting) {
+			const line = log.getLogLineFromData(type, data);
 
-		if (line && appConfig.configValue("logLinesFile")) {
-			log.logChannelLine(channelUri, line, time);
+			if (line && appConfig.configValue("logLinesFile")) {
+				log.logChannelLine(channelUri, line, time);
+			}
 		}
 
 		// Channel user lists
@@ -196,6 +199,12 @@ module.exports = function(
 			}
 		}
 
+		// Event
+
+		if (!eventVisibilitySetting) {
+			return;
+		}
+
 		// Display name
 
 		const extraData = {};
@@ -219,9 +228,23 @@ module.exports = function(
 
 		messageCaches.setChannelIdCache(ircConfig.channelIdCache());
 
-		if (constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0) {
+		// Bunched event
+
+		if (
+			constants.BUNCHABLE_EVENT_TYPES.indexOf(type) >= 0 &&
+			(
+				eventVisibilitySetting ===
+				constants.USER_EVENT_VISIBILITY.COLLAPSE_PRESENCE ||
+				eventVisibilitySetting ===
+				constants.USER_EVENT_VISIBILITY.COLLAPSE_MESSAGES
+			)
+		) {
 			messageCaches.cacheBunchableChannelEvent(channelUri, event);
-		} else {
+		}
+
+		// Normal event
+
+		else {
 			messageCaches.cacheChannelEvent(channelUri, event);
 		}
 	};

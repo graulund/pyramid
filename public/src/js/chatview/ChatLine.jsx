@@ -34,6 +34,7 @@ class ChatLine extends PureComponent {
 			message,
 			offline,
 			showTwitchClearChats,
+			showUserEvents,
 			status,
 			time,
 			type
@@ -82,22 +83,26 @@ class ChatLine extends PureComponent {
 			case "kick":
 			case "kill":
 			case "mode":
-				content = <ChatUserEventLine
-					{...this.props}
-					key="content" />;
+				if (showUserEvents) {
+					content = <ChatUserEventLine
+						{...this.props}
+						key="content" />;
+				}
 				break;
 
 			case "events":
-				var { collapseJoinParts, ...bunchedProps } = this.props;
-				var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
-				if (
-					calculated &&
-					(calculated.joins.length || calculated.parts.length)
-				) {
-					content = <ChatBunchedEventsLine
-						{...this.props}
-						{...calculated}
-						key="content" />;
+				if (showUserEvents) {
+					var { collapseJoinParts, ...bunchedProps } = this.props;
+					var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
+					if (
+						calculated &&
+						(calculated.joins.length || calculated.parts.length)
+					) {
+						content = <ChatBunchedEventsLine
+							{...this.props}
+							{...calculated}
+							key="content" />;
+					}
 				}
 				break;
 
@@ -242,9 +247,15 @@ const mapStateToProps = function(state, ownProps) {
 	let { channel } = ownProps;
 	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
 
+	let {
+		showTwitchClearChats,
+		showUserEvents
+	} = state.appConfig;
+
 	return {
 		channelDisplayName,
-		showTwitchClearChats: state.appConfig.showTwitchClearChats
+		showTwitchClearChats,
+		showUserEvents
 	};
 };
 

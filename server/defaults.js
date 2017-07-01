@@ -24,7 +24,7 @@ module.exports = {
 	cacheLines: 150,
 
 	// Appearance
-	collapseJoinParts: true,
+	showUserEvents: 2,
 	enableUsernameColors: true,
 	enableDarkMode: false,
 	enableEmojiCodes: true,
