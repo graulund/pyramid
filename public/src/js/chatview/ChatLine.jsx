@@ -12,6 +12,7 @@ import ChatOfflineResendButton from "./chatline/ChatOfflineResendButton.jsx";
 import ChatUserEventLine from "./chatline/ChatUserEventLine.jsx";
 import ChatUserNoticeLinePrefix from "./chatline/ChatUserNoticeLinePrefix.jsx";
 import LogLine from "./chatline/LogLine.jsx";
+import { USER_EVENT_VISIBILITY } from "../constants";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
 import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
@@ -57,6 +58,8 @@ class ChatLine extends PureComponent {
 			(type === "connectionEvent" ? ` ${block}--connection` : "") +
 			(offline ? ` ${block}--offline` : "");
 
+		const collapseJoinParts = showUserEvents === USER_EVENT_VISIBILITY.COLLAPSE_PRESENCE;
+
 		var content = null, prefix = null;
 
 		switch (type) {
@@ -92,8 +95,9 @@ class ChatLine extends PureComponent {
 
 			case "events":
 				if (showUserEvents) {
-					var { collapseJoinParts, ...bunchedProps } = this.props;
-					var calculated = prepareBunchedEvents(bunchedProps, collapseJoinParts);
+					var calculated = prepareBunchedEvents(
+						this.props, collapseJoinParts
+					);
 					if (
 						calculated &&
 						(calculated.joins.length || calculated.parts.length)
@@ -217,7 +221,6 @@ ChatLine.propTypes = {
 	channel: PropTypes.string,
 	channelDisplayName: PropTypes.string,
 	channelName: PropTypes.string,
-	collapseJoinParts: PropTypes.bool,
 	color: PropTypes.number,
 	contextMessages: PropTypes.array,
 	displayChannel: PropTypes.bool,
@@ -236,6 +239,7 @@ ChatLine.propTypes = {
 	server: PropTypes.string,
 	status: PropTypes.string,
 	showTwitchClearChats: PropTypes.bool,
+	showUserEvents: PropTypes.number,
 	symbol: PropTypes.string,
 	tags: PropTypes.object,
 	time: PropTypes.string,

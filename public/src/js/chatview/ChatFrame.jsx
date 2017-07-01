@@ -316,7 +316,6 @@ class ChatFrame extends PureComponent {
 
 	render() {
 		const {
-			collapseJoinParts,
 			lines,
 			loading,
 			offlineMessages,
@@ -344,7 +343,6 @@ class ChatFrame extends PureComponent {
 		}
 
 		const content = <ChatLines
-			collapseJoinParts={collapseJoinParts}
 			displayChannel={displayChannel}
 			displayContextLink={displayContextLink}
 			displayUsername={displayUsername}
@@ -359,7 +357,6 @@ class ChatFrame extends PureComponent {
 }
 
 ChatFrame.propTypes = {
-	collapseJoinParts: PropTypes.bool,
 	inFocus: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
