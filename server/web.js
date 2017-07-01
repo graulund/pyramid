@@ -84,12 +84,12 @@ module.exports = function(main, io) {
 
 		var config = main.appConfig().configValue;
 
-		if (config("sslKeyPath") && config("sslCertPath")){
+		if (config("httpsKeyPath") && config("httpsCertPath")){
 			// Secure HTTPS server
 			var https = require("https");
 			server = https.createServer({
-				key: fs.readFileSync(path.join(__dirname, "..", config("sslKeyPath"))),
-				cert: fs.readFileSync(path.join(__dirname, "..", config("sslCertPath")))
+				key: fs.readFileSync(path.join(__dirname, "..", config("httpsKeyPath"))),
+				cert: fs.readFileSync(path.join(__dirname, "..", config("httpsCertPath")))
 			}, app).listen(config("webPort"), undefined, undefined, function(){
 				console.log("Listening securely on port %d", server.address().port);
 			});

@@ -10,9 +10,9 @@ module.exports = {
 	// Whether or not to store the log files as text files in a folder
 	logLinesFile: true,
 
-	// SSL certificate settings
-	sslCertPath: "",
-	sslKeyPath: "",
+	// HTTPS certificate settings
+	httpsCertPath: "",
+	httpsKeyPath: "",
 
 	timeZone: "UTC",
 	webPort: 54335,
