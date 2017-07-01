@@ -78,8 +78,8 @@ function askForFileNames() {
 
 function setFileNames(key, cert) {
 	async.parallel([
-		(callback) => db.storeConfigValue("sslKeyPath", key, callback),
-		(callback) => db.storeConfigValue("sslCertPath", cert, callback)
+		(callback) => db.storeConfigValue("httpsKeyPath", key, callback),
+		(callback) => db.storeConfigValue("httpsCertPath", cert, callback)
 	], function(err) {
 		if (err) {
 			throw err;
