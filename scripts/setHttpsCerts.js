@@ -5,7 +5,7 @@ const dbSource = require("../server/db");
 
 var db;
 
-function askForPreference (decryptedPassword) {
+function askForPreference() {
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout
@@ -24,7 +24,7 @@ function askForPreference (decryptedPassword) {
 	);
 }
 
-function handlePreference (preference) {
+function handlePreference(preference) {
 	preference = preference.toLowerCase();
 	var useSSL;
 
