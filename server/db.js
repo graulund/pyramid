@@ -61,7 +61,7 @@ const dbCallback = function(callback) {
 
 // Query utility
 
-const getTimestamp = (t) => {
+const getTimestamp = function(t) {
 
 	if (t && t instanceof Date) {
 		return t.toISOString();
@@ -70,7 +70,7 @@ const getTimestamp = (t) => {
 	return t;
 };
 
-const nameValueRowsToObject = (rows) => {
+const nameValueRowsToObject = function(rows) {
 	var output = {};
 	if (rows && rows.length) {
 		rows.forEach((row) => {
@@ -83,7 +83,7 @@ const nameValueRowsToObject = (rows) => {
 	return output;
 };
 
-const formatIn = (list) => {
+const formatIn = function(list) {
 	if (list && list instanceof Array) {
 		const json = JSON.stringify(list);
 		if (json) {
@@ -94,7 +94,7 @@ const formatIn = (list) => {
 	return "()";
 };
 
-const dollarize = (data) => {
+const dollarize = function(data) {
 	const out = {};
 	_.forOwn(data, (value, key) => {
 		out["$" + key] = value;
@@ -102,7 +102,7 @@ const dollarize = (data) => {
 	return out;
 };
 
-const onlyParamsInQuery = (params, query) => {
+const onlyParamsInQuery = function(params, query) {
 	const out = {};
 
 	if (params && query) {
@@ -116,12 +116,12 @@ const onlyParamsInQuery = (params, query) => {
 	return out;
 };
 
-const oq = (col, isDesc = false) => {
+const oq = function(col, isDesc = false) {
 	const dir = isDesc ? "DESC" : "ASC";
 	return `ORDER BY ${col} ${dir}`;
 };
 
-const sq = (table, selectCols, whereCols = [], joins = "") => {
+const sq = function(table, selectCols, whereCols = [], joins = "") {
 	const select = selectCols.join(", ");
 	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
 	return `SELECT ${select} FROM ${table}` +
@@ -129,19 +129,19 @@ const sq = (table, selectCols, whereCols = [], joins = "") => {
 		(where ? ` WHERE ${where}` : "");
 };
 
-const uq = (table, setCols, whereCols) => {
+const uq = function(table, setCols, whereCols) {
 	const set = setCols.map((s) => `${s} = \$${s}`).join(", ");
 	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
 	return `UPDATE ${table} SET ${set} WHERE ${where}`;
 };
 
-const iq = (table, colNames) => {
+const iq = function(table, colNames) {
 	const cols = colNames.join(", ");
 	const vals = colNames.map((c) => "$" + c).join(", ");
 	return `INSERT INTO ${table} (${cols}) VALUES (${vals})`;
 };
 
-const dq = (table, whereCols) => {
+const dq = function(table, whereCols) {
 	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
 	return `DELETE FROM ${table} WHERE ${where}`;
 };
@@ -154,13 +154,13 @@ const initializeDb = function(db) {
 
 const mainMethods = function(main, db) {
 
-	const getLocalDatestampFromTime = (time) => {
+	const getLocalDatestampFromTime = function(time) {
 		return timeUtils.ymd(main.logs().localMoment(time));
 	};
 
 	const close = () => { db.close(); };
 
-	const upsert = (updateQuery, insertQuery, params, callback) => {
+	const upsert = function(updateQuery, insertQuery, params, callback) {
 		db.run(
 			updateQuery,
 			onlyParamsInQuery(params, updateQuery),
@@ -179,7 +179,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getIrcServers = (callback) => {
+	const getIrcServers = function(callback) {
 		db.all(
 			sq("ircServers", ["*"], ["isEnabled"]) + " " + oq("name"),
 			dollarize({ isEnabled: 1 }),
@@ -187,7 +187,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getIrcChannels = (callback) => {
+	const getIrcChannels = function(callback) {
 		db.all(
 			sq("ircChannels", ["*"], ["isEnabled"]) + " " + oq("name"),
 			dollarize({ isEnabled: 1 }),
@@ -195,7 +195,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getIrcServer = (serverId, callback) => {
+	const getIrcServer = function(serverId, callback) {
 		db.get(
 			sq("ircServers", ["*"], ["serverId"]),
 			dollarize({ serverId }),
@@ -203,7 +203,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getIrcChannel = (channelId, callback) => {
+	const getIrcChannel = function(channelId, callback) {
 		db.get(
 			sq("ircChannels", ["*"], ["channelId"]),
 			dollarize({ channelId }),
@@ -211,7 +211,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getIrcConfig = (callback) => {
+	const getIrcConfig = function(callback) {
 		var servers;
 
 		async.waterfall([
@@ -249,7 +249,7 @@ const mainMethods = function(main, db) {
 		], dbCallback(callback));
 	};
 
-	const getFriends = (callback) => {
+	const getFriends = function(callback) {
 		db.all(
 			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", ASC),
 			{ $isEnabled: 1 },
@@ -257,7 +257,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getFriendsWithChannelInfo = (callback) => {
+	const getFriendsWithChannelInfo = function(callback) {
 		db.all(
 			sq(
 				"friends",
@@ -280,7 +280,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getFriend = (serverId, username, callback) => {
+	const getFriend = function(serverId, username, callback) {
 		db.get(
 			sq("friends", ["*"], ["isEnabled", "serverId", "username"]),
 			dollarize({ isEnabled: 1, serverId, username }),
@@ -288,7 +288,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addToFriends = (serverId, username, isBestFriend, callback) => {
+	const addToFriends = function(serverId, username, isBestFriend, callback) {
 		upsert(
 			uq("friends", ["isBestFriend", "isEnabled"], ["serverId", "username"]),
 			iq("friends", ["serverId", "username", "isBestFriend"]),
@@ -297,7 +297,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const modifyFriend = (friendId, data, callback) => {
+	const modifyFriend = function(friendId, data, callback) {
 		if (data.lastSeenTime) {
 			data.lastSeenTime = getTimestamp(data.lastSeenTime);
 		}
@@ -309,7 +309,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const removeFromFriends = (friendId, callback) => {
+	const removeFromFriends = function(friendId, callback) {
 		db.run(
 			dq("friends", ["friendId"]),
 			dollarize({ friendId }),
@@ -317,7 +317,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getServerId = (name, callback) => {
+	const getServerId = function(name, callback) {
 		db.get(
 			sq("ircServers", ["serverId"], ["name"]),
 			dollarize({ name }),
@@ -325,7 +325,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getServerName = (serverId, callback) => {
+	const getServerName = function(serverId, callback) {
 		db.get(
 			sq("ircServers", ["name"], ["serverId"]),
 			dollarize({ serverId }),
@@ -333,7 +333,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getChannelId = (serverName, channelName, channelType, callback) => {
+	const getChannelId = function(serverName, channelName, channelType, callback) {
 		getServerId(
 			serverName,
 			function(err, row) {
@@ -361,7 +361,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getConfigValue = (name, callback) => {
+	const getConfigValue = function(name, callback) {
 		db.get(
 			sq("config", ["value"], ["name"]),
 			dollarize({ name }),
@@ -376,7 +376,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getAllConfigValues = (callback) => {
+	const getAllConfigValues = function(callback) {
 		db.all(
 			sq("config", ["name", "value"]),
 			dbCallback(function(err, rows) {
@@ -394,7 +394,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const storeConfigValue = (name, value, callback) => {
+	const storeConfigValue = function(name, value, callback) {
 		upsert(
 			uq("config", ["value"], ["name"]),
 			iq("config", ["name", "value"]),
@@ -403,8 +403,8 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getNicknames = (callback) => {
-		const prepareNicknameListValue = (list) => {
+	const getNicknames = function(callback) {
+		const prepareNicknameListValue = function(list) {
 			if (list) {
 				return list.split("\n");
 			}
@@ -412,7 +412,7 @@ const mainMethods = function(main, db) {
 			return list;
 		};
 
-		const prepareNicknameValues = (err, data) => {
+		const prepareNicknameValues = function(err, data) {
 			if (data && data.length) {
 				data.forEach((item) => {
 					[
@@ -435,7 +435,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addNickname = (nickname, callback) => {
+	const addNickname = function(nickname, callback) {
 		db.run(
 			iq("nicknames", ["nickname"]),
 			dollarize({ nickname }),
@@ -443,7 +443,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const modifyNickname = (nickname, data, callback) => {
+	const modifyNickname = function(nickname, data, callback) {
 		const keys = Object.keys(data);
 
 		keys.forEach((key) => {
@@ -459,7 +459,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const removeNickname = (nickname, callback) => {
+	const removeNickname = function(nickname, callback) {
 		db.run(
 			dq("nicknames", ["nickname"]),
 			dollarize({ nickname }),
@@ -467,7 +467,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addServerToIrcConfig = (data, callback) => {
+	const addServerToIrcConfig = function(data, callback) {
 		upsert(
 			uq(
 				"ircServers",
@@ -498,7 +498,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const modifyServerInIrcConfig = (serverId, data, callback) => {
+	const modifyServerInIrcConfig = function(serverId, data, callback) {
 		db.run(
 			uq("ircServers", Object.keys(data), ["serverId"]),
 			dollarize(_.assign({ serverId }, data)),
@@ -506,7 +506,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const removeServerFromIrcConfig = (serverId, callback) => {
+	const removeServerFromIrcConfig = function(serverId, callback) {
 		db.run(
 			uq("ircServers", ["isEnabled"], ["serverId"]),
 			dollarize({ isEnabled: 0, serverId }),
@@ -514,7 +514,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const addChannelToIrcConfig = (serverId, name, channelType, data, callback) => {
+	const addChannelToIrcConfig = function(serverId, name, channelType, data, callback) {
 		data = data || {};
 		let dataKeys = Object.keys(data);
 		upsert(
@@ -532,7 +532,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const modifyChannelInIrcConfig = (channelId, data, callback) => {
+	const modifyChannelInIrcConfig = function(channelId, data, callback) {
 		if (data.lastSeenTime) {
 			data.lastSeenTime = getTimestamp(data.lastSeenTime);
 		}
@@ -544,7 +544,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const removeChannelFromIrcConfig = (channelId, callback) => {
+	const removeChannelFromIrcConfig = function(channelId, callback) {
 		db.run(
 			uq("ircChannels", ["isEnabled"], ["channelId"]),
 			dollarize({ isEnabled: 0, channelId }),
@@ -552,7 +552,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getLastSeenChannels = (callback) => {
+	const getLastSeenChannels = function(callback) {
 		getIrcChannels((err, channels) => {
 			if (err) {
 				callback(err);
@@ -620,7 +620,7 @@ const mainMethods = function(main, db) {
 
 	// TODO: Add server name to usernames
 
-	const getLastSeenUsers = (callback) => {
+	const getLastSeenUsers = function(callback) {
 		getFriendsWithChannelInfo((err, friends) => {
 			if (err) {
 				callback(err);
@@ -653,7 +653,7 @@ const mainMethods = function(main, db) {
 		});
 	};
 
-	const getFriendsList = (callback) => {
+	const getFriendsList = function(callback) {
 		getFriends((err, friends) => {
 			if (err) {
 				callback(err);
@@ -679,7 +679,7 @@ const mainMethods = function(main, db) {
 		});
 	};
 
-	const getLines = (where, direction, limit, args, callback) => {
+	const getLines = function(where, direction, limit, args, callback) {
 		db.all(
 			sq(
 				"lines",
@@ -703,7 +703,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getDateLines = (where, args, options, callback) => {
+	const getDateLines = function(where, args, options, callback) {
 		options = options || {};
 		const limit = options.pageNumber
 			? ((options.pageNumber-1) * constants.LOG_PAGE_SIZE) +
@@ -726,7 +726,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getDateLinesForChannel = (channelId, date, options, callback) => {
+	const getDateLinesForChannel = function(channelId, date, options, callback) {
 		getDateLines(
 			"WHERE lines.channelId = $channelId " +
 			"AND lines.date = $date",
@@ -736,7 +736,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getDateLinesForUsername = (username, date, options, callback) => {
+	const getDateLinesForUsername = function(username, date, options, callback) {
 		getDateLines(
 			"WHERE lines.username = $username " +
 			"AND lines.date = $date " +
@@ -747,7 +747,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getMostRecentLines = (where, limit, args, beforeTime, callback) => {
+	const getMostRecentLines = function(where, limit, args, beforeTime, callback) {
 		args = args || {};
 		let beforeTimeLine = "";
 
@@ -766,7 +766,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getMostRecentChannelLines = (channelId, limit, beforeTime, callback) => {
+	const getMostRecentChannelLines = function(channelId, limit, beforeTime, callback) {
 		getMostRecentLines(
 			"WHERE lines.channelId = $channelId",
 			limit,
@@ -776,7 +776,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getMostRecentUserLines = (username, limit, beforeTime, callback) => {
+	const getMostRecentUserLines = function(username, limit, beforeTime, callback) {
 		// TODO: Somehow include connection event lines
 		getMostRecentLines(
 			"WHERE lines.username = $username " +
@@ -788,7 +788,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getMostRecentAllFriendsLines = (limit, beforeTime, callback) => {
+	const getMostRecentAllFriendsLines = function(limit, beforeTime, callback) {
 		// TODO: Somehow include connection event lines
 		getMostRecentLines(
 			"WHERE lines.username IN (SELECT username FROM friends) " +
@@ -800,7 +800,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getMostRecentHighlightsLines = (limit, beforeTime, callback) => {
+	const getMostRecentHighlightsLines = function(limit, beforeTime, callback) {
 		// TODO: Somehow include connection event lines
 		getMostRecentLines(
 			"WHERE lines.isHighlight = 1",
@@ -811,7 +811,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getDateLineCountForChannel = (channelId, date, callback) => {
+	const getDateLineCountForChannel = function(channelId, date, callback) {
 		db.get(
 			sq("lines", ["COUNT(*) AS count"], ["channelId", "date"]),
 			dollarize({ channelId, date }),
@@ -819,7 +819,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const getDateLineCountForUsername = (username, date, callback) => {
+	const getDateLineCountForUsername = function(username, date, callback) {
 		// TODO: Exclude event lines, because they are not reliable in user logs
 		db.get(
 			sq("lines", ["COUNT(*) AS count"], ["username", "date"]),
@@ -828,7 +828,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const storeLine = (channelId, line, callback) => {
+	const storeLine = function(channelId, line, callback) {
 		const { argument, by, events, highlight, mode, prevIds, reason, status } = line;
 		var eventData = null;
 
@@ -901,14 +901,14 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const deleteLinesWithLineIds = (lineIds, callback) => {
+	const deleteLinesWithLineIds = function(lineIds, callback) {
 		db.run(
 			"DELETE FROM lines WHERE lineId IN " + formatIn(lineIds),
 			dbCallback(callback)
 		);
 	};
 
-	const getLineByLineId = (lineId, callback) => {
+	const getLineByLineId = function(lineId, callback) {
 		db.get(
 			sq("lines", ["*"], ["lineId"]),
 			dollarize({ lineId }),
