@@ -2,7 +2,7 @@ const _ = require("lodash");
 const async = require("async");
 const moment = require("moment-timezone");
 
-const { CHANNEL_TYPES } = require("../constants");
+const constants = require("../constants");
 const channelUtils = require("../util/channels");
 const timeUtils = require("../util/time");
 const usernameUtils = require("../util/usernames");
@@ -30,7 +30,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 				);
 			}
 
-			if (l.channelType === CHANNEL_TYPES.PUBLIC) {
+			if (l.channelType === constants.CHANNEL_TYPES.PUBLIC) {
 				// TODO: Deprecate channelName
 				if (l.channelName) {
 					l.channelName = "#" + l.channelName;
@@ -133,6 +133,52 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
+	const getLineContext = function(lineId, callback) {
+		db.getLineByLineId(lineId, function(err, line) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			let { channelId, time } = line;
+
+			db.getSurroundingLines(
+				channelId,
+				time,
+				constants.CONTEXT_CACHE_MINUTES,
+				constants.CONTEXT_CACHE_LINES,
+				function(err, data) {
+					if (err) {
+						callback(err);
+						return;
+					}
+
+					// Reverse before
+					let { after, before } = data;
+					before.reverse();
+
+					// Remove this line
+					before = before.filter((line) => line.lineId !== lineId);
+					after = after.filter((line) => line.lineId !== lineId);
+
+					// TODO: Remove duplicate lineIds
+
+					// Parse
+					before = parseDbLines(before);
+					after = parseDbLines(after);
+
+					// Add to contextMessages
+					let out = {
+						contextMessages: before.concat(after),
+						lineId
+					};
+
+					callback(null, out);
+				}
+			);
+		});
+	};
+
 	// Line counts
 
 	const getDateLineCountForChannel = function(channel, date, callback) {
@@ -171,8 +217,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		], callback);
 	};
 
-	const getLinesForChannel = function(channel, dataCallback, callback) {
-		// Data callback: function(channelId, callback(err, data))
+	const resolveChannelId = function(channel, callback) {
 		let uriData = channelUtils.parseChannelUri(channel);
 
 		if (!uriData) {
@@ -182,8 +227,13 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 
 		let { channel: channelName, channelType, server } = uriData;
 
+		db.getChannelId(server, channelName, channelType, callback);
+	};
+
+	const getLinesForChannel = function(channel, dataCallback, callback) {
+		// Data callback: function(channelId, callback(err, data))
 		async.waterfall([
-			(callback) => db.getChannelId(server, channelName, channelType, callback),
+			(callback) => resolveChannelId(channel, callback),
 			(data, callback) => {
 				if (data) {
 					dataCallback(data.channelId, callback);
@@ -243,6 +293,29 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		getDbLines(
 			(callback) => db.getMostRecentHighlightsLines(limit, beforeTime, callback),
 			callback
+		);
+	};
+
+	const getSurroundingLines = function(channel, lineTime, distanceMins, limit, callback) {
+		resolveChannelId(
+			channel,
+			function(err, data) {
+				if (err) {
+					callback(err);
+					return;
+				}
+
+				if (data) {
+					let { channelId } = data;
+					db.getSurroundingLines(
+						channelId, lineTime, distanceMins, limit, callback
+					);
+				}
+
+				else {
+					callback(new Error("No such channel"));
+				}
+			}
 		);
 	};
 
@@ -325,6 +398,7 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		getDateLinesForChannel,
 		getDateLinesForUsername,
 		getLineByLineId,
+		getLineContext,
 		getMostRecentAllFriendsLines,
 		getMostRecentChannelLines,
 		getMostRecentHighlightsLines,

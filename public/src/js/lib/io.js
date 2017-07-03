@@ -127,6 +127,10 @@ export function requestLineInfo(lineId) {
 	emit("requestLineInfo", { lineId });
 }
 
+export function requestLineContext(lineId) {
+	emit("requestLineContext", { lineId });
+}
+
 export function requestSystemInfo() {
 	emit("requestSystemInfo");
 }

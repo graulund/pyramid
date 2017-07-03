@@ -811,6 +811,47 @@ const mainMethods = function(main, db) {
 		);
 	};
 
+	const getSurroundingLines = function(
+		channelId, lineTime, distanceMins, limit, callback
+	) {
+		let d = lineTime;
+
+		if (typeof lineType !== "object") {
+			d = new Date(lineTime);
+		}
+
+		let timeString = d.toISOString();
+
+		let minTime = new Date(+d - distanceMins * 60000).toISOString();
+		let maxTime = new Date(+d + distanceMins * 60000).toISOString();
+
+		let before = (callback) => {
+			getLines(
+				"WHERE lines.channelId = $channelId " +
+				"AND lines.time >= $minTime " +
+				"AND lines.time <= $timeString",
+				DESC,
+				limit,
+				dollarize({ channelId, minTime, timeString }),
+				callback
+			);
+		};
+
+		let after = (callback) => {
+			getLines(
+				"WHERE lines.channelId = $channelId " +
+				"AND lines.time >= $timeString " +
+				"AND lines.time <= $maxTime",
+				ASC,
+				limit,
+				dollarize({ channelId, maxTime, timeString }),
+				callback
+			);
+		};
+
+		async.parallel({ before, after }, callback);
+	};
+
 	const getDateLineCountForChannel = function(channelId, date, callback) {
 		db.get(
 			sq("lines", ["COUNT(*) AS count"], ["channelId", "date"]),
@@ -951,6 +992,7 @@ const mainMethods = function(main, db) {
 	getNicknames(callback)
 	getServerId(name, callback)
 	getServerName(serverId, callback)
+	getSurroundingLines(channelId, lineTime, distanceMins, limit, callback)
 	modifyChannelInIrcConfig(channelId, data, callback)
 	modifyFriend(friendId, data, callback)
 	modifyNickname(nickname, data, callback)
@@ -997,6 +1039,7 @@ const mainMethods = function(main, db) {
 		getNicknames,
 		getServerId,
 		getServerName,
+		getSurroundingLines,
 		modifyChannelInIrcConfig,
 		modifyFriend,
 		modifyNickname,

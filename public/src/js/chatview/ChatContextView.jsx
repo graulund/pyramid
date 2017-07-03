@@ -1,9 +1,11 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
 import throttle from "lodash/throttle";
 
 import ChatLines from "./ChatLines.jsx";
 import { refElSetter } from "../lib/refEls";
+import { requestLineContext } from "../lib/io";
 import { createLineIdHash } from "../lib/routeHelpers";
 
 const block = "contextview";
@@ -17,11 +19,13 @@ class ChatContextView extends PureComponent {
 		this.handleScroll = throttle(this.handleScroll.bind(this), 50);
 		this.initializeExpandedView = this.initializeExpandedView.bind(this);
 		this.toggleContext = this.toggleContext.bind(this);
+		this.requestContext = this.requestContext.bind(this);
 
 		this.els = {};
 		this.setMain = refElSetter("main").bind(this);
 
 		this.state = {
+			requestedContext: false,
 			scrolled: false,
 			showContext: false
 		};
@@ -29,11 +33,29 @@ class ChatContextView extends PureComponent {
 
 	componentDidUpdate(prevProps, prevState) {
 		const { showContext } = this.state;
+
 		const { showContext: prevShowContext } = prevState;
 
-		if (!prevShowContext && showContext) {
+		let contextMsgs = this.getContextMessages(this.props);
+		let prevContextMsgs = this.getContextMessages(prevProps);
+
+		if (
+			// Started showing context
+			(!prevShowContext && showContext) ||
+			// Context loaded
+			(showContext && contextMsgs && !prevContextMsgs)
+		) {
 			this.initializeExpandedView();
 		}
+	}
+
+	getContextMessages(props = this.props) {
+		let {
+			contextMessages,
+			lineInfo
+		} = props;
+
+		return contextMessages || lineInfo && lineInfo.contextMessages;
 	}
 
 	handleScroll() {
@@ -77,9 +99,19 @@ class ChatContextView extends PureComponent {
 		}
 	}
 
+	requestContext() {
+		const { lineId } = this.props;
+
+		requestLineContext(lineId);
+		this.setState({
+			requestedContext: true,
+			scrolled: false,
+			showContext: true
+		});
+	}
+
 	render() {
 		const {
-			contextMessages,
 			displayChannel,
 			displayUsername,
 			highlight,
@@ -88,7 +120,9 @@ class ChatContextView extends PureComponent {
 			time
 		} = this.props;
 
-		const { showContext } = this.state;
+		const { requestedContext, showContext } = this.state;
+
+		const contextMsgs = this.getContextMessages(this.props);
 
 		const isHighlight = !!(highlight && highlight.length);
 		const className = block +
@@ -106,10 +140,10 @@ class ChatContextView extends PureComponent {
 
 		var content = null;
 
-		if (contextMessages) {
+		if (contextMsgs) {
 			if (showContext) {
 				const before = [], after = [];
-				contextMessages.forEach((msg) => {
+				contextMsgs.forEach((msg) => {
 					if (msg) {
 						if (msg.time <= time) {
 							before.push(msg);
@@ -171,7 +205,20 @@ class ChatContextView extends PureComponent {
 			}
 		}
 		else {
-			content = lineEl;
+			let contextLinkEl = null;
+
+			if (!requestedContext) {
+				contextLinkEl = (
+					<a className={`${block}__options`}
+						href="javascript://"
+						onClick={this.requestContext}
+						key="showContext">
+						Context
+					</a>
+				);
+			}
+
+			content = [contextLinkEl, lineEl];
 		}
 
 		const itemProps = {
@@ -195,6 +242,7 @@ ChatContextView.propTypes = {
 	events: PropTypes.array,
 	highlight: PropTypes.array,
 	lineId: PropTypes.string,
+	lineInfo: PropTypes.object,
 	message: PropTypes.string,
 	mode: PropTypes.string,
 	observer: PropTypes.object,
@@ -207,4 +255,11 @@ ChatContextView.propTypes = {
 	username: PropTypes.string
 };
 
-export default ChatContextView;
+const mapStateToProps = function(state, ownProps) {
+	let { lineId } = ownProps;
+	let lineInfo = state.lineInfo[lineId];
+
+	return { lineInfo };
+};
+
+export default connect(mapStateToProps)(ChatContextView);

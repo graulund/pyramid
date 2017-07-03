@@ -335,6 +335,14 @@ module.exports = function(main) {
 		});
 	};
 
+	const emitLineContext = function(socket, lineId) {
+		main.logs().getLineContext(lineId, (err, line) => {
+			if (!err) {
+				socket.emit("lineInfo", { line });
+			}
+		});
+	};
+
 	const emitIrcConnectionStatus = function(serverName, status, socket) {
 		socket = socket || io;
 		if (socket) {
@@ -579,6 +587,16 @@ module.exports = function(main) {
 					typeof details.lineId === "string"
 				) {
 					emitLineInfo(socket, details.lineId);
+				}
+			});
+
+			socket.on("requestLineContext", (details) => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (
+					details &&
+					typeof details.lineId === "string"
+				) {
+					emitLineContext(socket, details.lineId);
 				}
 			});
 
