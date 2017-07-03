@@ -114,8 +114,8 @@ const requestExternalGlobalEmoticons = function(enabledTypes) {
 
 			else {
 				util.warn(
-					`Error occurred trying to get external global emoticons (${type})\n`,
-					error
+					`Error occurred trying to get external global emoticons (${type}): ` +
+					(error && error.message)
 				);
 			}
 		}));
@@ -183,8 +183,8 @@ const requestExternalChannelEmoticons = function(channel, enabledTypes) {
 					}
 
 					util.warn(
-						`Error occurred trying to get external emoticons for ${channel} (${type})\n`,
-						error
+						`Error occurred trying to get external emoticons for ${channel} (${type}): ` +
+						(error && error.message)
 					);
 				}
 			}));

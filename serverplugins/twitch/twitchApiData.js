@@ -30,8 +30,8 @@ const requestEmoticonImages = function(emotesets) {
 
 			else {
 				util.warn(
-					"Error occurred trying to request emoticon images from the Twitch API\n",
-					error
+					"Error occurred trying to request emoticon images from the Twitch API: " +
+					(error && error.message)
 				);
 			}
 		})
@@ -67,8 +67,8 @@ const requestGlobalBadgeData = function(callback) {
 
 			else {
 				util.warn(
-					"Error occurred trying to request global badge data from the Twitch API\n",
-					error
+					"Error occurred trying to request global badge data from the Twitch API: " +
+					(error && error.message)
 				);
 			}
 		})
@@ -86,8 +86,8 @@ const requestChannelBadgeData = function(roomId, callback) {
 
 			else {
 				util.warn(
-					"Error occurred trying to request channel badge data from the Twitch API\n",
-					error
+					"Error occurred trying to request channel badge data from the Twitch API: " +
+					(error && error.message)
 				);
 			}
 		})
@@ -109,8 +109,8 @@ const requestGlobalCheerData = function() {
 
 			else {
 				util.warn(
-					"Error occurred trying to request cheer data from the Twitch API\n",
-					error
+					"Error occurred trying to request cheer data from the Twitch API: " +
+					(error && error.message)
 				);
 			}
 		})
@@ -132,8 +132,8 @@ const requestChannelCheerData = function(roomId) {
 
 			else {
 				util.warn(
-					"Error occurred trying to request cheer data from the Twitch API\n",
-					error
+					"Error occurred trying to request cheer data from the Twitch API: " +
+					(error && error.message)
 				);
 			}
 		})

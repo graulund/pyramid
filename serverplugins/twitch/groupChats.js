@@ -25,8 +25,8 @@ const requestGroupChatInfo = function(oauthToken, callback) {
 			}
 			else {
 				util.warn(
-					"Error occurred trying to get group chat info\n",
-					error
+					"Error occurred trying to get group chat info: " +
+					(error && error.message)
 				);
 				callback(error);
 			}

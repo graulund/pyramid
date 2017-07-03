@@ -18,8 +18,8 @@ const requestTwitchUserInfo = function(username, callback) {
 
 			else {
 				util.warn(
-					"Error occurred trying to get user info\n",
-					error
+					"Error occurred trying to get user info: " +
+					(error && error.message)
 				);
 				callback(error);
 			}
