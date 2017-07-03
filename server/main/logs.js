@@ -296,29 +296,6 @@ module.exports = function(db, appConfig, ircConfig, nicknames) {
 		);
 	};
 
-	const getSurroundingLines = function(channel, lineTime, distanceMins, limit, callback) {
-		resolveChannelId(
-			channel,
-			function(err, data) {
-				if (err) {
-					callback(err);
-					return;
-				}
-
-				if (data) {
-					let { channelId } = data;
-					db.getSurroundingLines(
-						channelId, lineTime, distanceMins, limit, callback
-					);
-				}
-
-				else {
-					callback(new Error("No such channel"));
-				}
-			}
-		);
-	};
-
 	// Log details
 
 	const getChannelLogDetails = function(channel, date, callback) {
