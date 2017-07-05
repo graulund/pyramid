@@ -65,9 +65,6 @@ const prepareEmotesInMessage = function(message, externalEmotes, cheerData) {
 
 	// Add cheers
 	if (tags.bits) {
-		// Temp debug
-		console.log("Message with bits!", new Date(), { channel, username, messageText, tags });
-
 		let cheers = emoteParsing.generateCheerIndices(
 			messageText, cheerData, emotes
 		);
