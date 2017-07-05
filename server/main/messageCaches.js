@@ -290,18 +290,6 @@ module.exports = function(
 
 		// Record context if highlight
 		let isHighlight = highlightStrings && highlightStrings.length;
-		let contextMessages = [], highlightMsg = null;
-
-		if (isHighlight) {
-			const currentCache = (channelCaches[channelUri] || []);
-			// TODO: Maximum time since
-			contextMessages = currentCache.slice(
-				Math.max(0, currentCache.length - constants.CONTEXT_CACHE_LINES),
-				currentCache.length
-			);
-			highlightMsg = _.clone(msg);
-			highlightMsg.contextMessages = contextMessages;
-		}
 
 		// Store into cache
 		cacheChannelEvent(channelUri, msg);
@@ -314,7 +302,7 @@ module.exports = function(
 
 		// Highlights
 		if (isHighlight) {
-			cacheCategoryMessage("highlights", highlightMsg);
+			cacheCategoryMessage("highlights", msg);
 		}
 
 		// Private messages
