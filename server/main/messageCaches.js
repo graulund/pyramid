@@ -22,7 +22,6 @@ module.exports = function(
 	var categoryCaches = { highlights: [], allfriends: [], system: [] };
 	var channelIdCache = {};
 
-	var currentHighlightContexts = {};
 	var bunchableLinesToInsert = {};
 	var prefilledSubjectNames = [];
 
@@ -136,7 +135,6 @@ module.exports = function(
 
 		if (categoryName === "highlights" && msg.lineId) {
 			unseenHighlights.addUnseenHighlightId(msg.lineId);
-			createCurrentHighlightContext(msg.channel, msg);
 
 			if (io) {
 				io.emitNewHighlight(null, msg);
@@ -151,35 +149,6 @@ module.exports = function(
 
 		if (io) {
 			io.emitNewPrivateMessage(null, msg);
-		}
-	};
-
-	const createCurrentHighlightContext = function(channel, highlightMsg) {
-		if (!currentHighlightContexts[channel]) {
-			currentHighlightContexts[channel] = [];
-		}
-
-		currentHighlightContexts[channel].push(highlightMsg);
-	};
-
-	const addToCurrentHighlightContext = function(channel, msg) {
-		const highlights = currentHighlightContexts[channel];
-
-		if (highlights && highlights.length) {
-			const survivingHighlights = [];
-			highlights.forEach((highlight) => {
-				const list = highlight.contextMessages;
-				list.push(msg);
-
-				if (list.length < 2 * constants.CONTEXT_CACHE_LINES) {
-					survivingHighlights.push(highlight);
-				}
-
-				// TODO: Should not survive if it's too old...
-			});
-
-			currentHighlightContexts[channel] = survivingHighlights;
-			recipients.emitCategoryCacheToRecipients("highlights");
 		}
 	};
 
@@ -336,7 +305,6 @@ module.exports = function(
 
 		// Store into cache
 		cacheChannelEvent(channelUri, msg);
-		addToCurrentHighlightContext(channelUri, msg);
 
 		// Friends
 		if (relationship >= constants.RELATIONSHIP_FRIEND) {
