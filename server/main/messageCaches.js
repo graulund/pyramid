@@ -281,7 +281,7 @@ module.exports = function(
 		};
 
 		if (messageToken) {
-			msg = _.assign(msg, { messageToken });
+			msg.messageToken = messageToken;
 		}
 
 		if (customCols) {
