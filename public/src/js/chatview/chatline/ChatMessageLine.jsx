@@ -183,7 +183,13 @@ class ChatMessageLine extends PureComponent {
 			}
 
 			// Twitch badges
-			if (enableTwitchBadges && tags && tags.badges && tags.badges.length) {
+			if (
+				displayUsername &&
+				enableTwitchBadges &&
+				tags &&
+				tags.badges &&
+				tags.badges.length
+			) {
 				prefix = (
 					<TwitchBadges
 						badges={tags.badges}
