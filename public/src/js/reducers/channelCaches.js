@@ -1,6 +1,8 @@
 import clone from "lodash/clone";
+import omit from "lodash/omit";
 
 import * as actionTypes from "../actionTypes";
+import { startExpiringChannelCache } from "../lib/dataExpiration";
 import { cacheMessageItem, clearReplacedIdsFromCache } from "../lib/messageCaches";
 
 const channelCachesInitialState = {};
@@ -65,6 +67,11 @@ export default function (state = channelCachesInitialState, action) {
 			return s;
 		}
 
+		case actionTypes.channelCaches.REMOVE: {
+			let { channel } = action;
+			return omit(state, channel);
+		}
+
 		case actionTypes.channelCaches.CLEARUSER: {
 			let { channel, time, username } = action;
 			let channelItem = state[channel] || {};
@@ -76,6 +83,37 @@ export default function (state = channelCachesInitialState, action) {
 					lastReload: channelItem.lastReload
 				}
 			};
+		}
+
+		case actionTypes.channelCaches.STARTEXPIRATION: {
+			let { channel } = action;
+			let item = state[channel];
+			if (item) {
+				return {
+					...state,
+					[channel]: {
+						...item,
+						expirationTimer: startExpiringChannelCache(channel)
+					}
+				};
+			}
+			break;
+		}
+
+		case actionTypes.channelCaches.STOPEXPIRATION: {
+			let { channel } = action;
+			let item = state[channel];
+			if (item) {
+				clearTimeout(item.expirationTimer);
+
+				return {
+					...state,
+					[channel]: {
+						...item,
+						expirationTimer: null
+					}
+				};
+			}
 		}
 	}
 

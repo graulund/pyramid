@@ -1,6 +1,8 @@
 import clone from "lodash/clone";
+import omit from "lodash/omit";
 
 import * as actionTypes from "../actionTypes";
+import { startExpiringUserCache } from "../lib/dataExpiration";
 import { cacheMessageItem } from "../lib/messageCaches";
 
 const userCachesInitialState = {};
@@ -33,6 +35,48 @@ export default function (state = userCachesInitialState, action) {
 
 			s[d.username].cache = cacheMessageItem(s[d.username].cache, d);
 			return s;
+		}
+
+		case actionTypes.userCaches.REMOVE: {
+			let { username } = action;
+			return omit(state, username);
+		}
+
+		case actionTypes.userCaches.STARTEXPIRATION: {
+			let { username } = action;
+			let item = state[username];
+			if (item) {
+				if (item.expirationTimer) {
+					clearTimeout(item.expirationTimer);
+				}
+
+				return {
+					...state,
+					[username]: {
+						...item,
+						expirationTimer: startExpiringUserCache(username)
+					}
+				};
+			}
+			break;
+		}
+
+		case actionTypes.userCaches.STOPEXPIRATION: {
+			let { username } = action;
+			let item = state[username];
+			if (item) {
+				if (item.expirationTimer) {
+					clearTimeout(item.expirationTimer);
+				}
+
+				return {
+					...state,
+					[username]: {
+						...item,
+						expirationTimer: null
+					}
+				};
+			}
 		}
 	}
 

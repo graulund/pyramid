@@ -12,6 +12,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
+import setUpDataExpiration from "./lib/dataExpiration";
 import { initializeMessageCaches } from "./lib/messageCaches";
 import setUpPageTitles from "./lib/pageTitles";
 import { startUpdatingNotificationsActiveState } from "./lib/notifications";
@@ -31,6 +32,7 @@ if (__DEV__) {
 
 const history = createBrowserHistory();
 setUpPageTitles(history);
+setUpDataExpiration(history);
 
 // Data store
 

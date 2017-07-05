@@ -1,5 +1,5 @@
 import { CATEGORY_NAMES, ROOT_PATHNAME } from "../constants";
-import { parseChannelUri } from "./channelNames";
+import { getPrivateConversationUri, parseChannelUri } from "./channelNames";
 
 export function internalUrl(url) {
 	return ROOT_PATHNAME + url;
@@ -150,4 +150,65 @@ export function parseSubjectName(subject, delimiter = ":") {
 	}
 
 	return { type, query };
+}
+
+export function getRouteData(pathname) {
+
+	// Log URLs
+
+	var m = parseChannelLogUrl(pathname);
+
+	if (m) {
+		return { type: "channel", query: m[1], logDate: m[2] };
+	}
+
+	m = parseUserLogUrl(pathname);
+
+	if (m) {
+		return { type: "user", query: m[1], logDate: m[2] };
+	}
+
+	m = parseConversationLogUrl(pathname);
+
+	if (m) {
+		let channel = getPrivateConversationUri(m[1], m[2]);
+		return { type: "channel", query: channel, logDate: m[3] };
+	}
+
+	// Live URLs
+
+	m = parseChannelUrl(pathname);
+
+	if (m) {
+		return { type: "channel", query: m[1] };
+	}
+
+	m = parseUserUrl(pathname);
+
+	if (m) {
+		return { type: "user", query: m[1] };
+	}
+
+	m = parseConversationUrl(pathname);
+
+	if (m) {
+		let channel = getPrivateConversationUri(m[1], m[2]);
+		return { type: "channel", query: channel };
+	}
+
+	// Utility URLs
+
+	m = parseSettingsUrl(pathname);
+
+	if (m) {
+		return { type: "settings", query: m[2] };
+	}
+
+	m = parseCategoryUrl(pathname);
+
+	if (m) {
+		return { type: "category", query: m[1] };
+	}
+
+	return null;
 }

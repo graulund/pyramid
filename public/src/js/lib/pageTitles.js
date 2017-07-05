@@ -1,9 +1,8 @@
 import { CATEGORY_NAMES, SETTINGS_PAGE_NAMES } from "../constants";
-import { getPrivateConversationUri } from "./channelNames";
 import { getChannelDisplayString, getTwitchUserDisplayNameString } from "./displayNames";
 import { getChannelInfo } from "./ircConfigs";
 import { getUserInfo } from "./users";
-import * as route from "./routeHelpers";
+import { getRouteData } from "./routeHelpers";
 import store from "../store";
 
 var currentPathname = "";
@@ -109,84 +108,48 @@ function handleLocationChange(location) {
 	const { pathname } = location;
 	currentPathname = pathname;
 
-	// Log URLs
+	let routeData = getRouteData(pathname);
 
-	var m = route.parseChannelLogUrl(pathname);
+	if (routeData) {
+		let { query, logDate, type } = routeData;
 
-	if (m) {
-		let channelInfo = getChannelInfo(m[1]);
-		if (channelInfo) {
-			setTitle(channelPageLogTitle(channelInfo, m[2]));
-			return;
+		switch (type) {
+			case "channel": {
+				let channelInfo = getChannelInfo(query);
+				if (channelInfo) {
+					if (logDate) {
+						setTitle(channelPageLogTitle(channelInfo, logDate));
+					}
+					else {
+						setTitle(channelPageTitle(channelInfo));
+					}
+					return;
+				}
+				break;
+			}
+
+			case "user": {
+				let userInfo = getUserInfo(query);
+				if (userInfo) {
+					if (logDate) {
+						setTitle(userPageLogTitle(userInfo, logDate));
+					}
+					else {
+						setTitle(userPageTitle(userInfo));
+					}
+					return;
+				}
+				break;
+			}
+
+			case "settings":
+				setTitle(settingsPageTitle(query));
+				return;
+
+			case "category":
+				setTitle(categoryPageTitle(query));
+				return;
 		}
-	}
-
-	m = route.parseUserLogUrl(pathname);
-
-	if (m) {
-		let userInfo = getUserInfo(m[1]);
-		if (userInfo) {
-			setTitle(userPageLogTitle(userInfo, m[2]));
-			return;
-		}
-	}
-
-	m = route.parseConversationLogUrl(pathname);
-
-	if (m) {
-		let channel = getPrivateConversationUri(m[1], m[2]);
-		if (channel) {
-			setTitle(channelPageLogTitle({ channel }, m[3]));
-			return;
-		}
-	}
-
-	// Live URLs
-
-	m = route.parseChannelUrl(pathname);
-
-	if (m) {
-		let channelInfo = getChannelInfo(m[1]);
-		if (channelInfo) {
-			setTitle(channelPageTitle(channelInfo));
-			return;
-		}
-	}
-
-	m = route.parseUserUrl(pathname);
-
-	if (m) {
-		let userInfo = getUserInfo(m[1]);
-		if (userInfo) {
-			setTitle(userPageTitle(userInfo));
-			return;
-		}
-	}
-
-	m = route.parseConversationUrl(pathname);
-
-	if (m) {
-		let channel = getPrivateConversationUri(m[1], m[2]);
-		if (channel) {
-			setTitle(channelPageTitle({ channel }));
-			return;
-		}
-	}
-
-	// Utility URLs
-
-	m = route.parseSettingsUrl(pathname);
-
-	if (m) {
-		setTitle(settingsPageTitle(m[2]));
-		return;
-	}
-
-	m = route.parseCategoryUrl(pathname);
-
-	if (m) {
-		setTitle(categoryPageTitle(m[1]));
-		return;
 	}
 
 	// Fallback

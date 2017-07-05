@@ -10,7 +10,10 @@ export const categoryCaches = {
 export const channelCaches = {
 	"UPDATE": "channelCaches/UPDATE",
 	"APPEND": "channelCaches/APPEND",
-	"CLEARUSER": "channelCaches/CLEARUSER"
+	"REMOVE": "channelCaches/REMOVE",
+	"CLEARUSER": "channelCaches/CLEARUSER",
+	"STARTEXPIRATION": "channelCaches/STARTEXPIRATION",
+	"STOPEXPIRATION": "channelCaches/STOPEXPIRATION"
 };
 
 export const channelData = {
@@ -40,6 +43,7 @@ export const ircConfigs = {
 };
 
 export const lineInfo = {
+	"CLEAR": "lineInfo/CLEAR",
 	"UPDATE": "lineInfo/UPDATE"
 };
 
@@ -101,7 +105,10 @@ export const unseenHighlights = {
 
 export const userCaches = {
 	"UPDATE": "userCaches/UPDATE",
-	"APPEND": "userCaches/APPEND"
+	"APPEND": "userCaches/APPEND",
+	"REMOVE": "userCaches/REMOVE",
+	"STARTEXPIRATION": "userCaches/STARTEXPIRATION",
+	"STOPEXPIRATION": "userCaches/STOPEXPIRATION"
 };
 
 export const viewState = {

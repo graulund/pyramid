@@ -44,12 +44,33 @@ export default {
 			};
 		},
 
+		remove(channel) {
+			return {
+				type: actionTypes.channelCaches.REMOVE,
+				channel
+			};
+		},
+
 		clearUser(channel, username, time) {
 			return {
 				type: actionTypes.channelCaches.CLEARUSER,
 				channel,
 				time,
 				username
+			};
+		},
+
+		startExpiration(channel) {
+			return {
+				type: actionTypes.channelCaches.STARTEXPIRATION,
+				channel
+			};
+		},
+
+		stopExpiration(channel) {
+			return {
+				type: actionTypes.channelCaches.STOPEXPIRATION,
+				channel
 			};
 		}
 	},
@@ -142,6 +163,12 @@ export default {
 	},
 
 	lineInfo: {
+		clear() {
+			return {
+				type: actionTypes.lineInfo.CLEAR
+			};
+		},
+
 		update(data) {
 			return {
 				type: actionTypes.lineInfo.UPDATE,
@@ -297,6 +324,27 @@ export default {
 				type: actionTypes.userCaches.UPDATE,
 				username,
 				cache
+			};
+		},
+
+		remove(username) {
+			return {
+				type: actionTypes.userCaches.REMOVE,
+				username
+			};
+		},
+
+		startExpiration(username) {
+			return {
+				type: actionTypes.userCaches.STARTEXPIRATION,
+				username
+			};
+		},
+
+		stopExpiration(username) {
+			return {
+				type: actionTypes.userCaches.STOPEXPIRATION,
+				username
 			};
 		}
 	},
