@@ -996,11 +996,15 @@ const mainMethods = function(main, db) {
 		}
 
 		else if (retainDbType === constants.RETAIN_DB_TYPES.DAYS) {
-			let time = timeUtils.offsetDate(new Date(), -1 * retainDbValue).toISOString();
 
-			if (time[0] !== "-") {
-				// If not weird negative values
-				deleteLinesBeforeTime(time, callback);
+			// Sane upper bound for amount of days
+			if (retainDbValue < 15000) {
+				let time = timeUtils.offsetDate(new Date(), -1 * retainDbValue).toISOString();
+
+				if (time[0] !== "-") {
+					// If not weird negative values
+					deleteLinesBeforeTime(time, callback);
+				}
 			}
 		}
 
