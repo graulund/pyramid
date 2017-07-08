@@ -11,7 +11,9 @@ const settings = {
 			readableName: "Web port",
 			type: "number",
 			description: "The port number the web server should listen to",
-			notice: "Requires server restart"
+			notice: "Requires server restart",
+			min: 1,
+			max: 65535
 		},
 		{
 			name: "webPassword",
@@ -38,7 +40,8 @@ const settings = {
 			readableName: "How much to retain in the database (value)",
 			type: "number",
 			description: "Chat lines are kept in a local database for a period of time. You can choose how many or for how long these are kept. The unit for this number is either lines or days, depending on below. (If you type zero, all lines are kept and the database will slowly expand to unlimited size.)",
-			notice: "The unit of this value is defined below!"
+			notice: "The unit of this value is defined below!",
+			min: 0
 		},
 		{
 			name: "retainDbType",
@@ -126,7 +129,9 @@ const settings = {
 			readableName: "Live scrollback length",
 			type: "number",
 			description: "Number of lines you can see in a live chat view",
-			notice: "Must be between 20 and 500. Default value is 150"
+			notice: "Must be between 20 and 500. Default value is 150",
+			min: 20,
+			max: 500
 		}
 	],
 

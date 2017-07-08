@@ -56,7 +56,16 @@ class SettingsAppConfigView extends PureComponent {
 
 	renderSetting(setting) {
 		let { appConfig, systemInfo } = this.props;
-		let { description, name, notice, readableName, requires, type } = setting;
+		let {
+			description,
+			min,
+			max,
+			name,
+			notice,
+			readableName,
+			requires,
+			type
+		} = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
 
@@ -139,6 +148,8 @@ class SettingsAppConfigView extends PureComponent {
 					defaultValue={appConfig[name] || ""}
 					onChange={handler}
 					disabled={isDisabled}
+					min={min}
+					max={max}
 					key="input" />;
 			}
 		}
