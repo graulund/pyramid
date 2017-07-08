@@ -28,7 +28,7 @@ const offsetDate = function(date, days) {
 	return new Date(
 		date.getFullYear(),
 		date.getMonth(),
-		date.getDay() + days,
+		date.getDate() + days,
 		date.getHours(),
 		date.getMinutes(),
 		date.getSeconds(),
