@@ -390,11 +390,15 @@ module.exports = function(
 				func = logs.getMostRecentHighlightsLines;
 				break;
 			case "system":
-				func = function(callback) { callback(null, systemCache); };
+				func = function(a, b, callback) { callback(null, systemCache); };
 				break;
 		}
 
-		return func(returnDbCache(callback));
+		return func(
+			constants.CACHE_LINES,
+			0,
+			returnDbCache(callback)
+		);
 	};
 
 	return {
