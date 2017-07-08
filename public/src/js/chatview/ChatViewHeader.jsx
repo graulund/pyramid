@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import ChannelName from "../components/ChannelName.jsx";
 import ChatHighlightsControls from "./ChatHighlightsControls.jsx";
+import ChatSystemLogControls from "./ChatSystemLogControls.jsx";
 import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import UserLink from "../components/UserLink.jsx";
@@ -45,11 +46,14 @@ class ChatViewHeader extends PureComponent {
 			serverName
 		} = this.props;
 
-		if (
-			pageType === PAGE_TYPES.CATEGORY &&
-			pageQuery === "highlights"
-		) {
-			return <ChatHighlightsControls key="highlightsControls" />;
+		if (pageType === PAGE_TYPES.CATEGORY) {
+			if (pageQuery === "highlights") {
+				return <ChatHighlightsControls key="highlightsControls" />;
+			}
+
+			else if (pageQuery === "system") {
+				return <ChatSystemLogControls key="systemlogcontrols" />;
+			}
 		}
 
 		if (

@@ -55,6 +55,11 @@ if (window.pyramid_appConfig) {
 	store.dispatch(actions.appConfig.update(window.pyramid_appConfig));
 }
 
+if (window.pyramid_awakeTime) {
+	let awakeTime = window.pyramid_awakeTime;
+	store.dispatch(actions.systemInfo.update({ awakeTime }));
+}
+
 if (window.pyramid_friendsList) {
 	store.dispatch(actions.friendsList.set(window.pyramid_friendsList));
 }

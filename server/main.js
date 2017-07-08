@@ -3,6 +3,10 @@
 
 const async = require("async");
 
+// Basic state
+
+const awakeTime = new Date();
+
 // Sub model objects not requiring state
 
 const ircConnectionState = require("./main/ircConnectionState");
@@ -246,6 +250,7 @@ onDb((err) => {
 
 module.exports = {
 	appConfig: () => appConfig,
+	awakeTime,
 	channelData: () => channelData,
 	friends: () => friends,
 	incomingEvents: () => incomingEvents,
