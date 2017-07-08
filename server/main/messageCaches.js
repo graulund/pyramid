@@ -16,14 +16,11 @@ module.exports = function(
 	unseenHighlights,
 	unseenConversations
 ) {
-
-	var channelCaches = {};
-	var userCaches = {};
-	var categoryCaches = { highlights: [], allfriends: [], system: [] };
+	var systemCache = [];
 	var channelIdCache = {};
 
+	var currentBunchedMessage = {};
 	var bunchableLinesToInsert = {};
-	var prefilledSubjectNames = [];
 
 	var lineIdsToDelete = new Set();
 
@@ -95,14 +92,13 @@ module.exports = function(
 		return cache;
 	};
 
-	const cacheChannelEvent = function(channel, data) {
+	const cacheChannelEvent = function(channel, data, createBunch) {
 
-		// Add to local cache
+		// Create a bunch if needed
 
-		if (!channelCaches[channel]) {
-			channelCaches[channel] = [];
+		if (createBunch) {
+			currentBunchedMessage[channel] = data;
 		}
-		channelCaches[channel] = cacheItem(channelCaches[channel], data);
 
 		// Add to db
 
@@ -118,19 +114,15 @@ module.exports = function(
 	};
 
 	const cacheUserMessage = function(username, msg) {
-		if (!userCaches[username]) {
-			userCaches[username] = [];
-		}
-		userCaches[username] = cacheItem(userCaches[username], msg);
 		recipients.emitToUserRecipients(username, msg);
 	};
 
 	const cacheCategoryMessage = function(categoryName, msg) {
-		if (!categoryCaches[categoryName]) {
-			categoryCaches[categoryName] = [];
+
+		if (categoryName === "system") {
+			systemCache = cacheItem(systemCache, msg);
 		}
 
-		categoryCaches[categoryName] = cacheItem(categoryCaches[categoryName], msg);
 		recipients.emitToCategoryRecipients(categoryName, msg);
 
 		if (categoryName === "highlights" && msg.lineId) {
@@ -156,10 +148,7 @@ module.exports = function(
 
 		// Replace in cache
 
-		const cache = channelCaches[channel];
-		if (cache && cache.length) {
-			cache[cache.length-1] = data;
-		}
+		currentBunchedMessage[channel] = data;
 
 		// Add to db, but remove old ids
 
@@ -189,75 +178,96 @@ module.exports = function(
 	// ...And insert them all regularly
 	setInterval(_scheduledBunchableStore, 10000);
 
+	const getBunchableItem = function(item) {
+		// We assume they're all in the same server/channel
+		// Not keeping reasons
+
+		let i = _.pick(item, [
+			"argument", "mode", "symbol",
+			"time", "type", "username"
+		]);
+
+		// Avoid including symbol if it's empty (will be most cases)
+		if (!i.symbol) {
+			delete i.symbol;
+		}
+
+		return i;
+	};
+
 	const cacheBunchableChannelEvent = function(channel, data) {
-		const cache = channelCaches[channel];
-		if (cache && cache.length) {
-			const lastItem = cache[cache.length-1];
-			if (lastItem) {
+		const lastItem = currentBunchedMessage[channel];
 
-				const isJoin = eventUtils.isJoinEvent(data);
-				const isPart = eventUtils.isPartEvent(data);
+		if (lastItem) {
+			const isJoin = eventUtils.isJoinEvent(data);
+			const isPart = eventUtils.isPartEvent(data);
 
-				var bunch;
-				if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
-					// Create bunch and insert in place
+			var bunch;
+			if (constants.BUNCHABLE_EVENT_TYPES.indexOf(lastItem.type) >= 0) {
+				// Create bunch and insert in place
 
-					const lastIsJoin = eventUtils.isJoinEvent(lastItem);
-					const lastIsPart = eventUtils.isPartEvent(lastItem);
+				const lastIsJoin = eventUtils.isJoinEvent(lastItem);
+				const lastIsPart = eventUtils.isPartEvent(lastItem);
 
-					bunch = {
-						channel: lastItem.channel,
-						events: [lastItem, data],
-						firstTime: lastItem.time,
-						joinCount: isJoin + lastIsJoin,
-						lineId: uuid.v4(),
-						partCount: isPart + lastIsPart,
-						prevIds: [lastItem.lineId],
-						server: lastItem.server,
-						time: data.time,
-						type: "events"
-					};
+				bunch = {
+					channel: lastItem.channel,
+					events: [
+						getBunchableItem(lastItem),
+						getBunchableItem(data)
+					],
+					firstTime: lastItem.time,
+					joinCount: isJoin + lastIsJoin,
+					lineId: uuid.v4(),
+					partCount: isPart + lastIsPart,
+					prevIds: [lastItem.lineId],
+					server: lastItem.server,
+					time: data.time,
+					type: "events"
+				};
+			}
+			else if (lastItem.type === "events") {
+				// Add to bunch, resulting in a new, inserted in place
+				let maxLines = constants.BUNCHED_EVENT_SIZE;
+
+				var prevIds = lastItem.prevIds.concat([lastItem.lineId]);
+				if (prevIds.length > maxLines) {
+					prevIds = prevIds.slice(prevIds.length - maxLines);
 				}
-				else if (lastItem.type === "events") {
-					// Add to bunch, resulting in a new, inserted in place
-					let maxLines = constants.BUNCHED_EVENT_SIZE;
 
-					var prevIds = lastItem.prevIds.concat([lastItem.lineId]);
-					if (prevIds.length > maxLines) {
-						prevIds = prevIds.slice(prevIds.length - maxLines);
-					}
-
-					var events = lastItem.events.concat([data]);
-					if (events.length > maxLines) {
-						events = events.slice(events.length - maxLines);
-					}
-
-					bunch = {
-						channel: lastItem.channel,
-						events,
-						firstTime: lastItem.firstTime,
-						joinCount: lastItem.joinCount + isJoin,
-						lineId: uuid.v4(),
-						partCount: lastItem.partCount + isPart,
-						prevIds,
-						server: lastItem.server,
-						time: data.time,
-						type: "events"
-					};
+				var events = lastItem.events.concat([getBunchableItem(data)]);
+				if (events.length > maxLines) {
+					events = events.slice(events.length - maxLines);
 				}
-				if (bunch) {
-					replaceLastCacheItem(channel, bunch);
 
-					if (io) {
-						io.emitEventToChannel(channel, bunch);
-					}
-					return;
+				bunch = {
+					channel: lastItem.channel,
+					events,
+					firstTime: lastItem.firstTime,
+					joinCount: lastItem.joinCount + isJoin,
+					lineId: uuid.v4(),
+					partCount: lastItem.partCount + isPart,
+					prevIds,
+					server: lastItem.server,
+					time: data.time,
+					type: "events"
+				};
+			}
+			if (bunch) {
+				replaceLastCacheItem(channel, bunch);
+
+				if (io) {
+					io.emitEventToChannel(channel, bunch);
 				}
+				return;
 			}
 		}
 
 		// Otherwise, just a normal addition to the list
-		cacheChannelEvent(channel, data);
+		cacheChannelEvent(channel, data, true);
+	};
+
+	const resetChannelBunch = function(channel) {
+		currentBunchedMessage[channel] = null;
 	};
 
 	const cacheMessage = function(
@@ -293,6 +303,7 @@ module.exports = function(
 
 		// Store into cache
 		cacheChannelEvent(channelUri, msg);
+		resetChannelBunch(channelUri);
 
 		// Friends
 		if (relationship >= constants.RELATIONSHIP_FRIEND) {
@@ -341,98 +352,34 @@ module.exports = function(
 		channelIdCache = cache;
 	};
 
-	const prefillCache = function(
-		subjectName, getCacheCallback, requestCallback, storeCacheCallback, callback
-	) {
-
-		if (prefilledSubjectNames.indexOf(subjectName) >= 0) {
-			callback(new Error("Already prefilled"));
-			return;
-		}
-
-		let cache = getCacheCallback();
-		let cacheLength = cache && cache.length || 0;
-		let requestLength = getCacheLinesSetting() - cacheLength;
-		let beforeTime = null;
-
-		if (requestLength < 10) {
-			callback(new Error("Already full"));
-			return;
-		}
-
-		if (cache && cache[0]) {
-			beforeTime = cache[0].time;
-		}
-
-		requestCallback(requestLength, beforeTime, function(err, file) {
-			if (!err) {
-				// Get existing data
-				let cache = getCacheCallback() || [];
-				let missingLength = getCacheLinesSetting() - cache.length;
-
-				if (!file || !file.length) {
-					callback(new Error("No data"));
-					return;
-				}
-
-				// Slice, and flip list to ascending time sort
-				let fileSlice = file.slice(0, missingLength);
-				fileSlice.reverse();
-
-				// Mark as prefilled
-				fileSlice.map((line) => {
-					if (line) {
-						line.prefilled = true;
-					}
-					return line;
-				});
-
-				// Insert in the beginning
-				storeCacheCallback(fileSlice.concat(cache));
-
-				// Record as prefilled
-				prefilledSubjectNames.push(subjectName);
+	const returnDbCache = function(callback) {
+		return function(err, cache) {
+			if (cache) {
+				cache.reverse();
 			}
-
-			callback(err);
-		});
+			callback(err, cache);
+		};
 	};
 
-	const prefillChannelCache = function(channel, callback) {
-		prefillCache(
-			`channel:${channel}`,
-			() => channelCaches[channel],
-			(requestLength, beforeTime, callback) => {
-				logs.getMostRecentChannelLines(
-					channel,
-					requestLength,
-					beforeTime,
-					callback
-				);
-			},
-			(data) => { channelCaches[channel] = data; },
-			callback
+	const getChannelCache = function(channel, callback) {
+		return logs.getMostRecentChannelLines(
+			channel,
+			constants.CACHE_LINES,
+			0,
+			returnDbCache(callback)
 		);
 	};
 
-	const prefillUserCache = function(username, callback) {
-		prefillCache(
-			`user:${username}`,
-			() => userCaches[username],
-			(requestLength, beforeTime, callback) => {
-				logs.getMostRecentUserLines(
-					username,
-					requestLength,
-					beforeTime,
-					callback
-				);
-			},
-			(data) => { userCaches[username] = data; },
-			callback
+	const getUserCache = function(username, callback) {
+		return logs.getMostRecentUserLines(
+			username,
+			constants.CACHE_LINES,
+			0,
+			returnDbCache(callback)
 		);
 	};
 
-	const prefillCategoryCache = function(categoryName, callback) {
+	const getCategoryCache = function(categoryName, callback) {
 		var func;
 
 		switch (categoryName) {
@@ -442,20 +389,12 @@ module.exports = function(
 			case "highlights":
 				func = logs.getMostRecentHighlightsLines;
 				break;
+			case "system":
+				func = function(callback) { callback(null, systemCache); };
+				break;
 		}
 
-		if (!func) {
-			callback(new Error("Not a prefillable category"));
-			return;
-		}
-
-		prefillCache(
-			`category:${categoryName}`,
-			() => categoryCaches[categoryName],
-			func,
-			(data) => { categoryCaches[categoryName] = data; },
-			callback
-		);
+		return func(returnDbCache(callback));
 	};
 
 	return {
@@ -464,12 +403,9 @@ module.exports = function(
 		cacheChannelEvent,
 		cacheMessage,
 		cacheUserMessage,
-		prefillCategoryCache,
-		prefillChannelCache,
-		prefillUserCache,
-		getCategoryCache: (categoryName) => categoryCaches[categoryName],
-		getChannelCache: (channel) => channelCaches[channel],
-		getUserCache: (username) => userCaches[username],
+		getCategoryCache,
+		getChannelCache,
+		getUserCache,
 		setChannelIdCache,
 		withUuid
 	};

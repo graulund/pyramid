@@ -30,47 +30,30 @@ module.exports = function(main) {
 	// Direct socket emissions
 
 	const emitTokenStatus = function(socket, isAccepted) {
-		socket.emit("tokenStatus", {
-			isAccepted
-		});
+		socket.emit("tokenStatus", { isAccepted });
 	};
 
 	const emitChannelCache = function(socket, channel) {
-		socket.emit("channelCache", {
-			channel,
-			cache: main.messageCaches().getChannelCache(channel)
-		});
-	};
-
-	const prefillAndEmitChannelCache = function(socket, channel) {
-		main.messageCaches().prefillChannelCache(channel, function() {
-			emitChannelCache(socket, channel);
+		main.messageCaches().getChannelCache(channel, (err, cache) => {
+			if (!err) {
+				socket.emit("channelCache", { channel, cache });
+			}
 		});
 	};
 
 	const emitUserCache = function(socket, username) {
-		socket.emit("userCache", {
-			username,
-			cache: main.messageCaches().getUserCache(username)
-		});
-	};
-
-	const prefillAndEmitUserCache = function(socket, username) {
-		main.messageCaches().prefillUserCache(username, function() {
-			emitUserCache(socket, username);
+		main.messageCaches().getUserCache(username, (err, cache) => {
+			if (!err) {
+				socket.emit("userCache", { username, cache });
+			}
 		});
 	};
 
 	const emitCategoryCache = function(socket, categoryName) {
-		socket.emit("categoryCache", {
-			categoryName,
-			cache: main.messageCaches().getCategoryCache(categoryName)
-		});
-	};
-
-	const prefillAndEmitCategoryCache = function(socket, categoryName) {
-		main.messageCaches().prefillCategoryCache(categoryName, function() {
-			emitCategoryCache(socket, categoryName);
+		main.messageCaches().getCategoryCache(categoryName, (err, cache) => {
+			if (!err) {
+				socket.emit("categoryCache", { categoryName, cache });
+			}
 		});
 	};
 
@@ -422,21 +405,21 @@ module.exports = function(main) {
 			socket.on("requestChannelCache", (channel) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof channel === "string") {
-					prefillAndEmitChannelCache(socket, channel);
+					emitChannelCache(socket, channel);
 				}
 			});
 
 			socket.on("requestUserCache", (username) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof username === "string") {
-					prefillAndEmitUserCache(socket, username);
+					emitUserCache(socket, username);
 				}
 			});
 
 			socket.on("requestCategoryCache", (categoryName) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (typeof categoryName === "string") {
-					prefillAndEmitCategoryCache(socket, categoryName);
+					emitCategoryCache(socket, categoryName);
 				}
 			});
 
@@ -446,17 +429,17 @@ module.exports = function(main) {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.channel) {
 					main.recipients().addChannelRecipient(details.channel, socket);
-					prefillAndEmitChannelCache(socket, details.channel);
+					emitChannelCache(socket, details.channel);
 					emitChannelUserList(socket, details.channel);
 					emitChannelData(socket, details.channel);
 				}
 				else if (details && details.username) {
 					main.recipients().addUserRecipient(details.username, socket);
-					prefillAndEmitUserCache(socket, details.username);
+					emitUserCache(socket, details.username);
 				}
 				else if (details && details.category) {
 					main.recipients().addCategoryRecipient(details.category, socket);
-					prefillAndEmitCategoryCache(socket, details.category);
+					emitCategoryCache(socket, details.category);
 				}
 			});
 
