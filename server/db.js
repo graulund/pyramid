@@ -988,7 +988,7 @@ const mainMethods = function(main, db) {
 				` LIMIT 1 OFFSET ${retainDbValue}`,
 				{},
 				dbCallback(function(err, data) {
-					if (!err) {
+					if (!err && data && data.time) {
 						deleteLinesBeforeTime(data.time, callback);
 					}
 				})
