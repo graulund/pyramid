@@ -62,5 +62,10 @@ module.exports = {
 		COLLAPSE_PRESENCE: 1,
 		COLLAPSE_MESSAGES: 2,
 		SHOW_ALL: 3
+	},
+
+	RETAIN_DB_TYPES: {
+		LINES: 0,
+		DAYS: 1
 	}
 };

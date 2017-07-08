@@ -155,7 +155,7 @@ class SettingsAppConfigView extends PureComponent {
 
 		var suffix = null;
 
-		if (name === "logLinesDb" && systemInfo.databaseSize) {
+		if (name === "retainDbType" && systemInfo.databaseSize) {
 			const dbSizeMb = (systemInfo.databaseSize / 1024 / 1024).toFixed(2);
 			suffix = <p><em>Current database size: { dbSizeMb } MB. Clear your database by running the <tt>clearDatabaseLogs.sh</tt> shell script in the <tt>scripts</tt> folder while Pyramid is turned off.</em></p>;
 		}

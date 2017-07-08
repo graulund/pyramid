@@ -957,6 +957,58 @@ const mainMethods = function(main, db) {
 		);
 	};
 
+	const deleteLinesBeforeTime = function(time, callback) {
+		time = getTimestamp(time);
+
+		console.log(new Date().toISOString() + " Deleting lines before time:", time);
+
+		db.run(
+			"DELETE FROM lines WHERE lines.time <= $time",
+			dollarize({ time }),
+			dbCallback(callback)
+		);
+	};
+
+	const deleteLinesBeforeRetentionPoint = function(
+		retainDbValue, retainDbType, callback
+	) {
+		if (retainDbValue <= 0) {
+			return;
+		}
+
+		if (retainDbType === constants.RETAIN_DB_TYPES.LINES) {
+			// Figure out the timestamp for the Nth line
+
+			// Sane lower bound for amount of lines
+			retainDbValue = Math.max(5000, retainDbValue);
+
+			db.get(
+				sq("lines", ["lines.time"]) + " " +
+				oq("lines.time", DESC) +
+				` LIMIT 1 OFFSET ${retainDbValue}`,
+				{},
+				dbCallback(function(err, data) {
+					if (!err) {
+						deleteLinesBeforeTime(data.time, callback);
+					}
+				})
+			);
+		}
+
+		else if (retainDbType === constants.RETAIN_DB_TYPES.DAYS) {
+			let time = timeUtils.offsetDate(new Date(), -1 * retainDbValue).toISOString();
+
+			if (time[0] !== "-") {
+				// If not weird negative values
+				deleteLinesBeforeTime(time, callback);
+			}
+		}
+
+		else {
+			console.warn(`Weird retain db type: ${retainDbType}`);
+		}
+	};
+
 	/*
 
 	API:
@@ -966,6 +1018,8 @@ const mainMethods = function(main, db) {
 	addServerToIrcConfig(data, callback)
 	addToFriends(serverId, username, isBestFriend, callback)
 	close()
+	deleteLinesBeforeRetentionPoint(retainDbValue, retainDbType, callback)
+	deleteLinesBeforeTime(time, callback)
 	deleteLinesWithLineIds(lineIds, callback)
 	getAllConfigValues(callback)
 	getChannelId(serverName, channelName, channelType, callback)
@@ -1013,6 +1067,8 @@ const mainMethods = function(main, db) {
 		addServerToIrcConfig,
 		addToFriends,
 		close,
+		deleteLinesBeforeRetentionPoint,
+		deleteLinesBeforeTime,
 		deleteLinesWithLineIds,
 		getAllConfigValues,
 		getChannelId,

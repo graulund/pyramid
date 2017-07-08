@@ -11,22 +11,35 @@ const ymd = function(d) {
 	return moment(d).format("YYYY-MM-DD");
 };
 
-const ym = function(d){
+const ym = function(d) {
 	if (!d) { d = new Date(); }
 	return moment(d).format("YYYY-MM");
 };
 
-const hmsPrefix = function(str, d){
+const hmsPrefix = function(str, d) {
 	return "[" + hms(d) + "] " + str;
 };
 
-const ymdhmsPrefix = function(str, d){
+const ymdhmsPrefix = function(str, d) {
 	return "[" + ymd(d) + " " + hms(d) + "] " + str;
+};
+
+const offsetDate = function(date, days) {
+	return new Date(
+		date.getFullYear(),
+		date.getMonth(),
+		date.getDay() + days,
+		date.getHours(),
+		date.getMinutes(),
+		date.getSeconds(),
+		date.getMilliseconds()
+	);
 };
 
 module.exports = {
 	hms,
 	hmsPrefix,
+	offsetDate,
 	ym,
 	ymd,
 	ymdhmsPrefix

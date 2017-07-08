@@ -24,6 +24,16 @@ module.exports = function(
 
 	var lineIdsToDelete = new Set();
 
+	// Util -------------------------------------------------------------------
+
+	const withUuid = function(data) {
+		return _.assign({}, data, { lineId: uuid.v4() });
+	};
+
+	const setChannelIdCache = function(cache) {
+		channelIdCache = cache;
+	};
+
 	const getCacheLinesSetting = function() {
 		const valueFromConfig = parseInt(appConfig.configValue("cacheLines"), 10);
 
@@ -33,6 +43,8 @@ module.exports = function(
 
 		return constants.CACHE_LINES;
 	};
+
+	// Storing and caching ----------------------------------------------------
 
 	const addChannelToDb = function(channelUri, callback) {
 		async.waterfall([
@@ -102,9 +114,7 @@ module.exports = function(
 
 		// Add to db
 
-		if (appConfig.configValue("logLinesDb")) {
-			storeLine(channel, data);
-		}
+		storeLine(channel, data);
 
 		// Send to users
 
@@ -144,6 +154,62 @@ module.exports = function(
 		}
 	};
 
+	const cacheMessage = function(
+		channelUri, serverName, username, symbol,
+		time, type, message, tags, relationship, highlightStrings,
+		privateMessageHighlightUser, messageToken, customCols
+	) {
+		let msg = {
+			channel: channelUri,
+			color: usernameUtils.getUserColorNumber(username),
+			highlight: highlightStrings,
+			lineId: uuid.v4(),
+			message,
+			relationship,
+			server: serverName,
+			symbol,
+			tags,
+			time,
+			type,
+			username
+		};
+
+		if (messageToken) {
+			msg.messageToken = messageToken;
+		}
+
+		if (customCols) {
+			msg = _.assign(msg, customCols);
+		}
+
+		// Record context if highlight
+		let isHighlight = highlightStrings && highlightStrings.length;
+
+		// Store into cache
+		cacheChannelEvent(channelUri, msg);
+		resetChannelBunch(channelUri);
+
+		// Friends
+		if (relationship >= constants.RELATIONSHIP_FRIEND) {
+			cacheUserMessage(username, msg);
+			cacheCategoryMessage("allfriends", msg);
+		}
+
+		// Highlights
+		if (isHighlight) {
+			cacheCategoryMessage("highlights", msg);
+		}
+
+		// Private messages
+		if (privateMessageHighlightUser) {
+			reportUnseenPrivateMessage(
+				serverName, privateMessageHighlightUser, msg
+			);
+		}
+	};
+
+	// Bunching ---------------------------------------------------------------
+
 	const replaceLastCacheItem = function(channel, data) {
 
 		// Replace in cache
@@ -158,25 +224,6 @@ module.exports = function(
 			deleteLinesWithLineIds(data.prevIds);
 		}
 	};
-
-	const storeBunchableLine = function(channel, data) {
-		// Store them in a cache...
-		if (appConfig.configValue("logLinesDb") && data && data.lineId) {
-			bunchableLinesToInsert[data.lineId] = { channel, data };
-		}
-	};
-
-	const _scheduledBunchableStore = function() {
-		_.forOwn(bunchableLinesToInsert, (line, key) => {
-			if (line && line.channel && line.data) {
-				storeLine(line.channel, line.data);
-			}
-			delete bunchableLinesToInsert[key];
-		});
-	};
-
-	// ...And insert them all regularly
-	setInterval(_scheduledBunchableStore, 10000);
 
 	const getBunchableItem = function(item) {
 		// We assume they're all in the same server/channel
@@ -270,59 +317,30 @@ module.exports = function(
 		currentBunchedMessage[channel] = null;
 	};
 
-	const cacheMessage = function(
-		channelUri, serverName, username, symbol,
-		time, type, message, tags, relationship, highlightStrings,
-		privateMessageHighlightUser, messageToken, customCols
-	) {
-		let msg = {
-			channel: channelUri,
-			color: usernameUtils.getUserColorNumber(username),
-			highlight: highlightStrings,
-			lineId: uuid.v4(),
-			message,
-			relationship,
-			server: serverName,
-			symbol,
-			tags,
-			time,
-			type,
-			username
-		};
+	// Schedules --------------------------------------------------------------
 
-		if (messageToken) {
-			msg.messageToken = messageToken;
-		}
+	// Bunchable lines
 
-		if (customCols) {
-			msg = _.assign(msg, customCols);
-		}
-
-		// Record context if highlight
-		let isHighlight = highlightStrings && highlightStrings.length;
-
-		// Store into cache
-		cacheChannelEvent(channelUri, msg);
-		resetChannelBunch(channelUri);
-
-		// Friends
-		if (relationship >= constants.RELATIONSHIP_FRIEND) {
-			cacheUserMessage(username, msg);
-			cacheCategoryMessage("allfriends", msg);
-		}
-
-		// Highlights
-		if (isHighlight) {
-			cacheCategoryMessage("highlights", msg);
-		}
-
-		// Private messages
-		if (privateMessageHighlightUser) {
-			reportUnseenPrivateMessage(
-				serverName, privateMessageHighlightUser, msg
-			);
+	const storeBunchableLine = function(channel, data) {
+		// Store them in a cache...
+		if (data && data.lineId) {
+			bunchableLinesToInsert[data.lineId] = { channel, data };
 		}
 	};
+
+	const _scheduledBunchableStore = function() {
+		_.forOwn(bunchableLinesToInsert, (line, key) => {
+			if (line && line.channel && line.data) {
+				storeLine(line.channel, line.data);
+			}
+			delete bunchableLinesToInsert[key];
+		});
+	};
+
+	// ...And insert them all regularly
+	setInterval(_scheduledBunchableStore, 10000);
+
+	// Clean up old lines
 
 	const deleteLinesWithLineIds = function(lineIds) {
 		lineIds.forEach((lineId) => {
@@ -338,19 +356,28 @@ module.exports = function(
 		if (lineIdsToDelete && lineIdsToDelete.size) {
 			const a = Array.from(lineIdsToDelete);
 			lineIdsToDelete.clear();
-			db.deleteLinesWithLineIds(a, function(){});
+			db.deleteLinesWithLineIds(a);
 		}
 	};
 
 	setInterval(_scheduledLineDelete, 10000);
 
-	const withUuid = function(data) {
-		return _.assign({}, data, { lineId: uuid.v4() });
+	// Line retention schedule
+
+	const _scheduledLineRetentionCleanup = function() {
+		console.log(new Date().toISOString() + " Clearing before retention point");
+		db.deleteLinesBeforeRetentionPoint(
+			appConfig.configValue("retainDbValue"),
+			appConfig.configValue("retainDbType"),
+			function() {
+				console.log(new Date().toISOString() + " Finished deleting lines");
+			}
+		);
 	};
 
-	const setChannelIdCache = function(cache) {
-		channelIdCache = cache;
-	};
+	setInterval(_scheduledLineRetentionCleanup, 60000);
+
+	// Getters ----------------------------------------------------------------
 
 	const returnDbCache = function(callback) {
 		return function(err, cache) {

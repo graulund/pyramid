@@ -4,9 +4,6 @@
 module.exports = {
 	debug: false,
 
-	// Whether or not to store the log lines in a database
-	logLinesDb: true,
-
 	// Whether or not to store the log files as text files in a folder
 	logLinesFile: true,
 
@@ -22,6 +19,10 @@ module.exports = {
 
 	// Scrollback ("cache") length
 	cacheLines: 150,
+
+	// How much to retain in the db
+	retainDbValue: 1000000,
+	retainDbType: 0,
 
 	// Appearance
 	showUserEvents: 2,
