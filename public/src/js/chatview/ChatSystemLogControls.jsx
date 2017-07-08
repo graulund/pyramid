@@ -12,9 +12,16 @@ const ChatSystemLogControls = function(props) {
 
 	if (awakeTimeString) {
 		let awakeTime = new Date(awakeTimeString);
+		let fullString = awakeTime.toString();
+
 		return (
-			<time dateTime={awakeTimeString} title={awakeTime.toString()}>
-				Up for <TimeAgo date={awakeTime} formatter={suffixlessFormatter} />
+			<time dateTime={awakeTimeString} title={fullString}>
+				Up for <TimeAgo
+					date={awakeTime}
+					formatter={suffixlessFormatter}
+					component="span"
+					title={fullString}
+					/>
 			</time>
 		);
 	}
