@@ -112,6 +112,12 @@ const settings = {
 			notice: "Doesn't affect your joined status"
 		},
 		{
+			name: "showActivityFlashes",
+			readableName: "Show activity flashes in sidebar",
+			type: "bool",
+			description: "Whenever there's activity in a channel, show a quick flash"
+		},
+		{
 			name: "showUserEvents",
 			readableName: "Show user events",
 			type: "enum",

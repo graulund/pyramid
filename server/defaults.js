@@ -31,6 +31,7 @@ module.exports = {
 	enableEmojiCodes: true,
 	enableEmojiImages: true,
 	enableDesktopNotifications: true,
+	showActivityFlashes: true,
 
 	// Twitch
 	automaticallyJoinTwitchGroupChats: true,

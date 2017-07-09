@@ -150,8 +150,14 @@ class TimedItem extends PureComponent {
 	}
 
 	flash() {
-		let { deviceVisible, visible } = this.props;
-		if (this.root && deviceVisible && visible) {
+		let { deviceVisible, showActivityFlashes, visible } = this.props;
+
+		if (
+			showActivityFlashes &&
+			deviceVisible &&
+			visible &&
+			this.root
+		) {
 			this.root.className = this.renderClassName(true);
 			this.flashTimeout = setTimeout(this.endFlash, 200);
 		}
@@ -282,6 +288,7 @@ TimedItem.propTypes = {
 	deviceVisible: PropTypes.bool,
 	enableDarkMode: PropTypes.bool,
 	prefix: PropTypes.node,
+	showActivityFlashes: PropTypes.bool,
 	skipOld: PropTypes.bool,
 	suffix: PropTypes.node,
 	time: PropTypes.string,
@@ -289,9 +296,10 @@ TimedItem.propTypes = {
 };
 
 export default connect(({
-	appConfig: { enableDarkMode },
+	appConfig: { enableDarkMode, showActivityFlashes },
 	deviceState: { visible }
 }) => ({
 	deviceVisible: visible,
-	enableDarkMode
+	enableDarkMode,
+	showActivityFlashes
 }))(TimedItem);
