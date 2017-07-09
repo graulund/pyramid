@@ -2,7 +2,11 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
+import { requestChannelData } from "../lib/io";
+
 const BADGE_SIZE = 18;
+
+const dataRequestedForChannels = [];
 
 class TwitchBadges extends PureComponent {
 	renderBadge(badge) {
@@ -69,16 +73,41 @@ TwitchBadges.propTypes = {
 	server: PropTypes.string.isRequired
 };
 
+const requestChannelBadgeData = function(channel) {
+	// Make sure we never request more than once for each channel
+
+	if (dataRequestedForChannels.indexOf(channel) < 0) {
+		dataRequestedForChannels.push(channel);
+		requestChannelData(channel);
+	}
+};
+
 const mapStateToProps = function(state, ownProps) {
 	let { channelData, serverData } = state;
 	let { badges, channel, server } = ownProps;
 
+	// No badges
+
+	if (!(badges instanceof Array) || !badges || !badges.length) {
+		return {};
+	}
+
 	let channelBadgeData = channelData[channel] && channelData[channel].badgeData;
 	let serverBadgeData = serverData[server] && serverData[server].badgeData;
 
-	if (!(badges instanceof Array) || (!channelBadgeData && !serverBadgeData)) {
+	// Request data if we don't already have it
+
+	if (!channelBadgeData) {
+		requestChannelBadgeData(channel);
+	}
+
+	// No badge data
+
+	if (!channelBadgeData && !serverBadgeData) {
 		return {};
 	}
+
+	// Format data
 
 	let dataSources = [
 		channelBadgeData || {},

@@ -131,6 +131,10 @@ export function requestLineContext(lineId) {
 	emit("requestLineContext", { lineId });
 }
 
+export function requestChannelData(channel) {
+	emit("requestChannelData", { channel });
+}
+
 export function requestSystemInfo() {
 	emit("requestSystemInfo");
 }

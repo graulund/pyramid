@@ -583,6 +583,18 @@ module.exports = function(main) {
 				}
 			});
 
+			// Requesting channel data
+
+			socket.on("requestChannelData", (details) => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (
+					details &&
+					typeof details.channel === "string"
+				) {
+					emitChannelData(socket, details.channel);
+				}
+			});
+
 			// Requesting base data
 
 			socket.on("reloadBaseData", () => {
