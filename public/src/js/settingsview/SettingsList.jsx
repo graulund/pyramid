@@ -24,7 +24,7 @@ class SettingsList extends PureComponent {
 		this.setBatchAddNames = refElSetter("batchAddNames").bind(this);
 
 		this.state = {
-			selectedItem: null,
+			selectedItem: props.selectedItem || null,
 			showingAddForm: null
 		};
 	}
@@ -262,14 +262,16 @@ class SettingsList extends PureComponent {
 
 		var adder = null;
 
-		if (showingAddForm === "one") {
-			adder = this.renderAddForm();
-		}
-		else if (showingAddForm === "batch") {
-			adder = this.renderBatchAddForm();
-		}
-		else {
-			adder = this.renderAddButtons();
+		if (typeof onAdd === "function") {
+			if (showingAddForm === "one") {
+				adder = this.renderAddForm();
+			}
+			else if (showingAddForm === "batch") {
+				adder = this.renderBatchAddForm();
+			}
+			else {
+				adder = this.renderAddButtons();
+			}
 		}
 
 		const className = "settings__list" + (
@@ -280,7 +282,7 @@ class SettingsList extends PureComponent {
 
 		return (
 			<div className={className} key="main">
-				{ typeof onAdd === "function" ? adder : null }
+				{ adder }
 				<ul>{ listEls }</ul>
 			</div>
 		);
@@ -293,11 +295,12 @@ SettingsList.propTypes = {
 	extraColumnDefaultValue: PropTypes.oneOfType([
 		PropTypes.string, PropTypes.number
 	]),
-	itemKindName: PropTypes.string,
-	list: PropTypes.array,
+	itemKindName: PropTypes.string.isRequired,
+	list: PropTypes.array.isRequired,
 	onAdd: PropTypes.func,
 	onRemove: PropTypes.func,
-	onSelect: PropTypes.func
+	onSelect: PropTypes.func,
+	selectedItem: PropTypes.any
 };
 
 export default SettingsList;

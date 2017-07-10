@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
 import { CHANGE_DEBOUNCE_MS } from "../constants";
-import SettingsList from "./SettingsList.jsx";
+import SettingsDetailView from "./SettingsDetailView.jsx";
 import * as io from "../lib/io";
 
 class SettingsNicknamesView extends PureComponent {
@@ -13,6 +13,7 @@ class SettingsNicknamesView extends PureComponent {
 
 		this.handleRemove = this.handleRemove.bind(this);
 		this.handleSelect = this.handleSelect.bind(this);
+		this.renderItemPanel = this.renderItemPanel.bind(this);
 
 		this.valueChangeHandlers = {};
 
@@ -89,55 +90,43 @@ class SettingsNicknamesView extends PureComponent {
 		);
 	}
 
-	renderItemPanel(item) {
-		const { selectedNickname } = this.state;
-
-		var style;
-
-		if (item) {
-			style = item.nickname === selectedNickname ? {} : { display: "none" };
-			return (
-				<div className="settings__detail-item" key={item.nickname} style={style}>
-					<h3>{ item.nickname }</h3>
-					<p>Change the value of these fields to specify where you want this nickname to apply. Leave them empty if you want this nickname to apply everywhere.</p>
-					<p>Type full names (without #). Separate by line breaks. Values are treated as case insensitive.</p>
-					<p className="ta">
-						<label htmlFor="item-serverBlacklist">
-							Server name black list:
-						</label>
-						{ this.renderItemTextarea(
-							item, "serverBlacklist", item.serverBlacklist) }
-					</p>
-					<p className="ta">
-						<label htmlFor="item-serverWhitelist">
-							Server name white list:
-						</label>
-						{ this.renderItemTextarea(
-							item, "serverWhitelist", item.serverWhitelist) }
-					</p>
-					<p className="ta">
-						<label htmlFor="item-channelBlacklist">
-							Channel name black list:
-						</label>
-						{ this.renderItemTextarea(
-							item, "channelBlacklist", item.channelBlacklist) }
-					</p>
-					<p className="ta">
-						<label htmlFor="item-channelWhitelist">
-							Channel name white list:
-						</label>
-						{ this.renderItemTextarea(
-							item, "channelWhitelist", item.channelWhitelist) }
-					</p>
-				</div>
-			);
-		}
-
-		style = !selectedNickname ? {} : { display: "none" };
+	renderItemPanel(nickname) {
+		const { nicknames } = this.props;
+		const item = nicknames[nickname];
 
 		return (
-			<div className="settings__detail-noitem" key="noitem" style={style}>
-				<p>Select an item.</p>
+			<div>
+				<h3>{ item.nickname }</h3>
+				<p>Change the value of these fields to specify where you want this nickname to apply. Leave them empty if you want this nickname to apply everywhere.</p>
+				<p>Type full names (without #). Separate by line breaks. Values are treated as case insensitive.</p>
+				<p className="ta">
+					<label htmlFor="item-serverBlacklist">
+						Server name black list:
+					</label>
+					{ this.renderItemTextarea(
+						item, "serverBlacklist", item.serverBlacklist) }
+				</p>
+				<p className="ta">
+					<label htmlFor="item-serverWhitelist">
+						Server name white list:
+					</label>
+					{ this.renderItemTextarea(
+						item, "serverWhitelist", item.serverWhitelist) }
+				</p>
+				<p className="ta">
+					<label htmlFor="item-channelBlacklist">
+						Channel name black list:
+					</label>
+					{ this.renderItemTextarea(
+						item, "channelBlacklist", item.channelBlacklist) }
+				</p>
+				<p className="ta">
+					<label htmlFor="item-channelWhitelist">
+						Channel name white list:
+					</label>
+					{ this.renderItemTextarea(
+						item, "channelWhitelist", item.channelWhitelist) }
+				</p>
 			</div>
 		);
 	}
@@ -152,21 +141,14 @@ class SettingsNicknamesView extends PureComponent {
 			<div key="main">
 				<p>Nicknames are alternative words that highlight you when mentioned by another user.</p>
 				<p>Nicknames can only contain letters, numbers, spaces, and simple punctuation.</p>
-				<div className="settings__detail-view">
-					<SettingsList
-						itemKindName="nickname"
-						list={nicknamesList}
-						onAdd={this.handleAdd}
-						onRemove={this.handleRemove}
-						onSelect={this.handleSelect}
-						/>
-					{
-						nicknamesList.map((nickname) => {
-							return this.renderItemPanel(nicknames[nickname]);
-						})
-					}
-					{ this.renderItemPanel(null) }
-				</div>
+				<SettingsDetailView
+					itemKindName="nickname"
+					list={nicknamesList}
+					onAdd={this.handleAdd}
+					onRemove={this.handleRemove}
+					onSelect={this.handleSelect}
+					renderItemPanel={this.renderItemPanel}
+					/>
 			</div>
 		);
 	}
