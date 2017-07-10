@@ -51,10 +51,8 @@ class SettingsNicknamesView extends PureComponent {
 		io.addNickname(nickname.name);
 	}
 
-	handleRemove(nickname, evt) {
+	handleRemove(nickname) {
 		const { selectedNickname } = this.state;
-
-		evt.stopPropagation();
 
 		if (
 			confirm(

@@ -29,10 +29,15 @@ class SettingsList extends PureComponent {
 		};
 	}
 
-	componentWillReceiveProps(newProps) {
-		if (newProps.list !== this.props.list) {
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.list !== this.props.list) {
 			// Reset event handlers map if we have a new list
 			this.eventHandlers.clear();
+		}
+
+		if (nextProps.selectedItem !== this.props.selectedItem) {
+			// Respond to external changes of selected item
+			this.setState({ selectedItem: nextProps.selectedItem });
 		}
 	}
 
