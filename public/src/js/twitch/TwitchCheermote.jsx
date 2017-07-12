@@ -50,7 +50,7 @@ class TwitchCheermote extends PureComponent {
 					text={text}
 					urlSet={urlSet}
 					key="emote" />
-				{ amount }
+				{ amount.toLocaleString() }
 			</strong>
 		);
 	}
