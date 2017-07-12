@@ -125,8 +125,8 @@ const settings = {
 			notice: "Collapse presence means: If someone joins and immediately leaves, don't display anything for them",
 			valueNames: [
 				"Off",
-				"Collapse events into one line",
 				"Collapse presence (default)",
+				"Collapse events into one line",
 				"Show all"
 			]
 		},

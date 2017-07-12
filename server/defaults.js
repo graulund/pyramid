@@ -25,7 +25,7 @@ module.exports = {
 	retainDbType: 0,
 
 	// Appearance
-	showUserEvents: 2,
+	showUserEvents: 1,
 	enableUsernameColors: true,
 	enableDarkMode: false,
 	enableEmojiCodes: true,
