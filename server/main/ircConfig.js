@@ -266,8 +266,6 @@ module.exports = function(db, io) {
 	const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
 		name = name.replace(/^#/, "");
 
-		console.log("modifyChannelInIrcConfig", { serverName, name, details });
-
 		// Add any new configuration to the old one
 		if (details.channelConfig) {
 			let current = getIrcConfigChannelByName(serverName, name);
