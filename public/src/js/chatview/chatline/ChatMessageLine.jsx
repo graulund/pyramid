@@ -164,8 +164,12 @@ class ChatMessageLine extends PureComponent {
 		}
 
 		var prefix = null;
+		var displayedSymbol = symbol;
 
 		if (useTwitch) {
+
+			// Symbols aren't visible
+			displayedSymbol = "";
 
 			// Twitch color
 			if (enableTwitchColors && tags && tags.color) {
@@ -210,7 +214,7 @@ class ChatMessageLine extends PureComponent {
 							color={authorColor}
 							displayName={authorDisplayName}
 							serverName={server}
-							symbol={symbol}
+							symbol={displayedSymbol}
 							username={username}
 							key="username" />,
 						" "
