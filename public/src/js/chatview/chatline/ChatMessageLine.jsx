@@ -6,6 +6,7 @@ import ChatUsername from "./ChatUsername.jsx";
 import TwitchBadges from "../../twitch/TwitchBadges.jsx";
 import TwitchCheermote from "../../twitch/TwitchCheermote.jsx";
 import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
+import { fixColorContrast } from "../../lib/color";
 import { parseChannelUri } from "../../lib/channelNames";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
 
@@ -121,7 +122,9 @@ class ChatMessageLine extends PureComponent {
 			channel,
 			cleared = false,
 			color,
+			colorBlindness,
 			displayUsername,
+			enableDarkMode,
 			enableTwitchBadges,
 			enableTwitchColors,
 			enableUsernameColors,
@@ -136,11 +139,11 @@ class ChatMessageLine extends PureComponent {
 
 		const { unhidden } = this.state;
 
-		const className = block +
+		const tokens = tokenizeChatLine(this.props, useTwitch);
+
+		var className = block +
 			(type !== "msg" ? ` ${block}--${type}` : "") +
 			(cleared && showTwitchDeletedMessages ? ` ${block}--cleared` : "");
-
-		const tokens = tokenizeChatLine(this.props, useTwitch);
 
 		var messageContent;
 
@@ -165,6 +168,7 @@ class ChatMessageLine extends PureComponent {
 
 		var prefix = null;
 		var displayedSymbol = symbol;
+		var styles;
 
 		if (useTwitch) {
 
@@ -173,7 +177,17 @@ class ChatMessageLine extends PureComponent {
 
 			// Twitch color
 			if (enableTwitchColors && tags && tags.color) {
-				authorColor = tags.color;
+				let { color } = tags;
+				authorColor = color;
+
+				// Extra color on actions
+				if (type === "action") {
+					let fixedColors = fixColorContrast(color, colorBlindness);
+					let fixedColor = enableDarkMode
+						? fixedColors.dark : fixedColors.light;
+					styles = { color: fixedColor };
+					className += ` ${block}--twitch-action`;
+				}
 			}
 
 			// Twitch display name
@@ -205,14 +219,20 @@ class ChatMessageLine extends PureComponent {
 		}
 
 		const content = (
-			<span className={className} data-user-id={authorUserId} key="main">
+			<span
+				className={className}
+				data-user-id={authorUserId}
+				style={styles}
+				key="main">
 				{ prefix }
 				{ username && displayUsername
 					? [
 						<ChatUsername
 							className={authorClassName}
 							color={authorColor}
+							colorBlindness={colorBlindness}
 							displayName={authorDisplayName}
+							enableDarkMode={enableDarkMode}
 							serverName={server}
 							symbol={displayedSymbol}
 							username={username}
@@ -232,8 +252,10 @@ ChatMessageLine.propTypes = {
 	channelName: PropTypes.string,
 	cleared: PropTypes.bool,
 	color: PropTypes.number,
+	colorBlindness: PropTypes.number,
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
+	enableDarkMode: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
 	enableTwitchBadges: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
@@ -259,6 +281,8 @@ const mapStateToProps = function(state, ownProps) {
 	let { appConfig, serverData } = state;
 
 	let {
+		colorBlindness,
+		enableDarkMode,
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchBadges,
@@ -273,6 +297,8 @@ const mapStateToProps = function(state, ownProps) {
 	let useTwitch = enableTwitch && thisServerData && thisServerData.isTwitch;
 
 	return {
+		colorBlindness,
+		enableDarkMode,
 		enableEmojiImages,
 		enableTwitchBadges,
 		enableTwitchColors,

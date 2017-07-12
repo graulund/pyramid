@@ -1,6 +1,5 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
 
 import { fixColorContrast } from "../../lib/color";
 
@@ -32,8 +31,8 @@ class ChatUsername extends PureComponent {
 		// String color
 
 		if (color && typeof color === "string") {
-			let fixedColor = fixColorContrast(color, colorBlindness);
-			styles.color = enableDarkMode ? fixedColor.dark : fixedColor.light;
+			let fixedColors = fixColorContrast(color, colorBlindness);
+			styles.color = enableDarkMode ? fixedColors.dark : fixedColors.light;
 		}
 
 		return (
@@ -60,9 +59,4 @@ ChatUsername.propTypes = {
 	username: PropTypes.string.isRequired
 };
 
-export default connect(({
-	appConfig: { colorBlindness, enableDarkMode }
-}) => ({
-	colorBlindness,
-	enableDarkMode
-}))(ChatUsername);
+export default ChatUsername;
