@@ -234,6 +234,11 @@ const mainMethods = function(main, db) {
 
 				channels.forEach((channel) => {
 					if (channel && channel.serverId) {
+
+						if (channel.channelConfig) {
+							channel.channelConfig = JSON.parse(channel.channelConfig);
+						}
+
 						const s = servers.filter(
 							(s) => s && s.serverId === channel.serverId
 						);
@@ -535,6 +540,14 @@ const mainMethods = function(main, db) {
 	const modifyChannelInIrcConfig = function(channelId, data, callback) {
 		if (data.lastSeenTime) {
 			data.lastSeenTime = getTimestamp(data.lastSeenTime);
+		}
+
+		if (data.channelConfig) {
+			data.channelConfig = JSON.stringify(data.channelConfig);
+
+			if (data.channelConfig === "{}") {
+				data.channelConfig = null;
+			}
 		}
 
 		db.run(

@@ -796,6 +796,36 @@ module.exports = function(main) {
 				}
 			});
 
+			socket.on("setChannelConfigValue", (details) => {
+				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
+				if (
+					details &&
+					details.serverName &&
+					details.channelName &&
+					details.key
+				) {
+					let { key, value } = details;
+					let serverName = stringUtils.formatUriName(details.serverName);
+					let channelName = stringUtils.formatUriName(details.channelName);
+
+					main.ircConfig().modifyChannelInIrcConfig(
+						serverName, channelName,
+						{ channelConfig: { [key]: value } },
+						(err) => {
+							if (err) {
+								console.warn(
+									"Error occurred setting channel config value",
+									err
+								);
+							}
+							else {
+								emitIrcConfig(socket);
+							}
+						}
+					);
+				}
+			});
+
 			socket.on("addNickname", (details) => {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.nickname) {

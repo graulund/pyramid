@@ -1,0 +1,19 @@
+-- Adds channelConfig column to ircChannels table
+BEGIN TRANSACTION;
+ALTER TABLE "ircChannels" RENAME TO 'ircChannels_ME_TMP';
+CREATE TABLE "ircChannels" (
+"channelId" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+"serverId" INTEGER NOT NULL REFERENCES "ircServers"("serverId"),
+"channelType" INTEGER DEFAULT 0 NOT NULL,
+"name" TEXT NOT NULL,
+"displayName" TEXT,
+"lastSeenTime" TEXT,
+"lastSeenUsername" TEXT,
+"lastSeenDisplayName" TEXT,
+"isEnabled" INTEGER NOT NULL DEFAULT 1,
+"channelConfig" TEXT
+);
+INSERT INTO "ircChannels"  ("channelId", "serverId", "channelType", "name", "displayName", "lastSeenTime", "lastSeenUsername", "lastSeenDisplayName", "isEnabled") SELECT "channelId", "serverId", "channelType", "name", "displayName", "lastSeenTime", "lastSeenUsername", "lastSeenDisplayName", "isEnabled" FROM "ircChannels_ME_TMP";
+DROP TABLE "ircChannels_ME_TMP";
+CREATE UNIQUE INDEX "serverChannel" ON "ircChannels" ("serverId", "channelType", "name");
+COMMIT;

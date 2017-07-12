@@ -135,9 +135,14 @@ module.exports = function(
 		channelUri, serverName, type, data, time, ircClient
 	) {
 
-		let eventVisibilitySetting =
-			appConfig.configValue("showUserEvents") ||
-			type === "connectionEvent";
+		let eventVisibilitySetting = appConfig.configValue("showUserEvents");
+		let localSetting = ircConfig.channelConfigValue(channelUri, "showUserEvents");
+
+		if (typeof localSetting === "number") {
+			eventVisibilitySetting = localSetting;
+		}
+
+		eventVisibilitySetting = eventVisibilitySetting || type === "connectionEvent";
 
 		let username = data && data.username || "";
 

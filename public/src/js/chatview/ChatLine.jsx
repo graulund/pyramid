@@ -13,7 +13,7 @@ import ChatUserEventLine from "./chatline/ChatUserEventLine.jsx";
 import ChatUserNoticeLinePrefix from "./chatline/ChatUserNoticeLinePrefix.jsx";
 import LogLine from "./chatline/LogLine.jsx";
 import { USER_EVENT_VISIBILITY } from "../constants";
-import { getChannelDisplayNameFromState } from "../lib/channelNames";
+import { getChannelIrcConfigFromState } from "../lib/channelNames";
 import { prepareBunchedEvents } from "../lib/chatEvents";
 import { dateStamp, timeStamp } from "../lib/formatting";
 
@@ -249,15 +249,22 @@ ChatLine.propTypes = {
 
 const mapStateToProps = function(state, ownProps) {
 	let { channel } = ownProps;
-	let channelDisplayName = getChannelDisplayNameFromState(state, channel);
+	let c = getChannelIrcConfigFromState(state, channel);
 
 	let {
 		showTwitchClearChats,
 		showUserEvents
 	} = state.appConfig;
 
+	if (
+		c.channelConfig &&
+		typeof c.channelConfig.showUserEvents === "number"
+	) {
+		showUserEvents = c.channelConfig.showUserEvents;
+	}
+
 	return {
-		channelDisplayName,
+		channelDisplayName: c && c.displayName || "",
 		showTwitchClearChats,
 		showUserEvents
 	};

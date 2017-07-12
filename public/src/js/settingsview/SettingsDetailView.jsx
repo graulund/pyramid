@@ -89,6 +89,7 @@ class SettingsDetailView extends PureComponent {
 		return (
 			<div className="settings__detail-view">
 				<SettingsList
+					brief
 					itemKindName={itemKindName}
 					list={list}
 					onAdd={onAdd}

@@ -193,6 +193,10 @@ export function removeIrcChannel(serverName, name) {
 	emit("removeIrcChannel", { serverName, name });
 }
 
+export function setChannelConfigValue(serverName, channelName, key, value) {
+	emit("setChannelConfigValue", { channelName, key, serverName, value });
+}
+
 export function addNickname(nickname) {
 	emit("addNickname", { nickname });
 }

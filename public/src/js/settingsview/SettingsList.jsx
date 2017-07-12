@@ -226,7 +226,7 @@ class SettingsList extends PureComponent {
 	}
 
 	renderListItem(item, i) {
-		const { extraColumn, itemKindName, onRemove } = this.props;
+		const { brief, extraColumn, itemKindName, onRemove } = this.props;
 		const { selectedItem } = this.state;
 
 		const eventHandler = this.getEventHandler(item);
@@ -241,10 +241,11 @@ class SettingsList extends PureComponent {
 			? extraColumn(item)
 			: null;
 
+		const removeText = "Remove" + (!brief ? " " + itemKindName : "");
 		const removeButton = (typeof onRemove === "function")
 			? (
 				<button onClick={eventHandler.remove}>
-					Remove { itemKindName }
+					{ removeText }
 				</button>
 			)
 			: null;
@@ -295,6 +296,7 @@ class SettingsList extends PureComponent {
 }
 
 SettingsList.propTypes = {
+	brief: PropTypes.bool,
 	extraColumn: PropTypes.func,
 	extraColumnName: PropTypes.string,
 	extraColumnDefaultValue: PropTypes.oneOfType([

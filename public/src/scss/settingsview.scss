@@ -177,6 +177,10 @@
 		background-color: #fff;
 		overflow: hidden;
 
+		.settings--irc & {
+			min-width: 350px;
+		}
+
 		ul {
 			border-left: none;
 			border-right: none;

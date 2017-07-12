@@ -96,9 +96,18 @@ module.exports = function(db, io) {
 			if (channels) {
 				outConfig.channels = {};
 				channels.forEach((channel) => {
-					let { channelType, displayName, name } = channel;
+					let { channelConfig, channelType, displayName, name } = channel;
 					if (channelType === CHANNEL_TYPES.PUBLIC) {
-						outConfig.channels[name] = { displayName, name };
+						let out;
+
+						if (channelConfig) {
+							out = { channelConfig, displayName, name };
+						}
+						else {
+							out = { displayName, name };
+						}
+
+						outConfig.channels[name] = out;
 					}
 				});
 			}
@@ -119,6 +128,19 @@ module.exports = function(db, io) {
 		return null;
 	};
 
+	const getIrcConfigChannelByName = function(serverName, name, ircConfig = currentIrcConfig) {
+		let s = getIrcConfigByName(serverName, ircConfig);
+		if (s) {
+			let channels = s.channels.filter((channel) => channel.name === name);
+
+			if (channels) {
+				return channels[0] || null;
+			}
+		}
+
+		return null;
+	};
+
 	const getConfigPublicChannelsInServer = function(serverName, ircConfig = currentIrcConfig) {
 		const s = getIrcConfigByName(serverName, ircConfig);
 		if (s) {
@@ -130,6 +152,27 @@ module.exports = function(db, io) {
 		}
 
 		return [];
+	};
+
+	const channelConfigValue = function(channelUri, name) {
+		let uriData = channelUtils.parseChannelUri(channelUri);
+
+		if (!uriData) {
+			// Invalid URI
+			return undefined;
+		}
+
+		let { channel, channelType, server } = uriData;
+
+		if (channelType === CHANNEL_TYPES.PUBLIC) {
+			let c = getIrcConfigChannelByName(server, channel);
+
+			if (c && c.channelConfig) {
+				return c.channelConfig[name];
+			}
+		}
+
+		return undefined;
 	};
 
 	// Storing
@@ -222,6 +265,20 @@ module.exports = function(db, io) {
 
 	const modifyChannelInIrcConfig = function(serverName, name, details, callback) {
 		name = name.replace(/^#/, "");
+
+		console.log("modifyChannelInIrcConfig", { serverName, name, details });
+
+		// Add any new configuration to the old one
+		if (details.channelConfig) {
+			let current = getIrcConfigChannelByName(serverName, name);
+
+			if (current && current.channelConfig) {
+				details.channelConfig = _.assign(
+					{}, current.channelConfig, details.channelConfig
+				);
+			}
+		}
+
 		async.waterfall([
 			(callback) => db.getChannelId(
 				serverName, name, CHANNEL_TYPES.PUBLIC, callback
@@ -320,6 +377,7 @@ module.exports = function(db, io) {
 		addChannelToIrcConfigFromUri,
 		addIrcServerFromDetails,
 		addServerToIrcConfig,
+		channelConfigValue,
 		channelIdCache: () => channelIdCache,
 		currentIrcConfig: () => currentIrcConfig,
 		getConfigPublicChannelsInServer,

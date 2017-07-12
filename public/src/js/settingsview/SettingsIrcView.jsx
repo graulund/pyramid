@@ -4,12 +4,27 @@ import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 
-import SettingsList from "./SettingsList.jsx";
+import SettingsDetailView from "./SettingsDetailView.jsx";
 import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
 import { CHANGE_DEBOUNCE_MS, INPUT_SELECTOR } from "../constants";
 import { ucfirst } from "../lib/formatting";
 import * as io from "../lib/io";
 import { refElSetter } from "../lib/refEls";
+
+const channelSettings = [
+	{
+		name: "showUserEvents",
+		readableName: "User event visibility settings for this channel",
+		type: "enum",
+		description: "How to handle join and part events",
+		valueNames: [
+			"Off",
+			"Collapse presence (factory default)",
+			"Collapse events into one line",
+			"Show all"
+		]
+	}
+];
 
 class SettingsIrcView extends PureComponent {
 	constructor(props) {
@@ -18,8 +33,10 @@ class SettingsIrcView extends PureComponent {
 		this.onAddServer = this.onAddServer.bind(this);
 		this.onAddSubmit = this.onAddSubmit.bind(this);
 		this.onChangeValue = this.onChangeValue.bind(this);
+		this.renderIrcChannelPanel = this.renderIrcChannelPanel.bind(this);
 
 		this.eventHandlers = {};
+		this.channelConfigChangeHandlers = {};
 		this.valueChangeHandlers = {};
 
 		this.els = {};
@@ -48,11 +65,23 @@ class SettingsIrcView extends PureComponent {
 		}
 	}
 
+	getChannelConfig(serverName, channelName) {
+		let { ircConfigs } = this.props;
+		let s = ircConfigs[serverName];
+
+		if (s && s.channels && s.channels[channelName]) {
+			return s.channels[channelName].channelConfig;
+		}
+
+		return null;
+	}
+
 	// Cache the bound handler methods so they don't change on every render
 
 	createEventHandler(name) {
 		return {
 			addChannel: (c) => this.onAddChannel(name, c),
+			renderChannelPanel: (c) => this.renderIrcChannelPanel(name, c),
 			removeChannel: (c) => this.onRemoveChannel(name, c),
 			removeServer: () => this.onRemoveServer(name)
 		};
@@ -86,6 +115,31 @@ class SettingsIrcView extends PureComponent {
 		}
 
 		return this.valueChangeHandlers[serverName][id];
+	}
+
+	createChannelConfigChangeHandler(serverName, channelName, key) {
+		const myChangeValue = debounce(this.onChannelConfigChangeValue, CHANGE_DEBOUNCE_MS);
+
+		return {
+			number: (evt) => myChangeValue(
+				serverName, channelName, key, +evt.target.value
+			)
+		};
+	}
+
+	getChannelConfigChangeHandler(serverName, channelName, key) {
+		// Cache the value change handlers so they don't change
+
+		let id = [serverName, channelName, key].join("/");
+
+		if (!this.channelConfigChangeHandlers[id]) {
+			this.channelConfigChangeHandlers[id] =
+				this.createChannelConfigChangeHandler(
+					serverName, channelName, key
+				);
+		}
+
+		return this.channelConfigChangeHandlers[id];
 	}
 
 	showAddForm() {
@@ -150,6 +204,20 @@ class SettingsIrcView extends PureComponent {
 			const { newServer } = this.state;
 			this.setState({ newServer: { ...newServer, [id]: value } });
 		}
+	}
+
+	onChannelConfigChangeValue(serverName, channelName, key, value) {
+		console.log(
+			"Tried to set channel config value",
+			serverName, channelName, key, value
+		);
+
+		if (typeof value === "number" && isNaN(value)) {
+			console.warn("Denied setting a numeric value setting to NaN");
+			return;
+		}
+
+		io.setChannelConfigValue(serverName, channelName, key, value);
 	}
 
 	onAddSubmit(evt) {
@@ -220,6 +288,64 @@ class SettingsIrcView extends PureComponent {
 		);
 	}
 
+	renderIrcChannelPanel(serverName, channelName) {
+
+		// Current config
+		let channelConfig = this.getChannelConfig(serverName, channelName) || {};
+
+		// Form fields
+		let fields = channelSettings.map((setting) => {
+			let { description, name, notice, readableName, valueNames } = setting;
+
+			// Change handler
+			let changeHandler = this.getChannelConfigChangeHandler(
+				serverName, channelName, name
+			);
+
+			let defaultValue = -1;
+
+			if (channelConfig[name] && typeof channelConfig[name] === "number") {
+				defaultValue = channelConfig[name];
+			}
+
+			let options = valueNames.map(
+				(name, i) => <option key={i} value={i}>{ name }</option>
+			);
+
+			let input = (
+				<select
+					id={name}
+					defaultValue={defaultValue}
+					onChange={changeHandler.number}
+					key="input">
+					<option key="0" value="-1">Use default value</option>
+					<optgroup label="Override default" key="1">
+						{ options }
+					</optgroup>
+				</select>
+			);
+
+			return (
+				<div className="settings__setting" key={name}>
+					<h3>
+						<label htmlFor={name}>{ readableName }</label>
+					</h3>
+					{ input }
+					{ description ? <p>{ description }</p> : null }
+					{ notice ? <p><em>{ notice }</em></p> : null }
+				</div>
+			);
+		});
+
+		return (
+			<div>
+				<h3>{ channelName }</h3>
+				<p>You can override some of the default settings for this channel specifically.</p>
+				{ fields }
+			</div>
+		);
+	}
+
 	renderIrcConfigForm(data) {
 		const eventHandler = this.getEventHandler(data.name);
 
@@ -263,11 +389,12 @@ class SettingsIrcView extends PureComponent {
 				</div>
 				<div className="settings__section" key="channels">
 					<h2>Channels</h2>
-					<SettingsList
+					<SettingsDetailView
 						itemKindName="channel"
 						list={Object.keys(data.channels)}
 						onAdd={eventHandler.addChannel}
 						onRemove={eventHandler.removeChannel}
+						renderItemPanel={eventHandler.renderChannelPanel}
 					/>
 				</div>
 			</div>
@@ -290,6 +417,7 @@ class SettingsIrcView extends PureComponent {
 			</div>
 		);
 	}
+
 	render() {
 		const { ircConfigs } = this.props;
 		const { showingAddForm } = this.state;
@@ -300,7 +428,7 @@ class SettingsIrcView extends PureComponent {
 					: <button onClick={this.onAddServer}>Add IRC server</button>;
 
 		return (
-			<div key="main">
+			<div className="settings--irc" key="main">
 				{ adder }
 				{ configs.map((c) => this.renderIrcConfig(c)) }
 			</div>
