@@ -257,7 +257,7 @@ const mapStateToProps = function(state, ownProps) {
 	} = state.appConfig;
 
 	if (
-		c.channelConfig &&
+		c && c.channelConfig &&
 		typeof c.channelConfig.showUserEvents === "number"
 	) {
 		showUserEvents = c.channelConfig.showUserEvents;
