@@ -77,8 +77,9 @@ module.exports = function(db, io) {
 					}
 				}
 			});
-			serverIdCache = serverIds;
-			channelIdCache = channelIds;
+
+			serverIdCache = _.assign(serverIdCache, serverIds);
+			channelIdCache = _.assign(channelIdCache, channelIds);
 		}
 	};
 
