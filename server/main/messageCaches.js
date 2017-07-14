@@ -417,8 +417,8 @@ module.exports = function(
 				func = logs.getMostRecentHighlightsLines;
 				break;
 			case "system":
-				func = function(a, b, callback) { callback(null, systemCache); };
-				break;
+				callback(null, systemCache);
+				return;
 		}
 
 		return func(
