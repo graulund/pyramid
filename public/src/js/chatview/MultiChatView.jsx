@@ -31,7 +31,6 @@ class MultiChatView extends PureComponent {
 			if (query && type) {
 				content = (
 					<ChatView
-						focus={focus}
 						pageType={type}
 						pageQuery={query} />
 				);
@@ -46,11 +45,14 @@ class MultiChatView extends PureComponent {
 		}
 
 		if (!content) {
-			content = <NoChatView focus={focus} />;
+			content = <NoChatView />;
 		}
 
+		let className = "multichat__item" +
+			(focus ? " multichat__item--focus" : "");
+
 		return (
-			<div className="multichat__item" style={styles} key={index}>
+			<div className={className} style={styles} key={index}>
 				{ content }
 			</div>
 		);

@@ -277,7 +277,17 @@ body.darkmode {
 		}
 	}
 
-	.multichat__inner {
-		background-color: #4b4b55;
+	.multichat {
+		&__inner {
+			background-color: #4b4b55;
+		}
+
+		&__item {
+			&--focus {
+				&:after {
+					border-color: rgba(255,255,255,.075);
+				}
+			}
+		}
 	}
 }

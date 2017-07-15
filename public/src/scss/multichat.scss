@@ -17,5 +17,22 @@
 	&__item {
 		background-color: #fff;
 		overflow: hidden;
+
+		&--focus {
+			position: relative;
+
+			&:after {
+				content: "";
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+
+				border: 3px solid rgba(0,0,0,.1);
+				pointer-events: none;
+				z-index: 20;
+			}
+		}
 	}
 }
