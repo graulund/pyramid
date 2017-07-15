@@ -9,15 +9,13 @@
 	}
 
 	&__content {
-		//flex: 1 1 auto;
-		overflow: auto;
+		display: flex;
 		flex: 1;
-		//min-height: -webkit-min-content;
 
-		/*&--inner {
-			height: 100%;
+		&__primary {
+			flex: 1;
 			overflow: auto;
-		}*/
+		}
 	}
 
 	&__top {

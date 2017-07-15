@@ -9,9 +9,10 @@ import ChannelUserList from "./ChannelUserList.jsx";
 import ChatLines from "./ChatLines.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { reportHighlightAsSeen } from "../lib/io";
+import { refElSetter } from "../lib/refEls";
 import {
 	areWeScrolledToTheBottom, scrollToTheBottom, scrollToTheTop
-} from "../lib/visualBehavior";
+} from "../lib/scrolling";
 
 const FLASHING_LINE_CLASS_NAME = "flashing";
 
@@ -29,6 +30,9 @@ class ChatFrame extends PureComponent {
 			unobserve: this.onUnobserve
 		};
 
+		this.els = {};
+		this.setPrimaryEl = refElSetter("primary").bind(this);
+
 		this.atBottom = true;
 
 		this.clearObserver();
@@ -37,8 +41,8 @@ class ChatFrame extends PureComponent {
 	componentDidMount() {
 		let { lines, logDate } = this.props;
 
-		if (lines && lines.length && !logDate) {
-			scrollToTheBottom();
+		if (lines && lines.length && !logDate && this.els.primary) {
+			scrollToTheBottom(this.els.primary);
 		}
 	}
 
@@ -65,7 +69,7 @@ class ChatFrame extends PureComponent {
 			pageType === oldType &&
 			logDate === oldLogDate
 		) {
-			this.atBottom = areWeScrolledToTheBottom();
+			this.atBottom = areWeScrolledToTheBottom(this.els.primary);
 		}
 	}
 
@@ -110,10 +114,10 @@ class ChatFrame extends PureComponent {
 
 		if (lines !== oldLines || offlineMessages !== oldOfflineMessages) {
 			if (logDate) {
-				scrollToTheTop();
+				scrollToTheTop(this.els.primary);
 			}
 			else if (this.atBottom || pageChanged) {
-				scrollToTheBottom();
+				scrollToTheBottom(this.els.primary);
 			}
 		}
 
@@ -124,7 +128,7 @@ class ChatFrame extends PureComponent {
 			!oldUserListOpen &&
 			this.atBottom
 		) {
-			scrollToTheBottom();
+			scrollToTheBottom(this.els.primary);
 		}
 
 		// Log browser opened
@@ -155,7 +159,7 @@ class ChatFrame extends PureComponent {
 	onEmoteLoad() {
 		let { logDate } = this.props;
 		if (!logDate && this.atBottom) {
-			scrollToTheBottom();
+			scrollToTheBottom(this.els.primary);
 		}
 	}
 
@@ -291,9 +295,10 @@ class ChatFrame extends PureComponent {
 			const lineEl = root.querySelector(`#line-${lineId}`);
 			if (lineEl) {
 				// Center the line if possible
-				window.scrollTo(0,
+				// TODO: FIX
+				/*window.scrollTo(0,
 					lineEl.offsetTop - window.innerHeight/2
-				);
+				);*/
 
 				// Flashing
 				lineEl.classList.remove(FLASHING_LINE_CLASS_NAME);
@@ -366,7 +371,8 @@ class ChatFrame extends PureComponent {
 		return (
 			<div className="mainview__content chatview__frame">
 				<div
-					className="chatview__frame__primary"
+					className="mainview__content__primary chatview__frame__primary"
+					ref={this.setPrimaryEl}
 					key="primary">
 					{ content }
 				</div>

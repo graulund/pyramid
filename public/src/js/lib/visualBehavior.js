@@ -5,40 +5,6 @@ export function isMobile() {
 	return window.innerWidth < 768;
 }
 
-export function scrollToTheTop() {
-	window.scrollTo(0, 0);
-}
-
-export function areWeScrolledToTheBottom() {
-	let contentHeight = document.getElementById("container").clientHeight;
-	let windowHeight = window.innerHeight;
-
-	let scrollTop = window.pageYOffset ||
-		document.documentElement.scrollTop ||
-		document.body.scrollTop ||
-		0;
-
-	return (contentHeight - (scrollTop + windowHeight)) <= 100 ||
-		windowHeight >= contentHeight;
-}
-
-export function scrollToTheBottom() {
-	window.scrollTo(0, document.getElementById("container").clientHeight);
-}
-
-export function stickToTheBottom() {
-	if (areWeScrolledToTheBottom()) {
-		scrollToTheBottom();
-	}
-	else {
-		// TODO: If you're *not* scrolled to the bottom, scroll UP
-		// by a specific amount, so it looks like the content is
-		// not moving
-
-		// Plus, add a notice that there's new content?
-	}
-}
-
 function initTouchDeviceTest() {
 	window.addEventListener("touchstart", function onFirstTouch() {
 		store.dispatch(actions.deviceState.update({ isTouchDevice: true }));

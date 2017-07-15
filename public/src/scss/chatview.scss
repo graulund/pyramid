@@ -51,13 +51,6 @@
 .chatview {
 
 	&__frame {
-		display: flex;
-		overflow: hidden;
-
-		&__primary {
-			flex: 1;
-		}
-
 		&__secondary {
 			flex: 0 0 auto;
 		}
