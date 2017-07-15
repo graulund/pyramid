@@ -4,11 +4,28 @@ import { connect } from "react-redux";
 
 import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
+import * as multiChat from "../lib/multiChat";
 
 class MultiChatView extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.renderItem = this.renderItem.bind(this);
+
+		this.setFocusHandlers = {};
+	}
+
+	createFocusHandler(index) {
+		return () => multiChat.setFocus(index);
+	}
+
+	getFocusHandler(index) {
+		// Cache the value change handlers so they don't change
+
+		if (!this.setFocusHandlers[index]) {
+			this.setFocusHandlers[index] = this.createFocusHandler(index);
+		}
+
+		return this.setFocusHandlers[index];
 	}
 
 	renderItem(data, index) {
@@ -31,6 +48,7 @@ class MultiChatView extends PureComponent {
 			if (query && type) {
 				content = (
 					<ChatView
+						focus={focus}
 						pageType={type}
 						pageQuery={query} />
 				);
@@ -51,8 +69,14 @@ class MultiChatView extends PureComponent {
 		let className = "multichat__item" +
 			(focus ? " multichat__item--focus" : "");
 
+		let onClick = this.getFocusHandler(index);
+
 		return (
-			<div className={className} style={styles} key={index}>
+			<div
+				className={className}
+				style={styles}
+				onClick={onClick}
+				key={index}>
 				{ content }
 			</div>
 		);

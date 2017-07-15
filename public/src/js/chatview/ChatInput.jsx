@@ -78,9 +78,13 @@ class ChatInput extends PureComponent {
 		return false;
 	}
 
-	componentWillReceiveProps(newProps) {
-		if (newProps && newProps.channel !== this.props.channel) {
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.channel !== this.props.channel) {
 			this.resetCurrentHistory();
+		}
+
+		if (nextProps.focus && !this.props.focus) {
+			this.focus(nextProps);
 		}
 	}
 
@@ -150,11 +154,11 @@ class ChatInput extends PureComponent {
 		return displayNames;
 	}
 
-	focus() {
-		const { isTouchDevice } = this.props;
+	focus(props = this.props) {
+		const { focus, isTouchDevice } = props;
 		const { input: inputEl } = this.els;
 
-		if (inputEl && !isTouchDevice) {
+		if (focus && inputEl && !isTouchDevice) {
 			inputEl.focus();
 		}
 	}
@@ -462,6 +466,7 @@ ChatInput.propTypes = {
 	channelData: PropTypes.object,
 	channelUserList: PropTypes.object,
 	displayName: PropTypes.string,
+	focus: PropTypes.bool,
 	enableEmojiCodes: PropTypes.bool,
 	enableTwitch: PropTypes.bool,
 	enableTwitchChannelDisplayNames: PropTypes.bool,

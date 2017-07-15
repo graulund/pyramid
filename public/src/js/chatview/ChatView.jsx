@@ -198,8 +198,9 @@ class ChatView extends PureComponent {
 
 	render() {
 		const {
+			deviceFocus,
 			displayName,
-			inFocus,
+			focus,
 			lines,
 			logBrowserOpen,
 			logDate,
@@ -253,7 +254,7 @@ class ChatView extends PureComponent {
 					key="header" />
 
 				<ChatFrame
-					inFocus={inFocus}
+					inFocus={deviceFocus}
 					isLiveChannel={isLiveChannel}
 					lines={lines}
 					loading={loading}
@@ -268,6 +269,7 @@ class ChatView extends PureComponent {
 
 				<ChatViewFooter
 					displayName={displayName}
+					focus={focus}
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}
@@ -284,8 +286,9 @@ class ChatView extends PureComponent {
 }
 
 ChatView.propTypes = {
+	deviceFocus: PropTypes.bool,
 	displayName: PropTypes.string,
-	inFocus: PropTypes.bool,
+	focus: PropTypes.bool,
 	isVisible: PropTypes.bool,
 	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
@@ -341,7 +344,7 @@ const mapStateToProps = function(state, ownProps) {
 
 	return {
 		displayName,
-		inFocus: state.deviceState.inFocus,
+		deviceFocus: state.deviceState.inFocus,
 		isVisible: state.deviceState.visible,
 		lastReload,
 		lines,
