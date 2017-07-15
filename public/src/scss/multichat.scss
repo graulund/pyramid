@@ -1,0 +1,21 @@
+.multichat {
+	position: relative;
+	height: 100%;
+
+	&__inner {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+
+		display: grid;
+		grid-gap: 1px;
+		background-color: #ccc;
+	}
+
+	&__item {
+		background-color: #fff;
+		overflow: hidden;
+	}
+}
