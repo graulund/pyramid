@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import { withRouter } from "react-router-dom";
 
 import AccessKeys from "./AccessKeys.jsx";
 import ConnectionInfo from "./ConnectionInfo.jsx";
@@ -37,4 +38,4 @@ App.propTypes = {
 	children: PropTypes.node
 };
 
-export default App;
+export default withRouter(App);
