@@ -9,7 +9,8 @@ body.darkmode {
 	.channeluserlist,
 	.chatview .contextview__main,
 	.sidebar__system-menu,
-	.switcher a {
+	.switcher a,
+	.multichat__item {
 		background-color: #2b2b33;
 		color: #ccc;
 
@@ -274,5 +275,9 @@ body.darkmode {
 		.sidebar, .channeluserlist {
 			box-shadow: 0 0 60px 0 #000;
 		}
+	}
+
+	.multichat__inner {
+		background-color: #4b4b55;
 	}
 }
