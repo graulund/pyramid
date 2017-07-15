@@ -291,7 +291,7 @@ class Sidebar extends PureComponent {
 		);
 
 		return (
-			<div>
+			<div className="sidebar__outer">
 				{ sidebar }
 				{ systemMenu }
 			</div>

@@ -184,7 +184,7 @@ body.darkmode {
 	}
 
 	// Keep the sidebar right border even in mobile mode
-	.sidebar:after {
+	.sidebar__outer:after {
 		background-color: rgba(255,255,255,.2);
 
 		@media #{$mobile-media} {

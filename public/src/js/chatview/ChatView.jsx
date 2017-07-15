@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import shallowEqual from "fbjs/lib/shallowEqual";
 
-import ChannelUserList from "./ChannelUserList.jsx";
 import ChatFrame from "./ChatFrame.jsx";
 import ChatViewFooter from "./ChatViewFooter.jsx";
 import ChatViewHeader from "./ChatViewHeader.jsx";
@@ -220,14 +219,6 @@ class ChatView extends PureComponent {
 		const liveUrl = this.contentLiveUrl();
 		const isLiveChannel = this.isLiveChannel();
 
-		var userList = null;
-
-		if (isLiveChannel && userListOpen) {
-			userList = <ChannelUserList
-				channel={pageQuery}
-				key="userList" />;
-		}
-
 		const loader = (
 			<div key="loader" style={loadingStyles}>
 				<Loader className="loader mainview__loader" />
@@ -263,6 +254,7 @@ class ChatView extends PureComponent {
 
 				<ChatFrame
 					inFocus={inFocus}
+					isLiveChannel={isLiveChannel}
 					lines={lines}
 					loading={loading}
 					logBrowserOpen={logBrowserOpen}
@@ -284,7 +276,6 @@ class ChatView extends PureComponent {
 					pageQuery={pageQuery}
 					key="footer" />
 
-				{ userList }
 				{ loader }
 
 			</div>

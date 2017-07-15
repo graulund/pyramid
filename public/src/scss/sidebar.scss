@@ -1,16 +1,10 @@
-.sidebar {
-	position: fixed;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	z-index: 10;
-	width: 320px;
-	background-color: #f7f7f7;
-	overflow: auto;
+.sidebar__outer {
+	position: relative;
+	height: 100%;
 
 	&:after {
 		content: "";
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 319px;
 		bottom: 0;
@@ -18,6 +12,14 @@
 		width: 1px;
 		background: rgba(0,0,51,.067);
 	}
+}
+
+.sidebar {
+	position: relative;
+	width: 320px;
+	height: 100%;
+	background-color: #f7f7f7;
+	overflow: auto;
 
 	.app-container--with-notice & {
 		&, &:after {

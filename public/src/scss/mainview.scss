@@ -1,11 +1,26 @@
 .mainview {
-	margin: 60px 0 60px 320px;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+
+	> * {
+		flex: 0 0 auto;
+	}
+
+	&__content {
+		//flex: 1 1 auto;
+		overflow: auto;
+		flex: 1;
+		//min-height: -webkit-min-content;
+
+		/*&--inner {
+			height: 100%;
+			overflow: auto;
+		}*/
+	}
 
 	&__top {
-		position: fixed;
-		top: 0;
-		left: 320px;
-		right: 0;
 		padding: 10px 20px;
 		min-height: 20px;
 		background-color: #fff;

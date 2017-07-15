@@ -10,7 +10,7 @@ function openSidebar() {
 
 const Header = function() {
 	return (
-		<div id="header">
+		<div className="global-header">
 			<a
 				className="sidebar__open"
 				href="javascript://"

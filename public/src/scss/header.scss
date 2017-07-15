@@ -1,4 +1,10 @@
-#header {
+.global-header {
+	display: none;
+
+	@media #{$mobile-media} {
+		display: block;
+	}
+
 	.highlightslink {
 		display: none;
 		pointer-events: none;

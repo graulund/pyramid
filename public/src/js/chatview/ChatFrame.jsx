@@ -5,6 +5,7 @@ import remove from "lodash/remove";
 import values from "lodash/values";
 import "intersection-observer";
 
+import ChannelUserList from "./ChannelUserList.jsx";
 import ChatLines from "./ChatLines.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { reportHighlightAsSeen } from "../lib/io";
@@ -316,11 +317,13 @@ class ChatFrame extends PureComponent {
 
 	render() {
 		const {
+			isLiveChannel,
 			lines,
 			loading,
 			offlineMessages,
 			pageQuery,
-			pageType
+			pageType,
+			userListOpen
 		} = this.props;
 
 		const displayChannel = pageType !== PAGE_TYPES.CHANNEL;
@@ -328,6 +331,14 @@ class ChatFrame extends PureComponent {
 			pageType === PAGE_TYPES.CATEGORY &&
 			pageQuery === "highlights";
 		const displayUsername = pageType !== PAGE_TYPES.USER;
+
+		var userList = null;
+
+		if (isLiveChannel && userListOpen) {
+			userList = <ChannelUserList
+				channel={pageQuery}
+				key="userList" />;
+		}
 
 		var allLines = lines;
 
@@ -352,12 +363,28 @@ class ChatFrame extends PureComponent {
 			onEmoteLoad={this.onEmoteLoad}
 			key="main" />;
 
-		return content;
+		return (
+			<div className="mainview__content chatview__frame">
+				<div
+					className="chatview__frame__primary"
+					key="primary">
+					{ content }
+				</div>
+				{ userList ? (
+					<div
+						className="chatview__frame__secondary"
+						key="secondary">
+						{ userList }
+					</div>
+				) : null }
+			</div>
+		);
 	}
 }
 
 ChatFrame.propTypes = {
 	inFocus: PropTypes.bool,
+	isLiveChannel: PropTypes.bool,
 	lineId: PropTypes.string,
 	lines: PropTypes.array,
 	loading: PropTypes.bool,

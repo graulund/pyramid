@@ -1,0 +1,38 @@
+.app-container {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+
+	> * {
+		flex: 0 0 auto;
+	}
+
+	&__inner {
+		flex: 1 1 auto;
+
+		position: relative;
+	}
+
+	&__iinner {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+
+		display: flex;
+
+		> * {
+			flex: 0 0 auto;
+		}
+	}
+
+	&__iinner &__main {
+		flex: 1 1 auto;
+	}
+
+	&__main {
+		height: 100%;
+		overflow: hidden;
+	}
+}

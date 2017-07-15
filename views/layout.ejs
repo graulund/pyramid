@@ -25,14 +25,10 @@
 	<link rel="apple-touch-icon" href="/img/touchicon.png" type="image/png">
 </head>
 <body class="<%= bodyClassName %>">
-<div id="container">
-	<section id="content">
-		<%- body %>
-	</section>
+<%- body %>
 <% if (_enableScripts) { %>
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="/dist/js/main.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/dist/js/main.js"></script>
 <% } %>
-</div>
 </body>
 </html>
