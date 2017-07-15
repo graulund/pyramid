@@ -11,6 +11,7 @@ import {
 	getTwitchUserDisplayNameString,
 	DISPLAY_NAME_PREFIX_TYPES
 } from "../lib/displayNames";
+import { setFocus } from "../lib/multiChat";
 import { postMessage } from "../lib/posting";
 import { refElSetter } from "../lib/refEls";
 
@@ -49,6 +50,7 @@ class ChatInput extends PureComponent {
 		this.focus = this.focus.bind(this);
 		this.onBodyKey = this.onBodyKey.bind(this);
 		this.onChange = this.onChange.bind(this);
+		this.onFocus = this.onFocus.bind(this);
 		this.onKeyDown = this.onKeyDown.bind(this);
 		this.onKeyUp = this.onKeyUp.bind(this);
 		this.submit = this.submit.bind(this);
@@ -302,6 +304,14 @@ class ChatInput extends PureComponent {
 		}
 	}
 
+	onFocus() {
+		let { focus, index } = this.props;
+
+		if (!focus && typeof index === "number") {
+			setFocus(index);
+		}
+	}
+
 	onKeyDown(evt) {
 		const { channel } = this.props;
 		const { input: inputEl } = this.els;
@@ -447,6 +457,7 @@ class ChatInput extends PureComponent {
 					type="text"
 					ref={this.setInputEl}
 					onChange={this.onChange}
+					onFocus={this.onFocus}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
 					tabIndex={1}
@@ -471,6 +482,7 @@ ChatInput.propTypes = {
 	enableTwitch: PropTypes.bool,
 	enableTwitchChannelDisplayNames: PropTypes.bool,
 	enableTwitchUserDisplayNames: PropTypes.number,
+	index: PropTypes.number,
 	isTouchDevice: PropTypes.bool
 };
 

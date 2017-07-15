@@ -1,5 +1,5 @@
-export function scrollToTheTop() {
-	window.scrollTo(0, 0);
+export function scrollToTheTop(container) {
+	container.scrollTop = 0;
 }
 
 export function areWeScrolledToTheBottom(container, content) {

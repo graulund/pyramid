@@ -6,9 +6,13 @@ import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import * as multiChat from "../lib/multiChat";
 
+const focusPrev = function() { multiChat.shiftFocus(-1); };
+const focusNext = function() { multiChat.shiftFocus(+1); };
+
 class MultiChatView extends PureComponent {
 	constructor(props) {
 		super(props);
+
 		this.renderItem = this.renderItem.bind(this);
 
 		this.setFocusHandlers = {};
@@ -49,6 +53,7 @@ class MultiChatView extends PureComponent {
 				content = (
 					<ChatView
 						focus={focus}
+						index={index}
 						pageType={type}
 						pageQuery={query} />
 				);
@@ -91,8 +96,20 @@ class MultiChatView extends PureComponent {
 
 		return (
 			<div className="multichat">
-				<div className="multichat__inner">
+				<div className="multichat__inner" key="inner">
 					{ currentLayout.map(this.renderItem) }
+				</div>
+				<div className="accesskeys" key="accesskeys">
+					<a
+						href="javascript://"
+						accessKey=","
+						onClick={focusPrev}
+						key="prev">Previous</a>
+					<a
+						href="javascript://"
+						accessKey="."
+						onClick={focusNext}
+						key="next">Next</a>
 				</div>
 			</div>
 		);

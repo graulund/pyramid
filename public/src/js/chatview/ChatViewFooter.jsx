@@ -9,6 +9,7 @@ class ChatViewFooter extends PureComponent {
 		const {
 			displayName,
 			focus,
+			index,
 			isLiveChannel,
 			logDate,
 			logDetails,
@@ -22,6 +23,7 @@ class ChatViewFooter extends PureComponent {
 				channel={pageQuery}
 				displayName={displayName}
 				focus={focus}
+				index={index}
 				key="bottom" />;
 		}
 		else if (logDate) {
@@ -40,6 +42,7 @@ class ChatViewFooter extends PureComponent {
 ChatViewFooter.propTypes = {
 	displayName: PropTypes.string,
 	focus: PropTypes.bool,
+	index: PropTypes.number,
 	isLiveChannel: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,

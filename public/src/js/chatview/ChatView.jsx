@@ -201,6 +201,7 @@ class ChatView extends PureComponent {
 			deviceFocus,
 			displayName,
 			focus,
+			index,
 			lines,
 			logBrowserOpen,
 			logDate,
@@ -270,6 +271,7 @@ class ChatView extends PureComponent {
 				<ChatViewFooter
 					displayName={displayName}
 					focus={focus}
+					index={index}
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}
@@ -289,6 +291,7 @@ ChatView.propTypes = {
 	deviceFocus: PropTypes.bool,
 	displayName: PropTypes.string,
 	focus: PropTypes.bool,
+	index: PropTypes.number,
 	isVisible: PropTypes.bool,
 	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
