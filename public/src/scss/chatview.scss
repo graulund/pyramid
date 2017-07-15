@@ -331,6 +331,10 @@
 		}
 	}
 
+	&__input {
+		position: relative;
+	}
+
 	&__input, &__pagination {
 		padding: 15px 20px 30px;
 		margin: 0;
