@@ -7,7 +7,11 @@ import "intersection-observer";
 
 import ChannelUserList from "./ChannelUserList.jsx";
 import ChatLines from "./ChatLines.jsx";
-import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
+import { CHANNEL_TYPES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
+import { parseChannelUri } from "../lib/channelNames";
+import {
+	reportConversationAsSeenIfNeeded, setConversationAsOpen, setConversationAsClosed
+} from "../lib/conversations";
 import { reportHighlightAsSeen } from "../lib/io";
 import { refElSetter } from "../lib/refEls";
 import {
@@ -35,6 +39,7 @@ class ChatFrame extends PureComponent {
 
 		this.atBottom = true;
 
+		this.setUriData(props);
 		this.clearObserver();
 	}
 
@@ -44,6 +49,8 @@ class ChatFrame extends PureComponent {
 		if (lines && lines.length && !logDate && this.els.primary) {
 			scrollToTheBottom(this.els.primary);
 		}
+
+		this.setConversationAsOpen();
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -107,6 +114,9 @@ class ChatFrame extends PureComponent {
 		);
 
 		if (pageChanged) {
+			this.setConversationAsClosed(this.uriData);
+			this.setUriData();
+			this.setConversationAsOpen();
 			this.clearObserver();
 		}
 
@@ -118,6 +128,10 @@ class ChatFrame extends PureComponent {
 			}
 			else if (this.atBottom || pageChanged) {
 				scrollToTheBottom(this.els.primary);
+			}
+
+			if (inFocus) {
+				this.reportConversationAsSeen();
 			}
 		}
 
@@ -149,6 +163,10 @@ class ChatFrame extends PureComponent {
 		if (inFocus && !oldInFocus) {
 			this.handleBackInFocus();
 		}
+	}
+
+	componentWillUnmount() {
+		this.setConversationAsClosed();
 	}
 
 	isLiveChannel(props = this.props) {
@@ -285,6 +303,50 @@ class ChatFrame extends PureComponent {
 			this.reportElementAsSeen(el);
 		});
 		this.currentlyVisible = [];
+		this.reportConversationAsSeen();
+	}
+
+	setUriData(props = this.props) {
+		let { pageType, pageQuery } = props;
+		let uriData = null;
+
+		if (pageType === PAGE_TYPES.CHANNEL && pageQuery) {
+			uriData = parseChannelUri(pageQuery);
+		}
+
+		this.uriData = uriData;
+	}
+
+	reportConversationAsSeen() {
+		let { isLiveChannel } = this.props;
+
+		if (isLiveChannel && this.uriData) {
+			let { channel, channelType, server } = this.uriData;
+
+			if (channelType === CHANNEL_TYPES.PRIVATE) {
+				reportConversationAsSeenIfNeeded(server, channel);
+			}
+		}
+	}
+
+	setConversationAsOpen(uriData = this.uriData) {
+		if (uriData) {
+			let { channel, channelType, server } = uriData;
+
+			if (channelType === CHANNEL_TYPES.PRIVATE) {
+				setConversationAsOpen(server, channel);
+			}
+		}
+	}
+
+	setConversationAsClosed(uriData = this.uriData) {
+		if (uriData) {
+			let { channel, channelType, server } = uriData;
+
+			if (channelType === CHANNEL_TYPES.PRIVATE) {
+				setConversationAsClosed(server, channel);
+			}
+		}
 	}
 
 	// DOM
