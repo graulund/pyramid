@@ -22,9 +22,9 @@ class ChatViewFooter extends PureComponent {
 			return <ChatInput
 				channel={pageQuery}
 				displayName={displayName}
-				focus={focus}
 				index={index}
-				key="bottom" />;
+				viewFocus={focus}
+				key="input" />;
 		}
 		else if (logDate) {
 			return <ChatViewLogPagination
