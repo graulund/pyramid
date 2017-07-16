@@ -6,8 +6,31 @@ import ChatView from "./ChatView.jsx";
 import NoChatView from "./NoChatView.jsx";
 import * as multiChat from "../lib/multiChat";
 
-const focusPrev = function() { multiChat.shiftFocus(-1); };
-const focusNext = function() { multiChat.shiftFocus(+1); };
+const focusPrev = function() {
+	multiChat.shiftFocus(-1);
+};
+
+const focusNext = function() {
+	multiChat.shiftFocus(1);
+};
+
+const repeatedArray = function(string, times) {
+	let a = new Array(times);
+
+	for (let i = 0; i < times; i++) {
+		a[i] = string;
+	}
+
+	return a;
+};
+
+const fractionString = function(amount) {
+	if (amount > 1) {
+		return repeatedArray("1fr", amount).join(" ");
+	}
+
+	return undefined;
+};
 
 class MultiChatView extends PureComponent {
 	constructor(props) {
@@ -98,9 +121,16 @@ class MultiChatView extends PureComponent {
 			return <NoChatView />;
 		}
 
+		let { width, height } = multiChat.getCurrentDimensions();
+
+		let styles = {
+			gridTemplateColumns: fractionString(width),
+			gridTemplateRows: fractionString(height)
+		};
+
 		return (
 			<div className="multichat">
-				<div className="multichat__inner" key="inner">
+				<div className="multichat__inner" style={styles} key="inner">
 					{ currentLayout.map(this.renderItem) }
 				</div>
 				<div className="accesskeys" key="accesskeys">

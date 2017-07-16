@@ -61,3 +61,27 @@ export function locationIsMultiChat(location) {
 	// Only front page for now
 	return location.pathname === homeUrl;
 }
+
+export function getCurrentDimensions() {
+	let { currentLayout } = getCurrentData();
+
+	let width = 0, height = 0;
+
+	if (currentLayout) {
+		currentLayout.forEach((item) => {
+			let { columnEnd, columnStart, rowEnd, rowStart } = item;
+			let x = columnEnd || columnStart;
+			let y = rowEnd || rowStart;
+
+			if (x > width) {
+				width = x;
+			}
+
+			if (y > height) {
+				height = y;
+			}
+		});
+	}
+
+	return { width, height };
+}
