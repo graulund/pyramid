@@ -48,7 +48,7 @@ export function handleNewUnseenConversationsList(list) {
 		let { openConversations } = state.viewState;
 
 		if (inFocus && openConversations) {
-			list = {...list};
+			list = { ...list };
 			Object.keys(list).forEach((key) => {
 				if (openConversations[key] > 0) {
 					delete list[key];
