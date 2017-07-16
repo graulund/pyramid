@@ -51,6 +51,14 @@ export function handleNewUnseenConversationsList(list) {
 			list = { ...list };
 			Object.keys(list).forEach((key) => {
 				if (openConversations[key] > 0) {
+					let item = list[key];
+
+					// Report them as seen if they're open and we're in focus
+					if (item) {
+						let { serverName, username } = item;
+						reportConversationAsSeen(serverName, username);
+					}
+
 					delete list[key];
 				}
 			});
