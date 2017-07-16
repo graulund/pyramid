@@ -1,16 +1,16 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 
 import ChannelName from "../components/ChannelName.jsx";
 import ChatHighlightsControls from "./ChatHighlightsControls.jsx";
 import ChatSystemLogControls from "./ChatSystemLogControls.jsx";
-import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
+import ChatViewLink from "../components/ChatViewLink.jsx";
+import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
 import UserLink from "../components/UserLink.jsx";
-import { CATEGORY_NAMES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
+import { CATEGORY_NAMES, CHANNEL_TYPES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
-import { conversationUrl } from "../lib/routeHelpers";
+import { getChannelUri } from "../lib/channelNames";
 import store from "../store";
 import actions from "../actions";
 
@@ -38,7 +38,6 @@ class ChatViewHeader extends PureComponent {
 	renderControls() {
 		const {
 			isLiveChannel,
-			liveUrl,
 			logBrowserOpen,
 			logDate,
 			pageQuery,
@@ -68,9 +67,11 @@ class ChatViewHeader extends PureComponent {
 
 		if (logDate) {
 			logBrowserToggler = (
-				<Link to={liveUrl}>
+				<ChatViewLink
+					type={pageType}
+					query={pageQuery}>
 					Live
-				</Link>
+				</ChatViewLink>
 			);
 		} else {
 			if (logBrowserOpen) {
@@ -106,11 +107,16 @@ class ChatViewHeader extends PureComponent {
 		}
 
 		else if (pageType === PAGE_TYPES.USER && serverName) {
+			let conversationUri = getChannelUri(
+				serverName, pageQuery, CHANNEL_TYPES.PRIVATE
+			);
 			conversationLink = (
 				<li key="conversationlink">
-					<Link to={conversationUrl(serverName, pageQuery)}>
+					<ChatViewLink
+						type={PAGE_TYPES.CHANNEL}
+						query={conversationUri}>
 						Conversation
-					</Link>
+					</ChatViewLink>
 				</li>
 			);
 		}
@@ -129,13 +135,20 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	renderLogBrowser() {
-		const { logBrowserOpen, logDate, logDetails, logUrl } = this.props;
+		let {
+			logBrowserOpen,
+			logDate,
+			logDetails,
+			pageQuery,
+			pageType
+		} = this.props;
 
 		if (logBrowserOpen || logDate) {
 			return <ChatViewLogBrowser
 				logDate={logDate}
 				logDetails={logDetails}
-				logUrl={logUrl}
+				pageQuery={pageQuery}
+				pageType={pageType}
 				key="logbrowser" />;
 		}
 
@@ -183,7 +196,6 @@ class ChatViewHeader extends PureComponent {
 ChatViewHeader.propTypes = {
 	displayName: PropTypes.string,
 	isLiveChannel: PropTypes.bool,
-	liveUrl: PropTypes.string,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,

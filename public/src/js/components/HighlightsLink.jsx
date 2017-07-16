@@ -1,10 +1,9 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
 
-import { CATEGORY_NAMES } from "../constants";
-import { categoryUrl } from "../lib/routeHelpers";
+import ChatViewLink from "./ChatViewLink.jsx";
+import { CATEGORY_NAMES, PAGE_TYPES } from "../constants";
 
 const block = "highlightslink";
 
@@ -33,9 +32,12 @@ class HighlightsLink extends PureComponent {
 		if (noText) {
 			if (badge) {
 				return (
-					<Link to={categoryUrl("highlights")} className={className}>
+					<ChatViewLink
+						type={PAGE_TYPES.CATEGORY}
+						query="highlights"
+						className={className}>
 						{ badge }
-					</Link>
+					</ChatViewLink>
 				);
 			}
 
@@ -43,10 +45,13 @@ class HighlightsLink extends PureComponent {
 		}
 
 		return (
-			<Link to={categoryUrl("highlights")} className={className}>
+			<ChatViewLink
+				type={PAGE_TYPES.CATEGORY}
+				query="highlights"
+				className={className}>
 				<span key="text">{ CATEGORY_NAMES.highlights }</span>
 				{ badge }
-			</Link>
+			</ChatViewLink>
 		);
 	}
 }

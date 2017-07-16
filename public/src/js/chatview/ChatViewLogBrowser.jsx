@@ -1,8 +1,10 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 import forOwn from "lodash/forOwn";
 
+import ChatViewLink from "../components/ChatViewLink.jsx";
+import { PAGE_TYPE_NAMES } from "../constants";
+import { pluralize } from "../lib/formatting";
 import { refElSetter } from "../lib/refEls";
 
 class ChatViewLogBrowser extends PureComponent {
@@ -30,7 +32,7 @@ class ChatViewLogBrowser extends PureComponent {
 	}
 
 	render() {
-		const { logDate, logDetails, logUrl } = this.props;
+		const { logDate, logDetails, pageQuery, pageType } = this.props;
 
 		var timeStamps = [];
 
@@ -43,17 +45,20 @@ class ChatViewLogBrowser extends PureComponent {
 		timeStamps.sort();
 
 		const detailsEls = timeStamps.map((timeStamp) => {
-			const url = logUrl(timeStamp);
-			const className = timeStamp === logDate
-				? "current" : "";
-			const lines = logDetails[timeStamp];
-			const title = `${lines} line` + (lines === 1 ? "" : "s");
+			let className = timeStamp === logDate ? "current" : "";
+			let lines = logDetails[timeStamp];
+			let title = lines + " " + pluralize(lines, "line", "s");
 
 			return (
 				<li key={timeStamp}>
-					<Link to={url} className={className} title={title}>
+					<ChatViewLink
+						type={pageType}
+						query={pageQuery}
+						date={timeStamp}
+						className={className}
+						title={title}>
 						{ timeStamp }
-					</Link>
+					</ChatViewLink>
 				</li>
 			);
 		});
@@ -80,7 +85,9 @@ class ChatViewLogBrowser extends PureComponent {
 ChatViewLogBrowser.propTypes = {
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
-	logUrl: PropTypes.func
+	logUrl: PropTypes.func,
+	pageQuery: PropTypes.string.isRequired,
+	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired
 };
 
 ChatViewLogBrowser.contextTypes = {

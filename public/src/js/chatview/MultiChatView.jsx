@@ -43,6 +43,8 @@ class MultiChatView extends PureComponent {
 			let {
 				columnEnd,
 				columnStart,
+				logDate,
+				pageNumber,
 				query,
 				rowEnd,
 				rowStart,
@@ -54,6 +56,8 @@ class MultiChatView extends PureComponent {
 					<ChatView
 						focus={focus}
 						index={index}
+						logDate={logDate}
+						pageNumber={pageNumber}
 						pageType={type}
 						pageQuery={query} />
 				);

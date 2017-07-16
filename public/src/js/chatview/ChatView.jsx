@@ -9,9 +9,8 @@ import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
-import { getConversationData } from "../lib/displayNames";
 import * as io from "../lib/io";
-import { conversationUrl, subjectName, subjectUrl } from "../lib/routeHelpers";
+import { subjectName, subjectUrl } from "../lib/routeHelpers";
 import store from "../store";
 import actions from "../actions";
 
@@ -27,7 +26,7 @@ class ChatView extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.contentLogUrl = this.contentLogUrl.bind(this);
+		this.contentUrl = this.contentUrl.bind(this);
 
 		this.state = {
 			loading: true
@@ -57,37 +56,7 @@ class ChatView extends PureComponent {
 
 	contentUrl(date, pageNumber) {
 		const { pageType, pageQuery } = this.props;
-		var convoData;
-
-		if (pageType === PAGE_TYPES.CHANNEL) {
-			convoData = getConversationData(pageQuery);
-		}
-
-		if (date) {
-			if (convoData) {
-				let { server, username } = convoData;
-				return conversationUrl(server, username, date, pageNumber);
-			}
-
-			return subjectUrl(pageType, pageQuery, date, pageNumber);
-		}
-
-		else {
-			if (convoData) {
-				let { server, username } = convoData;
-				return conversationUrl(server, username);
-			}
-
-			return subjectUrl(pageType, pageQuery);
-		}
-	}
-
-	contentLiveUrl() {
-		return this.contentUrl();
-	}
-
-	contentLogUrl(date, pageNumber) {
-		return this.contentUrl(date, pageNumber);
+		return subjectUrl(pageType, pageQuery, date, pageNumber);
 	}
 
 	isLiveChannel() {
@@ -218,7 +187,6 @@ class ChatView extends PureComponent {
 
 		const loadingStyles = loading ? null : HIDDEN_STYLES;
 
-		const liveUrl = this.contentLiveUrl();
 		const isLiveChannel = this.isLiveChannel();
 
 		const loader = (
@@ -244,11 +212,10 @@ class ChatView extends PureComponent {
 				<ChatViewHeader
 					displayName={displayName}
 					isLiveChannel={isLiveChannel}
-					liveUrl={liveUrl}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
 					logDetails={logDetails}
-					logUrl={this.contentLogUrl}
+					logUrl={this.contentUrl}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					serverName={deducedServerName}
@@ -275,9 +242,9 @@ class ChatView extends PureComponent {
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}
-					logUrl={this.contentLogUrl}
 					pageNumber={pageNumber}
 					pageQuery={pageQuery}
+					pageType={pageType}
 					key="footer" />
 
 				{ loader }

@@ -1,14 +1,20 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 
+import ChatViewLink from "../components/ChatViewLink.jsx";
 import { LOG_PAGE_SIZE } from "../constants";
 
 const EDGE_NUM_PAGES = 2;
 
 class ChatViewLogPagination extends PureComponent {
 	render() {
-		const { logDate, logDetails, logUrl, pageNumber } = this.props;
+		const {
+			logDate,
+			logDetails,
+			pageNumber = 1,
+			pageQuery,
+			pageType
+		} = this.props;
 
 		if (logDate && logDetails && logDetails[logDate]) {
 			const lines = logDetails[logDate];
@@ -32,12 +38,15 @@ class ChatViewLogPagination extends PureComponent {
 			// Prev button
 
 			if (pageNumber > 1) {
-				let prevUrl = logUrl(logDate, pageNumber - 1);
 				pagesEls.push((
 					<li className="prev" key="prev">
-						<Link to={prevUrl}>
+						<ChatViewLink
+							type={pageType}
+							query={pageQuery}
+							date={logDate}
+							pageNumber={pageNumber - 1}>
 							&larr;<span>&nbsp;Previous</span>
-						</Link>
+						</ChatViewLink>
 					</li>
 				));
 				pagesEls.push(" ");
@@ -76,10 +85,15 @@ class ChatViewLogPagination extends PureComponent {
 
 						// Other page
 						else {
-							let url = logUrl(logDate, i);
 							pagesEls.push((
 								<li key={i}>
-									<Link to={url}>{ i }</Link>
+									<ChatViewLink
+										type={pageType}
+										query={pageQuery}
+										date={logDate}
+										pageNumber={i}>
+										{ i }
+									</ChatViewLink>
 								</li>
 							));
 						}
@@ -94,13 +108,16 @@ class ChatViewLogPagination extends PureComponent {
 			// Next button
 
 			if (pageNumber < numPages) {
-				let nextUrl = logUrl(logDate, pageNumber + 1);
 				pagesEls.push(" ");
 				pagesEls.push((
 					<li className="next" key="next">
-						<Link to={nextUrl}>
+						<ChatViewLink
+							type={pageType}
+							query={pageQuery}
+							date={logDate}
+							pageNumber={pageNumber + 1}>
 							<span>Next&nbsp;</span>&rarr;
-						</Link>
+						</ChatViewLink>
 					</li>
 				));
 			}
@@ -121,8 +138,9 @@ class ChatViewLogPagination extends PureComponent {
 ChatViewLogPagination.propTypes = {
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
-	logUrl: PropTypes.func,
-	pageNumber: PropTypes.number
+	pageNumber: PropTypes.number,
+	pageQuery: PropTypes.string,
+	pageType: PropTypes.string
 };
 
 export default ChatViewLogPagination;

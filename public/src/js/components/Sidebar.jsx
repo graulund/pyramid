@@ -4,16 +4,17 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
 import ChannelList from "./ChannelList.jsx";
+import ChatViewLink from "./ChatViewLink.jsx";
 import HighlightsLink from "./HighlightsLink.jsx";
 import SidebarUserList from "./SidebarUserList.jsx";
 import VersionNumber from "./VersionNumber.jsx";
 import actions from "../actions";
-import { CATEGORY_NAMES } from "../constants";
+import { CATEGORY_NAMES, PAGE_TYPES } from "../constants";
 import store from "../store";
 import { pluralize } from "../lib/formatting";
 import { storeViewState } from "../lib/io";
 import { refElSetter } from "../lib/refEls";
-import { categoryUrl, internalUrl, settingsUrl } from "../lib/routeHelpers";
+import { internalUrl, settingsUrl } from "../lib/routeHelpers";
 import { isMobile } from "../lib/visualBehavior";
 
 class Sidebar extends PureComponent {
@@ -192,9 +193,12 @@ class Sidebar extends PureComponent {
 					</Link>
 				</li>
 				<li key="log">
-					<Link to={categoryUrl("system")} className="sidebar__menu-link sidebar__system-menu-link">
-						System log
-					</Link>
+					<ChatViewLink
+						type={PAGE_TYPES.CATEGORY}
+						query="system"
+						className="sidebar__menu-link sidebar__system-menu-link">
+						{ CATEGORY_NAMES.system }
+					</ChatViewLink>
 				</li>
 				<li key="logout" className="sep">
 					<a href={internalUrl("/logout")} className="sidebar__menu-link sidebar__system-menu-link">
@@ -246,9 +250,12 @@ class Sidebar extends PureComponent {
 						<HighlightsLink className="sidebar__menu-link" />
 					</li>
 					<li key="allfriends">
-						<Link to={categoryUrl("allfriends")} className="sidebar__menu-link">
+						<ChatViewLink
+							type={PAGE_TYPES.CATEGORY}
+							query="allfriends"
+							className="sidebar__menu-link">
 							{ CATEGORY_NAMES.allfriends }
-						</Link>
+						</ChatViewLink>
 					</li>
 				</ul>
 				<div className="sidebar__list" key="list">

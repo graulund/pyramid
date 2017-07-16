@@ -13,9 +13,9 @@ class ChatViewFooter extends PureComponent {
 			isLiveChannel,
 			logDate,
 			logDetails,
-			logUrl,
 			pageNumber,
-			pageQuery
+			pageQuery,
+			pageType
 		} = this.props;
 
 		if (isLiveChannel) {
@@ -30,8 +30,9 @@ class ChatViewFooter extends PureComponent {
 			return <ChatViewLogPagination
 				logDate={logDate}
 				logDetails={logDetails}
-				logUrl={logUrl}
 				pageNumber={pageNumber}
+				pageQuery={pageQuery}
+				pageType={pageType}
 				key="pagination" />;
 		}
 
@@ -46,9 +47,9 @@ ChatViewFooter.propTypes = {
 	isLiveChannel: PropTypes.bool,
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
-	logUrl: PropTypes.func,
 	pageNumber: PropTypes.number,
-	pageQuery: PropTypes.string.isRequired
+	pageQuery: PropTypes.string.isRequired,
+	pageType: PropTypes.string.isRequired
 };
 
 export default ChatViewFooter;
