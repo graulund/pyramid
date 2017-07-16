@@ -280,9 +280,7 @@ class ChatInput extends PureComponent {
 			evt.key.length === 1 &&
 			!isBlockingModifiedEvent(evt)
 		) {
-			// (Apparently this isn't needed?)
 			inputEl.value = inputEl.value + evt.key;
-
 			this.focusInput();
 		}
 	}
