@@ -56,7 +56,7 @@ class MultiChatView extends PureComponent {
 	}
 
 	renderItem(data, index) {
-		let { currentLayoutFocus } = this.props;
+		let { currentLayout, currentLayoutFocus } = this.props;
 		let focus = currentLayoutFocus === index;
 
 		let styles = [];
@@ -82,7 +82,8 @@ class MultiChatView extends PureComponent {
 						logDate={logDate}
 						pageNumber={pageNumber}
 						pageType={type}
-						pageQuery={query} />
+						pageQuery={query}
+						totalViews={currentLayout.length} />
 				);
 			}
 

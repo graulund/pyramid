@@ -180,6 +180,7 @@ class ChatView extends PureComponent {
 			pageQuery,
 			pageType,
 			selectedLine,
+			totalViews,
 			userListOpen
 		} = this.props;
 
@@ -211,6 +212,7 @@ class ChatView extends PureComponent {
 
 				<ChatViewHeader
 					displayName={displayName}
+					index={index}
 					isLiveChannel={isLiveChannel}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
@@ -219,6 +221,7 @@ class ChatView extends PureComponent {
 					pageQuery={pageQuery}
 					pageType={pageType}
 					serverName={deducedServerName}
+					totalViews={totalViews}
 					key="header" />
 
 				<ChatFrame
@@ -271,6 +274,7 @@ ChatView.propTypes = {
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	selectedLine: PropTypes.object,
+	totalViews: PropTypes.number,
 	userListOpen: PropTypes.bool
 };
 

@@ -85,3 +85,23 @@ export function getCurrentDimensions() {
 
 	return { width, height };
 }
+
+export function removeFrame(index) {
+	console.log("removeFrame", index); // TODO
+}
+
+export function addFrameToTheLeft(index) {
+	console.log("addFrameToTheLeft", index); // TODO
+}
+
+export function addFrameToTheRight(index) {
+	console.log("addFrameToTheRight", index); // TODO
+}
+
+export function addFrameAbove(index) {
+	console.log("addFrameAbove", index); // TODO
+}
+
+export function addFrameBelow(index) {
+	console.log("addFrameBelow", index); // TODO
+}

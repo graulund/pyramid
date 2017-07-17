@@ -11,6 +11,7 @@ import UserLink from "../components/UserLink.jsx";
 import { CATEGORY_NAMES, CHANNEL_TYPES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
 import { getChannelUri } from "../lib/channelNames";
+import * as multiChat from "../lib/multiChat";
 import { refElSetter } from "../lib/refEls";
 import store from "../store";
 import actions from "../actions";
@@ -23,6 +24,11 @@ class ChatViewHeader extends PureComponent {
 		this.openLogBrowser = this.openLogBrowser.bind(this);
 		this.closeWindowMenu = this.closeWindowMenu.bind(this);
 		this.toggleWindowMenu = this.toggleWindowMenu.bind(this);
+		this.addFrameToTheLeft = this.addFrameToTheLeft.bind(this);
+		this.addFrameToTheRight = this.addFrameToTheRight.bind(this);
+		this.addFrameAbove = this.addFrameAbove.bind(this);
+		this.addFrameBelow = this.addFrameBelow.bind(this);
+		this.removeFrame = this.removeFrame.bind(this);
 
 		this.els = {};
 		this.setWindowCtrl = refElSetter("windowCtrl").bind(this);
@@ -76,6 +82,31 @@ class ChatViewHeader extends PureComponent {
 	toggleWindowMenu() {
 		const { windowMenuOpen } = this.state;
 		this.setState({ windowMenuOpen: !windowMenuOpen });
+	}
+
+	addFrameToTheLeft() {
+		let { index } = this.props;
+		multiChat.addFrameToTheLeft(index);
+	}
+
+	addFrameToTheRight() {
+		let { index } = this.props;
+		multiChat.addFrameToTheRight(index);
+	}
+
+	addFrameAbove() {
+		let { index } = this.props;
+		multiChat.addFrameAbove(index);
+	}
+
+	addFrameBelow() {
+		let { index } = this.props;
+		multiChat.addFrameBelow(index);
+	}
+
+	removeFrame() {
+		let { index } = this.props;
+		multiChat.removeFrame(index);
 	}
 
 	renderControls() {
@@ -219,6 +250,7 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	renderWindowMenu() {
+		let { totalViews } = this.props;
 		let { windowMenuOpen } = this.state;
 		let windowMenuStyles = windowMenuOpen ? { display: "block" } : null;
 
@@ -227,38 +259,45 @@ class ChatViewHeader extends PureComponent {
 				className="menu pop-menu chatview__window-menu"
 				key="window-menu"
 				style={windowMenuStyles}>
-				<li key="close">
+				{ totalViews > 1 ? (
+					<li key="close">
+						<a
+							className="menu__link"
+							href="javascript://"
+							onClick={this.removeFrame}>
+							Close frame
+						</a>
+					</li>
+				) : null }
+				<li key="left" className={totalViews > 1 && "sep"}>
 					<a
 						className="menu__link"
-						href="javascript://">
-						Close frame
-					</a>
-				</li>
-				<li key="left" className="sep">
-					<a
-						className="menu__link"
-						href="javascript://">
+						href="javascript://"
+						onClick={this.addFrameToTheLeft}>
 						New frame to the left
 					</a>
 				</li>
 				<li key="right">
 					<a
 						className="menu__link"
-						href="javascript://">
+						href="javascript://"
+						onClick={this.addFrameToTheRight}>
 						New frame to the right
 					</a>
 				</li>
 				<li key="up">
 					<a
 						className="menu__link"
-						href="javascript://">
+						href="javascript://"
+						onClick={this.addFrameAbove}>
 						New frame above
 					</a>
 				</li>
 				<li key="down">
 					<a
 						className="menu__link"
-						href="javascript://">
+						href="javascript://"
+						onClick={this.addFrameBelow}>
 						New frame below
 					</a>
 				</li>
@@ -308,6 +347,7 @@ class ChatViewHeader extends PureComponent {
 
 ChatViewHeader.propTypes = {
 	displayName: PropTypes.string,
+	index: PropTypes.number,
 	isLiveChannel: PropTypes.bool,
 	logBrowserOpen: PropTypes.bool,
 	logDate: PropTypes.string,
@@ -315,7 +355,8 @@ ChatViewHeader.propTypes = {
 	logUrl: PropTypes.func,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
-	serverName: PropTypes.string
+	serverName: PropTypes.string,
+	totalViews: PropTypes.number
 };
 
 export default ChatViewHeader;
