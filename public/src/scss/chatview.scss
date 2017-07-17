@@ -422,6 +422,11 @@
 		}
 	}
 
+	&__top {
+		position: relative;
+		padding-right: 40px;
+	}
+
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 

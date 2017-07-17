@@ -11,6 +11,7 @@ import UserLink from "../components/UserLink.jsx";
 import { CATEGORY_NAMES, CHANNEL_TYPES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
 import { getChannelUri } from "../lib/channelNames";
+import { refElSetter } from "../lib/refEls";
 import store from "../store";
 import actions from "../actions";
 
@@ -20,6 +21,39 @@ class ChatViewHeader extends PureComponent {
 
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
+		this.closeWindowMenu = this.closeWindowMenu.bind(this);
+		this.toggleWindowMenu = this.toggleWindowMenu.bind(this);
+
+		this.els = {};
+		this.setWindowCtrl = refElSetter("windowCtrl").bind(this);
+
+		this.state = {
+			windowMenuOpen: false
+		};
+	}
+
+	componentDidMount() {
+		let { windowCtrl } = this.els;
+
+		// Close the menu on outside and inside click
+		this.closeClickHandler = (evt) => {
+			if (
+				evt.target === windowCtrl ||
+				evt.target.parentNode === windowCtrl
+			) {
+				return;
+			}
+
+			this.closeWindowMenu();
+		};
+		document.addEventListener("click", this.closeClickHandler);
+	}
+
+	componentWillUnmount() {
+		// Remove external close handler
+		if (this.closeClickHandler) {
+			document.removeEventListener("click", this.closeClickHandler);
+		}
 	}
 
 	setViewState(update) {
@@ -35,6 +69,15 @@ class ChatViewHeader extends PureComponent {
 		this.setViewState({ logBrowserOpen: true });
 	}
 
+	closeWindowMenu() {
+		this.setState({ windowMenuOpen: false });
+	}
+
+	toggleWindowMenu() {
+		const { windowMenuOpen } = this.state;
+		this.setState({ windowMenuOpen: !windowMenuOpen });
+	}
+
 	renderControls() {
 		const {
 			isLiveChannel,
@@ -44,6 +87,10 @@ class ChatViewHeader extends PureComponent {
 			pageType,
 			serverName
 		} = this.props;
+
+		const {
+			windowMenuOpen
+		} = this.state;
 
 		if (pageType === PAGE_TYPES.CATEGORY) {
 			if (pageQuery === "highlights") {
@@ -124,11 +171,27 @@ class ChatViewHeader extends PureComponent {
 		// These are mutually exclusive
 		let firstButton = userListToggler || conversationLink;
 
+		let windowCtrlClassName = "menu-opener" +
+			(windowMenuOpen ? " menu-opener--active" : "");
+
 		return (
 			<ul className="controls chatview__controls">
 				{ firstButton }
 				<li key="logbrowser">
 					{ logBrowserToggler }
+				</li>
+				<li className={windowCtrlClassName} key="windowctrl">
+					<a
+						href="javascript://"
+						ref={this.setWindowCtrl}
+						onClick={this.toggleWindowMenu}
+						title="Open window controls">
+						<img
+							src="/img/diamond.svg"
+							width="16"
+							height="16"
+							alt="Window control" />
+					</a>
 				</li>
 			</ul>
 		);
@@ -153,6 +216,54 @@ class ChatViewHeader extends PureComponent {
 		}
 
 		return null;
+	}
+
+	renderWindowMenu() {
+		let { windowMenuOpen } = this.state;
+		let windowMenuStyles = windowMenuOpen ? { display: "block" } : null;
+
+		return (
+			<ul
+				className="menu pop-menu chatview__window-menu"
+				key="window-menu"
+				style={windowMenuStyles}>
+				<li key="close">
+					<a
+						className="menu__link"
+						href="javascript://">
+						Close frame
+					</a>
+				</li>
+				<li key="left" className="sep">
+					<a
+						className="menu__link"
+						href="javascript://">
+						New frame to the left
+					</a>
+				</li>
+				<li key="right">
+					<a
+						className="menu__link"
+						href="javascript://">
+						New frame to the right
+					</a>
+				</li>
+				<li key="up">
+					<a
+						className="menu__link"
+						href="javascript://">
+						New frame above
+					</a>
+				</li>
+				<li key="down">
+					<a
+						className="menu__link"
+						href="javascript://">
+						New frame below
+					</a>
+				</li>
+			</ul>
+		);
 	}
 
 	render() {
@@ -180,14 +291,16 @@ class ChatViewHeader extends PureComponent {
 
 		const controls = this.renderControls();
 		const logBrowser = this.renderLogBrowser();
+		const windowMenu = this.renderWindowMenu();
 
 		return (
-			<div className="mainview__top" key="top">
+			<div className="mainview__top chatview__top" key="top">
 				<div className="mainview__top__main" key="topMain">
 					<h2>{ heading }</h2>
 					{ controls }
 				</div>
 				{ logBrowser }
+				{ windowMenu }
 			</div>
 		);
 	}

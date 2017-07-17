@@ -106,10 +106,6 @@ class Sidebar extends PureComponent {
 		// depending on which page you're on, and your viewport
 	}
 
-	closeSystemMenu() {
-		this.setState({ systemMenuOpen: false });
-	}
-
 	// Bound state methods
 
 	hide() {
@@ -130,6 +126,10 @@ class Sidebar extends PureComponent {
 
 	sortByActivity() {
 		this.setSort("activity");
+	}
+
+	closeSystemMenu() {
+		this.setState({ systemMenuOpen: false });
 	}
 
 	toggleSystemMenu() {
@@ -177,18 +177,18 @@ class Sidebar extends PureComponent {
 			);
 		}
 
-		const cogClassName = "sidebar__cog" +
-			(systemMenuOpen ? " sidebar__cog--active" : "");
+		const cogClassName = "menu-opener" +
+			(systemMenuOpen ? " menu-opener--active" : "");
 		const systemMenuStyles = systemMenuOpen ? { display: "block" } : null;
 
 		const systemMenu = (
 			<ul
-				className="sidebar__system-menu"
+				className="menu pop-menu sidebar__system-menu"
 				key="system-menu"
 				style={systemMenuStyles}
 				onClick={this.onClick}>
 				<li key="settings">
-					<Link to={settingsUrl()} className="sidebar__menu-link sidebar__system-menu-link">
+					<Link to={settingsUrl()} className="menu__link">
 						Settings
 					</Link>
 				</li>
@@ -196,12 +196,12 @@ class Sidebar extends PureComponent {
 					<ChatViewLink
 						type={PAGE_TYPES.CATEGORY}
 						query="system"
-						className="sidebar__menu-link sidebar__system-menu-link">
+						className="menu__link">
 						{ CATEGORY_NAMES.system }
 					</ChatViewLink>
 				</li>
 				<li key="logout" className="sep">
-					<a href={internalUrl("/logout")} className="sidebar__menu-link sidebar__system-menu-link">
+					<a href={internalUrl("/logout")} className="menu__link">
 						Log out
 					</a>
 				</li>
@@ -245,15 +245,15 @@ class Sidebar extends PureComponent {
 					</a>
 
 				</div>
-				<ul className="sidebar__menu" key="menu">
+				<ul className="menu sidebar__menu" key="menu">
 					<li key="highlights">
-						<HighlightsLink className="sidebar__menu-link" />
+						<HighlightsLink className="menu__link" />
 					</li>
 					<li key="allfriends">
 						<ChatViewLink
 							type={PAGE_TYPES.CATEGORY}
 							query="allfriends"
-							className="sidebar__menu-link">
+							className="menu__link">
 							{ CATEGORY_NAMES.allfriends }
 						</ChatViewLink>
 					</li>

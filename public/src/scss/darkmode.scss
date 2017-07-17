@@ -8,7 +8,7 @@ body.darkmode {
 	.chatview__controls,
 	.channeluserlist,
 	.chatview .contextview__main,
-	.sidebar__system-menu,
+	.pop-menu,
 	.switcher a,
 	.multichat__item {
 		background-color: #2b2b33;
@@ -230,7 +230,7 @@ body.darkmode {
 	}
 
 	.settings__detail-view,
-	.sidebar__system-menu-link:hover {
+	.pop-menu .menu__link:hover {
 		background-color: #3b3b44;
 	}
 
@@ -249,7 +249,7 @@ body.darkmode {
 		color: #000;
 	}
 
-	.sidebar__system-menu {
+	.pop-menu {
 		box-shadow: 0 5px 12px 0 rgba(0,0,0,.8);
 
 		&, .sep {
@@ -257,11 +257,11 @@ body.darkmode {
 		}
 	}
 
-	.sidebar__cog--active {
+	.menu-opener--active {
 		background-color: #32323b;
 	}
 
-	.sidebar__menu-link, .switcher button, .switcher a {
+	.menu__link, .switcher button, .switcher a {
 		color: #bbb;
 	}
 
