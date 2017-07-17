@@ -48,5 +48,13 @@ This command [installs build tools](https://www.npmjs.com/package/windows-build-
 
 Other than the above command in particular, I would generally recommend using something like [Git Bash](https://git-scm.org/) to run your commands in on Windows.
 
+In order to install the dependency Sodium, which encrypts your passwords, you unfortunately need to install [Microsoft Visual Studio 2015](https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409) and then run the following command before continuing your installation:
+
+```
+npm config set msvs_version 2015 --global
+```
+
+For more information, refer to the [Sodium documentation](https://github.com/paixaop/node-sodium/blob/master/README.md#windows-install).
+
 ## License
 [MIT License](LICENSE)
