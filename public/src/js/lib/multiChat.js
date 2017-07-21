@@ -87,21 +87,102 @@ export function getCurrentDimensions() {
 }
 
 export function removeFrame(index) {
-	console.log("removeFrame", index); // TODO
+	let { currentLayout, currentLayoutFocus } = getCurrentData();
+	let newLayout = [ ...currentLayout ];
+	newLayout.splice(index, 1);
+
+	let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
+	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
+}
+
+export function addFrame(index, xDiff, yDiff, width = 0, height = 0) {
+	let { currentLayout } = getCurrentData();
+	let item = currentLayout[index];
+
+	if (!item) {
+		return;
+	}
+
+	let newLayout = [ ...currentLayout ];
+
+	// New coordinates
+
+	let x = Math.max(
+		0,
+		xDiff > 0
+			? item.columnEnd + xDiff
+			: item.columnStart + xDiff * (1 + width)
+	);
+	let y = Math.max(
+		0,
+		yDiff > 0
+			? item.rowEnd + yDiff
+			: item.rowStart + yDiff * (1 + height)
+	);
+
+	// Correct already existing items that need to be pushed
+
+	let pushItems = function(
+		positionValue,
+		sizeValue,
+		startName,
+		endName
+	) {
+		return function(item) {
+			let start = item[startName];
+			let end = item[endName];
+
+			if (start >= positionValue) {
+				let newStart = start + (1 + sizeValue);
+				let newEnd = end + (1 + sizeValue);
+
+				return {
+					...item,
+					[startName]: newStart,
+					[endName]: newEnd
+				};
+			}
+
+			return item;
+		};
+	};
+
+	if (xDiff !== 0) {
+		newLayout = newLayout.map(
+			pushItems(x, width, "columnStart", "columnEnd")
+		);
+	}
+
+	if (yDiff !== 0) {
+		newLayout = newLayout.map(
+			pushItems(y, height, "rowStart", "rowEnd")
+		);
+	}
+
+	// Insert the new item
+
+	newLayout.push({
+		columnStart: x,
+		columnEnd: x + width,
+		rowStart: y,
+		rowEnd: y + height
+	});
+
+	updateCurrentLayout(newLayout);
 }
 
 export function addFrameToTheLeft(index) {
-	console.log("addFrameToTheLeft", index); // TODO
+	addFrame(index, -1, 0);
 }
 
 export function addFrameToTheRight(index) {
-	console.log("addFrameToTheRight", index); // TODO
+	addFrame(index, 1, 0);
 }
 
 export function addFrameAbove(index) {
-	console.log("addFrameAbove", index); // TODO
+	addFrame(index, 0, -1);
 }
 
 export function addFrameBelow(index) {
-	console.log("addFrameBelow", index); // TODO
+	addFrame(index, 0, 1);
 }
