@@ -7,12 +7,11 @@ import ChatSystemLogControls from "./ChatSystemLogControls.jsx";
 import ChatUserListControl from "./ChatUserListControl.jsx";
 import ChatViewLink from "../components/ChatViewLink.jsx";
 import ChatViewLogBrowser from "./ChatViewLogBrowser.jsx";
+import ChatWindowMenu from "./ChatWindowMenu.jsx";
 import UserLink from "../components/UserLink.jsx";
 import { CATEGORY_NAMES, CHANNEL_TYPES, PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { storeViewState } from "../lib/io";
 import { getChannelUri } from "../lib/channelNames";
-import * as multiChat from "../lib/multiChat";
-import { refElSetter } from "../lib/refEls";
 import store from "../store";
 import actions from "../actions";
 
@@ -22,44 +21,6 @@ class ChatViewHeader extends PureComponent {
 
 		this.closeLogBrowser = this.closeLogBrowser.bind(this);
 		this.openLogBrowser = this.openLogBrowser.bind(this);
-		this.closeWindowMenu = this.closeWindowMenu.bind(this);
-		this.toggleWindowMenu = this.toggleWindowMenu.bind(this);
-		this.addFrameToTheLeft = this.addFrameToTheLeft.bind(this);
-		this.addFrameToTheRight = this.addFrameToTheRight.bind(this);
-		this.addFrameAbove = this.addFrameAbove.bind(this);
-		this.addFrameBelow = this.addFrameBelow.bind(this);
-		this.removeFrame = this.removeFrame.bind(this);
-
-		this.els = {};
-		this.setWindowCtrl = refElSetter("windowCtrl").bind(this);
-
-		this.state = {
-			windowMenuOpen: false
-		};
-	}
-
-	componentDidMount() {
-		let { windowCtrl } = this.els;
-
-		// Close the menu on outside and inside click
-		this.closeClickHandler = (evt) => {
-			if (
-				evt.target === windowCtrl ||
-				evt.target.parentNode === windowCtrl
-			) {
-				return;
-			}
-
-			this.closeWindowMenu();
-		};
-		document.addEventListener("click", this.closeClickHandler);
-	}
-
-	componentWillUnmount() {
-		// Remove external close handler
-		if (this.closeClickHandler) {
-			document.removeEventListener("click", this.closeClickHandler);
-		}
 	}
 
 	setViewState(update) {
@@ -75,40 +36,6 @@ class ChatViewHeader extends PureComponent {
 		this.setViewState({ logBrowserOpen: true });
 	}
 
-	closeWindowMenu() {
-		this.setState({ windowMenuOpen: false });
-	}
-
-	toggleWindowMenu() {
-		const { windowMenuOpen } = this.state;
-		this.setState({ windowMenuOpen: !windowMenuOpen });
-	}
-
-	addFrameToTheLeft() {
-		let { index } = this.props;
-		multiChat.addFrameToTheLeft(index);
-	}
-
-	addFrameToTheRight() {
-		let { index } = this.props;
-		multiChat.addFrameToTheRight(index);
-	}
-
-	addFrameAbove() {
-		let { index } = this.props;
-		multiChat.addFrameAbove(index);
-	}
-
-	addFrameBelow() {
-		let { index } = this.props;
-		multiChat.addFrameBelow(index);
-	}
-
-	removeFrame() {
-		let { index } = this.props;
-		multiChat.removeFrame(index);
-	}
-
 	renderControls() {
 		const {
 			isLiveChannel,
@@ -118,10 +45,6 @@ class ChatViewHeader extends PureComponent {
 			pageType,
 			serverName
 		} = this.props;
-
-		const {
-			windowMenuOpen
-		} = this.state;
 
 		if (pageType === PAGE_TYPES.CATEGORY) {
 			if (pageQuery === "highlights") {
@@ -202,27 +125,11 @@ class ChatViewHeader extends PureComponent {
 		// These are mutually exclusive
 		let firstButton = userListToggler || conversationLink;
 
-		let windowCtrlClassName = "menu-opener" +
-			(windowMenuOpen ? " menu-opener--active" : "");
-
 		return (
 			<ul className="controls chatview__controls">
 				{ firstButton }
 				<li key="logbrowser">
 					{ logBrowserToggler }
-				</li>
-				<li className={windowCtrlClassName} key="windowctrl">
-					<a
-						href="javascript://"
-						ref={this.setWindowCtrl}
-						onClick={this.toggleWindowMenu}
-						title="Open window controls">
-						<img
-							src="/img/diamond.svg"
-							width="16"
-							height="16"
-							alt="Window control" />
-					</a>
 				</li>
 			</ul>
 		);
@@ -249,64 +156,8 @@ class ChatViewHeader extends PureComponent {
 		return null;
 	}
 
-	renderWindowMenu() {
-		let { totalViews } = this.props;
-		let { windowMenuOpen } = this.state;
-		let windowMenuStyles = windowMenuOpen ? { display: "block" } : null;
-
-		return (
-			<ul
-				className="menu pop-menu chatview__window-menu"
-				key="window-menu"
-				style={windowMenuStyles}>
-				{ totalViews > 1 ? (
-					<li key="close">
-						<a
-							className="menu__link"
-							href="javascript://"
-							onClick={this.removeFrame}>
-							Close frame
-						</a>
-					</li>
-				) : null }
-				<li key="left" className={totalViews > 1 && "sep"}>
-					<a
-						className="menu__link"
-						href="javascript://"
-						onClick={this.addFrameToTheLeft}>
-						New frame to the left
-					</a>
-				</li>
-				<li key="right">
-					<a
-						className="menu__link"
-						href="javascript://"
-						onClick={this.addFrameToTheRight}>
-						New frame to the right
-					</a>
-				</li>
-				<li key="up">
-					<a
-						className="menu__link"
-						href="javascript://"
-						onClick={this.addFrameAbove}>
-						New frame above
-					</a>
-				</li>
-				<li key="down">
-					<a
-						className="menu__link"
-						href="javascript://"
-						onClick={this.addFrameBelow}>
-						New frame below
-					</a>
-				</li>
-			</ul>
-		);
-	}
-
 	render() {
-		const { displayName, pageQuery, pageType } = this.props;
+		const { displayName, index, pageQuery, pageType } = this.props;
 
 		var heading = null;
 
@@ -330,7 +181,6 @@ class ChatViewHeader extends PureComponent {
 
 		const controls = this.renderControls();
 		const logBrowser = this.renderLogBrowser();
-		const windowMenu = this.renderWindowMenu();
 
 		return (
 			<div className="mainview__top chatview__top" key="top">
@@ -339,7 +189,7 @@ class ChatViewHeader extends PureComponent {
 					{ controls }
 				</div>
 				{ logBrowser }
-				{ windowMenu }
+				<ChatWindowMenu index={index} />
 			</div>
 		);
 	}

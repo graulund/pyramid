@@ -56,7 +56,7 @@ class MultiChatView extends PureComponent {
 	}
 
 	renderItem(data, index) {
-		let { currentLayout, currentLayoutFocus } = this.props;
+		let { currentLayoutFocus } = this.props;
 		let focus = currentLayoutFocus === index;
 
 		let styles = [];
@@ -82,8 +82,7 @@ class MultiChatView extends PureComponent {
 						logDate={logDate}
 						pageNumber={pageNumber}
 						pageType={type}
-						pageQuery={query}
-						totalViews={currentLayout.length} />
+						pageQuery={query} />
 				);
 			}
 
@@ -96,7 +95,7 @@ class MultiChatView extends PureComponent {
 		}
 
 		if (!content) {
-			content = <NoChatView />;
+			content = <NoChatView index={index} />;
 		}
 
 		let className = "multichat__item" +

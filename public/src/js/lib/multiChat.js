@@ -159,6 +159,8 @@ export function addFrame(index, xDiff, yDiff, width = 0, height = 0) {
 		);
 	}
 
+	// TODO: Need to "pull items" back, too, on removal
+
 	// Insert the new item
 
 	newLayout.push({
@@ -185,4 +187,11 @@ export function addFrameAbove(index) {
 
 export function addFrameBelow(index) {
 	addFrame(index, 0, 1);
+}
+
+export function maximumDimensionsForViewport() {
+	return {
+		width: Math.floor((window.innerWidth - 320) / 300),
+		height: Math.floor(window.innerHeight / 240)
+	};
 }
