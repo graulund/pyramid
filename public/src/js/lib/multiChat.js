@@ -62,13 +62,11 @@ export function locationIsMultiChat(location) {
 	return location.pathname === homeUrl;
 }
 
-export function getCurrentDimensions() {
-	let { currentLayout } = getCurrentData();
+function getDimensions(layout) {
+	let width = 0, height = 0, originX = null, originY = null;
 
-	let width = 0, height = 0;
-
-	if (currentLayout) {
-		currentLayout.forEach((item) => {
+	if (layout) {
+		layout.forEach((item) => {
 			let { columnEnd, columnStart, rowEnd, rowStart } = item;
 			let x = columnEnd || columnStart;
 			let y = rowEnd || rowStart;
@@ -77,19 +75,55 @@ export function getCurrentDimensions() {
 				width = x;
 			}
 
+			if (originX === null || x < originX) {
+				originX = x;
+			}
+
 			if (y > height) {
 				height = y;
+			}
+
+			if (originY === null || y < originY) {
+				originY = y;
 			}
 		});
 	}
 
-	return { width, height };
+	return { width, height, originX, originY };
+}
+
+export function getCurrentDimensions() {
+	let { currentLayout } = getCurrentData();
+	return getDimensions(currentLayout);
 }
 
 export function removeFrame(index) {
 	let { currentLayout, currentLayoutFocus } = getCurrentData();
 	let newLayout = [ ...currentLayout ];
 	newLayout.splice(index, 1);
+
+	// Pull items back if we get new empty spaces
+
+	let { originX, originY } = getDimensions(newLayout);
+
+	if (originX > 1 || originY > 1) {
+		newLayout = newLayout.map((item) => {
+			let {
+				columnEnd,
+				columnStart,
+				rowEnd,
+				rowStart
+			} = item;
+
+			return {
+				...item,
+				columnEnd: columnEnd - (originX - 1),
+				columnStart: columnStart - (originX - 1),
+				rowEnd: rowEnd - (originY - 1),
+				rowStart: rowStart - (originY - 1)
+			};
+		});
+	}
 
 	let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
 	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
@@ -158,8 +192,6 @@ export function addFrame(index, xDiff, yDiff, width = 0, height = 0) {
 			pushItems(y, height, "rowStart", "rowEnd")
 		);
 	}
-
-	// TODO: Need to "pull items" back, too, on removal
 
 	// Insert the new item
 
