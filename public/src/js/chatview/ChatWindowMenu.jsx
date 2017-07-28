@@ -10,14 +10,22 @@ class ChatWindowMenu extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.closeWindowMenu = this.closeWindowMenu.bind(this);
-		this.toggleWindowMenu = this.toggleWindowMenu.bind(this);
-		this.addFrameToTheLeft = this.addFrameToTheLeft.bind(this);
-		this.addFrameToTheRight = this.addFrameToTheRight.bind(this);
 		this.addFrameAbove = this.addFrameAbove.bind(this);
 		this.addFrameBelow = this.addFrameBelow.bind(this);
+		this.addFrameToTheLeft = this.addFrameToTheLeft.bind(this);
+		this.addFrameToTheRight = this.addFrameToTheRight.bind(this);
+		this.closeWindowMenu = this.closeWindowMenu.bind(this);
+		this.contractFrameFromAbove = this.contractFrameFromAbove.bind(this);
+		this.contractFrameFromBelow = this.contractFrameFromBelow.bind(this);
+		this.contractFrameFromTheLeft = this.contractFrameFromTheLeft.bind(this);
+		this.contractFrameFromTheRight = this.contractFrameFromTheRight.bind(this);
+		this.expandFrameDown = this.expandFrameDown.bind(this);
+		this.expandFrameToTheLeft = this.expandFrameToTheLeft.bind(this);
+		this.expandFrameToTheRight = this.expandFrameToTheRight.bind(this);
+		this.expandFrameUp = this.expandFrameUp.bind(this);
 		this.removeFrame = this.removeFrame.bind(this);
 		this.removeOtherFrames = this.removeOtherFrames.bind(this);
+		this.toggleWindowMenu = this.toggleWindowMenu.bind(this);
 
 		this.els = {};
 		this.setControl = refElSetter("control").bind(this);
@@ -120,6 +128,46 @@ class ChatWindowMenu extends PureComponent {
 		this.redirectToSingle(item);
 	}
 
+	expandFrameToTheLeft() {
+		let { index } = this.props;
+		multiChat.expandFrameToTheLeft(index);
+	}
+
+	contractFrameFromTheLeft() {
+		let { index } = this.props;
+		multiChat.contractFrameFromTheLeft(index);
+	}
+
+	expandFrameToTheRight() {
+		let { index } = this.props;
+		multiChat.expandFrameToTheRight(index);
+	}
+
+	contractFrameFromTheRight() {
+		let { index } = this.props;
+		multiChat.contractFrameFromTheRight(index);
+	}
+
+	expandFrameUp() {
+		let { index } = this.props;
+		multiChat.expandFrameUp(index);
+	}
+
+	contractFrameFromAbove() {
+		let { index } = this.props;
+		multiChat.contractFrameFromAbove(index);
+	}
+
+	expandFrameDown() {
+		let { index } = this.props;
+		multiChat.expandFrameDown(index);
+	}
+
+	contractFrameFromBelow() {
+		let { index } = this.props;
+		multiChat.contractFrameFromBelow(index);
+	}
+
 	redirectToSingle(item) {
 		let { type, query, date, pageNumber } = item;
 
@@ -181,8 +229,8 @@ class ChatWindowMenu extends PureComponent {
 
 		let notTooWide = dimensions.width < maxDimensions.width;
 		let notTooTall = dimensions.height < maxDimensions.height;
-		let isWide = item && item.columnEnd - item.columnStart > 0;
-		let isTall = item && item.rowEnd - item.rowStart > 0;
+		let isWide = item && item.columnEnd - item.columnStart > 1;
+		let isTall = item && item.rowEnd - item.rowStart > 1;
 
 		let canExpandLeft = notTooWide ||
 			hasLayout && multiChat.hasEmptySpaceToTheLeft(index);
@@ -256,23 +304,23 @@ class ChatWindowMenu extends PureComponent {
 					qualifier: isWide
 				},
 				{
-					name: "Expand frame above",
-					action: this.expandFrameAbove,
+					name: "Expand frame up",
+					action: this.expandFrameUp,
 					qualifier: hasLayout && canExpandUp
 				},
 				{
-					name: "Contract frame above",
-					action: this.contractFrameAbove,
+					name: "Contract frame from above",
+					action: this.contractFrameFromAbove,
 					qualifier: isTall
 				},
 				{
-					name: "Expand frame below",
-					action: this.expandFrameBelow,
+					name: "Expand frame down",
+					action: this.expandFrameDown,
 					qualifier: hasLayout && canExpandDown
 				},
 				{
-					name: "Contract frame below",
-					action: this.contractFrameBelow,
+					name: "Contract frame from below",
+					action: this.contractFrameFromBelow,
 					qualifier: isTall
 				}
 			]

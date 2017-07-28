@@ -30,9 +30,9 @@ function unitItem(item) {
 	return {
 		...item,
 		columnStart: 1,
-		columnEnd: 1,
+		columnEnd: 2,
 		rowStart: 1,
-		rowEnd: 1
+		rowEnd: 2
 	};
 }
 
@@ -123,6 +123,10 @@ function getDimensions(layout) {
 				originY = rowStart;
 			}
 		});
+
+		// Width and height are the highest starting values, not ending values
+		width = Math.max(1, width - 1);
+		height = Math.max(1, height - 1);
 	}
 
 	else {
@@ -152,7 +156,7 @@ export function hasEmptySpaceInDirection(index, xDirection, yDirection) {
 	let start = null, end = null;
 
 	if (xDirection > 0) {
-		start = columnEnd;
+		start = columnEnd - 1;
 		end = width;
 	}
 
@@ -162,7 +166,7 @@ export function hasEmptySpaceInDirection(index, xDirection, yDirection) {
 	}
 
 	else if (yDirection > 0) {
-		start = rowEnd;
+		start = rowEnd - 1;
 		end = height;
 	}
 
@@ -190,9 +194,9 @@ export function hasEmptySpaceInDirection(index, xDirection, yDirection) {
 				vertical &&
 				!rangesOverlap(
 					columnStart,
-					columnEnd,
+					columnEnd - 1,
 					item.columnStart,
-					item.columnEnd
+					item.columnEnd - 1
 				)
 			) ||
 			(
@@ -200,9 +204,9 @@ export function hasEmptySpaceInDirection(index, xDirection, yDirection) {
 				horizontal &&
 				!rangesOverlap(
 					rowStart,
-					rowEnd,
+					rowEnd - 1,
 					item.rowStart,
-					item.rowEnd
+					item.rowEnd - 1
 				)
 			) ||
 			index === i
@@ -212,14 +216,14 @@ export function hasEmptySpaceInDirection(index, xDirection, yDirection) {
 		}
 
 		if (horizontal) {
-			if (item.columnStart >= start && item.columnEnd <= end) {
-				space -= 1 + item.columnEnd - item.columnStart;
+			if (item.columnStart >= start && (item.columnEnd - 1) <= end) {
+				space -= item.columnEnd - item.columnStart;
 			}
 		}
 
 		else if (vertical) {
-			if (item.rowStart >= start && item.rowEnd <= end) {
-				space -= 1 + item.rowEnd - item.rowStart;
+			if (item.rowStart >= start && (item.rowEnd - 1) <= end) {
+				space -= item.rowEnd - item.rowStart;
 			}
 		}
 	});
@@ -288,59 +292,25 @@ export function removeOtherFrames(index) {
 	updateViewState({ currentLayout: [item], currentLayoutFocus: 0 });
 }
 
-export function addFrame(index, page, xDiff, yDiff) {
-	let { currentLayout } = getCurrentData();
-	let item = currentLayout && currentLayout[index];
-	let newLayout = null;
+function updateLayoutWithAddition(newLayout, newIndex, xDiff, yDiff, isDelta) {
+	// Push canvas if we go out of it
 
-	if (!item) {
-		newLayout = getNewLayoutFromPage(page);
-		item = newLayout[0];
-	}
+	newLayout = fixOrigin(newLayout);
+	let newItem = newLayout[newIndex];
+	let x = newItem.columnStart;
+	let y = newItem.rowStart;
+	let width = newItem.columnEnd - newItem.columnStart;
+	let height = newItem.rowEnd - newItem.rowStart;
 
-	else {
-		newLayout = [ ...currentLayout ];
-	}
-
-	let width = item.columnEnd - item.columnStart;
-	let height = item.rowEnd - item.rowStart;
-
-	// New coordinates
-
-	let x = xDiff > 0
-		? item.columnEnd + xDiff
-		: item.columnStart + xDiff * (1 + width);
-
-	let y = yDiff > 0
-		? item.rowEnd + yDiff
-		: item.rowStart + yDiff * (1 + height);
+	// Correct overlapping items that need to be pushed
 
 	let horizontal = xDiff !== 0;
 	let vertical = yDiff !== 0;
 
-	// Insert the new item
-
-	let newIndex = newLayout.length;
-
-	newLayout.push({
-		columnStart: x,
-		columnEnd: x + width,
-		rowStart: y,
-		rowEnd: y + height
-	});
-
-	// Push canvas if we go out of it
-
-	newLayout = fixOrigin(newLayout);
-	x = newLayout[newIndex].columnStart;
-	y = newLayout[newIndex].rowStart;
-
-	// Correct overlapping items that need to be pushed
-
 	let isOverlapping = newLayout.filter((item, index) => {
 		return index !== newIndex &&
-			rangesOverlap(x, x + width, item.columnStart, item.columnEnd) &&
-			rangesOverlap(y, y + height, item.rowStart, item.rowEnd);
+			rangesOverlap(x, x + width - 1, item.columnStart, item.columnEnd - 1) &&
+			rangesOverlap(y, y + height - 1, item.rowStart, item.rowEnd - 1);
 	}).length > 0;
 
 	if (isOverlapping) {
@@ -358,18 +328,18 @@ export function addFrame(index, page, xDiff, yDiff) {
 						vertical &&
 						!rangesOverlap(
 							x,
-							x + width,
+							x + width - 1,
 							item.columnStart,
-							item.columnEnd
+							item.columnEnd - 1
 						)
 					) ||
 					(
 						horizontal &&
 						!rangesOverlap(
 							y,
-							y + height,
+							y + height - 1,
 							item.rowStart,
-							item.rowEnd
+							item.rowEnd - 1
 						)
 					) ||
 					newIndex === i
@@ -385,8 +355,8 @@ export function addFrame(index, page, xDiff, yDiff) {
 					direction > 0 && start >= positionValue ||
 					direction < 0 && start <= positionValue
 				) {
-					let newStart = start + direction * (1 + sizeValue);
-					let newEnd = end + direction * (1 + sizeValue);
+					let newStart = start + direction * sizeValue;
+					let newEnd = end + direction * sizeValue;
 
 					return {
 						...item,
@@ -402,7 +372,7 @@ export function addFrame(index, page, xDiff, yDiff) {
 		if (horizontal) {
 			newLayout = newLayout.map(pushItems(
 				x,
-				width,
+				isDelta ? xDiff : width,
 				"columnStart",
 				"columnEnd",
 				xDiff
@@ -412,7 +382,7 @@ export function addFrame(index, page, xDiff, yDiff) {
 		if (vertical) {
 			newLayout = newLayout.map(pushItems(
 				y,
-				height,
+				isDelta ? yDiff : height,
 				"rowStart",
 				"rowEnd",
 				yDiff
@@ -423,6 +393,111 @@ export function addFrame(index, page, xDiff, yDiff) {
 	}
 
 	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newIndex });
+}
+
+export function addFrame(index, page, xDiff, yDiff) {
+	let { currentLayout } = getCurrentData();
+	let item = currentLayout && currentLayout[index];
+	let newLayout = null;
+
+	if (!item) {
+		newLayout = getNewLayoutFromPage(page);
+		item = newLayout[0];
+	}
+
+	else {
+		newLayout = [ ...currentLayout ];
+	}
+
+	let horizontal = xDiff !== 0;
+	let vertical = yDiff !== 0;
+
+	let width = horizontal ? 1 : item.columnEnd - item.columnStart;
+	let height = vertical ? 1 : item.rowEnd - item.rowStart;
+
+	// New coordinates
+
+	let x = xDiff > 0
+		? item.columnEnd - 1 + xDiff
+		: item.columnStart + xDiff * width;
+
+	let y = yDiff > 0
+		? item.rowEnd - 1 + yDiff
+		: item.rowStart + yDiff * height;
+
+	// Insert the new item
+
+	let newIndex = newLayout.length;
+
+	newLayout.push({
+		columnStart: x,
+		columnEnd: x + width,
+		rowStart: y,
+		rowEnd: y + height
+	});
+
+	updateLayoutWithAddition(newLayout, newIndex, xDiff, yDiff, false);
+}
+
+export function changeFrameSize(index, xDiff, yDiff, xDirection, yDirection) {
+	let { currentLayout } = getCurrentData();
+	let item = currentLayout && currentLayout[index];
+	let newLayout = [ ...currentLayout ];
+
+	if (xDiff !== 0) {
+		if (xDirection > 0) {
+			// Rightwards
+			item = {
+				...item,
+				columnEnd: Math.max(item.columnStart, item.columnEnd + xDiff)
+			};
+		}
+
+		else if (xDirection < 0) {
+			// Leftwards
+			item = {
+				...item,
+				columnStart: Math.min(item.columnEnd, item.columnStart - xDiff)
+			};
+		}
+	}
+
+	if (yDiff !== 0) {
+		if (yDirection > 0) {
+			// Downwards
+			item = {
+				...item,
+				rowEnd: Math.max(item.rowStart, item.rowEnd + yDiff)
+			};
+		}
+
+		else if (yDirection < 0) {
+			// Upwards
+			item = {
+				...item,
+				rowStart: Math.min(item.rowEnd, item.rowStart - yDiff)
+			};
+		}
+	}
+
+	newLayout[index] = item;
+
+	if (xDiff > 0 || yDiff > 0) {
+		// Expand
+		updateLayoutWithAddition(
+			newLayout,
+			index,
+			xDiff * xDirection,
+			yDiff * yDirection,
+			true
+		);
+	}
+
+	else {
+		// Contract
+		newLayout = fixOrigin(newLayout);
+		updateCurrentLayout(newLayout);
+	}
 }
 
 export function addFrameToTheLeft(index, page) {
@@ -439,6 +514,38 @@ export function addFrameAbove(index, page) {
 
 export function addFrameBelow(index, page) {
 	addFrame(index, page, 0, 1);
+}
+
+export function expandFrameToTheLeft(index) {
+	changeFrameSize(index, 1, 0, -1, 0);
+}
+
+export function expandFrameToTheRight(index) {
+	changeFrameSize(index, 1, 0, 1, 0);
+}
+
+export function expandFrameUp(index) {
+	changeFrameSize(index, 0, 1, 0, -1);
+}
+
+export function expandFrameDown(index) {
+	changeFrameSize(index, 0, 1, 0, 1);
+}
+
+export function contractFrameFromTheLeft(index) {
+	changeFrameSize(index, -1, 0, -1, 0);
+}
+
+export function contractFrameFromTheRight(index) {
+	changeFrameSize(index, -1, 0, 1, 0);
+}
+
+export function contractFrameFromAbove(index) {
+	changeFrameSize(index, 0, -1, 0, -1);
+}
+
+export function contractFrameFromBelow(index) {
+	changeFrameSize(index, 0, -1, 0, 1);
 }
 
 export function maximumDimensionsForViewport() {
