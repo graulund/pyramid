@@ -7,7 +7,7 @@ export function areWeScrolledToTheBottom(container, content) {
 		content = container.children[0];
 	}
 
-	let contentHeight = content.clientHeight;
+	let contentHeight = content && content.clientHeight || 0;
 	let containerHeight = container.clientHeight;
 	let scrollTop = container.scrollTop || 0;
 
@@ -20,7 +20,7 @@ export function scrollToTheBottom(container, content) {
 		content = container.children[0];
 	}
 
-	container.scrollTop = content.clientHeight;
+	container.scrollTop = content && content.clientHeight || 0;
 }
 
 export function stickToTheBottom(container) {
