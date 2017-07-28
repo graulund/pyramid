@@ -167,6 +167,8 @@ class ChatView extends PureComponent {
 
 	render() {
 		const {
+			connectionStatus,
+			currentLayout,
 			deviceFocus,
 			displayName,
 			focus,
@@ -223,6 +225,8 @@ class ChatView extends PureComponent {
 					key="header" />
 
 				<ChatFrame
+					connectionStatus={connectionStatus}
+					currentLayout={currentLayout}
 					inFocus={deviceFocus}
 					isLiveChannel={isLiveChannel}
 					lines={lines}
@@ -256,6 +260,8 @@ class ChatView extends PureComponent {
 }
 
 ChatView.propTypes = {
+	connectionStatus: PropTypes.object,
+	currentLayout: PropTypes.array,
 	deviceFocus: PropTypes.bool,
 	displayName: PropTypes.string,
 	focus: PropTypes.bool,
@@ -314,6 +320,8 @@ const mapStateToProps = function(state, ownProps) {
 	const logDetails = state.logDetails[subject];
 
 	return {
+		connectionStatus: state.connectionStatus,
+		currentLayout: state.viewState.currentLayout,
 		displayName,
 		deviceFocus: state.deviceState.inFocus,
 		isVisible: state.deviceState.visible,

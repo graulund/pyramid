@@ -2,6 +2,7 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { findDOMNode } from "react-dom";
 import remove from "lodash/remove";
+import throttle from "lodash/throttle";
 import values from "lodash/values";
 import "intersection-observer";
 
@@ -25,9 +26,11 @@ class ChatFrame extends PureComponent {
 		super(props);
 
 		this.lineObserverCallback = this.lineObserverCallback.bind(this);
-		this.onEmoteLoad = this.onEmoteLoad.bind(this);
 		this.onObserve = this.onObserve.bind(this);
 		this.onUnobserve = this.onUnobserve.bind(this);
+		this.scrollIfNeeded = this.scrollIfNeeded.bind(this);
+
+		this.handleResize = throttle(this.scrollIfNeeded, 100);
 
 		this.observerHandlers = {
 			observe: this.onObserve,
@@ -51,6 +54,8 @@ class ChatFrame extends PureComponent {
 		}
 
 		this.setConversationAsOpen();
+
+		window.addEventListener("resize", this.handleResize);
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -82,6 +87,8 @@ class ChatFrame extends PureComponent {
 
 	componentDidUpdate(oldProps) {
 		const {
+			connectionStatus,
+			currentLayout,
 			inFocus,
 			lines,
 			logBrowserOpen,
@@ -94,6 +101,8 @@ class ChatFrame extends PureComponent {
 		} = this.props;
 
 		const {
+			connectionStatus: oldConnectionStatus,
+			currentLayout: oldLayout,
 			inFocus: oldInFocus,
 			lines: oldLines,
 			logDate: oldLogDate,
@@ -135,12 +144,15 @@ class ChatFrame extends PureComponent {
 			}
 		}
 
-		// User list opened
+		// Layout changed
 
 		if (
-			userListOpen &&
-			!oldUserListOpen &&
-			this.atBottom
+			this.atBottom &&
+			(
+				(userListOpen && !oldUserListOpen) ||
+				connectionStatus !== oldConnectionStatus ||
+				currentLayout !== oldLayout
+			)
 		) {
 			scrollToTheBottom(this.els.primary);
 		}
@@ -167,6 +179,7 @@ class ChatFrame extends PureComponent {
 
 	componentWillUnmount() {
 		this.setConversationAsClosed();
+		window.removeEventListener("resize", this.handleResize);
 	}
 
 	isLiveChannel(props = this.props) {
@@ -174,7 +187,7 @@ class ChatFrame extends PureComponent {
 		return pageType === PAGE_TYPES.CHANNEL && !logDate;
 	}
 
-	onEmoteLoad() {
+	scrollIfNeeded() {
 		let { logDate } = this.props;
 		if (!logDate && this.atBottom) {
 			scrollToTheBottom(this.els.primary);
@@ -427,7 +440,7 @@ class ChatFrame extends PureComponent {
 			loading={loading}
 			messages={allLines}
 			observer={this.observerHandlers}
-			onEmoteLoad={this.onEmoteLoad}
+			onEmoteLoad={this.scrollIfNeeded}
 			key="main" />;
 
 		return (
@@ -451,6 +464,8 @@ class ChatFrame extends PureComponent {
 }
 
 ChatFrame.propTypes = {
+	connectionStatus: PropTypes.object,
+	currentLayout: PropTypes.array,
 	inFocus: PropTypes.bool,
 	isLiveChannel: PropTypes.bool,
 	lineId: PropTypes.string,
