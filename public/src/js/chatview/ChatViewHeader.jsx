@@ -157,9 +157,16 @@ class ChatViewHeader extends PureComponent {
 	}
 
 	render() {
-		const { displayName, index, pageQuery, pageType } = this.props;
+		let {
+			displayName,
+			index,
+			logDate,
+			pageNumber,
+			pageQuery,
+			pageType
+		} = this.props;
 
-		var heading = null;
+		let heading = null;
 
 		switch (pageType) {
 			case PAGE_TYPES.CATEGORY:
@@ -179,8 +186,15 @@ class ChatViewHeader extends PureComponent {
 					key={pageQuery} />;
 		}
 
-		const controls = this.renderControls();
-		const logBrowser = this.renderLogBrowser();
+		let controls = this.renderControls();
+		let logBrowser = this.renderLogBrowser();
+
+		let page = {
+			date: logDate,
+			pageNumber,
+			query: pageQuery,
+			type: pageType
+		};
 
 		return (
 			<div className="mainview__top chatview__top" key="top">
@@ -189,7 +203,10 @@ class ChatViewHeader extends PureComponent {
 					{ controls }
 				</div>
 				{ logBrowser }
-				<ChatWindowMenu index={index} />
+				<ChatWindowMenu
+					index={index}
+					page={page}
+					key="windowMenu" />
 			</div>
 		);
 	}
@@ -203,6 +220,7 @@ ChatViewHeader.propTypes = {
 	logDate: PropTypes.string,
 	logDetails: PropTypes.object,
 	logUrl: PropTypes.func,
+	pageNumber: PropTypes.number,
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	serverName: PropTypes.string,

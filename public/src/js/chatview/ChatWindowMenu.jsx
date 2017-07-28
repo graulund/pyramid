@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 
 import * as multiChat from "../lib/multiChat";
 import { refElSetter } from "../lib/refEls";
+import { homeUrl, subjectUrl } from "../lib/routeHelpers";
 
 class ChatWindowMenu extends PureComponent {
 	constructor(props) {
@@ -16,6 +17,7 @@ class ChatWindowMenu extends PureComponent {
 		this.addFrameAbove = this.addFrameAbove.bind(this);
 		this.addFrameBelow = this.addFrameBelow.bind(this);
 		this.removeFrame = this.removeFrame.bind(this);
+		this.removeOtherFrames = this.removeOtherFrames.bind(this);
 
 		this.els = {};
 		this.setControl = refElSetter("control").bind(this);
@@ -58,37 +60,69 @@ class ChatWindowMenu extends PureComponent {
 		this.setState({ open: !open });
 	}
 
+	isShowingLayout() {
+		return location.pathname === homeUrl;
+	}
+
+	addFrame(func) {
+		let { index, page = {} } = this.props;
+		let { router } = this.context;
+
+		func(index, page);
+
+		if (!this.isShowingLayout()) {
+			router.history.replace(homeUrl);
+		}
+	}
+
 	addFrameToTheLeft() {
-		let { index } = this.props;
-		multiChat.addFrameToTheLeft(index);
+		this.addFrame(multiChat.addFrameToTheLeft);
 	}
 
 	addFrameToTheRight() {
-		let { index } = this.props;
-		multiChat.addFrameToTheRight(index);
+		this.addFrame(multiChat.addFrameToTheRight);
 	}
 
 	addFrameAbove() {
-		let { index } = this.props;
-		multiChat.addFrameAbove(index);
+		this.addFrame(multiChat.addFrameAbove);
 	}
 
 	addFrameBelow() {
-		let { index } = this.props;
-		multiChat.addFrameBelow(index);
+		this.addFrame(multiChat.addFrameBelow);
 	}
 
 	removeFrame() {
 		// TODO: Link
 		let { index } = this.props;
-		multiChat.removeFrame(index);
+		let newLayout = multiChat.removeFrame(index);
+
+		if (newLayout.length === 1) {
+			this.redirectToSingle(newLayout[0]);
+		}
+	}
+
+	removeOtherFrames() {
+		let { currentLayout, index } = this.props;
+		let item = currentLayout[index];
+
+		multiChat.clearCurrentLayout();
+		this.redirectToSingle(item);
+	}
+
+	redirectToSingle(item) {
+		let { router } = this.context;
+		let { type, query, date, pageNumber } = item;
+
+		if (type && query) {
+			router.history.replace(subjectUrl(type, query, date, pageNumber));
+		}
 	}
 
 	renderList(menu) {
 		let out = [];
 
-		menu.forEach((group, groupIndex) => {
-			let newGroup = groupIndex > 0;
+		menu.forEach((group) => {
+			let newGroup = out.length > 0;
 
 			group.forEach((item) => {
 				let { action, name, qualifier } = item;
@@ -118,28 +152,38 @@ class ChatWindowMenu extends PureComponent {
 		let { currentLayout, index = 0 } = this.props;
 		let { open } = this.state;
 
+		if (!this.isShowingLayout()) {
+			// If we don't see it, it don't exist
+			currentLayout = null;
+		}
+
 		let windowMenuStyles = open ? { display: "block" } : null;
 
 		let controlClassName = "menu-opener" +
 			(open ? " menu-opener--active" : "");
 
-		let item = currentLayout[index];
+		let hasLayout = currentLayout && currentLayout.length;
+		let item = currentLayout && currentLayout[index];
 
 		let dimensions = multiChat.getCurrentDimensions();
 		let maxDimensions = multiChat.maximumDimensionsForViewport();
-
-		// TODO: Update on resize
-		// TODO: Breaks when there are empty spaces
 
 		let notTooWide = dimensions.width < maxDimensions.width;
 		let notTooTall = dimensions.height < maxDimensions.height;
 		let isWide = item && item.columnEnd - item.columnStart > 0;
 		let isTall = item && item.rowEnd - item.rowStart > 0;
 
-		let canExpandLeft = notTooWide || multiChat.hasEmptySpaceToTheLeft(index);
-		let canExpandRight = notTooWide || multiChat.hasEmptySpaceToTheRight(index);
-		let canExpandUp = notTooTall || multiChat.hasEmptySpaceAbove(index);
-		let canExpandDown = notTooTall || multiChat.hasEmptySpaceBelow(index);
+		let canExpandLeft = notTooWide ||
+			hasLayout && multiChat.hasEmptySpaceToTheLeft(index);
+
+		let canExpandRight = notTooWide ||
+			hasLayout && multiChat.hasEmptySpaceToTheRight(index);
+
+		let canExpandUp = notTooTall ||
+			hasLayout && multiChat.hasEmptySpaceAbove(index);
+
+		let canExpandDown = notTooTall ||
+			hasLayout && multiChat.hasEmptySpaceBelow(index);
 
 		let menu = [
 			// Groups
@@ -147,12 +191,12 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Close frame",
 					action: this.removeFrame,
-					qualifier: currentLayout.length > 1
+					qualifier: currentLayout && currentLayout.length > 1
 				},
 				{
 					name: "Close all others",
 					action: this.removeOtherFrames,
-					qualifier: currentLayout.length > 1
+					qualifier: currentLayout && currentLayout.length > 1
 				}
 			],
 
@@ -183,7 +227,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame to the left",
 					action: this.expandFrameToTheLeft,
-					qualifier: canExpandLeft
+					qualifier: hasLayout && canExpandLeft
 				},
 				{
 					name: "Contract frame from the left",
@@ -193,7 +237,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame to the right",
 					action: this.expandFrameToTheRight,
-					qualifier: canExpandRight
+					qualifier: hasLayout && canExpandRight
 				},
 				{
 					name: "Contract frame from the right",
@@ -203,7 +247,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame above",
 					action: this.expandFrameAbove,
-					qualifier: canExpandUp
+					qualifier: hasLayout && canExpandUp
 				},
 				{
 					name: "Contract frame above",
@@ -213,7 +257,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame below",
 					action: this.expandFrameBelow,
-					qualifier: canExpandDown
+					qualifier: hasLayout && canExpandDown
 				},
 				{
 					name: "Contract frame below",
@@ -252,7 +296,12 @@ class ChatWindowMenu extends PureComponent {
 ChatWindowMenu.propTypes = {
 	currentLayout: PropTypes.array,
 	currentLayoutFocus: PropTypes.number,
-	index: PropTypes.number
+	index: PropTypes.number,
+	page: PropTypes.object
+};
+
+ChatWindowMenu.contextTypes = {
+	router: PropTypes.object
 };
 
 export default connect(({

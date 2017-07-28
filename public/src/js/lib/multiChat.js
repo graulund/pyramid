@@ -26,6 +26,18 @@ function getCurrentData() {
 	return { currentLayout, currentLayoutFocus };
 }
 
+function getNewLayoutFromPage(page) {
+	page = page || {};
+
+	return [{
+		...page,
+		columnStart: 1,
+		columnEnd: 1,
+		rowStart: 1,
+		rowEnd: 1
+	}];
+}
+
 function updateViewState(data) {
 	store.dispatch(actions.viewState.update(data));
 }
@@ -36,6 +48,10 @@ function updateCurrentLayout(data) {
 
 export function setFocus(index) {
 	updateViewState({ currentLayoutFocus: index });
+}
+
+export function clearCurrentLayout() {
+	updateViewState({ currentLayout: [], currentLayoutFocus: 0 });
 }
 
 export function shiftFocus(offset) {
@@ -81,40 +97,36 @@ export function locationIsMultiChat(location) {
 }
 
 function getDimensions(layout) {
-	let width = 0, height = 0, originX = null, originY = null;
+	let width = 1, height = 1, originX = null, originY = null;
 
 	if (layout) {
 		layout.forEach((item) => {
 			let { columnEnd, columnStart, rowEnd, rowStart } = item;
-			let x = columnEnd || columnStart;
-			let y = rowEnd || rowStart;
 
-			if (x > width) {
-				width = x;
+			if (columnEnd > width) {
+				width = columnEnd;
 			}
 
-			if (originX === null || x < originX) {
-				originX = x;
+			if (originX === null || columnStart < originX) {
+				originX = columnStart;
 			}
 
-			if (y > height) {
-				height = y;
+			if (rowEnd > height) {
+				height = rowEnd;
 			}
 
-			if (originY === null || y < originY) {
-				originY = y;
+			if (originY === null || rowStart < originY) {
+				originY = rowStart;
 			}
 		});
 	}
 
-	let out = {
-		height,
-		originX,
-		originY,
-		width
-	};
+	else {
+		originX = 1;
+		originY = 1;
+	}
 
-	return out;
+	return { width, height, originX, originY };
 }
 
 export function getCurrentDimensions() {
@@ -257,24 +269,37 @@ export function removeFrame(index) {
 	let newLayout = [ ...currentLayout ];
 	newLayout.splice(index, 1);
 
-	// Pull items back if we get new empty spaces
-	newLayout = fixOrigin(newLayout);
+	if (newLayout.length === 1) {
+		clearCurrentLayout();
+	}
 
-	let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
-	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
+	else {
+		// Pull items back if we get new empty spaces
+		newLayout = fixOrigin(newLayout);
+
+		let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
+		updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
+	}
+
+	return newLayout;
 }
 
-export function addFrame(index, xDiff, yDiff) {
+export function addFrame(index, page, xDiff, yDiff) {
 	let { currentLayout } = getCurrentData();
-	let item = currentLayout[index];
+	let item = currentLayout && currentLayout[index];
+	let newLayout = null;
 
 	if (!item) {
-		return;
+		newLayout = getNewLayoutFromPage(page);
+		item = newLayout[0];
+	}
+
+	else {
+		newLayout = [ ...currentLayout ];
 	}
 
 	let width = item.columnEnd - item.columnStart;
 	let height = item.rowEnd - item.rowStart;
-	let newLayout = [ ...currentLayout ];
 
 	// New coordinates
 
@@ -396,20 +421,20 @@ export function addFrame(index, xDiff, yDiff) {
 	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newIndex });
 }
 
-export function addFrameToTheLeft(index) {
-	addFrame(index, -1, 0);
+export function addFrameToTheLeft(index, page) {
+	addFrame(index, page, -1, 0);
 }
 
-export function addFrameToTheRight(index) {
-	addFrame(index, 1, 0);
+export function addFrameToTheRight(index, page) {
+	addFrame(index, page, 1, 0);
 }
 
-export function addFrameAbove(index) {
-	addFrame(index, 0, -1);
+export function addFrameAbove(index, page) {
+	addFrame(index, page, 0, -1);
 }
 
-export function addFrameBelow(index) {
-	addFrame(index, 0, 1);
+export function addFrameBelow(index, page) {
+	addFrame(index, page, 0, 1);
 }
 
 export function maximumDimensionsForViewport() {

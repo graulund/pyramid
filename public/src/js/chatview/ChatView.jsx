@@ -219,6 +219,7 @@ class ChatView extends PureComponent {
 					logDate={logDate}
 					logDetails={logDetails}
 					logUrl={this.contentUrl}
+					pageNumber={pageNumber}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					serverName={deducedServerName}
