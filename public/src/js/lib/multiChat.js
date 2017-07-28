@@ -26,16 +26,18 @@ function getCurrentData() {
 	return { currentLayout, currentLayoutFocus };
 }
 
-function getNewLayoutFromPage(page) {
-	page = page || {};
-
-	return [{
-		...page,
+function unitItem(item) {
+	return {
+		...item,
 		columnStart: 1,
 		columnEnd: 1,
 		rowStart: 1,
 		rowEnd: 1
-	}];
+	};
+}
+
+function getNewLayoutFromPage(page) {
+	return [unitItem(page || {})];
 }
 
 function updateViewState(data) {
@@ -47,6 +49,8 @@ function updateCurrentLayout(data) {
 }
 
 export function setFocus(index) {
+	let { currentLayout } = getCurrentData();
+	index = Math.min(currentLayout.length - 1, index);
 	updateViewState({ currentLayoutFocus: index });
 }
 
@@ -269,19 +273,19 @@ export function removeFrame(index) {
 	let newLayout = [ ...currentLayout ];
 	newLayout.splice(index, 1);
 
-	if (newLayout.length === 1) {
-		clearCurrentLayout();
-	}
+	// Pull items back if we get new empty spaces
+	newLayout = fixOrigin(newLayout);
 
-	else {
-		// Pull items back if we get new empty spaces
-		newLayout = fixOrigin(newLayout);
-
-		let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
-		updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
-	}
+	let newFocus = currentLayoutFocus === index ? 0 : currentLayoutFocus;
+	updateViewState({ currentLayout: newLayout, currentLayoutFocus: newFocus });
 
 	return newLayout;
+}
+
+export function removeOtherFrames(index) {
+	let { currentLayout } = getCurrentData();
+	let item = unitItem(currentLayout[index]);
+	updateViewState({ currentLayout: [item], currentLayoutFocus: 0 });
 }
 
 export function addFrame(index, page, xDiff, yDiff) {

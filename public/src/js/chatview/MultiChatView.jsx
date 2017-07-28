@@ -56,7 +56,7 @@ class MultiChatView extends PureComponent {
 	}
 
 	renderItem(data, index) {
-		let { currentLayoutFocus } = this.props;
+		let { currentLayout, currentLayoutFocus } = this.props;
 		let focus = currentLayoutFocus === index;
 
 		let styles = [];
@@ -99,7 +99,8 @@ class MultiChatView extends PureComponent {
 		}
 
 		let className = "multichat__item" +
-			(focus ? " multichat__item--focus" : "");
+			(focus && currentLayout.length > 1
+				? " multichat__item--focus" : "");
 
 		let onClick = this.getFocusHandler(index);
 

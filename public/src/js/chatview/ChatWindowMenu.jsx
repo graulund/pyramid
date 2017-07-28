@@ -64,14 +64,26 @@ class ChatWindowMenu extends PureComponent {
 		return location.pathname === homeUrl;
 	}
 
+	isInMultiRoute() {
+		let { router } = this.context;
+
+		return router.route.location.pathname === homeUrl;
+	}
+
 	addFrame(func) {
 		let { index, page = {} } = this.props;
-		let { router } = this.context;
 
 		func(index, page);
 
-		if (!this.isShowingLayout()) {
+		if (!this.isInMultiRoute()) {
+			let { router } = this.context;
 			router.history.replace(homeUrl);
+			return;
+		}
+
+		if (!this.isShowingLayout()) {
+			// Pretend to navigate
+			history.replaceState({}, "", homeUrl);
 		}
 	}
 
@@ -92,7 +104,6 @@ class ChatWindowMenu extends PureComponent {
 	}
 
 	removeFrame() {
-		// TODO: Link
 		let { index } = this.props;
 		let newLayout = multiChat.removeFrame(index);
 
@@ -105,16 +116,16 @@ class ChatWindowMenu extends PureComponent {
 		let { currentLayout, index } = this.props;
 		let item = currentLayout[index];
 
-		multiChat.clearCurrentLayout();
+		multiChat.removeOtherFrames(index);
 		this.redirectToSingle(item);
 	}
 
 	redirectToSingle(item) {
-		let { router } = this.context;
 		let { type, query, date, pageNumber } = item;
 
 		if (type && query) {
-			router.history.replace(subjectUrl(type, query, date, pageNumber));
+			// Pretend to navigate
+			history.replaceState({}, query, subjectUrl(type, query, date, pageNumber));
 		}
 	}
 
