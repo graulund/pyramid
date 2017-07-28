@@ -87,8 +87,8 @@ class ChatWindowMenu extends PureComponent {
 	renderList(menu) {
 		let out = [];
 
-		menu.forEach((group) => {
-			let newGroup = true;
+		menu.forEach((group, groupIndex) => {
+			let newGroup = groupIndex > 0;
 
 			group.forEach((item) => {
 				let { action, name, qualifier } = item;
@@ -136,6 +136,11 @@ class ChatWindowMenu extends PureComponent {
 		let isWide = item && item.columnEnd - item.columnStart > 0;
 		let isTall = item && item.rowEnd - item.rowStart > 0;
 
+		let canExpandLeft = notTooWide || multiChat.hasEmptySpaceToTheLeft(index);
+		let canExpandRight = notTooWide || multiChat.hasEmptySpaceToTheRight(index);
+		let canExpandUp = notTooTall || multiChat.hasEmptySpaceAbove(index);
+		let canExpandDown = notTooTall || multiChat.hasEmptySpaceBelow(index);
+
 		let menu = [
 			// Groups
 			[
@@ -155,22 +160,22 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "New frame to the left",
 					action: this.addFrameToTheLeft,
-					qualifier: notTooWide
+					qualifier: canExpandLeft
 				},
 				{
 					name: "New frame to the right",
 					action: this.addFrameToTheRight,
-					qualifier: notTooWide
+					qualifier: canExpandRight
 				},
 				{
 					name: "New frame above",
 					action: this.addFrameAbove,
-					qualifier: notTooTall
+					qualifier: canExpandUp
 				},
 				{
 					name: "New frame below",
 					action: this.addFrameBelow,
-					qualifier: notTooTall
+					qualifier: canExpandDown
 				}
 			],
 
@@ -178,7 +183,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame to the left",
 					action: this.expandFrameToTheLeft,
-					qualifier: notTooWide
+					qualifier: canExpandLeft
 				},
 				{
 					name: "Contract frame from the left",
@@ -188,7 +193,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame to the right",
 					action: this.expandFrameToTheRight,
-					qualifier: notTooWide
+					qualifier: canExpandRight
 				},
 				{
 					name: "Contract frame from the right",
@@ -198,7 +203,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame above",
 					action: this.expandFrameAbove,
-					qualifier: notTooTall
+					qualifier: canExpandUp
 				},
 				{
 					name: "Contract frame above",
@@ -208,7 +213,7 @@ class ChatWindowMenu extends PureComponent {
 				{
 					name: "Expand frame below",
 					action: this.expandFrameBelow,
-					qualifier: notTooTall
+					qualifier: canExpandDown
 				},
 				{
 					name: "Contract frame below",
