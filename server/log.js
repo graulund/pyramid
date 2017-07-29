@@ -48,7 +48,7 @@ const pathChannelUri = function(channelUri) {
 
 const standardWritingCallback = function(err) {
 	if (err) {
-		throw err;
+		console.warn("Error occurred writing to file:", err);
 	}
 };
 
