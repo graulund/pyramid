@@ -1,23 +1,29 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
 import forOwn from "lodash/forOwn";
 
+import ChatViewLink from "./ChatViewLink.jsx";
 import UserLink from "./UserLink.jsx";
 import UserList from "./UserList.jsx";
+import { CHANNEL_TYPES, PAGE_TYPES } from "../constants";
+import { getChannelUri } from "../lib/channelNames";
 import { pluralize, timeColors } from "../lib/formatting";
 
 class SidebarUserList extends PureComponent {
 
-	renderConvoItem(convo, key) {
-		let { count, username, userDisplayName } = convo;
+	renderConvoItem(convo) {
+		let { count, serverName, username, userDisplayName } = convo;
 		let convoItemStyles = timeColors(0);
+		let conversationUri = getChannelUri(serverName, username, CHANNEL_TYPES.PRIVATE);
 
 		return (
 			<div className="extralistitem" style={convoItemStyles} key={username}>
 				<div className="l">
-					<Link to={`/conversation/${key}`} className="wide">
+					<ChatViewLink
+						type={PAGE_TYPES.CHANNEL}
+						query={conversationUri}
+						className="wide">
 						<strong>
 							<UserLink
 								noLink
@@ -30,7 +36,7 @@ class SidebarUserList extends PureComponent {
 						<span className="now">
 							{" " + pluralize(count, "unread message", "s")}
 						</span>
-					</Link>
+					</ChatViewLink>
 				</div>
 			</div>
 		);

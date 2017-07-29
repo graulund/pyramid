@@ -4,7 +4,6 @@ import Tipsy from "react-tipsy";
 import forOwn from "lodash/forOwn";
 
 import { refElSetter } from "../lib/refEls";
-import { stickToTheBottom } from "../lib/visualBehavior";
 
 const EMOTE_IMG_URL_ROOT = "//static-cdn.jtvnw.net/emoticons/v1/";
 const EMOTE_FFZ_IMG_URL_ROOT = "//cdn.frankerfacez.com/emoticon/";
@@ -103,7 +102,7 @@ class TwitchEmoticon extends PureComponent {
 	}
 
 	onLoad() {
-		const { onLoad = stickToTheBottom } = this.props;
+		const { onLoad } = this.props;
 		if (typeof onLoad === "function") {
 			onLoad();
 		}

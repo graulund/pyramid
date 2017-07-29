@@ -1,11 +1,9 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 
+import { PAGE_TYPES } from "../constants";
 import ChannelName from "./ChannelName.jsx";
-import { parseChannelUri } from "../lib/channelNames";
-import { getConversationData } from "../lib/displayNames";
-import { channelUrl, conversationUrl } from "../lib/routeHelpers";
+import ChatViewLink from "./ChatViewLink.jsx";
 
 class ChannelLink extends PureComponent {
 	render() {
@@ -22,21 +20,11 @@ class ChannelLink extends PureComponent {
 			return null;
 		}
 
-		const uriData = parseChannelUri(channel);
-		const conversationData = uriData && getConversationData(uriData);
-		var url;
-
-		if (conversationData) {
-			let { username, server } = conversationData;
-			url = conversationUrl(server, username);
-		}
-
-		else {
-			url = channelUrl(channel);
-		}
-
 		return (
-			<Link className="channellink" to={url}>
+			<ChatViewLink
+				type={PAGE_TYPES.CHANNEL}
+				query={channel}
+				className="channellink">
 				<ChannelName
 					noUserLink
 					channel={channel}
@@ -46,7 +34,7 @@ class ChannelLink extends PureComponent {
 					server={server}
 					strong={strong}
 					/>
-			</Link>
+			</ChatViewLink>
 		);
 	}
 }

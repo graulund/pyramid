@@ -1,16 +1,10 @@
-.sidebar {
-	position: fixed;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	z-index: 10;
-	width: 320px;
-	background-color: #f7f7f7;
-	overflow: auto;
+.sidebar__outer {
+	position: relative;
+	height: 100%;
 
 	&:after {
 		content: "";
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 319px;
 		bottom: 0;
@@ -18,6 +12,14 @@
 		width: 1px;
 		background: rgba(0,0,51,.067);
 	}
+}
+
+.sidebar {
+	position: relative;
+	width: 320px;
+	height: 100%;
+	background-color: #f7f7f7;
+	overflow: auto;
 
 	.app-container--with-notice & {
 		&, &:after {
@@ -111,49 +113,16 @@
 		top: 40px;
 	}
 
-	&__cog {
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 36px;
-		height: 40px;
-
-		&--active {
-			background-color: #e7e7e7;
-		}
-
-		img {
-			position: absolute;
-			top: 12px;
-			right: 10px;
-		}
-	}
-
-	&__menu, &__system-menu {
-		list-style-type: none;
-		margin: 0;
-		padding: 10px 0;
-		user-select: none;
-	}
-
-	&__menu-link {
-		display: block;
-		padding: 5px 10px;
-		line-height: 17px;
-		color: #556;
-		font-weight: normal;
-	}
-
 	.highlightslink--highlighted {
 		background-color: #fff0aa;
 	}
 
-	&__menu-link .badge {
+	.menu__link .badge {
 		position: absolute;
 		right: 10px;
 	}
 
-	&__menu-link .badge,
+	.menu__link .badge,
 	&__tabs .badge,
 	&__list .badge {
 		background-color: #b9af7c;
@@ -172,29 +141,6 @@
 
 	&__tabs .badge {
 		margin-left: 4px;
-	}
-
-	&__system-menu {
-		display: none;
-		position: fixed;
-		top: 40px;
-		left: 188px;
-		z-index: 10;
-		min-width: 130px;
-		text-align: right;
-		border: 1px solid #ccc;
-		background-color: #fff;
-		padding: 0;
-		box-shadow: 0 5px 12px 0 rgba(0,0,0,.3);
-
-		&-link:hover {
-			background-color: #eee;
-			text-decoration: none;
-		}
-	}
-
-	&__system-menu .sep {
-		border-top: 1px solid #ccc;
 	}
 
 	.switcher {

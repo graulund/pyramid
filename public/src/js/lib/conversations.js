@@ -1,54 +1,69 @@
+import actions from "../actions";
 import store from "../store";
 import { getChannelUri } from "./channelNames";
 import { reportConversationAsSeen } from "./io";
-import { parseConversationUrl } from "./routeHelpers";
+
+function conversationKey(serverName, username) {
+	return getChannelUri(serverName, username);
+}
+
+function setOpenConversationValue(key, diff) {
+	let state = store.getState();
+	let { openConversations = {} } = state.viewState;
+	let conversationValue = openConversations[key] || 0;
+	store.dispatch(actions.viewState.update({
+		openConversations: {
+			...openConversations,
+			[key]: conversationValue + diff
+		}
+	}));
+}
+
+export function setConversationAsOpen(serverName, username) {
+	let key = conversationKey(serverName, username);
+	setOpenConversationValue(key, 1);
+}
+
+export function setConversationAsClosed(serverName, username) {
+	let key = conversationKey(serverName, username);
+	setOpenConversationValue(key, -1);
+}
 
 export function reportConversationAsSeenIfNeeded(serverName, username) {
+	let key = conversationKey(serverName, username);
 	let state = store.getState();
-	let convo = state.unseenConversations[getChannelUri(serverName, username)];
+	let convo = state.unseenConversations[key];
 
 	if (convo) {
 		reportConversationAsSeen(serverName, username);
 	}
 }
 
-export function handleNewUnseenConversationsList(list, del = true, onlyIfInFocus = true) {
+export function handleNewUnseenConversationsList(list) {
+	// Do not include the ones open, if in focus, to prevent flashes
 
-	let inFocus = true;
-
-	if (onlyIfInFocus) {
+	if (list && Object.keys(list).length) {
 		let state = store.getState();
-		inFocus = state.deviceState.inFocus;
-	}
+		let { inFocus } = state.deviceState;
+		let { openConversations } = state.viewState;
 
-	// Ignore, and set as seen immediately, if we're currently on the page
+		if (inFocus && openConversations) {
+			list = { ...list };
+			Object.keys(list).forEach((key) => {
+				if (openConversations[key] > 0) {
+					let item = list[key];
 
-	if (inFocus) {
-		let { pathname } = location;
-		let m = parseConversationUrl(pathname);
+					// Report them as seen if they're open and we're in focus
+					if (item) {
+						let { serverName, username } = item;
+						reportConversationAsSeen(serverName, username);
+					}
 
-		if (m) {
-			let serverName = m[1];
-			let username = m[2];
-
-			let userUri = getChannelUri(serverName, username);
-			let convo = list[userUri];
-
-			if (convo) {
-				// Prevent flashes of badges
-				if (del) {
-					delete list[userUri];
+					delete list[key];
 				}
-
-				reportConversationAsSeen(serverName, username);
-			}
+			});
 		}
 	}
 
 	return list;
-}
-
-export function reportConversationAsSeenIfOnPage(onlyIfInFocus = false) {
-	let state = store.getState();
-	handleNewUnseenConversationsList(state.unseenConversations, false, onlyIfInFocus);
 }

@@ -1,9 +1,11 @@
 @import "config";
 @import "basic";
 @import "error";
+@import "container";
 @import "loader";
 @import "itemlist";
 @import "switcher";
+@import "menu";
 @import "connectioninfo";
 @import "header";
 @import "login";
@@ -12,6 +14,7 @@
 @import "chatview";
 @import "logbrowser";
 @import "settingsview";
+@import "multichat";
 @import "welcome";
 @import "tooltips";
 @import "darkmode";

@@ -34,7 +34,7 @@ config.plugins.push(
 	})
 );
 
-// Setup loaders
+// Setup rules
 config.module = {
 	rules: []
 };

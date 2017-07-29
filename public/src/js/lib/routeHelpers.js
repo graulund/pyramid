@@ -1,4 +1,4 @@
-import { CATEGORY_NAMES, ROOT_PATHNAME } from "../constants";
+import { CHANNEL_TYPES, CATEGORY_NAMES, ROOT_PATHNAME } from "../constants";
 import { getPrivateConversationUri, parseChannelUri } from "./channelNames";
 
 export function internalUrl(url) {
@@ -58,9 +58,30 @@ export function categoryUrl(categoryName) {
 }
 
 export function subjectUrl(type, query, logDate, pageNumber) {
-	const subjectUrlName = type === "category"
-		? query
-		: subjectName(type, query, "/");
+
+	var subjectUrlName;
+
+	if (type === "category") {
+		subjectUrlName = query;
+	}
+
+	else {
+		if (type === "channel" && query.indexOf(":") >= 0) {
+			// Parse URI fully
+			let uriData = parseChannelUri(query);
+
+			// Private channel exception
+			if (uriData && uriData.channelType === CHANNEL_TYPES.PRIVATE) {
+				let { channel, server } = uriData;
+				return conversationUrl(
+					server, channel, logDate, pageNumber
+				);
+			}
+			// Otherwise, use default
+		}
+
+		subjectUrlName = subjectName(type, query, "/");
+	}
 
 	return internalUrl(
 		"/" + subjectUrlName +

@@ -1,7 +1,7 @@
 .settingsview {
-	padding: 20px;
-	margin-top: 40px;
-	margin-bottom: 0;
+	.mainview__content__primary {
+		padding: 20px;
+	}
 
 	> div > *:first-child {
 		margin-top: 0;

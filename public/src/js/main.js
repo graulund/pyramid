@@ -7,6 +7,7 @@ import { createBrowserHistory } from "history";
 
 import App from "./components/App.jsx";
 import ChatViewWrapper from "./chatview/ChatViewWrapper.jsx";
+import MultiChatView from "./chatview/MultiChatView.jsx";
 import NoChatView from "./chatview/NoChatView.jsx";
 import SettingsView from "./settingsview/SettingsView.jsx";
 
@@ -121,7 +122,7 @@ if (main) {
 			<Router history={history}>
 				<App>
 					<Switch>
-						<Route exact path={routes.homeUrl} component={NoChatView} />
+						<Route exact path={routes.homeUrl} component={MultiChatView} />
 						<Route
 							path={routes.channelUrl(
 								":serverName/:channelName", ":logDate", 0, false

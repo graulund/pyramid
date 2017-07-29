@@ -3,16 +3,14 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import shallowEqual from "fbjs/lib/shallowEqual";
 
-import ChannelUserList from "./ChannelUserList.jsx";
 import ChatFrame from "./ChatFrame.jsx";
 import ChatViewFooter from "./ChatViewFooter.jsx";
 import ChatViewHeader from "./ChatViewHeader.jsx";
 import Loader from "../components/Loader.jsx";
 import { PAGE_TYPES, PAGE_TYPE_NAMES } from "../constants";
 import { getChannelDisplayNameFromState } from "../lib/channelNames";
-import { getConversationData } from "../lib/displayNames";
 import * as io from "../lib/io";
-import { conversationUrl, subjectName, subjectUrl } from "../lib/routeHelpers";
+import { subjectName, subjectUrl } from "../lib/routeHelpers";
 import store from "../store";
 import actions from "../actions";
 
@@ -28,7 +26,7 @@ class ChatView extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.contentLogUrl = this.contentLogUrl.bind(this);
+		this.contentUrl = this.contentUrl.bind(this);
 
 		this.state = {
 			loading: true
@@ -58,37 +56,7 @@ class ChatView extends PureComponent {
 
 	contentUrl(date, pageNumber) {
 		const { pageType, pageQuery } = this.props;
-		var convoData;
-
-		if (pageType === PAGE_TYPES.CHANNEL) {
-			convoData = getConversationData(pageQuery);
-		}
-
-		if (date) {
-			if (convoData) {
-				let { server, username } = convoData;
-				return conversationUrl(server, username, date, pageNumber);
-			}
-
-			return subjectUrl(pageType, pageQuery, date, pageNumber);
-		}
-
-		else {
-			if (convoData) {
-				let { server, username } = convoData;
-				return conversationUrl(server, username);
-			}
-
-			return subjectUrl(pageType, pageQuery);
-		}
-	}
-
-	contentLiveUrl() {
-		return this.contentUrl();
-	}
-
-	contentLogUrl(date, pageNumber) {
-		return this.contentUrl(date, pageNumber);
+		return subjectUrl(pageType, pageQuery, date, pageNumber);
 	}
 
 	isLiveChannel() {
@@ -199,8 +167,12 @@ class ChatView extends PureComponent {
 
 	render() {
 		const {
+			connectionStatus,
+			currentLayout,
+			deviceFocus,
 			displayName,
-			inFocus,
+			focus,
+			index,
 			lines,
 			logBrowserOpen,
 			logDate,
@@ -217,16 +189,7 @@ class ChatView extends PureComponent {
 
 		const loadingStyles = loading ? null : HIDDEN_STYLES;
 
-		const liveUrl = this.contentLiveUrl();
 		const isLiveChannel = this.isLiveChannel();
-
-		var userList = null;
-
-		if (isLiveChannel && userListOpen) {
-			userList = <ChannelUserList
-				channel={pageQuery}
-				key="userList" />;
-		}
 
 		const loader = (
 			<div key="loader" style={loadingStyles}>
@@ -250,19 +213,23 @@ class ChatView extends PureComponent {
 
 				<ChatViewHeader
 					displayName={displayName}
+					index={index}
 					isLiveChannel={isLiveChannel}
-					liveUrl={liveUrl}
 					logBrowserOpen={logBrowserOpen}
 					logDate={logDate}
 					logDetails={logDetails}
-					logUrl={this.contentLogUrl}
+					logUrl={this.contentUrl}
+					pageNumber={pageNumber}
 					pageQuery={pageQuery}
 					pageType={pageType}
 					serverName={deducedServerName}
 					key="header" />
 
 				<ChatFrame
-					inFocus={inFocus}
+					connectionStatus={connectionStatus}
+					currentLayout={currentLayout}
+					inFocus={deviceFocus}
+					isLiveChannel={isLiveChannel}
 					lines={lines}
 					loading={loading}
 					logBrowserOpen={logBrowserOpen}
@@ -276,15 +243,16 @@ class ChatView extends PureComponent {
 
 				<ChatViewFooter
 					displayName={displayName}
+					focus={focus}
+					index={index}
 					isLiveChannel={isLiveChannel}
 					logDate={logDate}
 					logDetails={logDetails}
-					logUrl={this.contentLogUrl}
 					pageNumber={pageNumber}
 					pageQuery={pageQuery}
+					pageType={pageType}
 					key="footer" />
 
-				{ userList }
 				{ loader }
 
 			</div>
@@ -293,8 +261,12 @@ class ChatView extends PureComponent {
 }
 
 ChatView.propTypes = {
+	connectionStatus: PropTypes.object,
+	currentLayout: PropTypes.array,
+	deviceFocus: PropTypes.bool,
 	displayName: PropTypes.string,
-	inFocus: PropTypes.bool,
+	focus: PropTypes.bool,
+	index: PropTypes.number,
 	isVisible: PropTypes.bool,
 	lastReload: PropTypes.object,
 	lineId: PropTypes.string,
@@ -349,8 +321,10 @@ const mapStateToProps = function(state, ownProps) {
 	const logDetails = state.logDetails[subject];
 
 	return {
+		connectionStatus: state.connectionStatus,
+		currentLayout: state.viewState.currentLayout,
 		displayName,
-		inFocus: state.deviceState.inFocus,
+		deviceFocus: state.deviceState.inFocus,
 		isVisible: state.deviceState.visible,
 		lastReload,
 		lines,

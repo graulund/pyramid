@@ -1,13 +1,11 @@
 .channeluserlist {
-	/* TODO: Get rid of magic numbers... */
-	position: fixed;
+	/*position: fixed;
 	top: 41px;
 	right: 0;
-	bottom: 72px;
+	bottom: 72px;*/
 	width: 280px;
 	background-color: #fff;
-	overflow: auto;
-	z-index: 3;
+	//overflow: auto;
 	margin: 0;
 
 	&:after {
@@ -16,7 +14,6 @@
 		top: 41px;
 		right: 279px;
 		bottom: 72px;
-		z-index: 11;
 		width: 1px;
 		background: rgba(0,0,51,.067);
 		z-index: 4;
@@ -38,7 +35,7 @@
 
 .chatlines {
 	list-style-type: none;
-	margin: 0;
+	margin: 10px 0;
 	padding: 0;
 
 	&__empty {
@@ -50,26 +47,16 @@
 }
 
 .chatview {
-	margin-bottom: 20px;
 
-	&--live-channel, &--logbrowsing {
-		margin-bottom: 80px;
-	}
-
-	&--logbrowsing {
-		margin-top: 80px;
-
-		.channeluserlist {
-			top: 68px;
+	&__frame {
+		&__secondary {
+			flex: 0 0 auto;
 		}
 
-		.mainview__top {
-			height: auto;
+		&__primary,
+		&__secondary {
+			overflow: auto;
 		}
-	}
-
-	&--userlisting {
-		margin-right: 280px;
 	}
 
 	.line {
@@ -333,18 +320,21 @@
 		&--highlight {
 			background-color: #fff0aa;
 		}
+
+		.chatlines {
+			margin: 0;
+		}
+	}
+
+	&__input {
+		position: relative;
 	}
 
 	&__input, &__pagination {
-		position: fixed;
-		bottom: 0;
-		left: 320px;
-		right: 0;
 		padding: 15px 20px 30px;
 		margin: 0;
 		border-top: 1px solid #ccc;
 		background-color: #fff;
-		z-index: 4;
 	}
 
 	&__input input[type="text"] {
@@ -432,6 +422,11 @@
 		}
 	}
 
+	&__top {
+		position: relative;
+		padding-right: 40px;
+	}
+
 	@media #{$mobile-media} {
 		margin: 50px 0 10px;
 
@@ -479,8 +474,11 @@
 }
 
 .nochatview {
+	position: relative;
+
 	h1 {
 		font-size: 48px;
+		line-height: 1em;
 		text-align: center;
 		margin: 0 20px;
 		padding: 100px 0;

@@ -70,13 +70,16 @@ class ChatViewWrapper extends PureComponent {
 
 		const lineId = parseLineIdHash(location.hash);
 
-		return <ChatView
-			lineId={lineId}
-			logDate={logDate}
-			pageNumber={+pageNumber || 1}
-			pageQuery={pageQuery}
-			pageType={pageType}
-			key="main" />;
+		return (
+			<ChatView
+				focus
+				lineId={lineId}
+				logDate={logDate}
+				pageNumber={+pageNumber || 1}
+				pageQuery={pageQuery}
+				pageType={pageType}
+				key="main" />
+		);
 	}
 }
 

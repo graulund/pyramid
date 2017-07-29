@@ -1,11 +1,12 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
 
+import ChatViewLink from "./ChatViewLink.jsx";
+import { CHANNEL_TYPES } from "../constants";
+import { getChannelUri } from "../lib/channelNames";
 import { getMyIrcNick } from "../lib/connectionStatus";
 import { getTwitchUserDisplayNameData } from "../lib/displayNames";
-import { conversationUrl, userUrl } from "../lib/routeHelpers";
 
 const block = "userlink";
 
@@ -56,7 +57,7 @@ class UserLink extends PureComponent {
 			}
 		}
 
-		var url;
+		var type, query;
 
 		if (!isFriend || noLink) {
 
@@ -70,23 +71,26 @@ class UserLink extends PureComponent {
 
 			// Conversation link output for non-friends
 
-			url = conversationUrl(serverName, username);
+			type = "channel";
+			query = getChannelUri(serverName, username, CHANNEL_TYPES.PRIVATE);
 		}
 
 		else {
-			url = userUrl(username);
+			type = "user";
+			query = username;
 		}
 
 		// User page link output for friends
 
 		return (
-			<Link
+			<ChatViewLink
 				className={block}
-				to={url}
+				query={query}
+				type={type}
 				title={tooltip}
 				key="main">
 				{ content }
-			</Link>
+			</ChatViewLink>
 		);
 	}
 }

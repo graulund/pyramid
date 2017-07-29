@@ -11,6 +11,7 @@ import {
 	getTwitchUserDisplayNameString,
 	DISPLAY_NAME_PREFIX_TYPES
 } from "../lib/displayNames";
+import { setFocus } from "../lib/multiChat";
 import { postMessage } from "../lib/posting";
 import { refElSetter } from "../lib/refEls";
 
@@ -46,9 +47,10 @@ class ChatInput extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.focus = this.focus.bind(this);
+		this.focusInput = this.focusInput.bind(this);
 		this.onBodyKey = this.onBodyKey.bind(this);
 		this.onChange = this.onChange.bind(this);
+		this.onInputFocus = this.onInputFocus.bind(this);
 		this.onKeyDown = this.onKeyDown.bind(this);
 		this.onKeyUp = this.onKeyUp.bind(this);
 		this.submit = this.submit.bind(this);
@@ -78,23 +80,27 @@ class ChatInput extends PureComponent {
 		return false;
 	}
 
-	componentWillReceiveProps(newProps) {
-		if (newProps && newProps.channel !== this.props.channel) {
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.channel !== this.props.channel) {
 			this.resetCurrentHistory();
+		}
+
+		if (nextProps.viewFocus && !this.props.viewFocus) {
+			this.focusInput(nextProps);
 		}
 	}
 
 	componentDidMount() {
-		window.addEventListener("focus", this.focus);
+		window.addEventListener("focus", this.focusInput);
 		document.body.addEventListener("keypress", this.onBodyKey);
 	}
 
 	componentDidUpdate() {
-		this.focus();
+		this.focusInput();
 	}
 
 	componentWillUnmount() {
-		window.removeEventListener("focus", this.focus);
+		window.removeEventListener("focus", this.focusInput);
 		document.body.removeEventListener("keypress", this.onBodyKey);
 	}
 
@@ -150,12 +156,12 @@ class ChatInput extends PureComponent {
 		return displayNames;
 	}
 
-	focus() {
-		const { isTouchDevice } = this.props;
+	focusInput(props = this.props) {
+		const { viewFocus, isTouchDevice } = props;
 		const { input: inputEl } = this.els;
 
-		if (inputEl && !isTouchDevice) {
-			inputEl.focus();
+		if (viewFocus && inputEl && !isTouchDevice) {
+			setTimeout(() => inputEl.focus(), 0);
 		}
 	}
 
@@ -262,9 +268,11 @@ class ChatInput extends PureComponent {
 
 		// Ensure focus if we are typing characters without having focus in the input field
 
+		const { viewFocus } = this.props;
 		const { input: inputEl } = this.els;
 
 		if (
+			viewFocus &&
 			inputEl &&
 			evt &&
 			evt.target === document.body &&
@@ -272,10 +280,8 @@ class ChatInput extends PureComponent {
 			evt.key.length === 1 &&
 			!isBlockingModifiedEvent(evt)
 		) {
-			// (Apparently this isn't needed?)
-			//inputEl.value = inputEl.value + evt.key;
-
-			this.focus();
+			inputEl.value = inputEl.value + evt.key;
+			this.focusInput();
 		}
 	}
 
@@ -295,6 +301,14 @@ class ChatInput extends PureComponent {
 				inputEl.value = result;
 				inputEl.setSelectionRange(position, position);
 			}
+		}
+	}
+
+	onInputFocus() {
+		let { viewFocus, index } = this.props;
+
+		if (!viewFocus && typeof index === "number") {
+			setFocus(index);
 		}
 	}
 
@@ -443,6 +457,7 @@ class ChatInput extends PureComponent {
 					type="text"
 					ref={this.setInputEl}
 					onChange={this.onChange}
+					onFocus={this.onInputFocus}
 					onKeyDown={this.onKeyDown}
 					onKeyUp={this.onKeyUp}
 					tabIndex={1}
@@ -466,7 +481,9 @@ ChatInput.propTypes = {
 	enableTwitch: PropTypes.bool,
 	enableTwitchChannelDisplayNames: PropTypes.bool,
 	enableTwitchUserDisplayNames: PropTypes.number,
-	isTouchDevice: PropTypes.bool
+	index: PropTypes.number,
+	isTouchDevice: PropTypes.bool,
+	viewFocus: PropTypes.bool
 };
 
 const mapStateToProps = function(state, ownProps) {

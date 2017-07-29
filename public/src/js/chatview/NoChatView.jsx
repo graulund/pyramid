@@ -1,9 +1,11 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 
+import ChatWindowMenu from "./ChatWindowMenu.jsx";
+
 class NoChatView extends PureComponent {
 	render() {
-		const { notFound } = this.props;
+		const { index, notFound } = this.props;
 		var content;
 
 		if (notFound) {
@@ -17,11 +19,17 @@ class NoChatView extends PureComponent {
 			content = <h1>Open a chat :)</h1>;
 		}
 
-		return <div className="mainview nochatview">{ content }</div>;
+		return (
+			<div className="mainview nochatview">
+				{ content }
+				<ChatWindowMenu index={index} />
+			</div>
+		);
 	}
 }
 
 NoChatView.propTypes = {
+	index: PropTypes.number,
 	notFound: PropTypes.bool
 };
 
