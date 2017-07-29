@@ -46,8 +46,16 @@ function updateViewState(data) {
 
 	if (newLayout) {
 		let { currentLayout } = getCurrentData();
-		updateMultiChatVisibility(false, currentLayout);
+
+		if (currentLayout) {
+			updateMultiChatVisibility(false, currentLayout);
+		}
+
 		updateMultiChatVisibility(true, newLayout);
+
+		if (localStorage) {
+			localStorage.currentLayout = JSON.stringify(newLayout);
+		}
 	}
 
 	store.dispatch(actions.viewState.update(data));
@@ -55,6 +63,19 @@ function updateViewState(data) {
 
 function updateCurrentLayout(data) {
 	updateViewState({ currentLayout: data });
+}
+
+export function importLayoutFromLocalStorage() {
+	if (localStorage && localStorage.currentLayout) {
+		try {
+			let currentLayout = JSON.parse(localStorage.currentLayout);
+			updateViewState({ currentLayout });
+		}
+
+		catch (e) {
+			localStorage.currentLayout = JSON.stringify(null);
+		}
+	}
 }
 
 export function setFocus(index) {

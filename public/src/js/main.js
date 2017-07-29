@@ -15,6 +15,7 @@ import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import setUpDataExpiration from "./lib/dataExpiration";
 import { initializeMessageCaches } from "./lib/messageCaches";
+import { importLayoutFromLocalStorage } from "./lib/multiChat";
 import setUpPageTitles from "./lib/pageTitles";
 import { startUpdatingNotificationsActiveState } from "./lib/notifications";
 import * as routes from "./lib/routeHelpers";
@@ -35,10 +36,12 @@ const history = createBrowserHistory();
 setUpPageTitles(history);
 setUpDataExpiration(history);
 
+const isHome = location.pathname === routes.homeUrl;
+
 // Data store
 
 var currentViewState = {
-	sidebarVisible: location.pathname === "/" || !isMobile()
+	sidebarVisible: isHome || !isMobile()
 };
 
 if (window.pyramid_viewState) {
@@ -99,6 +102,12 @@ if (window.pyramid_unseenConversations) {
 
 if (window.pyramid_unseenHighlights) {
 	store.dispatch(actions.unseenHighlights.set(window.pyramid_unseenHighlights));
+}
+
+// Local storage
+
+if (isHome) {
+	importLayoutFromLocalStorage();
 }
 
 // Sockets
