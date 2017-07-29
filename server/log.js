@@ -182,14 +182,17 @@ const logCategoryLine = function(categoryName, channel, line, d) {
 const logLine = function(line, dirName, fileName, callback = standardWritingCallback) {
 	mkdirp(dirName, function(err) {
 		if (err) {
-			throw err;
+			console.warn(`Could not create directory ${dirName}:`, err);
 		}
-		fs.appendFile(
-			path.join(dirName, fileName + ".txt"),
-			line + "\n",
-			{ encoding: constants.FILE_ENCODING },
-			callback
-		);
+
+		else {
+			fs.appendFile(
+				path.join(dirName, fileName + ".txt"),
+				line + "\n",
+				{ encoding: constants.FILE_ENCODING },
+				callback
+			);
+		}
 	});
 };
 
