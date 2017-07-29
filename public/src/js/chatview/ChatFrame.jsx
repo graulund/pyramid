@@ -411,10 +411,12 @@ class ChatFrame extends PureComponent {
 			pageType === PAGE_TYPES.CATEGORY &&
 			pageQuery === "highlights";
 		const displayUsername = pageType !== PAGE_TYPES.USER;
+		const isConversation = this.uriData &&
+			this.uriData.channelType === CHANNEL_TYPES.PRIVATE;
 
 		var userList = null;
 
-		if (isLiveChannel && userListOpen) {
+		if (isLiveChannel && !isConversation && userListOpen) {
 			userList = <ChannelUserList
 				channel={pageQuery}
 				key="userList" />;
