@@ -35,25 +35,22 @@ module.exports = function(main) {
 
 	const emitChannelCache = function(socket, channel) {
 		main.messageCaches().getChannelCache(channel, (err, cache) => {
-			if (!err) {
-				socket.emit("channelCache", { channel, cache });
-			}
+			cache = cache || [];
+			socket.emit("channelCache", { channel, cache });
 		});
 	};
 
 	const emitUserCache = function(socket, username) {
 		main.messageCaches().getUserCache(username, (err, cache) => {
-			if (!err) {
-				socket.emit("userCache", { username, cache });
-			}
+			cache = cache || [];
+			socket.emit("userCache", { username, cache });
 		});
 	};
 
 	const emitCategoryCache = function(socket, categoryName) {
 		main.messageCaches().getCategoryCache(categoryName, (err, cache) => {
-			if (!err) {
-				socket.emit("categoryCache", { categoryName, cache });
-			}
+			cache = cache || [];
+			socket.emit("categoryCache", { categoryName, cache });
 		});
 	};
 
