@@ -54,6 +54,15 @@ class ChatView extends PureComponent {
 		this.cleanUpIfNeeded(newProps);
 	}
 
+	componentWillUnmount() {
+		let { logDate, pageType, pageQuery } = this.props;
+
+		if (!logDate) {
+			let subject = subjectName(pageType, pageQuery);
+			io.unsubscribeFromSubject(subject);
+		}
+	}
+
 	contentUrl(date, pageNumber) {
 		const { pageType, pageQuery } = this.props;
 		return subjectUrl(pageType, pageQuery, date, pageNumber);
@@ -68,13 +77,14 @@ class ChatView extends PureComponent {
 		pageType, pageQuery, logDate, pageNumber,
 		oldType, oldQuery, oldLogDate
 	) {
-		const subject = subjectName(pageType, pageQuery);
+		let subject = subjectName(pageType, pageQuery);
+		let subscribed = true;
 
 		if (logDate) {
 			io.requestLogFile(subject, logDate, pageNumber);
 		}
 		else {
-			io.subscribeToSubject(subject);
+			subscribed = io.subscribeToSubject(subject);
 		}
 
 		io.requestLogDetails(subject, logDate);
@@ -83,6 +93,8 @@ class ChatView extends PureComponent {
 			const oldSubject = subjectName(oldType, oldQuery);
 			io.unsubscribeFromSubject(oldSubject);
 		}
+
+		return subscribed;
 	}
 
 	requestDataIfNeeded(props = this.props, oldProps = {}) {
@@ -113,11 +125,11 @@ class ChatView extends PureComponent {
 			pageNumber !== oldPageNumber
 		) {
 			// Time to request data
-			this.requestData(
+			let subscribed = this.requestData(
 				pageType, pageQuery, logDate, pageNumber,
 				oldType, oldQuery, oldLogDate
 			);
-			this.setState({ loading: true });
+			this.setState({ loading: subscribed });
 		}
 
 		else if (

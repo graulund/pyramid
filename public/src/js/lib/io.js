@@ -1,8 +1,8 @@
-import actions from "../actions";
-import store from "../store";
-import without from "lodash/without";
+import pickBy from "lodash/pickBy";
 
+import actions from "../actions";
 import { PAGE_TYPES } from "../constants";
+import store from "../store";
 import { setGlobalConnectionStatus, STATUS } from "./connectionStatus";
 import { handleNewUnseenConversationsList } from "./conversations";
 import { sendMessageNotification } from "./notifications";
@@ -11,7 +11,7 @@ import { parseSubjectName, subjectName } from "./routeHelpers";
 var io;
 var socket;
 
-var currentSubscriptions = [];
+var currentSubscriptions = {};
 
 function emit(name, value) {
 	if (socket) {
@@ -19,30 +19,57 @@ function emit(name, value) {
 	}
 }
 
-function emitSubscribe(type, subject) {
-	if (socket && type && subject) {
-		emit("subscribe", { [type]: subject });
-		const subscriptionName = subjectName(type, subject);
-		currentSubscriptions = [
-			...currentSubscriptions, subscriptionName
-		];
+function emitSubscribe(type, query, force = false) {
+	if (socket && type && query) {
+		let subject = subjectName(type, query);
+		let subCount = currentSubscriptions[subject];
+
+		if (force) {
+			emit("subscribe", { [type]: query });
+			return true;
+		}
+
+		if (subCount > 0) {
+			// Ignore duplicates
+			currentSubscriptions[subject]++;
+			return false;
+		}
+
+		emit("subscribe", { [type]: query });
+		currentSubscriptions[subject] = 1;
+		return true;
 	}
+
+	return false;
 }
 
-function emitUnsubscribe(type, subject) {
-	if (socket && type && subject) {
-		emit("unsubscribe", { [type]: subject });
-		const subscriptionName = subjectName(type, subject);
-		currentSubscriptions = without(
-			currentSubscriptions, subscriptionName
-		);
+function emitUnsubscribe(type, query) {
+	if (socket && type && query) {
+		let subject = subjectName(type, query);
+		let subCount = currentSubscriptions[subject];
+
+		if (subCount > 1) {
+			// Ignore duplicates
+			currentSubscriptions[subject]--;
+			return false;
+		}
+
+		emit("unsubscribe", { [type]: query });
+		currentSubscriptions[subject] = 0;
+		return true;
 	}
+
+	return false;
+}
+
+function currentSubscriptionNames() {
+	return Object.keys(pickBy(currentSubscriptions, (n) => n > 0));
 }
 
 function emitCurrentSubscriptions() {
-	currentSubscriptions.forEach((sub) => {
+	currentSubscriptionNames().forEach((sub) => {
 		const { type, query } = parseSubjectName(sub);
-		emitSubscribe(type, query);
+		emitSubscribe(type, query, true);
 	});
 }
 
@@ -51,11 +78,10 @@ function _handleSubscription(subject, unsubscribe = false) {
 	const typeName = type === "user" ? "username" : type;
 
 	if (unsubscribe) {
-		emitUnsubscribe(typeName, query);
+		return emitUnsubscribe(typeName, query);
 	}
-	else {
-		emitSubscribe(typeName, query);
-	}
+
+	return emitSubscribe(typeName, query);
 }
 
 function removeOfflineMessage(details) {
@@ -66,11 +92,11 @@ function removeOfflineMessage(details) {
 }
 
 export function subscribeToSubject(subject) {
-	_handleSubscription(subject, false);
+	return _handleSubscription(subject, false);
 }
 
 export function unsubscribeFromSubject(subject) {
-	_handleSubscription(subject, true);
+	return _handleSubscription(subject, true);
 }
 
 export function sendMessage(channel, message, messageToken) {
