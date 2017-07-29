@@ -3,6 +3,7 @@
 
 import actions from "../actions";
 import store from "../store";
+import { getCurrentData } from "./multiChat";
 import { getRouteData } from "./routeHelpers";
 
 const CACHE_EXPIRATION_TIME = 300000; // 5 minutes
@@ -21,6 +22,52 @@ export function startExpiringUserCache(username) {
 	}, CACHE_EXPIRATION_TIME);
 }
 
+export function handleItemVisible(item) {
+	let { type, query } = item;
+
+	if (type === "channel") {
+		store.dispatch(actions.channelCaches.stopExpiration(query));
+	}
+
+	else if (type === "user") {
+		store.dispatch(actions.userCaches.stopExpiration(query));
+	}
+}
+
+export function handleItemNoLongerVisible(item) {
+	let { type, query } = item;
+
+	if (type === "channel") {
+		store.dispatch(actions.channelCaches.startExpiration(query));
+	}
+
+	else if (type === "user") {
+		store.dispatch(actions.userCaches.startExpiration(query));
+	}
+}
+
+export function updateMultiChatVisibility(visible, layout) {
+	let { currentLayout } = getCurrentData();
+
+	if (!layout) {
+		layout = currentLayout;
+	}
+
+	if (layout) {
+		layout.forEach((item) => {
+			if (item) {
+				if (visible) {
+					handleItemVisible(item);
+				}
+
+				else {
+					handleItemNoLongerVisible(item);
+				}
+			}
+		});
+	}
+}
+
 function handleLocationChange(location) {
 	let { pathname } = location;
 
@@ -33,14 +80,13 @@ function handleLocationChange(location) {
 	let prevRouteData = getRouteData(prevPathname);
 
 	if (prevRouteData) {
-		let { type, query } = prevRouteData;
-
-		if (type === "channel") {
-			store.dispatch(actions.channelCaches.startExpiration(query));
+		if (prevRouteData.type === "home") {
+			// Leaving multichat
+			updateMultiChatVisibility(false);
 		}
 
-		else if (type === "user") {
-			store.dispatch(actions.userCaches.startExpiration(query));
+		else {
+			handleItemNoLongerVisible(prevRouteData);
 		}
 	}
 
@@ -49,17 +95,15 @@ function handleLocationChange(location) {
 	let currentRouteData = getRouteData(pathname);
 
 	if (currentRouteData) {
-		let { type, query } = currentRouteData;
-
-		if (type === "channel") {
-			store.dispatch(actions.channelCaches.stopExpiration(query));
+		if (currentRouteData.type === "home") {
+			// Entering multichat
+			updateMultiChatVisibility(true);
 		}
 
-		else if (type === "user") {
-			store.dispatch(actions.userCaches.stopExpiration(query));
+		else {
+			handleItemVisible(currentRouteData);
 		}
 	}
-
 
 	// Set prev pathname
 

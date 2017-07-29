@@ -1,3 +1,4 @@
+import { updateMultiChatVisibility } from "./dataExpiration";
 import { homeUrl } from "./routeHelpers";
 import actions from "../actions";
 import store from "../store";
@@ -20,7 +21,7 @@ function rangesOverlap(x1, x2, y1, y2) {
 	return low1 <= high2 && high1 <= low2;
 }
 
-function getCurrentData() {
+export function getCurrentData() {
 	let state = store.getState();
 	let { viewState: { currentLayout, currentLayoutFocus } } = state;
 	return { currentLayout, currentLayoutFocus };
@@ -41,6 +42,14 @@ function getNewLayoutFromPage(page) {
 }
 
 function updateViewState(data) {
+	let { currentLayout: newLayout } = data;
+
+	if (newLayout) {
+		let { currentLayout } = getCurrentData();
+		updateMultiChatVisibility(false, currentLayout);
+		updateMultiChatVisibility(true, newLayout);
+	}
+
 	store.dispatch(actions.viewState.update(data));
 }
 

@@ -231,5 +231,9 @@ export function getRouteData(pathname) {
 		return { type: "category", query: m[1] };
 	}
 
+	if (pathname === homeUrl) {
+		return { type: "home" };
+	}
+
 	return null;
 }
