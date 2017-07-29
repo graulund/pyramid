@@ -12,12 +12,14 @@ var prevPathname = "";
 
 export function startExpiringChannelCache(channel) {
 	return setTimeout(function() {
+		console.log(`Expiring cache for channel ${channel}`);
 		store.dispatch(actions.channelCaches.remove(channel));
 	}, CACHE_EXPIRATION_TIME);
 }
 
 export function startExpiringUserCache(username) {
 	return setTimeout(function() {
+		console.log(`Expiring cache for user ${username}`);
 		store.dispatch(actions.userCaches.remove(username));
 	}, CACHE_EXPIRATION_TIME);
 }
