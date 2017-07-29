@@ -38,7 +38,7 @@ class ChatFrame extends PureComponent {
 		};
 
 		this.els = {};
-		this.setPrimaryEl = refElSetter("primary").bind(this);
+		this.setPrimaryFrameEl = refElSetter("primaryFrame").bind(this);
 
 		this.atBottom = true;
 
@@ -49,8 +49,8 @@ class ChatFrame extends PureComponent {
 	componentDidMount() {
 		let { lines, logDate } = this.props;
 
-		if (lines && lines.length && !logDate && this.els.primary) {
-			scrollToTheBottom(this.els.primary);
+		if (lines && lines.length && !logDate && this.els.primaryFrame) {
+			scrollToTheBottom(this.els.primaryFrame);
 		}
 
 		this.setConversationAsOpen();
@@ -81,7 +81,7 @@ class ChatFrame extends PureComponent {
 			pageType === oldType &&
 			logDate === oldLogDate
 		) {
-			this.atBottom = areWeScrolledToTheBottom(this.els.primary);
+			this.atBottom = areWeScrolledToTheBottom(this.els.primaryFrame);
 		}
 	}
 
@@ -133,10 +133,10 @@ class ChatFrame extends PureComponent {
 
 		if (lines !== oldLines || offlineMessages !== oldOfflineMessages) {
 			if (logDate) {
-				scrollToTheTop(this.els.primary);
+				scrollToTheTop(this.els.primaryFrame);
 			}
 			else if (this.atBottom || pageChanged) {
-				scrollToTheBottom(this.els.primary);
+				scrollToTheBottom(this.els.primaryFrame);
 			}
 
 			if (inFocus) {
@@ -154,7 +154,7 @@ class ChatFrame extends PureComponent {
 				currentLayout !== oldLayout
 			)
 		) {
-			scrollToTheBottom(this.els.primary);
+			scrollToTheBottom(this.els.primaryFrame);
 		}
 
 		// Log browser opened
@@ -190,7 +190,7 @@ class ChatFrame extends PureComponent {
 	scrollIfNeeded() {
 		let { logDate } = this.props;
 		if (!logDate && this.atBottom) {
-			scrollToTheBottom(this.els.primary);
+			scrollToTheBottom(this.els.primaryFrame);
 		}
 	}
 
@@ -446,16 +446,22 @@ class ChatFrame extends PureComponent {
 		return (
 			<div className="mainview__content chatview__frame">
 				<div
-					className="mainview__content__primary chatview__frame__primary"
-					ref={this.setPrimaryEl}
+					className="mainview__content__primary mainview__frame-container"
 					key="primary">
-					{ content }
+					<div
+						className="mainview__inner-frame"
+						ref={this.setPrimaryFrameEl}>
+						{ content }
+					</div>
 				</div>
 				{ userList ? (
 					<div
-						className="chatview__frame__secondary"
+						className="chatview__frame__secondary mainview__frame-container"
 						key="secondary">
-						{ userList }
+						<div
+							className="mainview__inner-frame">
+							{ userList }
+						</div>
 					</div>
 				) : null }
 			</div>

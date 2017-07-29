@@ -65,8 +65,10 @@ class SettingsView extends PureComponent {
 					</div>
 				</div>
 				<div className="mainview__content">
-					<div className="mainview__content__primary">
-						{ page }
+					<div className="mainview__content__primary mainview__frame-container">
+						<div className="mainview__inner-frame">
+							{ page }
+						</div>
 					</div>
 				</div>
 			</div>

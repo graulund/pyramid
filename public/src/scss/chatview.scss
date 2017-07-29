@@ -1,11 +1,5 @@
 .channeluserlist {
-	/*position: fixed;
-	top: 41px;
-	right: 0;
-	bottom: 72px;*/
-	width: 280px;
 	background-color: #fff;
-	//overflow: auto;
 	margin: 0;
 
 	&:after {
@@ -51,11 +45,7 @@
 	&__frame {
 		&__secondary {
 			flex: 0 0 auto;
-		}
-
-		&__primary,
-		&__secondary {
-			overflow: auto;
+			width: 280px;
 		}
 	}
 

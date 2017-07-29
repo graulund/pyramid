@@ -15,8 +15,20 @@
 
 		&__primary {
 			flex: 1;
-			overflow: auto;
 		}
+	}
+
+	&__frame-container {
+		position: relative;
+	}
+
+	&__inner-frame {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		overflow: auto;
 	}
 
 	&__top {
