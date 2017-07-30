@@ -157,6 +157,9 @@ class Sidebar extends PureComponent {
 			" sidebar--" + sort +
 			(!visible ? " sidebar--hidden" : "");
 
+		const outerClassName = "sidebar__outer" +
+			(!visible ? " sidebar__outer--hidden" : "");
+
 		var content = null;
 
 		if (tab === "user") {
@@ -298,7 +301,7 @@ class Sidebar extends PureComponent {
 		);
 
 		return (
-			<div className="sidebar__outer">
+			<div className={outerClassName}>
 				{ sidebar }
 				{ systemMenu }
 			</div>

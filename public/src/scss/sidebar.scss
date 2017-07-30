@@ -152,10 +152,16 @@
 	@media #{$mobile-media} {
 		/* Sidebar actually an overlay */
 
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		z-index: 10;
+
 		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
 		transition: .5s left ease-in-out;
 
-		&:after {
+		&__outer:after {
 			display: none;
 		}
 
