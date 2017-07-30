@@ -1,4 +1,13 @@
+const sodium = require("sodium").api;
+
+const SESSION_KEY_LENGTH = 80;
+const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 var acceptedTokens = [];
+
+const rand = function() {
+	return sodium.randombytes_random() / 0xffffffff;
+};
 
 const addToAcceptedTokens = function(token) {
 	if (token) {
@@ -14,16 +23,17 @@ const clearAcceptedTokens = function() {
 	acceptedTokens = [];
 };
 
-const generateToken = function(length = 60) {
-	const alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	var output = "";
+const generateToken = function(length = SESSION_KEY_LENGTH) {
+	var out = "";
+
 	for (var i = 0; i < length; i++) {
-		output += alpha[Math.round((alpha.length-1)*Math.random())];
+		out += CHARS[Math.round(rand() * (CHARS.length - 1))];
 	}
-	return output;
+
+	return out;
 };
 
-const generateAcceptedToken = function(length = 60) {
+const generateAcceptedToken = function(length = SESSION_KEY_LENGTH) {
 	const token = generateToken(length);
 	addToAcceptedTokens(token);
 	return token;
