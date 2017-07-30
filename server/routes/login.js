@@ -42,12 +42,15 @@ module.exports = function(main) {
 			);
 
 			routeUtils.redirectBack(req, res);
+			return;
 		}
 
-		res.end(
-			"That wasn't correct. Sorry.\n\n" +
-			"If you've recently updated Pyramid, be aware that passwords are stored differently now, and you are required to run the scripts/setPasswordEncryptionMode.js script from a command line before you can use Pyramid again. Sorry about that."
-		);
+		// If you don't get the password right, punish the user with waiting time
+		// TODO: Increase this time with multiple bad attempts by the same person
+
+		setTimeout(() => {
+			res.render("unauthorized", { appConfig: null, enableScripts: false });
+		}, 3000);
 	}
 
 	return { get, post };
