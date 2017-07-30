@@ -194,6 +194,7 @@ class ChatView extends PureComponent {
 			pageQuery,
 			pageType,
 			selectedLine,
+			solo,
 			userListOpen
 		} = this.props;
 
@@ -210,6 +211,7 @@ class ChatView extends PureComponent {
 		);
 
 		const className = "mainview chatview" +
+			(solo ? " chatview--solo" : "") +
 			(isLiveChannel ? " chatview--live-channel" : "") +
 			(logBrowserOpen || logDate ? " chatview--logbrowsing" : "") +
 			(userListOpen && isLiveChannel ? " chatview--userlisting" : "");
@@ -291,6 +293,7 @@ ChatView.propTypes = {
 	pageQuery: PropTypes.string.isRequired,
 	pageType: PropTypes.oneOf(PAGE_TYPE_NAMES).isRequired,
 	selectedLine: PropTypes.object,
+	solo: PropTypes.bool,
 	userListOpen: PropTypes.bool
 };
 

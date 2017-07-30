@@ -73,6 +73,7 @@ class ChatViewWrapper extends PureComponent {
 		return (
 			<ChatView
 				focus
+				solo
 				lineId={lineId}
 				logDate={logDate}
 				pageNumber={+pageNumber || 1}

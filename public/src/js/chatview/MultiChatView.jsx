@@ -58,41 +58,43 @@ class MultiChatView extends PureComponent {
 	renderItem(data, index) {
 		let { currentLayout, currentLayoutFocus } = this.props;
 		let focus = currentLayoutFocus === index;
+		let content = null;
 
-		let styles = [];
-		let content;
-
-		if (data) {
-			let {
-				columnEnd,
-				columnStart,
-				logDate,
-				pageNumber,
-				query,
-				rowEnd,
-				rowStart,
-				type
-			} = data;
-
-			if (query && type) {
-				content = (
-					<ChatView
-						focus={focus}
-						index={index}
-						logDate={logDate}
-						pageNumber={pageNumber}
-						pageType={type}
-						pageQuery={query} />
-				);
-			}
-
-			styles = {
-				gridColumn: columnStart && columnEnd &&
-					`${columnStart} / ${columnEnd}`,
-				gridRow: rowStart && rowEnd &&
-					`${rowStart} / ${rowEnd}`
-			};
+		if (!data) {
+			return null;
 		}
+
+		let {
+			columnEnd,
+			columnStart,
+			logDate,
+			pageNumber,
+			query,
+			rowEnd,
+			rowStart,
+			type
+		} = data;
+
+		if (query && type) {
+			content = (
+				<ChatView
+					focus={focus}
+					index={index}
+					logDate={logDate}
+					pageNumber={pageNumber}
+					pageType={type}
+					pageQuery={query} />
+			);
+		}
+
+		let styles = {
+			gridColumn: columnStart && columnEnd &&
+				`${columnStart} / ${columnEnd}`,
+			gridRow: rowStart && rowEnd &&
+				`${rowStart} / ${rowEnd}`
+		};
+
+		let isTopLeftCorner = columnStart === 1 && rowStart === 1;
 
 		if (!content) {
 			content = <NoChatView index={index} />;
@@ -100,7 +102,8 @@ class MultiChatView extends PureComponent {
 
 		let className = "multichat__item" +
 			(focus && currentLayout.length > 1
-				? " multichat__item--focus" : "");
+				? " multichat__item--focus" : "") +
+			(isTopLeftCorner ? " multichat__item--top-left" : "");
 
 		let onClick = this.getFocusHandler(index);
 

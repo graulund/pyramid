@@ -458,6 +458,16 @@
 		.line {
 			padding: 0 10px;
 		}
+
+		.chatview__top {
+			padding-left: 10px;
+		}
+
+		&--solo, .multichat__item--top-left & {
+			.chatview__top {
+				padding-left: 40px;
+			}
+		}
 	}
 }
 
