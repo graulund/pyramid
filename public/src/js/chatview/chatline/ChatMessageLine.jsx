@@ -168,12 +168,18 @@ class ChatMessageLine extends PureComponent {
 
 		var prefix = null;
 		var displayedSymbol = symbol;
+		var usernameDisplayed = displayUsername;
 		var styles;
 
 		if (useTwitch) {
 
 			// Symbols aren't visible
 			displayedSymbol = "";
+
+			// Server names aren't visible
+			if (username.indexOf(".") >= 0) {
+				usernameDisplayed = false;
+			}
 
 			// Twitch color
 			if (enableTwitchColors && tags && tags.color) {
@@ -202,7 +208,7 @@ class ChatMessageLine extends PureComponent {
 
 			// Twitch badges
 			if (
-				displayUsername &&
+				usernameDisplayed &&
 				enableTwitchBadges &&
 				tags &&
 				tags.badges &&
@@ -225,7 +231,7 @@ class ChatMessageLine extends PureComponent {
 				style={styles}
 				key="main">
 				{ prefix }
-				{ username && displayUsername
+				{ username && usernameDisplayed
 					? [
 						<ChatUsername
 							className={authorClassName}
