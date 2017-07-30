@@ -3,6 +3,10 @@
 	// Index page
 
 	var inscriptEscape = (str) => {
+		if (!str) {
+			return "undefined";
+		}
+
 		return str.replace(/<\/script/g, "\\x3c/script");
 	};
 %>
