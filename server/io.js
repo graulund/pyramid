@@ -16,15 +16,16 @@ const tokenUtils = require("./util/tokens");
 
 module.exports = function(main) {
 
-	var server, io;
+	var server, io, allConnections = [];
 
-	// Pass through
-	const emit = () => {
-		if (io) {
-			return io.emit.apply(io, arguments);
+	const all = {
+		emit: function() {
+			let args = arguments;
+			allConnections.forEach((socket) => {
+				// Pass through
+				socket.emit.apply(socket, args);
+			});
 		}
-
-		return null;
 	};
 
 	// Direct socket emissions
@@ -135,7 +136,7 @@ module.exports = function(main) {
 	};
 
 	const emitIrcConfig = function(socket, callback) {
-		socket = socket || io;
+		socket = socket || all;
 		main.ircConfig().loadIrcConfig((err, data) => {
 			if (!err) {
 				data = main.ircConfig().safeIrcConfigDict(data);
@@ -196,7 +197,7 @@ module.exports = function(main) {
 	};
 
 	const emitServerData = function(socket, server) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			let data = main.serverData().getServerData(server);
 			if (data) {
@@ -268,7 +269,7 @@ module.exports = function(main) {
 	};
 
 	const emitUnseenHighlights = function(socket) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit(
 				"unseenHighlights",
@@ -278,7 +279,7 @@ module.exports = function(main) {
 	};
 
 	const emitNewHighlight = function(socket, message) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit(
 				"newHighlight",
@@ -288,7 +289,7 @@ module.exports = function(main) {
 	};
 
 	const emitUnseenConversations = function(socket) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit(
 				"unseenConversations",
@@ -298,7 +299,7 @@ module.exports = function(main) {
 	};
 
 	const emitNewPrivateMessage = function(socket, message) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit(
 				"newPrivateMessage",
@@ -324,7 +325,7 @@ module.exports = function(main) {
 	};
 
 	const emitIrcConnectionStatus = function(serverName, status, socket) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit("connectionStatus", {
 				serverName,
@@ -334,7 +335,7 @@ module.exports = function(main) {
 	};
 
 	const emitOnlineFriends = function(socket) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit("onlineFriends", {
 				data: main.userLists().currentOnlineFriends()
@@ -343,7 +344,7 @@ module.exports = function(main) {
 	};
 
 	const emitViewState = function(socket) {
-		socket = socket || io;
+		socket = socket || all;
 		if (socket) {
 			socket.emit("viewState", {
 				data: main.viewState.currentViewState()
@@ -386,6 +387,7 @@ module.exports = function(main) {
 
 			socket.on("disconnect", () => {
 				main.recipients().removeRecipientEverywhere(socket);
+				_.pull(allConnections, socket);
 			});
 
 			socket.on("token", (details) => {
@@ -394,6 +396,10 @@ module.exports = function(main) {
 
 					const isAccepted = tokenUtils.isAnAcceptedToken(connectionToken);
 					emitTokenStatus(socket, isAccepted);
+
+					if (isAccepted) {
+						allConnections.push(socket);
+					}
 				}
 			});
 
@@ -915,7 +921,7 @@ module.exports = function(main) {
 			if (cachedLastSeens) {
 				const values = Object.values(cachedLastSeens);
 				if (values && values.length) {
-					io.emit("lastSeen", values);
+					all.emit("lastSeen", values);
 				}
 			}
 		}
@@ -925,7 +931,6 @@ module.exports = function(main) {
 	setInterval(broadcastLastSeenUpdates, constants.LAST_SEEN_UPDATE_RATE);
 
 	const output = {
-		emit,
 		emitCategoryCacheToRecipients,
 		emitChannelUserListToRecipients,
 		emitDataToChannel,
