@@ -1,32 +1,3 @@
-.channeluserlist {
-	background-color: #fff;
-	margin: 0;
-
-	&:after {
-		content: "";
-		position: fixed;
-		top: 41px;
-		right: 279px;
-		bottom: 72px;
-		width: 1px;
-		background: rgba(0,0,51,.067);
-		z-index: 4;
-	}
-
-	.app-container--with-notice & {
-		top: 81px;
-	}
-
-	@media #{$mobile-media} {
-		bottom: 57px;
-		box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
-
-		&:after {
-			display: none;
-		}
-	}
-}
-
 .chatlines {
 	list-style-type: none;
 	margin: 10px 0;
@@ -41,11 +12,32 @@
 }
 
 .chatview {
-
 	&__frame {
+		position: relative;
+
 		&__secondary {
 			flex: 0 0 auto;
 			width: 280px;
+
+			&:after {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: 0;
+				bottom: 0;
+				width: 1px;
+				background: rgba(0,0,51,.067);
+				z-index: 4;
+			}
+
+			@media #{$mobile-media} {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				box-shadow: 0 0 60px 0 rgba(0,0,0,.5);
+				z-index: 3;
+			}
 		}
 	}
 
@@ -489,6 +481,11 @@
 		margin: -70px 20px 0;
 		padding: 0 0 100px;
 	}
+}
+
+.channeluserlist {
+	background-color: #fff;
+	margin: 0;
 }
 
 @keyframes fadeOut {

@@ -15,11 +15,11 @@ class App extends PureComponent {
 
 		return (
 			<div id="container" key="outer">
-				<Header key="header" />
 				<AccessKeys key="accesskeys" />
 				<div className={block} key="container">
 					<ConnectionInfo key="connection-info" />
 					<div className={`${block}__inner`} key="inner">
+						<Header key="header" />
 						<div className={`${block}__iinner`} key="iinner">
 							<Sidebar key="sidebar" />
 							<div className={`${block}__main`} key="main">
@@ -29,7 +29,6 @@ class App extends PureComponent {
 					</div>
 				</div>
 			</div>
-
 		);
 	}
 }

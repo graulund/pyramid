@@ -95,15 +95,14 @@
 
 	&__close {
 		display: none;
-		position: absolute;
 	}
 
 	&__open {
-		position: fixed;
 		z-index: 9;
 	}
 
 	&__close, &__open {
+		position: absolute;
 		top: 0;
 		left: 0;
 		padding: 12px 10px 6px 13px;
