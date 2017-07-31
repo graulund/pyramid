@@ -1,4 +1,4 @@
-import { emojiData } from "./emojiData";
+import emojiData from "./emojiData";
 
 const colonCodeRegex = /:([^:\s]+):/g;
 

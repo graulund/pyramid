@@ -1,8 +1,9 @@
+import emojiRegexFactory from "emoji-regex";
 import linkifyIt from "linkify-it";
 import pick from "lodash/pick";
 import values from "lodash/values";
 
-import { emojiData, emojiRegex } from "./emojiData";
+import emojiData from "./emojiData";
 import { emojiToCodepoint } from "./emojis";
 
 export const TOKEN_TYPES = {
@@ -15,6 +16,7 @@ export const TOKEN_TYPES = {
 };
 
 const validEmojiCodes = values(emojiData);
+const emojiRegex = emojiRegexFactory();
 
 // Utility
 
@@ -161,20 +163,24 @@ function tokenizeEmoji(tokens) {
 
 	getTextTokens(tokens, (token) => {
 		const { offset, text } = token;
-		const segments = text.split(emojiRegex);
+		var result;
 
-		var prevText = "";
+		while ((result = emojiRegex.exec(text)) !== null) {
+			let { index } = result;
+			let lastIndex = index + result[0].length;
+			let segment = text.substring(index, lastIndex);
 
-		segments.forEach((segment) => {
-			const codepoints = emojiToCodepoint(segment);
-			const isEmoji = validEmojiCodes.indexOf(codepoints) >= 0;
+			// Convert offsets to full-char offsets
+			let preLength = [...text.substr(0, index)].length;
+			let length = [...segment].length;
+
+			let codepoints = emojiToCodepoint(segment);
+			let isEmoji = validEmojiCodes.indexOf(codepoints) >= 0;
 
 			if (isEmoji) {
-				const first = offset + [...prevText].length;
-				const last = first + [...segment].length - 1;
-				const token = {
-					first,
-					last,
+				let token = {
+					first: offset + preLength,
+					last: offset + preLength + length - 1,
 					token: {
 						type: TOKEN_TYPES.EMOJI,
 						codepoints
@@ -183,9 +189,7 @@ function tokenizeEmoji(tokens) {
 
 				newTokens.push(token);
 			}
-
-			prevText += segment;
-		});
+		}
 	});
 
 	return addTokensFromText(tokens, newTokens);
@@ -207,7 +211,6 @@ function tokenizeMentions(tokens, highlights) {
 				var result;
 
 				while ((result = rgx.exec(text)) !== null) {
-
 					const { index } = result;
 					const lastIndex = index + result[0].length;
 
