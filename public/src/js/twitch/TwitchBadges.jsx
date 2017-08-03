@@ -2,10 +2,10 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
+import TwitchEmoticon from "./TwitchEmoticon.jsx";
 import { requestChannelData } from "../lib/io";
 
 const BADGE_SIZE = 18;
-
 const dataRequestedForChannels = [];
 
 class TwitchBadges extends PureComponent {
@@ -19,20 +19,20 @@ class TwitchBadges extends PureComponent {
 			click_url
 		} = badge;
 
-		let srcSet = [
-			`${image_url_1x} 1x`,
-			`${image_url_2x} 2x`,
-			`${image_url_4x} 4x`
-		];
+		let urlSet = {
+			1: image_url_1x,
+			2: image_url_2x,
+			4: image_url_4x
+		};
 
 		let b = (
-			<img
-				src={image_url_1x}
-				srcSet={srcSet.join(", ")}
+			<TwitchEmoticon
+				text={title}
+				urlSet={urlSet}
 				width={BADGE_SIZE}
 				height={BADGE_SIZE}
-				alt={title}
-				title={title}
+				largeWidth={4*BADGE_SIZE}
+				largeHeight={4*BADGE_SIZE}
 				key={title} />
 		);
 

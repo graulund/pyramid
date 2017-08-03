@@ -117,15 +117,24 @@ class TwitchEmoticon extends PureComponent {
 	}
 
 	render() {
-		const { text, type } = this.props;
-		const url = getEmoticonUrlsets(this.props);
+		let {
+			height,
+			largeHeight,
+			largeWidth,
+			text,
+			type,
+			width
+		} = this.props;
 
-		var largeImg = null;
+		let url = getEmoticonUrlsets(this.props);
+		let largeImg = null;
 
 		if (url.largeSrc || url.srcSet.length > 1) {
 			let largestSrc = url.largeSrc || url.srcSet[url.srcSet.length-1];
 			largeImg = <img
 				src={largestSrc.replace(/\s.+$/, "")}
+				width={largeWidth}
+				height={largeHeight}
 				alt=""
 				onLoadStart={this.onTooltipLoad}
 				onLoadedMetadata={this.onTooltipLoad}
@@ -137,7 +146,7 @@ class TwitchEmoticon extends PureComponent {
 		let tooltipContent = [
 			largeImg,
 			<div key="name">{ text }</div>,
-			( type ? <div className="tooltip-secondary">{ type }</div> : null )
+			( type ? <div className="tooltip-secondary" key="type">{ type }</div> : null )
 		];
 
 		return (
@@ -145,6 +154,8 @@ class TwitchEmoticon extends PureComponent {
 				<img
 					src={url.src}
 					srcSet={url.srcSet.join(", ")}
+					width={width}
+					height={height}
 					alt={text}
 					onLoad={this.onLoad}
 					key="main"
@@ -155,11 +166,15 @@ class TwitchEmoticon extends PureComponent {
 }
 
 TwitchEmoticon.propTypes = {
+	height: PropTypes.number,
 	id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+	largeWidth: PropTypes.number,
+	largeHeight: PropTypes.number,
 	onLoad: PropTypes.func,
 	text: PropTypes.string,
 	type: PropTypes.string,
-	urlSet: PropTypes.object
+	urlSet: PropTypes.object,
+	width: PropTypes.number
 };
 
 export default TwitchEmoticon;
