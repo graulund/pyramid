@@ -47,15 +47,20 @@ class Emoji extends PureComponent {
 				/>;
 		}
 
-		return <span className={`text-${className}`}>{ text }</span>;
+		return (
+			<span className={`text-${className}`} key="emoji">
+				{ text }
+			</span>
+		);
 	}
 
 	render() {
-		let { name } = this.props;
+		let { enableEmojiCodes, name } = this.props;
 
 		let tooltipContent = [
 			this.renderEmoji("large"),
-			(name ? <div key="name">{ `:${name}:` }</div> : null)
+			(enableEmojiCodes && name
+				? <div key="name">{ `:${name}:` }</div> : null)
 		];
 
 		return (
@@ -68,6 +73,7 @@ class Emoji extends PureComponent {
 
 Emoji.propTypes = {
 	codepoints: PropTypes.string,
+	enableEmojiCodes: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
 	onLoad: PropTypes.func,
 	name: PropTypes.string,

@@ -59,11 +59,17 @@ class ChatMessageLine extends PureComponent {
 	}
 
 	renderEmoji(token, index) {
-		let { enableEmojiImages, onEmoteLoad } = this.props;
+		let {
+			enableEmojiCodes,
+			enableEmojiImages,
+			onEmoteLoad
+		} = this.props;
+
 		let { codepoints, name, text } = token;
 
 		return <Emoji
 			codepoints={codepoints}
+			enableEmojiCodes={enableEmojiCodes}
 			enableEmojiImages={enableEmojiImages}
 			name={name}
 			text={text}
@@ -256,6 +262,7 @@ ChatMessageLine.propTypes = {
 	displayChannel: PropTypes.bool,
 	displayUsername: PropTypes.bool,
 	enableDarkMode: PropTypes.bool,
+	enableEmojiCodes: PropTypes.bool,
 	enableEmojiImages: PropTypes.bool,
 	enableTwitchBadges: PropTypes.bool,
 	enableTwitchColors: PropTypes.bool,
@@ -283,6 +290,7 @@ const mapStateToProps = function(state, ownProps) {
 	let {
 		colorBlindness,
 		enableDarkMode,
+		enableEmojiCodes,
 		enableEmojiImages,
 		enableTwitch,
 		enableTwitchBadges,
@@ -299,6 +307,7 @@ const mapStateToProps = function(state, ownProps) {
 	return {
 		colorBlindness,
 		enableDarkMode,
+		enableEmojiCodes,
 		enableEmojiImages,
 		enableTwitchBadges,
 		enableTwitchColors,
