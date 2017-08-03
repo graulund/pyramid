@@ -973,8 +973,6 @@ const mainMethods = function(main, db) {
 	const deleteLinesBeforeTime = function(time, callback) {
 		time = getTimestamp(time);
 
-		console.log(new Date().toISOString() + " Deleting lines before time:", time);
-
 		db.run(
 			"DELETE FROM lines WHERE lines.time <= $time",
 			dollarize({ time }),

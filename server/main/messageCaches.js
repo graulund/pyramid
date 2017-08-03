@@ -365,13 +365,9 @@ module.exports = function(
 	// Line retention schedule
 
 	const _scheduledLineRetentionCleanup = function() {
-		console.log(new Date().toISOString() + " Clearing before retention point");
 		db.deleteLinesBeforeRetentionPoint(
 			appConfig.configValue("retainDbValue"),
-			appConfig.configValue("retainDbType"),
-			function() {
-				console.log(new Date().toISOString() + " Finished deleting lines");
-			}
+			appConfig.configValue("retainDbType")
 		);
 	};
 
