@@ -534,6 +534,15 @@ img.emoji {
 	width: 22px;
 	margin: 0 .05em 0 .1em;
 	vertical-align: -0.1em;
+
+	&-large {
+		width: 84px;
+		height: 84px;
+	}
+}
+
+.text-emoji-large {
+	font-size: 84px;
 }
 
 .twitch-badges {

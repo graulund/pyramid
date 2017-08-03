@@ -16,6 +16,7 @@ export const TOKEN_TYPES = {
 };
 
 const validEmojiCodes = values(emojiData);
+const emojiNames = Object.keys(emojiData);
 const emojiRegex = emojiRegexFactory();
 
 // Utility
@@ -118,6 +119,20 @@ function addTokensFromText(tokens, newTokens, preSorted = true) {
 	return output;
 }
 
+function getEmojiName(codepoints) {
+	let names = [];
+
+	validEmojiCodes.forEach((cp, i) => {
+		if (codepoints === cp) {
+			names.push(emojiNames[i]);
+		}
+	});
+
+	// Get shortest name
+	names.sort((a, b) => a.length > b.length);
+	return names[0];
+}
+
 // Main methods
 
 function tokenizeLinks(tokens) {
@@ -175,15 +190,19 @@ function tokenizeEmoji(tokens) {
 			let length = [...segment].length;
 
 			let codepoints = emojiToCodepoint(segment);
-			let isEmoji = validEmojiCodes.indexOf(codepoints) >= 0;
+			let codeIndex = validEmojiCodes.indexOf(codepoints);
+			let isEmoji = codeIndex >= 0;
 
 			if (isEmoji) {
+				let name = getEmojiName(codepoints);
+
 				let token = {
 					first: offset + preLength,
 					last: offset + preLength + length - 1,
 					token: {
 						type: TOKEN_TYPES.EMOJI,
-						codepoints
+						codepoints,
+						name
 					}
 				};
 

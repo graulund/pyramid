@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 import ChatUsername from "./ChatUsername.jsx";
+import Emoji from "./Emoji.jsx";
 import TwitchBadges from "../../twitch/TwitchBadges.jsx";
 import TwitchCheermote from "../../twitch/TwitchCheermote.jsx";
 import TwitchEmoticon from "../../twitch/TwitchEmoticon.jsx";
@@ -11,11 +12,6 @@ import { parseChannelUri } from "../../lib/channelNames";
 import { TOKEN_TYPES, tokenizeChatLine } from "../../lib/tokenizer";
 
 const block = "msg";
-
-const emojiImageUrl = function(codepoints) {
-	return `https://twemoji.maxcdn.com/2/svg/${codepoints}.svg`;
-};
-
 class ChatMessageLine extends PureComponent {
 	constructor(props) {
 		super(props);
@@ -63,18 +59,16 @@ class ChatMessageLine extends PureComponent {
 	}
 
 	renderEmoji(token, index) {
-		const { enableEmojiImages } = this.props;
+		let { enableEmojiImages, onEmoteLoad } = this.props;
+		let { codepoints, name, text } = token;
 
-		if (enableEmojiImages) {
-			return <img
-				className="emoji"
-				src={emojiImageUrl(token.codepoints)}
-				alt={token.text}
-				key={index}
-				/>;
-		}
-
-		return token.text;
+		return <Emoji
+			codepoints={codepoints}
+			enableEmojiImages={enableEmojiImages}
+			name={name}
+			text={text}
+			onLoad={onEmoteLoad}
+			key={index} />;
 	}
 
 	renderTwitchCheermote(token, index) {
