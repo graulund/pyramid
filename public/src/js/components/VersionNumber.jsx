@@ -10,7 +10,8 @@ const block = "version";
 const VERSION_NAMES = {
 	1:  "beta 1",
 	46: "beta 2",
-	74: "beta 3"
+	74: "beta 3",
+	97: "beta 4"
 };
 
 const VersionNumber = function(props) {
