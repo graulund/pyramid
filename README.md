@@ -1,7 +1,9 @@
 Pyramid
 =======
 
-**NEW! Pyramid 1.0 beta 3 is out! Woohoo!**
+**NEW! Pyramid 1.0 beta 4 is out! Woohoo!**
+
+(Below is a beta 1 screenshot that's pretty outdated, but it gives a general idea of its looks.)
 
 ![pyramid-screenshot-resized](https://cloud.githubusercontent.com/assets/80858/24841349/cd66d46e-1d82-11e7-9108-b7e4295413e0.png)
 
