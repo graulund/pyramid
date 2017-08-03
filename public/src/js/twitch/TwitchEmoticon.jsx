@@ -117,7 +117,7 @@ class TwitchEmoticon extends PureComponent {
 	}
 
 	render() {
-		const { text } = this.props;
+		const { text, type } = this.props;
 		const url = getEmoticonUrlsets(this.props);
 
 		var largeImg = null;
@@ -136,7 +136,8 @@ class TwitchEmoticon extends PureComponent {
 
 		let tooltipContent = [
 			largeImg,
-			<div key="name">{ text }</div>
+			<div key="name">{ text }</div>,
+			( type ? <div className="tooltip-secondary">{ type }</div> : null )
 		];
 
 		return (
