@@ -40,7 +40,7 @@
     "querystring": "^0.2.0",
     "request": "^2.81.0",
     "sanitize-filename": "^1.6.1",
-    "socket.io": "^2.0.1",
+    "socket.io": "^1.7.4",
     "sodium": "^2.0.1",
     "sqlite3": "^3.1.8",
     "uuid": "^3.0.1"
