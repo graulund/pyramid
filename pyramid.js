@@ -34,3 +34,5 @@ const io = require("./server/io")(main);
 
 // Start web service
 require("./server/web")(main, io);
+
+module.exports = main;
