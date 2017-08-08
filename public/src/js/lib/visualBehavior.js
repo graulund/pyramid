@@ -16,6 +16,7 @@ export function initVisualBehavior() {
 	initTouchDeviceTest();
 	initFocusHandler();
 	patchSFFontIssues();
+	detectElectron();
 }
 
 function getFocus() {
@@ -110,5 +111,13 @@ function patchSFFontIssues() {
 		if (/Chrome\//.test(ua)) {
 			document.body.classList.add("chrome-sf-font");
 		}
+	}
+}
+
+function detectElectron() {
+	let ua = navigator.userAgent;
+
+	if (ua.indexOf("pyramid-electron") >= 0) {
+		document.body.classList.add("electron");
 	}
 }
