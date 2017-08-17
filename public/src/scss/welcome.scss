@@ -3,6 +3,16 @@
 	margin: 30px auto 100px;
 	padding: 0 20px;
 
+	&:before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 40px;
+		-webkit-app-region: drag;
+	}
+
 	h1 {
 		text-align: center;
 		font-size: 300%;
