@@ -37,6 +37,7 @@
 		background-color: #fff;
 		border-bottom: 1px solid #ccc;
 		white-space: nowrap;
+		-webkit-app-region: drag;
 
 		.app-container--with-notice & {
 			top: 40px;
@@ -55,6 +56,10 @@
 			> div, > ul {
 				flex: 0 0 auto;
 			}
+		}
+
+		a {
+			-webkit-app-region: no-drag;
 		}
 	}
 

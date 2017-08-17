@@ -36,6 +36,7 @@
 		padding: 0 10px;
 		border-bottom: 1px solid #ccc;
 		user-select: none;
+		-webkit-app-region: drag;
 
 		body.electron & {
 			padding-left: 75px;
@@ -52,6 +53,10 @@
 			font-weight: normal;
 			color: #99a;
 			line-height: 1em;
+		}
+
+		a {
+			-webkit-app-region: no-drag;
 		}
 	}
 
