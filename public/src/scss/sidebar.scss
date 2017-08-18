@@ -188,5 +188,11 @@
 		&--hidden {
 			left: -380px;
 		}
+
+		&__system-menu {
+			left: (320px - 132px);
+			right: auto;
+			width: 130px;
+		}
 	}
 }
