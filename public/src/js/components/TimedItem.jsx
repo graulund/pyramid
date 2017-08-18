@@ -152,7 +152,8 @@ class TimedItem extends PureComponent {
 		if (
 			showActivityFlashes &&
 			deviceVisible &&
-			visible
+			visible &&
+			root
 		) {
 			root.className = this.renderClassName(true);
 			this.flashTimeout = setTimeout(this.endFlash, 200);
