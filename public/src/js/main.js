@@ -14,6 +14,7 @@ import SettingsView from "./settingsview/SettingsView.jsx";
 import actions from "./actions";
 import { initializeIo } from "./lib/io";
 import setUpDataExpiration from "./lib/dataExpiration";
+import { startUpdatingElectronState } from "./lib/electron";
 import { initializeMessageCaches } from "./lib/messageCaches";
 import { importLayoutFromLocalStorage } from "./lib/multiChat";
 import setUpPageTitles from "./lib/pageTitles";
@@ -35,6 +36,7 @@ if (__DEV__) {
 const history = createBrowserHistory();
 setUpPageTitles(history);
 setUpDataExpiration(history);
+startUpdatingElectronState();
 
 const isHome = location.pathname === routes.homeUrl;
 
