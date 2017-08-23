@@ -1,4 +1,14 @@
 .login-form {
 	margin: 50px 30px;
 	text-align: center;
+
+	&:before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 40px;
+		-webkit-app-region: drag;
+	}
 }
