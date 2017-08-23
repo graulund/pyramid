@@ -399,6 +399,7 @@ module.exports = function(main) {
 
 					if (isAccepted) {
 						allConnections.push(socket);
+						emitBaseData(socket);
 					}
 				}
 			});
