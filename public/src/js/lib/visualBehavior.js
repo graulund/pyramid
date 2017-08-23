@@ -119,5 +119,9 @@ function detectElectron() {
 
 	if (ua.indexOf("pyramid-electron") >= 0) {
 		document.body.classList.add("electron");
+
+		if (ua.indexOf("Macintosh") >= 0) {
+			document.body.classList.add("electron-mac");
+		}
 	}
 }

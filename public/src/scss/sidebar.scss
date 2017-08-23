@@ -38,7 +38,7 @@
 		user-select: none;
 		-webkit-app-region: drag;
 
-		body.electron & {
+		body.electron-mac & {
 			padding-left: 75px;
 		}
 
@@ -116,7 +116,7 @@
 		left: 0;
 		padding: 12px 10px 6px 13px;
 
-		body.electron & {
+		body.electron-mac & {
 			left: 65px;
 		}
 	}
