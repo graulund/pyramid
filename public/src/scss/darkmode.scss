@@ -291,7 +291,7 @@ body.darkmode {
 		}
 	}
 
-	.scroller {
+	&.custom-scrollbars .scroller {
 		&::-webkit-scrollbar-thumb,
 		&::-webkit-scrollbar-track-piece {
 			background-color: #5b5b60;

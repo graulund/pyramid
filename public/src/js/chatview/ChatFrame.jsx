@@ -464,7 +464,7 @@ class ChatFrame extends PureComponent {
 						className="chatview__frame__secondary mainview__frame-container"
 						key="secondary">
 						<div
-							className="mainview__inner-frame">
+							className="mainview__inner-frame scroller scroller--thin">
 							{ userList }
 						</div>
 					</div>
