@@ -1,0 +1,17 @@
+.scroller {
+	&::-webkit-scrollbar {
+		width: 14px;
+	}
+
+	&::-webkit-scrollbar-thumb,
+	&::-webkit-scrollbar-track-piece {
+		background-color: #ccc;
+		background-clip: padding-box;
+		border: 3px solid #fff;
+		border-radius: 7px;
+	}
+
+	&::-webkit-scrollbar-track-piece {
+		background-color: #f3f3f3;
+	}
+}

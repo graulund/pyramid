@@ -454,7 +454,7 @@ class ChatFrame extends PureComponent {
 					className="mainview__content__primary mainview__frame-container"
 					key="primary">
 					<div
-						className="mainview__inner-frame"
+						className="mainview__inner-frame scroller"
 						ref={this.setPrimaryFrameEl}>
 						{ content }
 					</div>
