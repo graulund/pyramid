@@ -1,10 +1,4 @@
 .connection-warning {
-	/*position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 20;*/
-
 	background-color: #900;
 	color: #fff;
 	font-weight: bold;
@@ -14,10 +8,16 @@
 	line-height: 20px;
 	list-style-type: none;
 	white-space: nowrap;
+	-webkit-app-region: drag;
+
+	body.electron-mac & {
+		padding-left: 75px;
+	}
 
 	a {
 		color: inherit !important;
 		text-decoration: underline;
+		-webkit-app-region: no-drag;
 	}
 
 	li {
