@@ -41,6 +41,7 @@ module.exports = {
 	PAGE_TYPES: {
 		CATEGORY: "category",
 		CHANNEL: "channel",
+		SERVER: "server",
 		USER: "user"
 	},
 

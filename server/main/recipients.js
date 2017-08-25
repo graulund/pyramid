@@ -6,6 +6,8 @@ module.exports = function(io) {
 
 	var channelRecipients = {};
 	var userRecipients = {};
+	var serverRecipients = {};
+
 	var categoryRecipients = {
 		highlights: [], allfriends: [], system: []
 	};
@@ -53,6 +55,14 @@ module.exports = function(io) {
 		}
 	};
 
+	const addServerRecipient = function(serverName, socket) {
+		addRecipient(serverRecipients, serverName, socket);
+	};
+
+	const removeServerRecipient = function(serverName, socket) {
+		removeRecipient(serverRecipients, serverName, socket);
+	};
+
 	const removeRecipientEverywhere = function(socket) {
 		_.forOwn(channelRecipients, (list, channel) => {
 			removeChannelRecipient(channel, socket);
@@ -62,6 +72,9 @@ module.exports = function(io) {
 		});
 		_.forOwn(categoryRecipients, (list, categoryName) => {
 			removeCategoryRecipient(categoryName, socket);
+		});
+		_.forOwn(serverRecipients, (list, serverName) => {
+			removeServerRecipient(serverName, socket);
 		});
 	};
 
@@ -95,20 +108,35 @@ module.exports = function(io) {
 		}
 	};
 
+	const emitToServerRecipients = function(serverName, msg) {
+		if (io) {
+			io.emitListEventToRecipients(
+				serverRecipients[serverName],
+				constants.PAGE_TYPES.SERVER,
+				serverName,
+				msg
+			);
+		}
+	};
+
 	return {
 		addCategoryRecipient,
 		addChannelRecipient,
 		addRecipient,
+		addServerRecipient,
 		addUserRecipient,
 		emitCategoryCacheToRecipients,
 		emitToCategoryRecipients,
+		emitToServerRecipients,
 		emitToUserRecipients,
 		getChannelRecipients: (channel) => channelRecipients[channel],
+		getServerRecipients: (serverName) => serverRecipients[serverName],
 		getUserRecipients: (username) => userRecipients[username],
 		removeCategoryRecipient,
 		removeChannelRecipient,
 		removeRecipient,
 		removeRecipientEverywhere,
+		removeServerRecipient,
 		removeUserRecipient
 	};
 };

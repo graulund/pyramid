@@ -17,6 +17,7 @@ module.exports = function(
 	unseenConversations
 ) {
 	var systemCache = [];
+	var serverCaches = {};
 	var channelIdCache = {};
 
 	var currentBunchedMessage = {};
@@ -129,11 +130,17 @@ module.exports = function(
 
 	const cacheCategoryMessage = function(categoryName, msg) {
 
+		// System log
+
 		if (categoryName === "system") {
 			systemCache = cacheItem(systemCache, msg);
 		}
 
+		// All categories
+
 		recipients.emitToCategoryRecipients(categoryName, msg);
+
+		// Highlights
 
 		if (categoryName === "highlights" && msg.lineId) {
 			unseenHighlights.addUnseenHighlightId(msg.lineId);
@@ -143,6 +150,15 @@ module.exports = function(
 				io.emitUnseenHighlights();
 			}
 		}
+	};
+
+	const cacheServerMessage = function(serverName, msg) {
+		serverCaches[serverName] = cacheItem(
+			serverCaches[serverName] || [],
+			msg
+		);
+
+		recipients.emitToServerRecipients(serverName, msg);
 	};
 
 	const reportUnseenPrivateMessage = function(serverName, user, msg) {

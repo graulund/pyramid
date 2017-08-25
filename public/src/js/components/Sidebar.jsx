@@ -201,7 +201,7 @@ class Sidebar extends PureComponent {
 						type={PAGE_TYPES.CATEGORY}
 						query="system"
 						className="menu__link">
-						{ CATEGORY_NAMES.system }
+						Logs
 					</ChatViewLink>
 				</li>
 				<li key="logout" className="sep">
