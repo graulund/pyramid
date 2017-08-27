@@ -3,6 +3,8 @@
 
 const async = require("async");
 
+const pathUtils = require("./util/paths");
+
 // Basic state
 
 const awakeTime = new Date();
@@ -289,6 +291,7 @@ module.exports = {
 	setDb,
 	setIo,
 	setIrc,
+	setLocalOverridePath: pathUtils.setLocalOverridePath,
 	setPlugins,
 	setWeb,
 	unseenHighlights: () => unseenHighlights,
