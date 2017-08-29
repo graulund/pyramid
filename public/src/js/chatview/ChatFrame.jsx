@@ -1,6 +1,5 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { findDOMNode } from "react-dom";
 import remove from "lodash/remove";
 import throttle from "lodash/throttle";
 import values from "lodash/values";
@@ -39,6 +38,7 @@ class ChatFrame extends PureComponent {
 
 		this.els = {};
 		this.setPrimaryFrameEl = refElSetter("primaryFrame").bind(this);
+		this.setRoot = refElSetter("root").bind(this);
 
 		this.atBottom = true;
 
@@ -365,7 +365,8 @@ class ChatFrame extends PureComponent {
 	// DOM
 
 	flashLine(lineId) {
-		const root = findDOMNode(this);
+		let { root } = this.els;
+
 		if (root) {
 			const lineEl = root.querySelector(`#line-${lineId}`);
 			if (lineEl) {
@@ -446,12 +447,14 @@ class ChatFrame extends PureComponent {
 			key="main" />;
 
 		return (
-			<div className="mainview__content chatview__frame">
+			<div
+				className="mainview__content chatview__frame"
+				ref={this.setRoot}>
 				<div
 					className="mainview__content__primary mainview__frame-container"
 					key="primary">
 					<div
-						className="mainview__inner-frame"
+						className="mainview__inner-frame scroller"
 						ref={this.setPrimaryFrameEl}>
 						{ content }
 					</div>
@@ -461,7 +464,7 @@ class ChatFrame extends PureComponent {
 						className="chatview__frame__secondary mainview__frame-container"
 						key="secondary">
 						<div
-							className="mainview__inner-frame">
+							className="mainview__inner-frame scroller scroller--thin">
 							{ userList }
 						</div>
 					</div>

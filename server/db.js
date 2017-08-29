@@ -12,11 +12,10 @@ const sqlite = require("sqlite3");
 const constants = require("./constants");
 const channelUtils = require("./util/channels");
 const fileUtils = require("./util/files");
+const pathUtils = require("./util/paths");
 const timeUtils = require("./util/time");
 
 const ASC = 0, DESC = 1;
-
-const DB_FILENAME = constants.DB_FILENAME;
 
 const excludeEventLinesQuery =
 	"lines.type NOT IN ('join', 'part', 'quit', 'kick', 'kill', 'mode')";
@@ -24,8 +23,8 @@ const excludeEventLinesQuery =
 // Create db
 
 const createDatabaseFromEmpty = function(callback) {
-	const source = path.join(constants.PROJECT_ROOT, "pyramid-empty.db");
-	const target = DB_FILENAME;
+	let source = path.join(constants.PROJECT_ROOT, "pyramid-empty.db");
+	let target = pathUtils.getDatabaseFilename();
 
 	fs.access(target, (err) => {
 		if (err) {
@@ -1134,7 +1133,10 @@ module.exports = function(main, callback) {
 		}
 		else {
 			// Open database
-			var db = new sqlite.Database(DB_FILENAME);
+
+			let dbFilename = pathUtils.getDatabaseFilename();
+			let db = new sqlite.Database(dbFilename);
+
 			initializeDb(db);
 			mainMethods(main, db);
 

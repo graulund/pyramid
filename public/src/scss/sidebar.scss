@@ -36,6 +36,11 @@
 		padding: 0 10px;
 		border-bottom: 1px solid #ccc;
 		user-select: none;
+		-webkit-app-region: drag;
+
+		body.electron-mac & {
+			padding-left: 75px;
+		}
 
 		h1 {
 			margin: 0;
@@ -48,6 +53,10 @@
 			font-weight: normal;
 			color: #99a;
 			line-height: 1em;
+		}
+
+		a {
+			-webkit-app-region: no-drag;
 		}
 	}
 
@@ -106,6 +115,10 @@
 		top: 0;
 		left: 0;
 		padding: 12px 10px 6px 13px;
+
+		body.electron-mac & {
+			left: 65px;
+		}
 	}
 
 	.app-container--with-notice &__open {
@@ -174,6 +187,12 @@
 
 		&--hidden {
 			left: -380px;
+		}
+
+		&__system-menu {
+			left: (320px - 132px);
+			right: auto;
+			width: 130px;
 		}
 	}
 }

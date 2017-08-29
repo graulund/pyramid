@@ -9,6 +9,7 @@ const mkdirp = require("mkdirp");
 
 const constants = require("./constants");
 const channelUtils = require("./util/channels");
+const pathUtils = require("./util/paths");
 const timeUtils = require("./util/time");
 
 const pathChannelUri = function(channelUri) {
@@ -163,8 +164,9 @@ const channelPrefix = function(line, channel) {
 const logChannelLine = function(channel, line, d) {
 	line = timeUtils.hmsPrefix(line, d);
 
-	const dirName = path.join(
-		constants.LOG_ROOT, pathChannelUri(channel), timeUtils.ym(d)
+	let logsRoot = pathUtils.getLogsRoot();
+	let dirName = path.join(
+		logsRoot, pathChannelUri(channel), timeUtils.ym(d)
 	);
 
 	logLine(line, dirName, timeUtils.ymd(d));
@@ -174,7 +176,8 @@ const logCategoryLine = function(categoryName, channel, line, d) {
 	line = timeUtils.ymdhmsPrefix(line, d);
 	line = channelPrefix(line, channel);
 
-	const dirName = path.join(constants.LOG_ROOT, "_global", timeUtils.ym(d));
+	let logsRoot = pathUtils.getLogsRoot();
+	let dirName = path.join(logsRoot, "_global", timeUtils.ym(d));
 
 	logLine(line, dirName, categoryName);
 };
@@ -199,13 +202,15 @@ const logLine = function(line, dirName, fileName, callback = standardWritingCall
 // System info
 
 const getDatabaseSize = function(callback) {
-	return fs.stat(constants.DB_FILENAME, (err, stats) => {
+	let dbFilename = pathUtils.getDatabaseFilename();
+	return fs.stat(dbFilename, (err, stats) => {
 		callback(err, stats && stats.size);
 	});
 };
 
 const getLogFolderSize = function(callback) {
-	return getFolderSize(constants.LOG_ROOT, callback);
+	let logsRoot = pathUtils.getLogsRoot();
+	return getFolderSize(logsRoot, callback);
 };
 
 module.exports = {

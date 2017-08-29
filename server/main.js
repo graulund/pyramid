@@ -3,9 +3,12 @@
 
 const async = require("async");
 
+const pathUtils = require("./util/paths");
+
 // Basic state
 
 const awakeTime = new Date();
+var readyCallbacks = [], isReady = false;
 
 // Sub model objects not requiring state
 
@@ -137,6 +140,23 @@ const _warn = function(message, time = null) {
 	_log(message, "warning", time);
 };
 
+// Ready callbacks
+
+const addReadyCallback = function(callback) {
+	if (isReady) {
+		// Fire off immediately if ready
+		callback();
+	}
+
+	else {
+		readyCallbacks.push(callback);
+	}
+};
+
+const fireReadyCallbacks = function() {
+	readyCallbacks.forEach((callback) => callback());
+};
+
 // Startup
 
 const initDependencies = function() {
@@ -226,6 +246,7 @@ const finalizeStartup = function() {
 				ircPasswords.onStartUp();
 				irc.go();
 				web.go();
+				fireReadyCallbacks();
 			}
 		}
 	);
@@ -263,12 +284,14 @@ module.exports = {
 	logs: () => logs,
 	messageCaches: () => messageCaches,
 	nicknames: () => nicknames,
+	onReady: addReadyCallback,
 	plugins: () => plugins,
 	recipients: () => recipients,
 	serverData: () => serverData,
 	setDb,
 	setIo,
 	setIrc,
+	setLocalOverridePath: pathUtils.setLocalOverridePath,
 	setPlugins,
 	setWeb,
 	unseenHighlights: () => unseenHighlights,

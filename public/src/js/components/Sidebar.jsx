@@ -153,6 +153,7 @@ class Sidebar extends PureComponent {
 		const { systemMenuOpen } = this.state;
 
 		const className = "sidebar" +
+			" scroller scroller--thin" +
 			" sidebar--" + tab +
 			" sidebar--" + sort +
 			(!visible ? " sidebar--hidden" : "");

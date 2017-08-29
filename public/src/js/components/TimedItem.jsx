@@ -1,7 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { findDOMNode } from "react-dom";
 import TimeAgo from "react-timeago";
 
 import { formatTime, midnightDate, prevDay, timeColors, timeStamp }
@@ -35,7 +34,6 @@ const formatter = (value, unit, suffix, date, defaultFormatter) => {
 };
 
 class TimedItem extends PureComponent {
-
 	constructor(props) {
 		super(props);
 
@@ -48,6 +46,7 @@ class TimedItem extends PureComponent {
 		this.date = new Date(props.time);
 
 		this.els = {};
+		this.setRoot = refElSetter("root").bind(this);
 		this.setSts = refElSetter("sts").bind(this);
 
 		this.state = {
@@ -56,15 +55,9 @@ class TimedItem extends PureComponent {
 	}
 
 	componentDidMount() {
-		const root = findDOMNode(this);
-		if (root) {
-			// Store the root
-			this.root = root;
-
-			// Start ticking
-			this.isStillMounted = true;
-			this.tick();
-		}
+		// Start ticking
+		this.isStillMounted = true;
+		this.tick();
 	}
 
 	componentWillReceiveProps(newProps) {
@@ -102,8 +95,9 @@ class TimedItem extends PureComponent {
 		}
 
 		let { shieldedNow } = this.state;
+		let { sts, root } = this.els;
 
-		if (this.root && this.els.sts) {
+		if (root && sts) {
 			const then = this.date;
 			const diff = Math.abs(Date.now() - then);
 
@@ -114,15 +108,15 @@ class TimedItem extends PureComponent {
 
 			// Secondary time stamp
 			const secondaryTimestamp = this.renderSecondaryTimestamp(then);
-			this.els.sts.textContent = secondaryTimestamp;
+			sts.textContent = secondaryTimestamp;
 			this.stStr = secondaryTimestamp;
 			this.handleWideSts();
 
 			// Color
 			const styles = timeColors(diff);
 			for (var property in styles) {
-				if (this.root.style[property] !== styles[property]) {
-					this.root.style[property] = styles[property];
+				if (root.style[property] !== styles[property]) {
+					root.style[property] = styles[property];
 				}
 			}
 		}
@@ -132,10 +126,12 @@ class TimedItem extends PureComponent {
 
 	handleWideSts() {
 		// Handle abnormally long strings in the STS
-		if (this.root) {
+		let { root, sts } = this.els;
+
+		if (root) {
 			if (this.stStr && this.stStr.length > 6) {
-				if (this.els.sts) {
-					const stsWidth = this.els.sts.getBoundingClientRect().width;
+				if (sts) {
+					const stsWidth = sts.getBoundingClientRect().width;
 					if (stsWidth > 35) {
 						this.root.style.paddingRight = (stsWidth + 15) + "px";
 						return;
@@ -143,29 +139,32 @@ class TimedItem extends PureComponent {
 				}
 			}
 
-			if (this.root.style.paddingRight) {
-				this.root.style.paddingRight = "";
+			if (root.style.paddingRight) {
+				root.style.paddingRight = "";
 			}
 		}
 	}
 
 	flash() {
 		let { deviceVisible, showActivityFlashes, visible } = this.props;
+		let { root } = this.els;
 
 		if (
 			showActivityFlashes &&
 			deviceVisible &&
 			visible &&
-			this.root
+			root
 		) {
-			this.root.className = this.renderClassName(true);
+			root.className = this.renderClassName(true);
 			this.flashTimeout = setTimeout(this.endFlash, 200);
 		}
 	}
 
 	endFlash() {
-		if (this.root) {
-			this.root.className = this.renderClassName(false);
+		let { root } = this.els;
+
+		if (root) {
+			root.className = this.renderClassName(false);
 		}
 	}
 
@@ -269,7 +268,10 @@ class TimedItem extends PureComponent {
 		this.hasRenderedOnce = true;
 
 		return (
-			<li className={className} style={styles}>
+			<li
+				className={className}
+				style={styles}
+				ref={this.setRoot}>
 				<div className="l">
 					{ prefix }
 					{ prefix && primaryTimeEl ? " " : null }

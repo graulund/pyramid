@@ -1,16 +1,20 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import { findDOMNode } from "react-dom";
 import { connect } from "react-redux";
+
+import { refElSetter } from "../../lib/refEls";
 
 class ChatHighlightedLine extends PureComponent {
 	constructor(props) {
 		super(props);
 
 		this.onUnobserved = this.onUnobserved.bind(this);
+
+		this.els = {};
+		this.setRoot = refElSetter("root").bind(this);
 	}
 
-	componentDidMount () {
+	componentDidMount() {
 		this.toggleObservation(
 			this.isUnseen(this.props),
 			false
@@ -31,7 +35,7 @@ class ChatHighlightedLine extends PureComponent {
 	}
 
 	isUnseen(props = this.props) {
-		const { lineId, unseenHighlights } = props;
+		let { lineId, unseenHighlights } = props;
 
 		return lineId &&
 			unseenHighlights &&
@@ -40,18 +44,15 @@ class ChatHighlightedLine extends PureComponent {
 	}
 
 	observe() {
-		const { lineId, observer } = this.props;
+		let { lineId, observer } = this.props;
 
 		if (observer) {
-			const root = findDOMNode(this);
+			let { root } = this.els;
 
 			if (root) {
 				// Adding extra info to root
 				root.onUnobserve = this.onUnobserved;
 				root.lineId = lineId;
-
-				// Setting root
-				this.root = root;
 
 				// Observing
 				observer.observe(root);
@@ -78,10 +79,11 @@ class ChatHighlightedLine extends PureComponent {
 	}
 
 	unobserve() {
-		const { observer } = this.props;
+		let { observer } = this.props;
+		let { root } = this.els;
 
-		if (this.root && observer) {
-			observer.unobserve(this.root);
+		if (root && observer) {
+			observer.unobserve(root);
 			this.onUnobserved();
 		}
 	}
@@ -91,14 +93,16 @@ class ChatHighlightedLine extends PureComponent {
 	}
 
 	render() {
-		const { children, className: givenClassName, id } = this.props;
-		const unseen = this.isUnseen(this.props);
+		let { children, className: givenClassName, id } = this.props;
+		let unseen = this.isUnseen(this.props);
 
-		const itemProps = {
+		let itemProps = {
 			className: givenClassName +
 				(unseen ? " line--unseen-highlight" : ""),
-			id
+			id,
+			ref: this.setRoot
 		};
+
 		return <li {...itemProps}>{ children }</li>;
 	}
 }

@@ -19,6 +19,13 @@ module.exports = function(app, main) {
 	app.get("/welcome", welcome.get);
 	app.post("/welcome", welcome.post);
 
+	// Pyramid meta page
+
+	app.get("/.pyramid", function(req, res) {
+		res.set("Content-Type", "text/plain");
+		res.end("yes");
+	});
+
 	// Main page
 
 	app.get("*", require("./routes/home")(main));

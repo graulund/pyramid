@@ -16,6 +16,8 @@ export function initVisualBehavior() {
 	initTouchDeviceTest();
 	initFocusHandler();
 	patchSFFontIssues();
+	detectElectron();
+	detectCustomScrollbars();
 }
 
 function getFocus() {
@@ -107,8 +109,34 @@ function patchSFFontIssues() {
 		document.body.classList.add("sf-font");
 
 		// Issue with chrome
-		if (/Chrome\//.test(ua)) {
+		if (ua.indexOf("Chrome/") >= 0) {
 			document.body.classList.add("chrome-sf-font");
 		}
+	}
+}
+
+function detectElectron() {
+	let ua = navigator.userAgent;
+
+	if (ua.indexOf("pyramid-electron") >= 0) {
+		document.body.classList.add("electron");
+
+		if (ua.indexOf("Macintosh") >= 0) {
+			document.body.classList.add("electron-mac");
+		}
+	}
+}
+
+function detectCustomScrollbars() {
+	let ua = navigator.userAgent;
+
+	// We only consider these safe to implement in Chrome for now.
+	// We skip this if you're on a Mac-like device.
+
+	if (
+		ua.indexOf("Chrome/") >= 0 &&
+		ua.indexOf("Mac OS X") < 0
+	) {
+		document.body.classList.add("custom-scrollbars");
 	}
 }

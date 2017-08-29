@@ -455,9 +455,17 @@
 			padding-left: 10px;
 		}
 
-		&--solo, .multichat__item--top-left & {
+		&--solo,
+		.multichat__item--top-left & {
 			.chatview__top {
 				padding-left: 40px;
+			}
+		}
+
+		body.electron-mac &--solo,
+		body.electron-mac .multichat__item--top-left & {
+			.chatview__top {
+				padding-left: 105px;
 			}
 		}
 	}

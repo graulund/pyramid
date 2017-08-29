@@ -66,7 +66,7 @@ class SettingsView extends PureComponent {
 				</div>
 				<div className="mainview__content">
 					<div className="mainview__content__primary mainview__frame-container">
-						<div className="mainview__inner-frame">
+						<div className="mainview__inner-frame scroller">
 							{ page }
 						</div>
 					</div>

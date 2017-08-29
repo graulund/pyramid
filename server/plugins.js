@@ -18,8 +18,6 @@ function getHandlerName(eventName) {
 	return "on" + eventName[0].toUpperCase() + eventName.substr(1);
 }
 
-
-
 module.exports = function(main) {
 
 	// State

@@ -625,18 +625,22 @@ module.exports = function(main) {
 	// React to external emote settings changes
 
 	setTimeout(function() {
-		main.appConfig().addConfigValueChangeHandler(
-			[
-				"enableFfzEmoticons",
-				"enableFfzGlobalEmoticons",
-				"enableFfzChannelEmoticons",
-				"enableBttvEmoticons",
-				"enableBttvGlobalEmoticons",
-				"enableBttvAnimatedEmoticons",
-				"enableBttvPersonalEmoticons"
-			],
-			reloadAllExternalEmotes
-		);
+		let appConfig = main.appConfig();
+
+		if (appConfig) {
+			appConfig.addConfigValueChangeHandler(
+				[
+					"enableFfzEmoticons",
+					"enableFfzGlobalEmoticons",
+					"enableFfzChannelEmoticons",
+					"enableBttvEmoticons",
+					"enableBttvGlobalEmoticons",
+					"enableBttvAnimatedEmoticons",
+					"enableBttvPersonalEmoticons"
+				],
+				reloadAllExternalEmotes
+			);
+		}
 	}, 10000);
 
 	// Events API
