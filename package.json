@@ -1,6 +1,6 @@
 {
 	"name": "pyramid-irc",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "Web-based IRCv3 client with bouncer, and support for Twitch features",
 	"author": "Andy Graulund <andy@graulund.com>",
 	"license": "MIT",
