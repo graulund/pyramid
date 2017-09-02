@@ -1,8 +1,14 @@
 export function scrollToTheTop(container) {
-	container.scrollTop = 0;
+	if (container) {
+		container.scrollTop = 0;
+	}
 }
 
 export function areWeScrolledToTheBottom(container, content) {
+	if (!container) {
+		return true;
+	}
+
 	if (!content) {
 		content = container.children[0];
 	}
@@ -16,6 +22,10 @@ export function areWeScrolledToTheBottom(container, content) {
 }
 
 export function scrollToTheBottom(container, content) {
+	if (!container) {
+		return;
+	}
+
 	if (!content) {
 		content = container.children[0];
 	}
