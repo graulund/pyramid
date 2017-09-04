@@ -80,22 +80,25 @@ module.exports = function(main, io) {
 		// Server
 		// (HTTPS if specified)
 
-		var server;
+		let server = null;
+		let config = main.appConfig().configValue;
 
-		var config = main.appConfig().configValue;
+		let certPath = config("httpsCertPath");
+		let keyPath = config("httpsKeyPath");
+		let webPort = config("webPort");
 
-		if (config("httpsKeyPath") && config("httpsCertPath")){
+		if (keyPath && certPath) {
 			// Secure HTTPS server
-			var https = require("https");
-			server = https.createServer({
-				key: fs.readFileSync(path.join(__dirname, "..", config("httpsKeyPath"))),
-				cert: fs.readFileSync(path.join(__dirname, "..", config("httpsCertPath")))
-			}, app).listen(config("webPort"), undefined, undefined, function(){
-				console.log("Listening securely on port %d", server.address().port);
+			require("./https")({
+				app,
+				certPath,
+				keyPath,
+				server,
+				webPort
 			});
 		} else {
 			// Plain HTTP server
-			server = app.listen(config("webPort"), function() {
+			server = app.listen(webPort, function() {
 				console.log("Listening on port %d", server.address().port);
 			});
 		}
