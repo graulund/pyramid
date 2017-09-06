@@ -5,16 +5,9 @@ const configDefaults = require("../defaults");
 const routeUtils = require("../util/routing");
 
 module.exports = function(main) {
-	return function(req, res, next) {
+	return function(req, res) {
 		const accepted = routeUtils.denyAccessWithoutToken(req, res, main);
 		if (accepted) {
-
-			// Ignoring socket.io paths
-			if (/^\/socket\.io/.test(req.path)) {
-				next();
-				return;
-			}
-
 			let appConfig = main.appConfig();
 			let awakeTime = main.awakeTime;
 			let friends = main.friends();
