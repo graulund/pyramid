@@ -65,6 +65,8 @@ function startServer(keyData, certData) {
 	).listen(webPort, undefined, undefined, function(){
 		console.log("Listening securely on port %d", server.address().port);
 	});
+
+	return server;
 }
 
 function setUp(values) {
@@ -78,7 +80,7 @@ function setUp(values) {
 
 	let keyData = getKeyData();
 	let certData = getCertData();
-	startServer(keyData, certData);
+	return startServer(keyData, certData);
 }
 
 module.exports = setUp;

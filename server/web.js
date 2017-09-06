@@ -89,7 +89,7 @@ module.exports = function(main, io) {
 
 		if (keyPath && certPath) {
 			// Secure HTTPS server
-			require("./https")({
+			server = require("./https")({
 				app,
 				certPath,
 				keyPath,
