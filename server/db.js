@@ -140,6 +140,19 @@ const iq = function(table, colNames) {
 	return `INSERT INTO ${table} (${cols}) VALUES (${vals})`;
 };
 
+const miq = function(table, colNames, amount) {
+	let cols = colNames.join(", ");
+	let out = `INSERT INTO ${table} (${cols}) VALUES `;
+	let valueStrings = [];
+
+	for (var i = 0; i < amount; i++) {
+		let vals = colNames.map((c) => "$" + c + i).join(", ");
+		valueStrings.push(`(${vals})`);
+	}
+
+	return out + valueStrings.join(", ");
+};
+
 const dq = function(table, whereCols) {
 	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
 	return `DELETE FROM ${table} WHERE ${where}`;
@@ -152,6 +165,8 @@ const initializeDb = function(db) {
 };
 
 const mainMethods = function(main, db) {
+
+	var waitingLineInserts = [];
 
 	const getLocalDatestampFromTime = function(time) {
 		return timeUtils.ymd(main.logs().localMoment(time));
@@ -923,20 +938,7 @@ const mainMethods = function(main, db) {
 			isHighlight = 1;
 		}
 
-		db.run(
-			iq("lines", [
-				"lineId",
-				"channelId",
-				"type",
-				"time",
-				"date",
-				"username",
-				"message",
-				"symbol",
-				"tags",
-				"eventData",
-				"isHighlight"
-			]),
+		waitingLineInserts.push(
 			{
 				$lineId: line.lineId,
 				$channelId: channelId,
@@ -949,10 +951,52 @@ const mainMethods = function(main, db) {
 				$tags: line.tags && JSON.stringify(line.tags),
 				$eventData: eventData && JSON.stringify(eventData),
 				$isHighlight: isHighlight
-			},
+			}
+		);
+	};
+
+	const storeWaitingLines = function(callback) {
+		let amount = waitingLineInserts.length;
+
+		if (waitingLineInserts.length <= 0) {
+			return;
+		}
+
+		let flattenedValues = {};
+
+		waitingLineInserts.forEach((l, i) => {
+			Object.keys(l).forEach((k) => {
+				flattenedValues[k + i] = l[k];
+			});
+		});
+
+		waitingLineInserts = [];
+
+		console.log(
+			new Date().toISOString() + ": Storing " +
+			amount + " lines"
+		);
+
+		db.run(
+			miq("lines", [
+				"lineId",
+				"channelId",
+				"type",
+				"time",
+				"date",
+				"username",
+				"message",
+				"symbol",
+				"tags",
+				"eventData",
+				"isHighlight"
+			], amount),
+			flattenedValues,
 			dbCallback(callback)
 		);
 	};
+
+	setInterval(storeWaitingLines, 1000);
 
 	const deleteLinesWithLineIds = function(lineIds, callback) {
 		db.run(
