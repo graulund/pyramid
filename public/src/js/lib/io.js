@@ -543,4 +543,8 @@ export function initializeIo() {
 		});
 
 	}
+
+	else {
+		console.warn("Could not find socket.io");
+	}
 }
