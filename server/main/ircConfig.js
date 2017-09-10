@@ -6,7 +6,7 @@ const channelUtils = require("../util/channels");
 const passwordUtils = require("../util/passwords");
 const stringUtils = require("../util/strings");
 
-module.exports = function(db, io) {
+module.exports = function(db, io, restriction) {
 
 	var currentIrcConfig = [];
 
@@ -186,15 +186,23 @@ module.exports = function(db, io) {
 			return;
 		}
 
-		if (data.password && encryptionKey) {
-			data.password = JSON.stringify(
-				passwordUtils.encryptSecret(
-					data.password, encryptionKey
-				)
-			);
-		}
+		isServersLimitReached(function(reached) {
+			if (reached) {
+				callback(new Error("Server limit reached"));
+			}
 
-		db.addServerToIrcConfig(data, callback);
+			else {
+				if (data.password && encryptionKey) {
+					data.password = JSON.stringify(
+						passwordUtils.encryptSecret(
+							data.password, encryptionKey
+						)
+					);
+				}
+
+				db.addServerToIrcConfig(data, callback);
+			}
+		});
 	};
 
 	const modifyServerInIrcConfig = function(serverName, details, callback) {
@@ -235,20 +243,28 @@ module.exports = function(db, io) {
 	};
 
 	const addChannelToIrcConfig = function(serverName, name, channelType, data, callback) {
-		name = name.replace(/^#/, "");
-		async.waterfall([
-			(callback) => db.getServerId(serverName, callback),
-			(serverData, callback) => {
-				if (serverData) {
-					db.addChannelToIrcConfig(
-						serverData.serverId, name, channelType, data, callback
-					);
-				}
-				else {
-					callback(new Error("No such server"));
-				}
+		isChannelsLimitReached(function(reached) {
+			if (reached) {
+				callback(new Error("Channel limit reached"));
 			}
-		], callback);
+
+			else {
+				name = name.replace(/^#/, "");
+				async.waterfall([
+					(callback) => db.getServerId(serverName, callback),
+					(serverData, callback) => {
+						if (serverData) {
+							db.addChannelToIrcConfig(
+								serverData.serverId, name, channelType, data, callback
+							);
+						}
+						else {
+							callback(new Error("No such server"));
+						}
+					}
+				], callback);
+			}
+		});
 	};
 
 	const addChannelToIrcConfigFromUri = function(channelUri, callback) {
@@ -366,6 +382,34 @@ module.exports = function(db, io) {
 		}
 		else {
 			callback(new Error("Insufficient data"));
+		}
+	};
+
+	// Restrictions
+
+	const isChannelsLimitReached = function(callback) {
+		if (!restriction) {
+			callback(false);
+		}
+
+		else {
+			db.getIrcChannelCount(function(err, data) {
+				let reached = data && data.count >= restriction.channelsLimit;
+				callback(reached);
+			});
+		}
+	};
+
+	const isServersLimitReached = function(callback) {
+		if (!restriction) {
+			callback(false);
+		}
+
+		else {
+			db.getIrcServerCount(function(err, data) {
+				let reached = data && data.count >= restriction.serversLimit;
+				callback(reached);
+			});
 		}
 	};
 

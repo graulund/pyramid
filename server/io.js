@@ -16,7 +16,7 @@ const tokenUtils = require("./util/tokens");
 
 module.exports = function(main) {
 
-	var server, io, allConnections = [];
+	var server, io, allConnections = [], restriction;
 
 	const all = {
 		emit: function() {
@@ -25,6 +25,16 @@ module.exports = function(main) {
 				// Pass through
 				socket.emit.apply(socket, args);
 			});
+		}
+	};
+
+	const isConnectionsLimitReached = function() {
+		if (!restriction) {
+			return false;
+		}
+
+		else {
+			return allConnections.length >= restriction.connectionsLimit;
 		}
 	};
 
@@ -376,8 +386,12 @@ module.exports = function(main) {
 		}
 	};
 
+	const setRestriction = function(r) {
+		restriction = r;
+	};
+
 	// Deferred server availability
-	const setServer = (_server) => {
+	const setServer = function(_server) {
 		server = _server;
 
 		io = socketIo(server);
@@ -385,10 +399,22 @@ module.exports = function(main) {
 		io.on("connection", (socket) => {
 			var connectionToken = null;
 
+			// If connections limit is reached, abandon
+
+			if (isConnectionsLimitReached()) {
+				socket.emit("limitReached");
+				socket.disconnect(true);
+				return;
+			}
+
+			// Disconnection handling
+
 			socket.on("disconnect", () => {
 				main.recipients().removeRecipientEverywhere(socket);
 				_.pull(allConnections, socket);
 			});
+
+			// Verify token
 
 			socket.on("token", (details) => {
 				if (details && typeof details.token === "string") {
@@ -945,6 +971,7 @@ module.exports = function(main) {
 		emitServerData,
 		emitUnseenHighlights,
 		emitUnseenConversations,
+		setRestriction,
 		setServer
 	};
 

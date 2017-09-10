@@ -201,9 +201,25 @@ const mainMethods = function(main, db) {
 		);
 	};
 
+	const getIrcServerCount = function(callback) {
+		db.get(
+			sq("ircServers", ["COUNT(*) AS count"], ["isEnabled"]),
+			dollarize({ isEnabled: 1 }),
+			dbCallback(callback)
+		);
+	};
+
 	const getIrcChannels = function(callback) {
 		db.all(
 			sq("ircChannels", ["*"], ["isEnabled"]) + " " + oq("name"),
+			dollarize({ isEnabled: 1 }),
+			dbCallback(callback)
+		);
+	};
+
+	const getIrcChannelCount = function(callback) {
+		db.get(
+			sq("ircChannels", ["COUNT(*) AS count"], ["isEnabled"]),
 			dollarize({ isEnabled: 1 }),
 			dbCallback(callback)
 		);
@@ -271,6 +287,14 @@ const mainMethods = function(main, db) {
 	const getFriends = function(callback) {
 		db.all(
 			sq("friends", ["*"], ["isEnabled"]) + " " + oq("username", ASC),
+			{ $isEnabled: 1 },
+			dbCallback(callback)
+		);
+	};
+
+	const getFriendCount = function(callback) {
+		db.get(
+			sq("friends", ["COUNT(*) AS count"], ["isEnabled"]),
 			{ $isEnabled: 1 },
 			dbCallback(callback)
 		);
@@ -451,6 +475,13 @@ const mainMethods = function(main, db) {
 		db.all(
 			sq("nicknames", ["*"]) + " " + oq("nickname", ASC),
 			prepareNicknameValues
+		);
+	};
+
+	const getNicknameCount = function(callback) {
+		db.get(
+			sq("nicknames", ["COUNT(*) AS count"]),
+			dbCallback(callback)
 		);
 	};
 
@@ -896,7 +927,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const storeLine = function(channelId, line, callback) {
+	const storeLine = function(channelId, line) {
 		const { argument, by, events, highlight, mode, prevIds, reason, status } = line;
 		var eventData = null;
 
@@ -955,7 +986,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const storeWaitingLines = function(callback) {
+	const storeWaitingLines = function() {
 		let amount = waitingLineInserts.length;
 
 		if (waitingLineInserts.length <= 0) {
@@ -963,6 +994,8 @@ const mainMethods = function(main, db) {
 		}
 
 		let flattenedValues = {};
+
+		// TODO: Max amount of messages here
 
 		waitingLineInserts.forEach((l, i) => {
 			Object.keys(l).forEach((k) => {
@@ -991,8 +1024,7 @@ const mainMethods = function(main, db) {
 				"eventData",
 				"isHighlight"
 			], amount),
-			flattenedValues,
-			dbCallback(callback)
+			flattenedValues
 		);
 	};
 
@@ -1087,12 +1119,15 @@ const mainMethods = function(main, db) {
 	getDateLinesForChannel(channelId, date, options, callback)
 	getDateLinesForUsername(username, date, options, callback)
 	getFriend(serverId, username, callback)
+	getFriendCount(callback)
 	getFriends(callback)
 	getFriendsList(callback)
 	getIrcChannel(channelId, callback)
+	getIrcChannelCount(callback)
 	getIrcChannels(callback)
 	getIrcConfig(callback)
 	getIrcServer(serverId, callback)
+	getIrcServerCount(callback)
 	getIrcServers(callback)
 	getLastSeenChannels(callback)
 	getLastSeenUsers(callback)
@@ -1101,6 +1136,7 @@ const mainMethods = function(main, db) {
 	getMostRecentChannelLines(channelId, limit, beforeTime, callback)
 	getMostRecentHighlightsLines(limit, beforeTime, callback)
 	getMostRecentUserLines(username, limit, beforeTime, callback)
+	getNicknameCount(callback)
 	getNicknames(callback)
 	getServerId(name, callback)
 	getServerName(serverId, callback)
@@ -1136,12 +1172,15 @@ const mainMethods = function(main, db) {
 		getDateLinesForChannel,
 		getDateLinesForUsername,
 		getFriend,
+		getFriendCount,
 		getFriends,
 		getFriendsList,
 		getIrcChannel,
+		getIrcChannelCount,
 		getIrcChannels,
 		getIrcConfig,
 		getIrcServer,
+		getIrcServerCount,
 		getIrcServers,
 		getLastSeenChannels,
 		getLastSeenUsers,
@@ -1150,6 +1189,7 @@ const mainMethods = function(main, db) {
 		getMostRecentChannelLines,
 		getMostRecentHighlightsLines,
 		getMostRecentUserLines,
+		getNicknameCount,
 		getNicknames,
 		getServerId,
 		getServerName,

@@ -62,18 +62,16 @@ module.exports = function(
 		});
 	};
 
-	const _storeLine = function(channel, line, callback) {
+	const _storeLine = function(channel, line) {
 		if (channelIdCache[channel]) {
-			db.storeLine(channelIdCache[channel], line, callback);
+			db.storeLine(channelIdCache[channel], line);
 		}
 	};
 
-	const storeLine = function(
-		channel, line, callback = function(){}
-	) {
+	const storeLine = function(channel, line) {
 
 		if (channelIdCache[channel]) {
-			_storeLine(channel, line, callback);
+			_storeLine(channel, line);
 		}
 
 		else {
@@ -81,7 +79,7 @@ module.exports = function(
 
 			// Add to db and store
 			addChannelToDb(channel, () => {
-				_storeLine(channel, line, callback);
+				_storeLine(channel, line);
 			});
 		}
 	};

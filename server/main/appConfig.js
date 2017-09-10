@@ -83,6 +83,8 @@ module.exports = function(db) {
 			}
 		}
 
+		// TODO: Check if we're in restricted mode and deny change
+
 		db.storeConfigValue(
 			name,
 			value,
@@ -109,6 +111,24 @@ module.exports = function(db) {
 				}
 			}
 		);
+	};
+
+	const getRestrictionData = function() {
+		let mode = configValue("restrictedMode");
+
+		if (!mode) {
+			return null;
+		}
+
+		return {
+			// TODO: Implement messagesPerSecondLimit
+			messagesPerSecondLimit: configValue("restrictedMessagesPerSecondLimit"),
+			channelsLimit: configValue("restrictedChannelsLimit"),
+			serversLimit: configValue("restrictedServersLimit"),
+			nicknamesLimit: configValue("restrictedNicknamesLimit"),
+			friendsLimit: configValue("restrictedFriendsLimit"),
+			connectionsLimit: configValue("restrictedConnectionsLimit")
+		};
 	};
 
 	// Change handlers
@@ -139,6 +159,7 @@ module.exports = function(db) {
 		configValue,
 		currentAppConfig: () => currentAppConfig,
 		getConfigValue,
+		getRestrictionData,
 		loadAppConfig,
 		safeAppConfig,
 		storeConfigValue

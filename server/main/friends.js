@@ -1,6 +1,6 @@
 const async = require("async");
 
-module.exports = function(db) {
+module.exports = function(db, restriction) {
 
 	var currentFriendsList = [];
 	var friendIdCache = {};
@@ -45,7 +45,15 @@ module.exports = function(db) {
 	};
 
 	const addToFriends = function(serverId, username, isBestFriend, callback) {
-		db.addToFriends(serverId, username, isBestFriend, callback);
+		isFriendsLimitReached(function(reached) {
+			if (reached) {
+				callback(new Error("Friends limit reached"));
+			}
+
+			else {
+				db.addToFriends(serverId, username, isBestFriend, callback);
+			}
+		});
 	};
 
 	// TODO: Use server name instead of server id here
@@ -61,6 +69,19 @@ module.exports = function(db) {
 			(callback) => db.getFriend(serverId, username, callback),
 			(friend, callback) => db.removeFromFriends(friend.friendId, callback)
 		], callback);
+	};
+
+	const isFriendsLimitReached = function(callback) {
+		if (!restriction) {
+			callback(false);
+		}
+
+		else {
+			db.getFriendCount(function(err, data) {
+				let reached = data && data.count >= restriction.friendsLimit;
+				callback(reached);
+			});
+		}
 	};
 
 	return {

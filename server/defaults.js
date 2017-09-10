@@ -51,5 +51,14 @@ module.exports = {
 	enableBttvGlobalEmoticons: true,
 	enableBttvChannelEmoticons: true,
 	enableBttvAnimatedEmoticons: true,
-	enableBttvPersonalEmoticons: true
+	enableBttvPersonalEmoticons: true,
+
+	// Restricted mode
+	restrictedMode: false,
+	restrictedMessagesPerSecondLimit: 100,
+	restrictedChannelsLimit: 100,
+	restrictedServersLimit: 10,
+	restrictedNicknamesLimit: 100,
+	restrictedFriendsLimit: 500,
+	restrictedConnectionsLimit: 10
 };

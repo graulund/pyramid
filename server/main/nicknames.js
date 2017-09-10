@@ -1,6 +1,6 @@
 const channelUtils = require("../util/channels");
 
-module.exports = function(db) {
+module.exports = function(db, restriction) {
 
 	var currentNicknames = [];
 
@@ -34,7 +34,15 @@ module.exports = function(db) {
 	};
 
 	const addNickname = function(nickname, callback) {
-		db.addNickname(nickname, callback);
+		isNicknamesLimitReached(function(reached) {
+			if (reached) {
+				callback(new Error("Nicknames limit reached"));
+			}
+
+			else {
+				db.addNickname(nickname, callback);
+			}
+		});
 	};
 
 	const modifyNickname = function(nickname, data, callback) {
@@ -64,6 +72,19 @@ module.exports = function(db) {
 		});
 
 		return highlightStrings;
+	};
+
+	const isNicknamesLimitReached = function(callback) {
+		if (!restriction) {
+			callback(false);
+		}
+
+		else {
+			db.getNicknameCount(function(err, data) {
+				let reached = data && data.count >= restriction.nicknamesLimit;
+				callback(reached);
+			});
+		}
 	};
 
 	return {

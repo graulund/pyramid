@@ -218,6 +218,8 @@ class SettingsAppConfigView extends PureComponent {
 		let { settings } = this.props;
 		let content = [];
 
+		// TODO: Restrict view with restriction mode turned on
+
 		Object.keys(settings).forEach((sectionName) => {
 			if (settings[sectionName]) {
 				content.push(this.renderSection(sectionName, settings[sectionName]));
