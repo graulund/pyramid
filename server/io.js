@@ -129,9 +129,12 @@ module.exports = function(main) {
 	};
 
 	const emitAppConfig = function(socket) {
-		main.appConfig().loadAppConfig((err, data) => {
+		let appConfig = main.appConfig();
+		appConfig.loadAppConfig((err, data) => {
 			if (!err) {
-				data = _.assign({}, configDefaults, data);
+				data = appConfig.safeAppConfig(
+					_.assign({}, configDefaults, data)
+				);
 				socket.emit("appConfig", { data });
 			}
 		});
