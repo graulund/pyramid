@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import debounce from "lodash/debounce";
 
 import SettingsPasswordInput from "./SettingsPasswordInput.jsx";
-import { CHANGE_DEBOUNCE_MS } from "../constants";
+import { CHANGE_DEBOUNCE_MS, RESTRICTED_APP_CONFIG_PROPERTIES } from "../constants";
 import * as io from "../lib/io";
 
 class SettingsAppConfigView extends PureComponent {
@@ -68,6 +68,15 @@ class SettingsAppConfigView extends PureComponent {
 		} = setting;
 
 		var prefixInput = null, mainInput = null, isDisabled = false;
+
+		// Do not show the field if we're in restricted mode and it's restricted
+
+		if (
+			appConfig.restrictedMode &&
+			RESTRICTED_APP_CONFIG_PROPERTIES.indexOf(name) >= 0
+		) {
+			return null;
+		}
 
 		// Disable the field if any of its prerequisites are disabled
 		if (requires && requires.length) {
@@ -206,10 +215,30 @@ class SettingsAppConfigView extends PureComponent {
 	}
 
 	renderSection(name, settings) {
+		let settingItems = settings.map(
+			(setting) => this.renderSetting(setting)
+		);
+
+		// Ensure there's at least one non-null value
+
+		let hasValue = false;
+
+		if (settingItems && settingItems.length) {
+			settingItems.forEach((s) => {
+				if (s) {
+					hasValue = true;
+				}
+			});
+		}
+
+		if (!hasValue) {
+			return null;
+		}
+
 		return (
 			<div className="settings__section" key={name}>
 				<h2>{ name }</h2>
-				{ settings.map((setting) => this.renderSetting(setting)) }
+				{ settingItems }
 			</div>
 		);
 	}
