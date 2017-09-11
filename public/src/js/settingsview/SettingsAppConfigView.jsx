@@ -206,7 +206,7 @@ class SettingsAppConfigView extends PureComponent {
 					{ prefixInput }
 					<label htmlFor={name}>{ readableName }</label>
 				</h3>
-				{ mainInput }
+				{ mainInput ? <p>{ mainInput }</p> : null }
 				{ description ? <p>{ description }</p> : null }
 				{ notice ? <p><em>{ notice }</em></p> : null }
 				{ suffix }
