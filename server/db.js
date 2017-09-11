@@ -166,8 +166,6 @@ const initializeDb = function(db) {
 
 const mainMethods = function(main, db) {
 
-	var waitingLineInserts = [];
-
 	const getLocalDatestampFromTime = function(time) {
 		return timeUtils.ymd(main.logs().localMoment(time));
 	};
@@ -927,7 +925,7 @@ const mainMethods = function(main, db) {
 		);
 	};
 
-	const storeLine = function(channelId, line) {
+	const prepareLine = function(line) {
 		const { argument, by, events, highlight, mode, prevIds, reason, status } = line;
 		var eventData = null;
 
@@ -969,27 +967,25 @@ const mainMethods = function(main, db) {
 			isHighlight = 1;
 		}
 
-		waitingLineInserts.push(
-			{
-				$lineId: line.lineId,
-				$channelId: channelId,
-				$type: line.type,
-				$time: getTimestamp(line.time),
-				$date: getLocalDatestampFromTime(line.time),
-				$username: line.username,
-				$message: line.message,
-				$symbol: line.symbol,
-				$tags: line.tags && JSON.stringify(line.tags),
-				$eventData: eventData && JSON.stringify(eventData),
-				$isHighlight: isHighlight
-			}
-		);
+		return {
+			$lineId: line.lineId,
+			$channelId: line.channelId,
+			$type: line.type,
+			$time: getTimestamp(line.time),
+			$date: getLocalDatestampFromTime(line.time),
+			$username: line.username,
+			$message: line.message,
+			$symbol: line.symbol,
+			$tags: line.tags && JSON.stringify(line.tags),
+			$eventData: eventData && JSON.stringify(eventData),
+			$isHighlight: isHighlight
+		};
 	};
 
-	const storeWaitingLines = function() {
-		let amount = waitingLineInserts.length;
+	const storeLines = function(lines, callback) {
+		let amount = lines && lines.length;
 
-		if (waitingLineInserts.length <= 0) {
+		if (!amount) {
 			return;
 		}
 
@@ -997,13 +993,12 @@ const mainMethods = function(main, db) {
 
 		// TODO: Max amount of messages here
 
-		waitingLineInserts.forEach((l, i) => {
-			Object.keys(l).forEach((k) => {
-				flattenedValues[k + i] = l[k];
+		lines.forEach((l, i) => {
+			let line = prepareLine(l);
+			Object.keys(line).forEach((k) => {
+				flattenedValues[k + i] = line[k];
 			});
 		});
-
-		waitingLineInserts = [];
 
 		console.log(
 			new Date().toISOString() + ": Storing " +
@@ -1024,11 +1019,10 @@ const mainMethods = function(main, db) {
 				"eventData",
 				"isHighlight"
 			], amount),
-			flattenedValues
+			flattenedValues,
+			dbCallback(callback)
 		);
 	};
-
-	setInterval(storeWaitingLines, 1000);
 
 	const deleteLinesWithLineIds = function(lineIds, callback) {
 		db.run(
@@ -1150,7 +1144,7 @@ const mainMethods = function(main, db) {
 	removeNickname(nickname, callback)
 	removeServerFromIrcConfig(serverId, callback)
 	storeConfigValue(name, value, callback)
-	storeLine(channelId, line, callback)
+	storeLines(lines, callback)
 
 	*/
 
@@ -1203,7 +1197,7 @@ const mainMethods = function(main, db) {
 		removeNickname,
 		removeServerFromIrcConfig,
 		storeConfigValue,
-		storeLine
+		storeLines
 	};
 
 	main.setDb(output);
