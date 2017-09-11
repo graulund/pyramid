@@ -1,5 +1,6 @@
 const _ = require("lodash");
 
+const constants = require("../constants");
 const configDefaults = require("../defaults");
 const passwordUtils = require("../util/passwords");
 
@@ -9,6 +10,7 @@ module.exports = function(db) {
 
 	var currentAppConfig = {};
 	var configValueChangeHandlers = {};
+	var restricted = false;
 
 	// Database core functions
 
@@ -83,7 +85,15 @@ module.exports = function(db) {
 			}
 		}
 
-		// TODO: Check if we're in restricted mode and deny change
+		// Check if we're in restricted mode and deny change
+
+		if (
+			restricted &&
+			constants.RESTRICTED_APP_CONFIG_PROPERTIES.indexOf(name) >= 0
+		) {
+			callback(new Error("Restricted app config property"));
+			return;
+		}
 
 		db.storeConfigValue(
 			name,
@@ -115,6 +125,7 @@ module.exports = function(db) {
 
 	const getRestrictionData = function() {
 		let mode = configValue("restrictedMode");
+		restricted = mode;
 
 		if (!mode) {
 			return null;

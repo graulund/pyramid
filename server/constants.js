@@ -67,5 +67,23 @@ module.exports = {
 	RETAIN_DB_TYPES: {
 		LINES: 0,
 		DAYS: 1
-	}
+	},
+
+	RESTRICTED_APP_CONFIG_PROPERTIES: [
+		"debug",
+		"httpsCertPath",
+		"httpsKeyPath",
+		"logLinesFile",
+		"restrictedChannelsLimit",
+		"restrictedConnectionsLimit",
+		"restrictedFriendsLimit",
+		"restrictedMessagesPerSecondLimit",
+		"restrictedMode",
+		"restrictedNicknamesLimit",
+		"restrictedServersLimit",
+		"retainDbType",
+		"retainDbValue",
+		"strongIrcPasswordEncryption",
+		"webPort"
+	]
 };
