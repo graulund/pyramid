@@ -53,7 +53,7 @@ CREATE TABLE `friends` (
   `serverId` int(10) UNSIGNED NOT NULL,
   `username` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `lastSeenTime` datetime DEFAULT NULL,
-  `lastSeenChannelId` datetime DEFAULT NULL,
+  `lastSeenChannelId` int(10) UNSIGNED DEFAULT NULL,
   `isBestFriend` tinyint(1) NOT NULL DEFAULT '0',
   `isEnabled` tinyint(1) NOT NULL DEFAULT '1',
   `displayName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
