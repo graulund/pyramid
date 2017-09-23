@@ -39,7 +39,7 @@ CREATE TABLE `chatLines` (
 
 CREATE TABLE `config` (
   `name` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `value` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -54,8 +54,8 @@ CREATE TABLE `friends` (
   `username` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `lastSeenTime` datetime DEFAULT NULL,
   `lastSeenChannelId` datetime DEFAULT NULL,
-  `isBestFriend` tinyint(1) NOT NULL,
-  `isEnabled` tinyint(1) NOT NULL,
+  `isBestFriend` tinyint(1) NOT NULL DEFAULT '0',
+  `isEnabled` tinyint(1) NOT NULL DEFAULT '1',
   `displayName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -68,13 +68,13 @@ CREATE TABLE `friends` (
 CREATE TABLE `ircChannels` (
   `channelId` int(10) UNSIGNED NOT NULL,
   `serverId` int(10) UNSIGNED NOT NULL,
-  `channelType` tinyint(4) NOT NULL,
-  `name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `channelType` tinyint(4) NOT NULL DEFAULT '0',
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `displayName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lastSeenTime` datetime DEFAULT NULL,
   `lastSeenUsername` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lastSeenDisplayName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `isEnabled` tinyint(1) NOT NULL,
+  `isEnabled` tinyint(1) NOT NULL DEFAULT '1',
   `channelConfig` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -94,7 +94,7 @@ CREATE TABLE `ircServers` (
   `password` text COLLATE utf8mb4_unicode_ci,
   `nickname` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `realname` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `isEnabled` tinyint(1) NOT NULL,
+  `isEnabled` tinyint(1) NOT NULL DEFAULT '1',
   `selfSigned` tinyint(1) DEFAULT NULL,
   `certExpired` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

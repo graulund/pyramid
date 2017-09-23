@@ -46,6 +46,9 @@ module.exports = function(main) {
 				let ircTypeClass = "irc" + (networkType !== "twitch" ? " selected" : "");
 				let twitchTypeClass = "twitch" + (networkType === "twitch" ? " selected" : "");
 
+				// Make sure web port is prefilled
+				appConfig.webPort = main.appConfig().configValue("webPort");
+
 				res.render("welcome", {
 					appConfig, enableScripts: false, error, reqBody,
 					ircTypeDisplay, twitchTypeDisplay,

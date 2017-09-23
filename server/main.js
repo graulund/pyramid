@@ -258,7 +258,7 @@ const finalizeStartup = function() {
 				process.exit(1);
 			}
 			else {
-				console.log("Starting up...");
+				console.log("Data loaded");
 				ircPasswords.onStartUp();
 				irc.go();
 				web.go();

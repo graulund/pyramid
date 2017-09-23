@@ -19,24 +19,21 @@ const excludeEventLinesQuery =
 // Callback utility
 
 const dbCallback = function(callback) {
-	return function(err, result, fields) {
+	return function(err, result) {
 		if (err) {
 			console.error("SQL error occurred:", err);
 		}
 		if (typeof callback === "function") {
-			callback(err, result, fields);
-		}
-
-		else {
-			console.warn("DB callback not a function", callback);
+			// Ignoring the fields argument for now
+			callback(err, result);
 		}
 	};
 };
 
 const get = function(db, q, data, callback) {
 	// Get the first row only
-	db.query(q, data, function(err, result, data) {
-		callback(err, result, data && data[0]);
+	db.query(q, data, function(err, result, fields) {
+		callback(err, result && result[0], fields);
 	});
 };
 
@@ -74,9 +71,8 @@ const mainMethods = function(main, db) {
 		db.query(
 			updateQuery,
 			u.onlyParamsInQuery(params, updateQuery),
-			function(err, result, data) {
-				if (err || !this.changes) {
-					// TODO: Changed rows
+			function(err, result, fields) {
+				if (err || !result.affectedRows) {
 					db.query(
 						insertQuery,
 						u.onlyParamsInQuery(params, insertQuery),
@@ -84,7 +80,7 @@ const mainMethods = function(main, db) {
 					);
 				}
 				else {
-					callback(err, data);
+					callback(err, result, fields);
 				}
 			}
 		);
@@ -150,13 +146,13 @@ const mainMethods = function(main, db) {
 			getIrcServers,
 
 			// Load channels
-			(_servers, _, callback) => {
+			(_servers, callback) => {
 				servers = _servers;
 				getIrcChannels(callback);
 			},
 
 			// Combine and serve
-			(channels, _, callback) => {
+			(channels, callback) => {
 				servers.forEach((server) => {
 					if (server) {
 						server.channels = [];
@@ -872,7 +868,7 @@ const mainMethods = function(main, db) {
 			}
 		}
 
-		let isHighlight = null;
+		let isHighlight = 0;
 
 		if (highlight && highlight.length) {
 			eventData = _.assign(eventData || {}, { highlight });
