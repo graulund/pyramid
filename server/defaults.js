@@ -12,7 +12,7 @@ module.exports = {
 	httpsKeyPath: "",
 
 	timeZone: "UTC",
-	webPort: 54335,
+	webPort: 8887,
 
 	// Encryption mode
 	strongIrcPasswordEncryption: false,
