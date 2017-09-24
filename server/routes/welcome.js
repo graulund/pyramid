@@ -46,6 +46,9 @@ module.exports = function(main) {
 				let ircTypeClass = "irc" + (networkType !== "twitch" ? " selected" : "");
 				let twitchTypeClass = "twitch" + (networkType === "twitch" ? " selected" : "");
 
+				// Make sure web port is prefilled
+				appConfig.webPort = main.appConfig().configValue("webPort");
+
 				res.render("welcome", {
 					appConfig, enableScripts: false, error, reqBody,
 					ircTypeDisplay, twitchTypeDisplay,
@@ -76,6 +79,7 @@ module.exports = function(main) {
 		};
 
 		const reqBody = req.body;
+		const restricted = config.restrictedMode;
 
 		var ircData;
 
@@ -157,12 +161,24 @@ module.exports = function(main) {
 		const friends = _.uniq(splitByLineBreak(reqBody.friends));
 
 		const friendActions = friends.map((friendName) => {
-			return (callback) => main.friends().addToFriends(
-				0, stringUtils.formatUriName(friendName), false, callback
-			);
+			return (callback) => {
+				let name = stringUtils.formatUriName(friendName);
+
+				if (name) {
+					return main.friends().addToFriends(
+						0, name, false, callback
+					);
+				}
+
+				else {
+					callback();
+				}
+			};
 		});
 
-		const strongEncryption = !!reqBody.strongEncryptionMode;
+		const strongEncryption = restricted
+			? config.strongEncryptionMode // no override allowed
+			: !!reqBody.strongEncryptionMode;
 
 		if (strongEncryption) {
 			main.ircPasswords().onDecryptionKey(reqBody.webPassword);
@@ -197,7 +213,7 @@ module.exports = function(main) {
 						callback();
 					},
 					(callback) => {
-						if (reqBody.webPort) {
+						if (!restricted && reqBody.webPort) {
 							return main.appConfig().storeConfigValue(
 								"webPort", reqBody.webPort, callback
 							);

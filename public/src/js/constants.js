@@ -78,3 +78,22 @@ export const USER_EVENT_VISIBILITY = {
 	COLLAPSE_MESSAGES: 2,
 	SHOW_ALL: 3
 };
+
+export const RESTRICTED_APP_CONFIG_PROPERTIES = [
+	"debug",
+	"httpsCertPath",
+	"httpsKeyPath",
+	"logLinesFile",
+	"restrictedChannelsLimit",
+	"restrictedConnectionsLimit",
+	"restrictedFriendsLimit",
+	"restrictedMessagesPerSecondLimit",
+	"restrictedMode",
+	"restrictedNicknamesLimit",
+	"restrictedServersLimit",
+	"retainDbType",
+	"retainDbValue",
+	"strongIrcPasswordEncryption",
+	"webHostname",
+	"webPort"
+];

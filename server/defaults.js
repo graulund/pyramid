@@ -12,7 +12,9 @@ module.exports = {
 	httpsKeyPath: "",
 
 	timeZone: "UTC",
-	webPort: 54335,
+
+	webHostname: undefined,
+	webPort: 8887,
 
 	// Encryption mode
 	strongIrcPasswordEncryption: false,
@@ -51,5 +53,14 @@ module.exports = {
 	enableBttvGlobalEmoticons: true,
 	enableBttvChannelEmoticons: true,
 	enableBttvAnimatedEmoticons: true,
-	enableBttvPersonalEmoticons: true
+	enableBttvPersonalEmoticons: true,
+
+	// Restricted mode
+	restrictedMode: false,
+	restrictedMessagesPerSecondLimit: 100,
+	restrictedChannelsLimit: 100,
+	restrictedServersLimit: 10,
+	restrictedNicknamesLimit: 100,
+	restrictedFriendsLimit: 500,
+	restrictedConnectionsLimit: 10
 };

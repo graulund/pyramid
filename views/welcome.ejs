@@ -18,7 +18,7 @@
 
 	<div class="settings__section" id="web">
 		<h2>Web</h2>
-<% if (appConfig.webPort !== 80) { %>
+<% if (!appConfig.restrictedMode) { %>
 		<div class="settings__setting">
 			<h3><label for="webPort">Web port</label></h3>
 			<input type="number" id="webPort" name="webPort"
@@ -35,10 +35,12 @@
 			<p>The password required to log in to use the client (does not have to be the same as any IRC passwords)</p>
 		</div>
 
+<% if (!appConfig.restrictedMode) { %>
 		<div class="settings__setting">
 			<h3><input type="checkbox" name="strongEncryptionMode" id="strongEncryptionMode"> <label for="strongEncryptionMode">Encrypt IRC passwords</label></h3>
 			<p>Requires that you log in to Pyramid before it can connect to IRC networks that require passwords, but it means that your passwords cannot be stolen.</p>
 		</div>
+<% } %>
 	</div>
 
 	<div class="settings__section" id="irc">

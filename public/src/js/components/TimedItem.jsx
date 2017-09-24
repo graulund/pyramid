@@ -133,7 +133,7 @@ class TimedItem extends PureComponent {
 				if (sts) {
 					const stsWidth = sts.getBoundingClientRect().width;
 					if (stsWidth > 35) {
-						this.root.style.paddingRight = (stsWidth + 15) + "px";
+						root.style.paddingRight = (stsWidth + 15) + "px";
 						return;
 					}
 				}

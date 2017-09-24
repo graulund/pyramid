@@ -1,5 +1,6 @@
 const _ = require("lodash");
 
+const constants = require("../constants");
 const configDefaults = require("../defaults");
 const passwordUtils = require("../util/passwords");
 
@@ -9,6 +10,7 @@ module.exports = function(db) {
 
 	var currentAppConfig = {};
 	var configValueChangeHandlers = {};
+	var restricted = false;
 
 	// Database core functions
 
@@ -83,6 +85,16 @@ module.exports = function(db) {
 			}
 		}
 
+		// Check if we're in restricted mode and deny change
+
+		if (
+			restricted &&
+			constants.RESTRICTED_APP_CONFIG_PROPERTIES.indexOf(name) >= 0
+		) {
+			callback(new Error("Restricted app config property"));
+			return;
+		}
+
 		db.storeConfigValue(
 			name,
 			value,
@@ -109,6 +121,25 @@ module.exports = function(db) {
 				}
 			}
 		);
+	};
+
+	const getRestrictionData = function() {
+		let mode = configValue("restrictedMode");
+		restricted = mode;
+
+		if (!mode) {
+			return null;
+		}
+
+		return {
+			// TODO: Implement messagesPerSecondLimit
+			messagesPerSecondLimit: configValue("restrictedMessagesPerSecondLimit"),
+			channelsLimit: configValue("restrictedChannelsLimit"),
+			serversLimit: configValue("restrictedServersLimit"),
+			nicknamesLimit: configValue("restrictedNicknamesLimit"),
+			friendsLimit: configValue("restrictedFriendsLimit"),
+			connectionsLimit: configValue("restrictedConnectionsLimit")
+		};
 	};
 
 	// Change handlers
@@ -139,6 +170,7 @@ module.exports = function(db) {
 		configValue,
 		currentAppConfig: () => currentAppConfig,
 		getConfigValue,
+		getRestrictionData,
 		loadAppConfig,
 		safeAppConfig,
 		storeConfigValue

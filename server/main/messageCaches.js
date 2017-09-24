@@ -23,6 +23,7 @@ module.exports = function(
 	var bunchableLinesToInsert = {};
 
 	var lineIdsToDelete = new Set();
+	var waitingLineInserts = [];
 
 	// Util -------------------------------------------------------------------
 
@@ -62,18 +63,17 @@ module.exports = function(
 		});
 	};
 
-	const _storeLine = function(channel, line, callback) {
+	const _storeLine = function(channel, line) {
 		if (channelIdCache[channel]) {
-			db.storeLine(channelIdCache[channel], line, callback);
+			line.channelId = channelIdCache[channel];
+			waitingLineInserts.push(line);
 		}
 	};
 
-	const storeLine = function(
-		channel, line, callback = function(){}
-	) {
+	const storeLine = function(channel, line) {
 
 		if (channelIdCache[channel]) {
-			_storeLine(channel, line, callback);
+			_storeLine(channel, line);
 		}
 
 		else {
@@ -81,7 +81,7 @@ module.exports = function(
 
 			// Add to db and store
 			addChannelToDb(channel, () => {
-				_storeLine(channel, line, callback);
+				_storeLine(channel, line);
 			});
 		}
 	};
@@ -318,6 +318,15 @@ module.exports = function(
 	};
 
 	// Schedules --------------------------------------------------------------
+
+	// Storing lines
+
+	const storeWaitingLines = function() {
+		let lines = waitingLineInserts.splice(0, 80);
+		db.storeLines(lines);
+	};
+
+	setInterval(storeWaitingLines, 1000);
 
 	// Bunchable lines
 

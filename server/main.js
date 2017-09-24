@@ -8,7 +8,7 @@ const pathUtils = require("./util/paths");
 // Basic state
 
 const awakeTime = new Date();
-var readyCallbacks = [], isReady = false;
+var readyCallbacks = [], isReady = false, restriction;
 
 // Sub model objects not requiring state
 
@@ -174,19 +174,36 @@ const initDependencies = function() {
 			}
 			else {
 				console.log("Dependencies loaded");
-				initStartup();
+				getAppConfigAndStartup();
 			}
 		}
 	);
 };
 
+const getAppConfigAndStartup = function() {
+	appConfig = require("./main/appConfig")(db);
+
+	appConfig.loadAppConfig(function(err) {
+		if (err) {
+			console.error("Got error during startup", err);
+			process.exit(1);
+		}
+
+		else {
+			console.log("Configuration loaded");
+			restriction = appConfig.getRestrictionData();
+			io.setRestriction(restriction);
+			initStartup();
+		}
+	});
+};
+
 const initStartup = function() {
-	appConfig        = require("./main/appConfig")(db);
 	channelData      = require("./main/channelData")(io);
-	friends          = require("./main/friends")(db);
-	ircConfig        = require("./main/ircConfig")(db, io);
+	friends          = require("./main/friends")(db, restriction);
+	ircConfig        = require("./main/ircConfig")(db, io, restriction);
 	lastSeen         = require("./main/lastSeen")(db);
-	nicknames        = require("./main/nicknames")(db);
+	nicknames        = require("./main/nicknames")(db, restriction);
 	recipients       = require("./main/recipients")(io);
 	serverData       = require("./main/serverData")(io);
 	unseenHighlights = require("./main/unseenHighlights")(io);
@@ -229,7 +246,6 @@ const initStartup = function() {
 const finalizeStartup = function() {
 	async.parallel(
 		[
-			appConfig.loadAppConfig,
 			friends.loadFriendsList,
 			ircConfig.loadIrcConfig,
 			lastSeen.loadLastSeenChannels,
@@ -242,7 +258,7 @@ const finalizeStartup = function() {
 				process.exit(1);
 			}
 			else {
-				console.log("Configuration loaded");
+				console.log("Data loaded");
 				ircPasswords.onStartUp();
 				irc.go();
 				web.go();
