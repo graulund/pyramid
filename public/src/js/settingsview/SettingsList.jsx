@@ -103,15 +103,17 @@ class SettingsList extends PureComponent {
 
 		const name = addName.value;
 
-		if (extraColumnName && addExtraContainer) {
-			const extraInput = addExtraContainer.querySelector(INPUT_SELECTOR);
-			const extra = extraInput.value;
+		if (name) {
+			if (extraColumnName && addExtraContainer) {
+				const extraInput = addExtraContainer.querySelector(INPUT_SELECTOR);
+				const extra = extraInput.value;
 
-			onAdd({ name, [extraColumnName]: extra });
-		}
+				onAdd({ name, [extraColumnName]: extra });
+			}
 
-		else {
-			onAdd({ name });
+			else {
+				onAdd({ name });
+			}
 		}
 
 		this.setState({ showingAddForm: null });
@@ -139,7 +141,9 @@ class SettingsList extends PureComponent {
 			}
 
 			names.forEach((name) => {
-				onAdd({ ...base, name });
+				if (name) {
+					onAdd({ ...base, name });
+				}
 			});
 		}
 
