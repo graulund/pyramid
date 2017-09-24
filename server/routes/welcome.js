@@ -161,9 +161,19 @@ module.exports = function(main) {
 		const friends = _.uniq(splitByLineBreak(reqBody.friends));
 
 		const friendActions = friends.map((friendName) => {
-			return (callback) => main.friends().addToFriends(
-				0, stringUtils.formatUriName(friendName), false, callback
-			);
+			return (callback) => {
+				let name = stringUtils.formatUriName(friendName);
+
+				if (name) {
+					return main.friends().addToFriends(
+						0, name, false, callback
+					);
+				}
+
+				else {
+					callback();
+				}
+			};
 		});
 
 		const strongEncryption = restricted

@@ -583,12 +583,15 @@ module.exports = function(main) {
 
 					if (tokenUtils.isAnAcceptedToken(details.token)) {
 						const message = stringUtils.normalise(details.message);
-						main.ircControl().sendOutgoingMessage(
-							details.channel, message, details.messageToken
-						);
 
-						if (details.messageToken) {
-							emitMessagePosted(socket, details.channel, details.messageToken);
+						if (message) {
+							main.ircControl().sendOutgoingMessage(
+								details.channel, message, details.messageToken
+							);
+
+							if (details.messageToken) {
+								emitMessagePosted(socket, details.channel, details.messageToken);
+							}
 						}
 					}
 				}
@@ -642,19 +645,21 @@ module.exports = function(main) {
 				if (details && details.username) {
 					const username = stringUtils.formatUriName(details.username);
 
-					main.friends().addToFriends(
-						0,
-						username,
-						parseInt(details.level) === 2,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred adding friend", err);
+					if (username) {
+						main.friends().addToFriends(
+							0,
+							username,
+							parseInt(details.level) === 2,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred adding friend", err);
+								}
+								else {
+									emitFriendsList(socket);
+								}
 							}
-							else {
-								emitFriendsList(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -663,22 +668,24 @@ module.exports = function(main) {
 				if (details && details.username && details.level) {
 					const username = stringUtils.formatUriName(details.username);
 
-					main.friends().modifyFriend(
-						0,
-						username,
-						{
-							isBestFriend:
-								parseInt(details.level) === 2
-						},
-						(err) => {
-							if (err) {
-								console.warn("Error occurred changing friend level", err);
+					if (username) {
+						main.friends().modifyFriend(
+							0,
+							username,
+							{
+								isBestFriend:
+									parseInt(details.level) === 2
+							},
+							(err) => {
+								if (err) {
+									console.warn("Error occurred changing friend level", err);
+								}
+								else {
+									emitFriendsList(socket);
+								}
 							}
-							else {
-								emitFriendsList(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -687,18 +694,20 @@ module.exports = function(main) {
 				if (details && details.username) {
 					const username = stringUtils.formatUriName(details.username);
 
-					main.friends().removeFromFriends(
-						0,
-						username,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred removing friend", err);
+					if (username) {
+						main.friends().removeFromFriends(
+							0,
+							username,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred removing friend", err);
+								}
+								else {
+									emitFriendsList(socket);
+								}
 							}
-							else {
-								emitFriendsList(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -743,24 +752,26 @@ module.exports = function(main) {
 				if (details && details.name && details.data) {
 					const name = stringUtils.formatUriName(details.name);
 
-					main.ircConfig().modifyServerInIrcConfig(
-						name, details.data,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred changing irc server", err);
+					if (name) {
+						main.ircConfig().modifyServerInIrcConfig(
+							name, details.data,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred changing irc server", err);
+								}
+								else {
+									emitIrcConfig(
+										socket,
+										() => {
+											let ircControl = main.ircControl();
+											ircControl.disconnectAndRemoveIrcServer(name);
+											ircControl.connectUnconnectedIrcs();
+										}
+									);
+								}
 							}
-							else {
-								emitIrcConfig(
-									socket,
-									() => {
-										let ircControl = main.ircControl();
-										ircControl.disconnectAndRemoveIrcServer(name);
-										ircControl.connectUnconnectedIrcs();
-									}
-								);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -769,21 +780,23 @@ module.exports = function(main) {
 				if (details && details.name) {
 					const name = stringUtils.formatUriName(details.name);
 
-					main.ircConfig().removeServerFromIrcConfig(
-						name,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred removing irc server", err);
+					if (name) {
+						main.ircConfig().removeServerFromIrcConfig(
+							name,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred removing irc server", err);
+								}
+								else {
+									emitIrcConfig(
+										socket,
+										() => main.ircControl().
+											disconnectAndRemoveIrcServer(name)
+									);
+								}
 							}
-							else {
-								emitIrcConfig(
-									socket,
-									() => main.ircControl().
-										disconnectAndRemoveIrcServer(name)
-								);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -793,18 +806,20 @@ module.exports = function(main) {
 					const serverName = stringUtils.formatUriName(details.serverName);
 					const name = stringUtils.formatUriName(details.name);
 
-					main.ircConfig().addChannelToIrcConfig(
-						serverName, name, constants.CHANNEL_TYPES.PUBLIC, {},
-						(err) => {
-							if (err) {
-								console.warn("Error occurred adding irc channel", err);
+					if (serverName && name) {
+						main.ircConfig().addChannelToIrcConfig(
+							serverName, name, constants.CHANNEL_TYPES.PUBLIC, {},
+							(err) => {
+								if (err) {
+									console.warn("Error occurred adding irc channel", err);
+								}
+								else {
+									main.ircControl().joinIrcChannel(serverName, name);
+									emitIrcConfig(socket);
+								}
 							}
-							else {
-								main.ircControl().joinIrcChannel(serverName, name);
-								emitIrcConfig(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -814,18 +829,20 @@ module.exports = function(main) {
 					const serverName = stringUtils.formatUriName(details.serverName);
 					const name = stringUtils.formatUriName(details.name);
 
-					main.ircConfig().removeChannelFromIrcConfig(
-						serverName, name,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred removing irc channel", err);
+					if (serverName && name) {
+						main.ircConfig().removeChannelFromIrcConfig(
+							serverName, name,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred removing irc channel", err);
+								}
+								else {
+									main.ircControl().partIrcChannel(serverName, name);
+									emitIrcConfig(socket);
+								}
 							}
-							else {
-								main.ircControl().partIrcChannel(serverName, name);
-								emitIrcConfig(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -841,21 +858,23 @@ module.exports = function(main) {
 					let serverName = stringUtils.formatUriName(details.serverName);
 					let channelName = stringUtils.formatUriName(details.channelName);
 
-					main.ircConfig().modifyChannelInIrcConfig(
-						serverName, channelName,
-						{ channelConfig: { [key]: value } },
-						(err) => {
-							if (err) {
-								console.warn(
-									"Error occurred setting channel config value",
-									err
-								);
+					if (serverName && channelName) {
+						main.ircConfig().modifyChannelInIrcConfig(
+							serverName, channelName,
+							{ channelConfig: { [key]: value } },
+							(err) => {
+								if (err) {
+									console.warn(
+										"Error occurred setting channel config value",
+										err
+									);
+								}
+								else {
+									emitIrcConfig(socket);
+								}
 							}
-							else {
-								emitIrcConfig(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -864,17 +883,19 @@ module.exports = function(main) {
 				if (details && details.nickname) {
 					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.nicknames().addNickname(
-						nickname,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred adding nickname", err);
+					if (nickname) {
+						main.nicknames().addNickname(
+							nickname,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred adding nickname", err);
+								}
+								else {
+									emitNicknames(socket);
+								}
 							}
-							else {
-								emitNicknames(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -883,21 +904,23 @@ module.exports = function(main) {
 				if (details && details.nickname && details.key) {
 					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.nicknames().modifyNickname(
-						nickname,
-						{ [details.key]: details.value },
-						(err) => {
-							if (err) {
-								console.warn(
-									"Error occurred changing nickname value",
-									err
-								);
+					if (nickname) {
+						main.nicknames().modifyNickname(
+							nickname,
+							{ [details.key]: details.value },
+							(err) => {
+								if (err) {
+									console.warn(
+										"Error occurred changing nickname value",
+										err
+									);
+								}
+								else {
+									emitNicknames(socket);
+								}
 							}
-							else {
-								emitNicknames(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -906,17 +929,19 @@ module.exports = function(main) {
 				if (details && details.nickname) {
 					const nickname = stringUtils.lowerClean(details.nickname);
 
-					main.nicknames().removeNickname(
-						nickname,
-						(err) => {
-							if (err) {
-								console.warn("Error occurred removing nickname", err);
+					if (nickname) {
+						main.nicknames().removeNickname(
+							nickname,
+							(err) => {
+								if (err) {
+									console.warn("Error occurred removing nickname", err);
+								}
+								else {
+									emitNicknames(socket);
+								}
 							}
-							else {
-								emitNicknames(socket);
-							}
-						}
-					);
+						);
+					}
 				}
 			});
 
@@ -924,7 +949,10 @@ module.exports = function(main) {
 				if (!tokenUtils.isAnAcceptedToken(connectionToken)) { return; }
 				if (details && details.name) {
 					const name = stringUtils.formatUriName(details.name);
-					main.ircControl().reconnectIrcServer(name);
+
+					if (name) {
+						main.ircControl().reconnectIrcServer(name);
+					}
 				}
 			});
 

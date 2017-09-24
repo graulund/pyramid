@@ -333,56 +333,62 @@ module.exports = function(db, io, restriction) {
 			const name = stringUtils.formatUriName(details.name);
 			const data = _.assign({}, details.data, { name });
 
-			addServerToIrcConfig(
-				data,
-				(err) => {
-					if (err) {
-						callback(err);
-					}
-					else {
-						// Add all channels
-						if (data.channels) {
-							const channelNames = [];
-							const channelList = Array.isArray(data.channels)
-								? data.channels
-								: Object.keys(data.channels);
+			if (name) {
+				addServerToIrcConfig(
+					data,
+					(err) => {
+						if (err) {
+							callback(err);
+						}
+						else {
+							// Add all channels
+							if (data.channels) {
+								const channelNames = [];
+								const channelList = Array.isArray(data.channels)
+									? data.channels
+									: Object.keys(data.channels);
 
-							channelList.forEach((channel) => {
-								const channelName = channel.name || channel;
+								channelList.forEach((channel) => {
+									const channelName = channel.name || channel;
 
-								if (typeof channelName === "string" && channelName) {
-									channelNames.push(stringUtils.formatUriName(channelName));
+									if (typeof channelName === "string" && channelName) {
+										let cn = stringUtils.formatUriName(channelName);
+
+										if (cn) {
+											channelNames.push(cn);
+										}
+									}
+								});
+
+								if (channelNames.length) {
+									async.parallel(
+										channelNames.map((channelName) =>
+											((callback) => addChannelToIrcConfig(
+												name,
+												channelName,
+												CHANNEL_TYPES.PUBLIC,
+												{},
+												callback
+											))
+										),
+										callback
+									);
 								}
-							});
-
-							if (channelNames.length) {
-								async.parallel(
-									channelNames.map((channelName) =>
-										((callback) => addChannelToIrcConfig(
-											name,
-											channelName,
-											CHANNEL_TYPES.PUBLIC,
-											{},
-											callback
-										))
-									),
-									callback
-								);
+								else {
+									callback();
+								}
 							}
 							else {
 								callback();
 							}
 						}
-						else {
-							callback();
-						}
 					}
-				}
-			);
+				);
+				return;
+			}
 		}
-		else {
-			callback(new Error("Insufficient data"));
-		}
+
+		callback(new Error("Insufficient data"));
 	};
 
 	// Restrictions
