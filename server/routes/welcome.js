@@ -79,6 +79,7 @@ module.exports = function(main) {
 		};
 
 		const reqBody = req.body;
+		const restricted = config.restrictedMode;
 
 		var ircData;
 
@@ -165,7 +166,9 @@ module.exports = function(main) {
 			);
 		});
 
-		const strongEncryption = !!reqBody.strongEncryptionMode;
+		const strongEncryption = restricted
+			? config.strongEncryptionMode // no override allowed
+			: !!reqBody.strongEncryptionMode;
 
 		if (strongEncryption) {
 			main.ircPasswords().onDecryptionKey(reqBody.webPassword);
@@ -200,7 +203,7 @@ module.exports = function(main) {
 						callback();
 					},
 					(callback) => {
-						if (reqBody.webPort) {
+						if (!restricted && reqBody.webPort) {
 							return main.appConfig().storeConfigValue(
 								"webPort", reqBody.webPort, callback
 							);
