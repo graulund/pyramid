@@ -32,6 +32,7 @@ module.exports = function(db) {
 				}
 			}
 			else {
+				console.log("currentAppConfig", currentAppConfig);
 				currentAppConfig = data;
 				if (typeof callback === "function") {
 					callback(null, data);

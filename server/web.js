@@ -84,6 +84,7 @@ module.exports = function(main, io) {
 
 		let certPath = config("httpsCertPath");
 		let keyPath = config("httpsKeyPath");
+		let webHostname = config("webHostname");
 		let webPort = config("webPort");
 
 		if (keyPath && certPath) {
@@ -93,12 +94,14 @@ module.exports = function(main, io) {
 				certPath,
 				keyPath,
 				server,
+				webHostname,
 				webPort
 			});
 		} else {
 			// Plain HTTP server
-			server = app.listen(webPort, function() {
-				console.log("Listening on port %d", server.address().port);
+			server = app.listen(webPort, webHostname, function() {
+				let a = server.address();
+				console.log(`Listening on ${a.address}:${a.port}`);
 			});
 		}
 

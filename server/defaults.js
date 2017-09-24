@@ -12,6 +12,8 @@ module.exports = {
 	httpsKeyPath: "",
 
 	timeZone: "UTC",
+
+	webHostname: undefined,
 	webPort: 8887,
 
 	// Encryption mode

@@ -4,7 +4,7 @@ const path = require("path");
 
 const chokidar = require("chokidar");
 
-var server, keyPath, certPath, webPort, app;
+var server, keyPath, certPath, webHostname, webPort, app;
 var fileChanges = { key: false, cert: false };
 
 function watchCertFile(filename, name) {
@@ -62,8 +62,9 @@ function startServer(keyData, certData) {
 	server = https.createServer(
 		{ key: keyData, cert: certData },
 		app
-	).listen(webPort, undefined, undefined, function(){
-		console.log("Listening securely on port %d", server.address().port);
+	).listen(webPort, webHostname, undefined, function(){
+		let a = server.address();
+		console.log(`Listening securely on ${a.address}:${a.port}`);
 	});
 
 	return server;
@@ -72,6 +73,7 @@ function startServer(keyData, certData) {
 function setUp(values) {
 	keyPath = values.keyPath;
 	certPath = values.certPath;
+	webHostname = values.webHostname;
 	webPort = values.webPort;
 	app = values.app;
 
