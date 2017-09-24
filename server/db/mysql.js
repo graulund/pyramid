@@ -908,11 +908,6 @@ const mainMethods = function(main, db) {
 			});
 		});
 
-		console.log(
-			new Date().toISOString() + ": Storing " +
-			amount + " lines"
-		);
-
 		db.query(
 			u.miq("chatLines", [
 				"lineId",

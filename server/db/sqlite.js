@@ -904,11 +904,6 @@ const mainMethods = function(main, db) {
 			});
 		});
 
-		console.log(
-			new Date().toISOString() + ": Storing " +
-			amount + " lines"
-		);
-
 		db.run(
 			u.miq("lines", [
 				"lineId",
