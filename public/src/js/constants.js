@@ -94,5 +94,6 @@ export const RESTRICTED_APP_CONFIG_PROPERTIES = [
 	"retainDbType",
 	"retainDbValue",
 	"strongIrcPasswordEncryption",
+	"webHostname",
 	"webPort"
 ];

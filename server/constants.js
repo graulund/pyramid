@@ -84,6 +84,7 @@ module.exports = {
 		"retainDbType",
 		"retainDbValue",
 		"strongIrcPasswordEncryption",
+		"webHostname",
 		"webPort"
 	]
 };
