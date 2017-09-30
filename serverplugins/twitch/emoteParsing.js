@@ -118,7 +118,14 @@ const generateCheerIndices = function(message, cheerData, emotes = []) {
 		if (cheer && cheer.tiers && cheer.tiers.length) {
 			indices.forEach(({ first, last }) => {
 				let str = message.substring(first, last + 1);
-				let amount = parseInt(str.match(/\d+$/)[0], 10);
+				let amountMatch = str.match(/\d+$/);
+
+				if (!amountMatch || !amountMatch.length) {
+					console.warn("Aborted parsing cheermote:", str);
+					return;
+				}
+
+				let amount = parseInt(amountMatch[0], 10);
 
 				if (amount <= 0) {
 					return;
