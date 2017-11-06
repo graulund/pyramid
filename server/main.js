@@ -154,7 +154,9 @@ const addReadyCallback = function(callback) {
 };
 
 const fireReadyCallbacks = function() {
+	isReady = true;
 	readyCallbacks.forEach((callback) => callback());
+	readyCallbacks = [];
 };
 
 // Startup
