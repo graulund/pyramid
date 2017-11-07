@@ -314,7 +314,10 @@ module.exports = function(
 	};
 
 	const resetChannelBunch = function(channel) {
-		currentBunchedMessage[channel] = null;
+		if (currentBunchedMessage[channel]) {
+			currentBunchedMessage[channel] = null;
+			delete currentBunchedMessage[channel];
+		}
 	};
 
 	// Schedules --------------------------------------------------------------
