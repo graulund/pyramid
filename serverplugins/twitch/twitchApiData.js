@@ -4,6 +4,12 @@ const util = require("./util");
 var emoticonImages = {};
 var cheerData = {};
 
+// DEBUG
+setInterval(function() {
+	console.log("twitch emoticonImages keys:", Object.keys(emoticonImages).length);
+	console.log("twitch cheerData keys:", Object.keys(cheerData).length);
+}, 10000);
+
 const ROOM_ID_GLOBAL = 0;
 
 const getEmoticonImages = function(emoteSetsString) {

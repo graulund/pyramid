@@ -5,6 +5,12 @@ const twitchApiData = require("./twitchApiData");
 var userStates = {};
 var globalUserStates = {};
 
+// DEBUG
+setInterval(function() {
+	console.log("twitch userStates keys:", Object.keys(userStates).length);
+	console.log("twitch globalUserStates keys:", Object.keys(globalUserStates).length);
+}, 10000);
+
 const getUserState = function(channel) {
 	return userStates[channel];
 };

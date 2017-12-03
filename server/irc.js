@@ -17,6 +17,13 @@ module.exports = function(main) {
 	let clients = [], multiServerChannels = [], debug = false;
 	let clientsWaitingForPassword = [];
 
+	// DEBUG
+	setInterval(function() {
+		console.log("IRC clients:", clients.length);
+		console.log("IRC multiServerChannels:", multiServerChannels.length);
+		console.log("IRC clientsWaitingForPassword:", clientsWaitingForPassword.length);
+	}, 10000);
+
 	// "Multi server channels" are channel names that exist on more than one connection,
 	// and thus connection needs to be specified upon mention of this channel name,
 	// in order to disambiguate.

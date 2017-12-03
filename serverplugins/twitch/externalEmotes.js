@@ -16,6 +16,12 @@ const EXTERNAL_CHANNEL_EMOTE_ENDPOINTS = [
 var externalGlobalEmotes = [];
 var externalChannelEmotes = {};
 
+// DEBUG
+setInterval(function() {
+	console.log("externalGlobalEmotes:", externalGlobalEmotes.length);
+	console.log("externalChannelEmotes keys:", Object.keys(externalChannelEmotes).length);
+}, 10000);
+
 // Utility
 
 const parseExternalEmoticon = function(type, data) {

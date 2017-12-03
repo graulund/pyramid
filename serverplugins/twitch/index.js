@@ -19,6 +19,13 @@ const MIN_TIME_BETWEEN_GROUP_CHAT_CALLS_MS = 10000;
 var twitchChannelCache = [], twitchRoomIdCache = {};
 var lastGroupChatCallTimes = {};
 
+// DEBUG
+setInterval(function() {
+	console.log("twitch twitchChannelCache:", twitchChannelCache.length);
+	console.log("twitch twitchRoomIdCache keys:", Object.keys(twitchRoomIdCache).length);
+	console.log("twitch lastGroupChatCallTimes keys:", Object.keys(lastGroupChatCallTimes).length);
+}, 10000);
+
 module.exports = function(main) {
 
 	util.setMain(main);

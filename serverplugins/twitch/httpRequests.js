@@ -10,6 +10,12 @@ const CHECK_REQUESTS_INTERVAL_MS = 500;
 var requestQueue = {}; // Format: { host: [requests...] }
 var numQueued = 0;
 
+// DEBUG
+setInterval(function() {
+	console.log("twitch numQueued:", numQueued);
+	console.log("twitch requestQueue keys:", Object.keys(requestQueue).length);
+}, 10000);
+
 function queueRequest(options, callback) {
 	let urlString = options && options.url;
 	var url;

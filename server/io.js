@@ -28,6 +28,11 @@ module.exports = function(main) {
 		}
 	};
 
+	// DEBUG
+	setInterval(function() {
+		console.log("IO connections:", allConnections.length);
+	}, 10000);
+
 	const isConnectionsLimitReached = function() {
 		if (!restriction) {
 			return false;
