@@ -43,8 +43,8 @@
 		"request": "^2.81.0",
 		"sanitize-filename": "^1.6.1",
 		"socket.io": "^2.0.1",
-		"sodium": "^2.0.1",
-		"sqlite3": "^3.1.8",
+		"sodium": "^3.0.2",
+		"sqlite3": "^5.0.2",
 		"uuid": "^3.0.1"
 	},
 	"devDependencies": {
