@@ -132,7 +132,7 @@ function _getConversationData(
 	return {
 		server,
 		userDisplayName: otherDisplayName,
-		username: otherParticipant,
+		username: otherParticipant
 	};
 }
 

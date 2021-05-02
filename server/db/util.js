@@ -64,15 +64,15 @@ const oq = function(col, isDesc = false) {
 
 const sq = function(table, selectCols, whereCols = [], joins = "") {
 	const select = selectCols.join(", ");
-	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	const where = whereCols.map((w) => `${w} = $${w}`).join(" AND ");
 	return `SELECT ${select} FROM ${table}` +
 		(joins ? " " + joins : "") +
 		(where ? ` WHERE ${where}` : "");
 };
 
 const uq = function(table, setCols, whereCols) {
-	const set = setCols.map((s) => `${s} = \$${s}`).join(", ");
-	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	const set = setCols.map((s) => `${s} = $${s}`).join(", ");
+	const where = whereCols.map((w) => `${w} = $${w}`).join(" AND ");
 	return `UPDATE ${table} SET ${set} WHERE ${where}`;
 };
 
@@ -96,7 +96,7 @@ const miq = function(table, colNames, amount) {
 };
 
 const dq = function(table, whereCols) {
-	const where = whereCols.map((w) => `${w} = \$${w}`).join(" AND ");
+	const where = whereCols.map((w) => `${w} = $${w}`).join(" AND ");
 	return `DELETE FROM ${table} WHERE ${where}`;
 };
 

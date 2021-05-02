@@ -4,16 +4,12 @@ module.exports = {
 		"es6": true
 	},
 	"extends": ["eslint:recommended", "plugin:react/recommended"],
-	"parser": "babel-eslint",
+	"parser": "@babel/eslint-parser",
 	"parserOptions": {
 		"ecmaFeatures": {
 			"jsx": true
 		}
 	},
-	"plugins": [
-		"standard",
-		"promise"
-	],
 	"rules": {
 		"eqeqeq": [2, "smart"],
 		"indent": 0,

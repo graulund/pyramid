@@ -49,11 +49,9 @@ class UserLink extends PureComponent {
 		var isFriend = false;
 
 		for (var list in friendsList) {
-			if (friendsList.hasOwnProperty(list)) {
-				if (friendsList[list].indexOf(username) >= 0) {
-					isFriend = true;
-					break;
-				}
+			if (friendsList[list] && friendsList[list].indexOf(username) >= 0) {
+				isFriend = true;
+				break;
 			}
 		}
 

@@ -30,7 +30,7 @@ const VersionNumber = function(props) {
 
 	var text = verbose ? `${VERSION} ${buildText}` : buildText;
 
-	if (__DEV__) {
+	if (process.env.NODE_ENV !== "production") {
 		text += verbose ? " (dev)" : " dev";
 	}
 

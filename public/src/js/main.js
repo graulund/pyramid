@@ -25,7 +25,7 @@ import { initVisualBehavior, isMobile } from "./lib/visualBehavior";
 
 import "../scss/site.scss";
 
-if (__DEV__) {
+if (process.env.NODE_ENV !== "production") {
 	window.Perf = require("react-addons-perf");
 	/** /
 	const { whyDidYouUpdate } = require("why-did-you-update");

@@ -42,7 +42,7 @@ class ChatBunchedEventsLine extends PureComponent {
 
 		var {
 			earliestTime,
-			latestTime,
+			latestTime
 		} = this.props;
 
 		const { expanded } = this.state;

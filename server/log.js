@@ -110,7 +110,7 @@ const lineFormats = {
 
 			return `*** ${status} ${by} ${server}`;
 		}
-	},
+	}
 };
 
 const getLogLineFromData = function(type, data) {

@@ -103,11 +103,11 @@ export function settingsUrl(settingsPageName) {
 }
 
 export function parseUserUrl(pathname) {
-	return pathname.match(/^\/user\/([^\/]+)\/?$/);
+	return pathname.match(/^\/user\/([^/]+)\/?$/);
 }
 
 export function parseUserLogUrl(pathname) {
-	return pathname.match(/^\/user\/([^\/]+)\/log\/([^\/]+)\/?$/);
+	return pathname.match(/^\/user\/([^/]+)\/log\/([^/]+)\/?$/);
 }
 
 export function parseChannelUrl(pathname) {
@@ -115,15 +115,15 @@ export function parseChannelUrl(pathname) {
 }
 
 export function parseChannelLogUrl(pathname) {
-	return pathname.match(/^\/channel\/(.+?)\/log\/([^\/]+)\/?$/);
+	return pathname.match(/^\/channel\/(.+?)\/log\/([^/]+)\/?$/);
 }
 
 export function parseConversationUrl(pathname) {
-	return pathname.match(/^\/conversation\/([^\/]+)\/([^\/]+)\/?$/);
+	return pathname.match(/^\/conversation\/([^/]+)\/([^/]+)\/?$/);
 }
 
 export function parseConversationLogUrl(pathname) {
-	return pathname.match(/^\/conversation\/([^\/]+)\/([^\/]+)\/log\/([^\/]+)\/?$/);
+	return pathname.match(/^\/conversation\/([^/]+)\/([^/]+)\/log\/([^/]+)\/?$/);
 }
 
 export function parseCategoryUrl(pathname) {
@@ -138,7 +138,7 @@ export function parseCategoryUrl(pathname) {
 }
 
 export function parseSettingsUrl(pathname) {
-	return pathname.match(/^\/settings(\/([^\/]+))?\/?$/);
+	return pathname.match(/^\/settings(\/([^/]+))?\/?$/);
 }
 
 export const settingsPattern = "/settings/:pageName?";

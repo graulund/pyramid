@@ -45,8 +45,7 @@ const queryFormatter = function (query, values) {
 	}
 
 	let formatted = query.replace(/\$(\w+)/g, function (key) {
-
-		if (values.hasOwnProperty(key)) {
+		if (values[key]) {
 			return this.escape(values[key]);
 		}
 

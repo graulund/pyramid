@@ -145,7 +145,7 @@ export class RGBAColor {
 		var cvd;
 
 		if (typeof type === "number" || typeof type === "string") {
-			if (CVDMatrix.hasOwnProperty(type)) {
+			if (CVDMatrix[type]) {
 				cvd = CVDMatrix[type];
 			}
 			else {
@@ -233,7 +233,7 @@ export class RGBAColor {
 			return RGBAColor.fromHex(rgb);
 		}
 
-		var match = /rgba?\( *(\d+%?) *, *(\d+%?) *, *(\d+%?) *(?:, *([\d\.]+))?\)/
+		var match = /rgba?\( *(\d+%?) *, *(\d+%?) *, *(\d+%?) *(?:, *([\d.]+))?\)/
 			.exec(rgb);
 
 		if (match) {
@@ -465,7 +465,7 @@ export function fixColorContrast(color, colorBlindness = 0) {
 		return null;
 	}
 
-	if (cachedHexColors.hasOwnProperty(color)) {
+	if (cachedHexColors[color]) {
 		return cachedHexColors[color];
 	}
 

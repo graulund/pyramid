@@ -7,7 +7,7 @@ import reducers from "./reducers/index";
 
 var composeWithDevTools;
 
-if (__DEV__) {
+if (process.env.NODE_ENV !== "production") {
 	composeWithDevTools = require("redux-devtools-extension").composeWithDevTools;
 }
 
