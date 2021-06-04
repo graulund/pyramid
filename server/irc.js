@@ -63,6 +63,10 @@ module.exports = function(main) {
 	const getChannelUri = function(chobj) {
 		let { client, channel, server } = chobj;
 
+		if (!channel) {
+			return "";
+		}
+
 		// Public channel
 		if (
 			channel[0] === "#" ||
