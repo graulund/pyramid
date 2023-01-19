@@ -24,6 +24,14 @@ const clientIdRequest = function(url, callback, extraOptions = {}) {
 };
 
 const krakenGetRequest = function(commandName, query, callback) {
+	// TODO: Use new API, one day. Twitch Legacy v5 API (Kraken) was decommissioned in 2022
+	if (typeof callback === "function") {
+		callback({ message: "Legacy Twitch API v5 decommissioned" });
+	}
+
+	return;
+
+	/*
 	const queryString = query ? qs.stringify(query) : "";
 	return clientIdRequest(
 		KRAKEN_BASE_URI + commandName +
@@ -31,6 +39,7 @@ const krakenGetRequest = function(commandName, query, callback) {
 		callback,
 		{ headers: { Accept: "application/vnd.twitchtv.v5+json" } }
 	);
+	*/
 };
 
 const chatdepotGetRequest = function(commandName, password, query, callback) {
